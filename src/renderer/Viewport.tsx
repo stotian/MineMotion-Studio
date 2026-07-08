@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { CameraEntity, MineMotionProject } from "../project/ProjectFile";
+import type { ViewportSettings } from "../settings/AppSettings";
 import { findObject } from "../project/ProjectStore";
 import { SceneRenderer } from "./SceneRenderer";
 
@@ -8,13 +9,17 @@ interface ViewportProps {
   selectedObjectId: string | null;
   onSelectObject: (objectId: string | null) => void;
   lookThroughCameraRequest: number;
+  resetCameraRequest: number;
+  viewportSettings: ViewportSettings;
 }
 
 export function Viewport({
   project,
   selectedObjectId,
   onSelectObject,
-  lookThroughCameraRequest
+  lookThroughCameraRequest,
+  resetCameraRequest,
+  viewportSettings
 }: ViewportProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<SceneRenderer | null>(null);
@@ -36,8 +41,8 @@ export function Viewport({
   }, [onSelectObject]);
 
   useEffect(() => {
-    rendererRef.current?.renderProject(project, selectedObjectId);
-  }, [project, selectedObjectId]);
+    rendererRef.current?.renderProject(project, selectedObjectId, viewportSettings);
+  }, [project, selectedObjectId, viewportSettings]);
 
   const selectedCamera = useMemo(() => {
     const lookup = findObject(project, selectedObjectId);
@@ -53,6 +58,12 @@ export function Viewport({
     }
   }, [lookThroughCameraRequest, selectedCamera]);
 
+  useEffect(() => {
+    if (resetCameraRequest > 0 && project.scene.cameras[0]) {
+      rendererRef.current?.lookThroughCamera(project.scene.cameras[0]);
+    }
+  }, [resetCameraRequest, project.scene.cameras]);
+
   return (
     <section className="viewport-shell" aria-label="3D viewport">
       <div className="viewport-toolbar">
@@ -65,4 +76,3 @@ export function Viewport({
     </section>
   );
 }
-

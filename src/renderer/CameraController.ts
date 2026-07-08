@@ -42,8 +42,21 @@ export class CameraController {
     this.controls.update();
   }
 
+  applySpeeds({
+    orbitSpeed,
+    panSpeed,
+    zoomSpeed
+  }: {
+    orbitSpeed: number;
+    panSpeed: number;
+    zoomSpeed: number;
+  }): void {
+    this.controls.rotateSpeed = orbitSpeed;
+    this.controls.panSpeed = panSpeed;
+    this.controls.zoomSpeed = zoomSpeed;
+  }
+
   dispose(): void {
     this.controls.dispose();
   }
 }
-

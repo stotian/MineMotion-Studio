@@ -1,9 +1,26 @@
 import * as THREE from "three";
 import { getMaterialForBlock } from "../renderer/MinecraftMaterialSystem";
+import type { TerrainPresetId } from "../project/ProjectFile";
 import type { BlockId, ChunkData } from "./MinecraftWorldTypes";
 import { listRenderableBlockIds } from "./BlockPalette";
 
 export class ChunkMeshBuilder {
+  static createChunkForPreset(preset: TerrainPresetId): ChunkData | null {
+    if (preset === "none") {
+      return null;
+    }
+
+    if (preset === "flat") {
+      return ChunkMeshBuilder.createFlatChunk();
+    }
+
+    if (preset === "nether") {
+      return ChunkMeshBuilder.createNetherChunk();
+    }
+
+    return ChunkMeshBuilder.createDemoChunk();
+  }
+
   static createDemoChunk(): ChunkData {
     const blocks: ChunkData["blocks"] = [];
     const width = 18;
@@ -40,6 +57,55 @@ export class ChunkMeshBuilder {
       id: "demo_chunk",
       origin: [0, 0, 0],
       size: [width, 8, depth],
+      blocks
+    };
+  }
+
+  static createFlatChunk(): ChunkData {
+    const blocks: ChunkData["blocks"] = [];
+    const width = 18;
+    const depth = 18;
+
+    for (let x = 0; x < width; x += 1) {
+      for (let z = 0; z < depth; z += 1) {
+        blocks.push({ id: "dirt", position: [x - width / 2, 0, z - depth / 2] });
+        blocks.push({ id: "grass", position: [x - width / 2, 1, z - depth / 2] });
+      }
+    }
+
+    return {
+      id: "flat_chunk",
+      origin: [0, 0, 0],
+      size: [width, 2, depth],
+      blocks
+    };
+  }
+
+  static createNetherChunk(): ChunkData {
+    const blocks: ChunkData["blocks"] = [];
+    const width = 16;
+    const depth = 16;
+
+    for (let x = 0; x < width; x += 1) {
+      for (let z = 0; z < depth; z += 1) {
+        const height = 1 + ((x + z) % 3 === 0 ? 1 : 0);
+        for (let y = 0; y <= height; y += 1) {
+          blocks.push({
+            id: y === height ? "stone" : "dirt",
+            position: [x - width / 2, y, z - depth / 2]
+          });
+        }
+      }
+    }
+
+    for (let x = -3; x <= 3; x += 1) {
+      blocks.push({ id: "glass", position: [x, 2, -4] });
+    }
+
+    return {
+      id: "nether_mood_chunk",
+      origin: [0, 0, 0],
+      size: [width, 4, depth],
       blocks
     };
   }
@@ -110,4 +176,3 @@ export class ChunkMeshBuilder {
     }
   }
 }
-

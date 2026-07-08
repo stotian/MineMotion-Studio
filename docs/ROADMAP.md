@@ -12,6 +12,18 @@
 - OBJ import.
 - Documentation and tests.
 
+## Phase 1.5: Productization And Presets
+
+- App settings.
+- Project settings and schema v2 migration.
+- Templates.
+- Camera, rig pose, animation, block palette, and sky presets.
+- Command palette.
+- Undo/redo.
+- Autosave.
+- Plugin registry skeleton and plugin manager UI.
+- Documentation and expanded tests.
+
 ## Phase 2: Real World Import
 
 - Read compressed `level.dat`.
@@ -69,12 +81,13 @@
 - Storyboard panels.
 - Shot presets.
 
-## Phase 8: Plugin System
+## Phase 8: External Plugin System
 
+- Plugin package format.
+- Safe execution model.
 - Custom importers.
 - Custom rigs.
 - Custom block definitions.
 - Custom sky presets.
 - Scripting hooks.
 - Asset/template marketplace architecture.
-

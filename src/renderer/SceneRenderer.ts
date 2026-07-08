@@ -13,6 +13,7 @@ import { createSolidMaterial } from "./MinecraftMaterialSystem";
 import { SkySystem } from "./SkySystem";
 import { createGridFloor } from "./GridFloor";
 import { CameraController } from "./CameraController";
+import type { ViewportSettings } from "../settings/AppSettings";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -31,6 +32,7 @@ export class SceneRenderer {
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
   private readonly sceneRoot = new THREE.Group();
+  private readonly gridFloor = createGridFloor();
   private readonly selectionBox = new THREE.BoxHelper(new THREE.Object3D(), 0xf7d56b);
   private animationFrame = 0;
   private selectedObjectId: string | null = null;
@@ -52,7 +54,7 @@ export class SceneRenderer {
     this.directionalLight.position.set(8, 16, 10);
     this.directionalLight.castShadow = true;
     this.scene.add(this.ambientLight, this.directionalLight);
-    this.scene.add(createGridFloor());
+    this.scene.add(this.gridFloor);
     this.scene.add(this.sceneRoot);
     this.selectionBox.visible = false;
     this.scene.add(this.selectionBox);
@@ -63,9 +65,16 @@ export class SceneRenderer {
     this.animate();
   }
 
-  renderProject(project: MineMotionProject, selectedObjectId: string | null): void {
+  renderProject(
+    project: MineMotionProject,
+    selectedObjectId: string | null,
+    viewportSettings?: ViewportSettings
+  ): void {
     this.project = project;
     this.selectedObjectId = selectedObjectId;
+    if (viewportSettings) {
+      this.applyViewportSettings(viewportSettings);
+    }
     SkySystem.apply(
       this.scene,
       this.ambientLight,
@@ -94,13 +103,16 @@ export class SceneRenderer {
   private rebuildSceneRoot(project: MineMotionProject): void {
     this.sceneRoot.clear();
 
-    const terrain = ChunkMeshBuilder.buildInstancedChunk(
-      ChunkMeshBuilder.createDemoChunk()
+    const terrainChunk = ChunkMeshBuilder.createChunkForPreset(
+      project.projectSettings.terrainPreset
     );
-    terrain.name = project.world
-      ? `Imported World Placeholder: ${project.world.sourceName}`
-      : "Demo Minecraft Terrain";
-    this.sceneRoot.add(terrain);
+    if (terrainChunk) {
+      const terrain = ChunkMeshBuilder.buildInstancedChunk(terrainChunk);
+      terrain.name = project.world
+        ? `Imported World Placeholder: ${project.world.sourceName}`
+        : `${project.projectSettings.terrainPreset} terrain`;
+      this.sceneRoot.add(terrain);
+    }
 
     for (const character of project.scene.characters) {
       if (!character.visible) continue;
@@ -109,6 +121,7 @@ export class SceneRenderer {
 
     for (const camera of project.scene.cameras) {
       if (!camera.visible) continue;
+      if (this.gridFloor.userData.hideCameras) continue;
       this.sceneRoot.add(this.createCameraObject(camera));
     }
 
@@ -196,6 +209,20 @@ export class SceneRenderer {
     object.scale.set(transform.scale[0], transform.scale[1], transform.scale[2]);
   }
 
+  private applyViewportSettings(settings: ViewportSettings): void {
+    this.gridFloor.visible = settings.gridEnabled;
+    this.gridFloor.scale.setScalar(Math.max(0.25, settings.gridSize / 64));
+    this.gridFloor.userData.hideCameras = !settings.showCameraObjects;
+    const qualityRatio =
+      settings.renderQuality === "low"
+        ? 1
+        : settings.renderQuality === "medium"
+          ? Math.min(window.devicePixelRatio, 1.5)
+          : Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(qualityRatio);
+    this.controller.applySpeeds(settings);
+  }
+
   private markSelectable(
     object: THREE.Object3D,
     objectId: string,
@@ -261,4 +288,3 @@ export class SceneRenderer {
     this.renderer.render(this.scene, this.controller.camera);
   };
 }
-

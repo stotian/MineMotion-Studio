@@ -1,6 +1,8 @@
 import type { SkyPresetId } from "../renderer/SkySystem";
+import type { BlockPaletteStyle } from "../settings/SettingsTypes";
 
 export type Vector3Tuple = [number, number, number];
+export type TerrainPresetId = "none" | "demo" | "flat" | "nether";
 
 export interface TransformData {
   position: Vector3Tuple;
@@ -10,10 +12,14 @@ export interface TransformData {
 
 export type SceneObjectType =
   | "world"
+  | "chunkMesh"
   | "character"
+  | "rigBone"
   | "camera"
   | "obj"
-  | "light";
+  | "light"
+  | "empty"
+  | "helper";
 
 export interface SceneEntity {
   id: string;
@@ -21,6 +27,8 @@ export interface SceneEntity {
   name: string;
   transform: TransformData;
   visible: boolean;
+  locked: boolean;
+  metadata: Record<string, unknown>;
 }
 
 export interface CharacterEntity extends SceneEntity {
@@ -96,9 +104,24 @@ export interface TimelineData {
   tracks: AnimationTrack[];
 }
 
-export interface MineMotionProject {
+export interface ProjectSettings {
   schemaVersion: 1;
   projectName: string;
+  fps: number;
+  durationFrames: number;
+  defaultSkyPreset: SkyPresetId;
+  worldSourcePath: string;
+  renderResolutionPreset: "720p" | "1080p" | "1440p" | "4k" | "custom";
+  author: string;
+  notes: string;
+  terrainPreset: TerrainPresetId;
+  blockPaletteStyle: BlockPaletteStyle;
+}
+
+export interface MineMotionProject {
+  schemaVersion: 2;
+  projectName: string;
+  projectSettings: ProjectSettings;
   sky: {
     preset: SkyPresetId;
     customColor: string;
@@ -126,6 +149,12 @@ export interface ObjectLookupResult {
   collection: "characters" | "cameras" | "importedObjects" | "lights";
 }
 
+export type MutableSceneCollection =
+  | "characters"
+  | "cameras"
+  | "importedObjects"
+  | "lights";
+
 export const DEFAULT_TRANSFORM: TransformData = {
   position: [0, 0, 0],
   rotation: [0, 0, 0],
@@ -149,4 +178,3 @@ export function createTransform(
     scale: partial.scale ? [...partial.scale] : [1, 1, 1]
   };
 }
-

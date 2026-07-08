@@ -2,9 +2,14 @@ import {
   Box,
   Camera,
   Clapperboard,
+  Command,
   FolderOpen,
+  HelpCircle,
+  LayoutTemplate,
   Play,
+  Plug,
   Save,
+  Settings,
   Square,
   UserPlus,
   Video,
@@ -14,7 +19,9 @@ import {
 interface TopBarProps {
   projectName: string;
   isPlaying: boolean;
+  isDirty: boolean;
   onNewProject: () => void;
+  onNewProjectFromTemplate: () => void;
   onOpenWorld: () => void;
   onSaveProject: () => void;
   onLoadProject: () => void;
@@ -22,19 +29,29 @@ interface TopBarProps {
   onAddCamera: () => void;
   onImportObj: () => void;
   onTogglePlayback: () => void;
+  onOpenSettings: () => void;
+  onOpenPlugins: () => void;
+  onOpenCommands: () => void;
+  onOpenHelp: () => void;
 }
 
 export function TopBar({
   projectName,
   isPlaying,
+  isDirty,
   onNewProject,
+  onNewProjectFromTemplate,
   onOpenWorld,
   onSaveProject,
   onLoadProject,
   onAddCharacter,
   onAddCamera,
   onImportObj,
-  onTogglePlayback
+  onTogglePlayback,
+  onOpenSettings,
+  onOpenPlugins,
+  onOpenCommands,
+  onOpenHelp
 }: TopBarProps) {
   return (
     <header className="top-bar">
@@ -42,13 +59,20 @@ export function TopBar({
         <Clapperboard size={22} />
         <div>
           <strong>MineMotion Studio</strong>
-          <span>{projectName}</span>
+          <span>
+            {projectName}
+            {isDirty ? " *" : ""}
+          </span>
         </div>
       </div>
       <nav className="top-actions" aria-label="Main actions">
         <button type="button" onClick={onNewProject}>
           <Wand2 size={16} />
           New Project
+        </button>
+        <button type="button" onClick={onNewProjectFromTemplate}>
+          <LayoutTemplate size={16} />
+          Templates
         </button>
         <button type="button" onClick={onOpenWorld}>
           <FolderOpen size={16} />
@@ -78,9 +102,24 @@ export function TopBar({
           {isPlaying ? <Square size={16} /> : <Play size={16} />}
           {isPlaying ? "Pause" : "Play"}
         </button>
+        <button type="button" onClick={onOpenSettings}>
+          <Settings size={16} />
+          Settings
+        </button>
+        <button type="button" onClick={onOpenPlugins}>
+          <Plug size={16} />
+          Plugins
+        </button>
+        <button type="button" onClick={onOpenCommands}>
+          <Command size={16} />
+          Commands
+        </button>
+        <button type="button" onClick={onOpenHelp}>
+          <HelpCircle size={16} />
+          Help
+        </button>
         <Video size={18} className="toolbar-status-icon" aria-hidden="true" />
       </nav>
     </header>
   );
 }
-

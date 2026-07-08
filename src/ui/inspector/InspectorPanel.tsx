@@ -1,4 +1,7 @@
-import { Camera, KeyRound, Palette } from "lucide-react";
+import { Camera, Eye, EyeOff, KeyRound, Lock, Palette, Unlock } from "lucide-react";
+import type { AnimationPreset } from "../../presets/AnimationPresets";
+import type { CameraPreset } from "../../presets/CameraPresets";
+import type { RigPosePreset } from "../../presets/RigPosePresets";
 import type {
   MineMotionProject,
   SceneEntity,
@@ -12,18 +15,36 @@ interface InspectorPanelProps {
   project: MineMotionProject;
   selectedObjectId: string | null;
   onUpdateTransform: (objectId: string, transform: TransformData) => void;
+  onRenameObject: (objectId: string, name: string) => void;
+  onToggleVisibility: (objectId: string, visible: boolean) => void;
+  onToggleLocked: (objectId: string, locked: boolean) => void;
   onAddKeyframe: () => void;
   onSkyChange: (preset: SkyPresetId, customColor: string) => void;
   onLookThroughCamera: () => void;
+  cameraPresets: CameraPreset[];
+  rigPosePresets: RigPosePreset[];
+  animationPresets: AnimationPreset[];
+  onApplyCameraPreset: (presetId: string) => void;
+  onApplyRigPosePreset: (presetId: string) => void;
+  onApplyAnimationPreset: (presetId: string) => void;
 }
 
 export function InspectorPanel({
   project,
   selectedObjectId,
   onUpdateTransform,
+  onRenameObject,
+  onToggleVisibility,
+  onToggleLocked,
   onAddKeyframe,
   onSkyChange,
-  onLookThroughCamera
+  onLookThroughCamera,
+  cameraPresets,
+  rigPosePresets,
+  animationPresets,
+  onApplyCameraPreset,
+  onApplyRigPosePreset,
+  onApplyAnimationPreset
 }: InspectorPanelProps) {
   const lookup = findObject(project, selectedObjectId);
 
@@ -69,11 +90,22 @@ export function InspectorPanel({
       ) : lookup ? (
         <EntityInspector
           entity={lookup.entity}
+          cameraPresets={cameraPresets}
+          rigPosePresets={rigPosePresets}
+          animationPresets={animationPresets}
+          onRenameObject={(name) => onRenameObject(lookup.entity.id, name)}
+          onToggleVisibility={(visible) =>
+            onToggleVisibility(lookup.entity.id, visible)
+          }
+          onToggleLocked={(locked) => onToggleLocked(lookup.entity.id, locked)}
           onUpdateTransform={(transform) =>
             onUpdateTransform(lookup.entity.id, transform)
           }
           onAddKeyframe={onAddKeyframe}
           onLookThroughCamera={onLookThroughCamera}
+          onApplyCameraPreset={onApplyCameraPreset}
+          onApplyRigPosePreset={onApplyRigPosePreset}
+          onApplyAnimationPreset={onApplyAnimationPreset}
         />
       ) : (
         <p className="empty-note">Select an object to edit its transform.</p>
@@ -117,22 +149,65 @@ function WorldInspector({ project }: { project: MineMotionProject }) {
 
 function EntityInspector({
   entity,
+  cameraPresets,
+  rigPosePresets,
+  animationPresets,
+  onRenameObject,
+  onToggleVisibility,
+  onToggleLocked,
   onUpdateTransform,
   onAddKeyframe,
-  onLookThroughCamera
+  onLookThroughCamera,
+  onApplyCameraPreset,
+  onApplyRigPosePreset,
+  onApplyAnimationPreset
 }: {
   entity: SceneEntity;
+  cameraPresets: CameraPreset[];
+  rigPosePresets: RigPosePreset[];
+  animationPresets: AnimationPreset[];
+  onRenameObject: (name: string) => void;
+  onToggleVisibility: (visible: boolean) => void;
+  onToggleLocked: (locked: boolean) => void;
   onUpdateTransform: (transform: TransformData) => void;
   onAddKeyframe: () => void;
   onLookThroughCamera: () => void;
+  onApplyCameraPreset: (presetId: string) => void;
+  onApplyRigPosePreset: (presetId: string) => void;
+  onApplyAnimationPreset: (presetId: string) => void;
 }) {
+  const relevantAnimationPresets = animationPresets.filter((preset) =>
+    preset.targetTypes.includes(entity.type === "camera" ? "camera" : "character")
+  );
+
   return (
     <section className="inspector-section">
       <h3>{entity.name}</h3>
+      <label>
+        Name
+        <input
+          value={entity.name}
+          onChange={(event) => onRenameObject(event.target.value)}
+        />
+      </label>
       <InfoRow label="Type" value={entity.type} />
+      <div className="inspector-actions">
+        <button
+          type="button"
+          onClick={() => onToggleVisibility(!entity.visible)}
+        >
+          {entity.visible ? <Eye size={15} /> : <EyeOff size={15} />}
+          {entity.visible ? "Visible" : "Hidden"}
+        </button>
+        <button type="button" onClick={() => onToggleLocked(!entity.locked)}>
+          {entity.locked ? <Lock size={15} /> : <Unlock size={15} />}
+          {entity.locked ? "Locked" : "Unlocked"}
+        </button>
+      </div>
       <VectorEditor
         label="Position"
         value={entity.transform.position}
+        disabled={entity.locked}
         onChange={(position) =>
           onUpdateTransform({ ...entity.transform, position })
         }
@@ -140,6 +215,7 @@ function EntityInspector({
       <VectorEditor
         label="Rotation"
         value={entity.transform.rotation}
+        disabled={entity.locked}
         onChange={(rotation) =>
           onUpdateTransform({ ...entity.transform, rotation })
         }
@@ -149,6 +225,7 @@ function EntityInspector({
         value={entity.transform.scale}
         step={0.1}
         min={0.01}
+        disabled={entity.locked}
         onChange={(scale) => onUpdateTransform({ ...entity.transform, scale })}
       />
       <div className="inspector-actions">
@@ -163,6 +240,30 @@ function EntityInspector({
           </button>
         )}
       </div>
+      {entity.type === "camera" && (
+        <PresetButtonGroup
+          title="Camera Presets"
+          presets={cameraPresets}
+          actionLabel="Add Camera Preset"
+          onApply={onApplyCameraPreset}
+        />
+      )}
+      {entity.type === "character" && (
+        <PresetButtonGroup
+          title="Pose Presets"
+          presets={rigPosePresets}
+          actionLabel="Apply Pose"
+          onApply={onApplyRigPosePreset}
+        />
+      )}
+      {(entity.type === "character" || entity.type === "camera") && (
+        <PresetButtonGroup
+          title="Animation Presets"
+          presets={relevantAnimationPresets}
+          actionLabel="Apply Animation Preset"
+          onApply={onApplyAnimationPreset}
+        />
+      )}
     </section>
   );
 }
@@ -172,12 +273,14 @@ function VectorEditor({
   value,
   step = 0.1,
   min,
+  disabled = false,
   onChange
 }: {
   label: string;
   value: Vector3Tuple;
   step?: number;
   min?: number;
+  disabled?: boolean;
   onChange: (value: Vector3Tuple) => void;
 }) {
   const axes = ["X", "Y", "Z"] as const;
@@ -191,6 +294,7 @@ function VectorEditor({
             type="number"
             step={step}
             min={min}
+            disabled={disabled}
             value={Number(value[index].toFixed(3))}
             onChange={(event) => {
               const next = [...value] as Vector3Tuple;
@@ -204,6 +308,38 @@ function VectorEditor({
   );
 }
 
+function PresetButtonGroup({
+  title,
+  presets,
+  actionLabel,
+  onApply
+}: {
+  title: string;
+  presets: Array<{ id: string; name: string; description: string }>;
+  actionLabel: string;
+  onApply: (presetId: string) => void;
+}) {
+  if (presets.length === 0) return null;
+
+  return (
+    <div className="preset-group">
+      <h4>{title}</h4>
+      <div className="preset-actions">
+        {presets.map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            title={preset.description}
+            onClick={() => onApply(preset.id)}
+          >
+            {actionLabel}: {preset.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="info-row">
@@ -212,4 +348,3 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
