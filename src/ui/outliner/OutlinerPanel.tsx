@@ -1,0 +1,161 @@
+import {
+  Box,
+  Camera,
+  ChevronDown,
+  Circle,
+  Cuboid,
+  Lightbulb,
+  User
+} from "lucide-react";
+import type { MineMotionProject, SceneEntity } from "../../project/ProjectFile";
+
+interface OutlinerPanelProps {
+  project: MineMotionProject;
+  selectedObjectId: string | null;
+  onSelectObject: (objectId: string | null) => void;
+}
+
+export function OutlinerPanel({
+  project,
+  selectedObjectId,
+  onSelectObject
+}: OutlinerPanelProps) {
+  return (
+    <aside className="panel panel-left">
+      <div className="panel-header">
+        <h2>Outliner</h2>
+      </div>
+      <div className="outliner-tree">
+        <Section title="Scene">
+          <OutlinerItem
+            icon={<Cuboid size={15} />}
+            id="world"
+            name={project.world ? project.world.sourceName : "Demo World"}
+            selected={selectedObjectId === "world"}
+            meta={project.world ? "imported placeholder" : "generated terrain"}
+            onSelect={onSelectObject}
+          />
+        </Section>
+        <Section title="Characters">
+          {project.scene.characters.map((entity) => (
+            <EntityItem
+              key={entity.id}
+              entity={entity}
+              selected={selectedObjectId === entity.id}
+              icon={<User size={15} />}
+              onSelect={onSelectObject}
+            />
+          ))}
+        </Section>
+        <Section title="Cameras">
+          {project.scene.cameras.map((entity) => (
+            <EntityItem
+              key={entity.id}
+              entity={entity}
+              selected={selectedObjectId === entity.id}
+              icon={<Camera size={15} />}
+              onSelect={onSelectObject}
+            />
+          ))}
+        </Section>
+        <Section title="OBJ Assets">
+          {project.scene.importedObjects.length === 0 ? (
+            <p className="empty-note">No OBJ objects imported.</p>
+          ) : (
+            project.scene.importedObjects.map((entity) => (
+              <EntityItem
+                key={entity.id}
+                entity={entity}
+                selected={selectedObjectId === entity.id}
+                icon={<Box size={15} />}
+                onSelect={onSelectObject}
+              />
+            ))
+          )}
+        </Section>
+        <Section title="Lights">
+          {project.scene.lights.map((entity) => (
+            <EntityItem
+              key={entity.id}
+              entity={entity}
+              selected={selectedObjectId === entity.id}
+              icon={<Lightbulb size={15} />}
+              onSelect={onSelectObject}
+            />
+          ))}
+        </Section>
+      </div>
+    </aside>
+  );
+}
+
+function Section({
+  title,
+  children
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="outliner-section">
+      <h3>
+        <ChevronDown size={14} />
+        {title}
+      </h3>
+      <div>{children}</div>
+    </section>
+  );
+}
+
+function EntityItem({
+  entity,
+  selected,
+  icon,
+  onSelect
+}: {
+  entity: SceneEntity;
+  selected: boolean;
+  icon: React.ReactNode;
+  onSelect: (objectId: string | null) => void;
+}) {
+  return (
+    <OutlinerItem
+      id={entity.id}
+      name={entity.name}
+      icon={icon}
+      selected={selected}
+      meta={entity.type}
+      onSelect={onSelect}
+    />
+  );
+}
+
+function OutlinerItem({
+  id,
+  name,
+  icon,
+  meta,
+  selected,
+  onSelect
+}: {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  meta: string;
+  selected: boolean;
+  onSelect: (objectId: string | null) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`outliner-item ${selected ? "selected" : ""}`}
+      onClick={() => onSelect(id)}
+    >
+      {icon}
+      <span>{name}</span>
+      <small>{meta}</small>
+      <Circle size={7} className="visibility-dot" />
+    </button>
+  );
+}
+
