@@ -1,6 +1,6 @@
 # User Guide
 
-This guide describes the Phase 3 editor workflow.
+This guide describes the Phase 4 editor workflow.
 
 ## Start The App
 
@@ -35,14 +35,28 @@ Click **Render Preview** in the top bar or Effects panel. The viewport switches
 to a cinematic preview mode with active camera label, post-processing, effects,
 and optional bars.
 
+## Import A Minecraft World
+
+1. Click **Open World**.
+2. Select a Minecraft Java Edition world folder.
+3. MineMotion scans `level.dat`, Overworld `region/`, Nether `DIM-1/region/`,
+   and End `DIM1/region/`.
+4. In **World Import**, choose the dimension, center chunk, radius, max chunks,
+   max region files, and max vertical sections.
+5. Click **Import Chunks**.
+6. Use **Focus World** to frame the imported chunks in the viewport.
+
+The importer does not load the whole world by default. It imports a bounded
+chunk range around spawn or manual chunk coordinates.
+
 ## Export
 
 Click **Export** in the top bar.
 
 Available output:
 
-- **Save .minemotion**: saves the full Phase 3 package payload.
-- **Export .mmsproj**: exports legacy schema v4 project JSON.
+- **Save .minemotion**: saves the full package payload.
+- **Export .mmsproj**: exports legacy schema v5 project JSON.
 - **PNG Frame**: captures the current viewport frame.
 - **PNG ZIP**: captures the selected frame range as numbered PNG files inside a
   ZIP archive.
@@ -104,12 +118,14 @@ chase, over-shoulder, and dramatic zoom setups.
 
 Use the top toolbar or `Ctrl+S` to download a `.minemotion` package. Legacy
 `.mmsproj` and JSON project files can still be opened. Phase 1, Phase 1.5, and
-Phase 2 projects are migrated to schema v4 when opened.
+Phase 2/3 projects are migrated to schema v5 when opened.
 
 ## Current Limits
 
-- Real Minecraft chunk rendering is not implemented yet.
 - Resource packs are not loaded yet.
+- Older non-palette chunk formats are not fully decoded.
+- Browser decompression support is required for real compressed `level.dat` and
+  `.mca` payloads.
 - External plugin scripts are not executed yet.
 - Native Tauri file dialogs are not wired yet.
 - MP4 export is planned for a future FFmpeg/native pipeline.

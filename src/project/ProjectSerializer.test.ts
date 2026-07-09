@@ -3,12 +3,12 @@ import { createInitialProject } from "./ProjectStore";
 import { ProjectSerializer } from "./ProjectSerializer";
 
 describe("ProjectSerializer", () => {
-  it("round-trips a schema v4 project", () => {
+  it("round-trips a schema v5 project", () => {
     const project = createInitialProject();
     const raw = ProjectSerializer.serialize(project);
     const parsed = ProjectSerializer.parse(raw);
 
-    expect(parsed.schemaVersion).toBe(4);
+    expect(parsed.schemaVersion).toBe(5);
     expect(parsed.projectSettings.schemaVersion).toBe(1);
     expect(parsed.postProcessing.presetId).toBe("clean-preview");
     expect(parsed.renderSettings.resolutionPreset).toBe("1080p");
@@ -16,6 +16,7 @@ describe("ProjectSerializer", () => {
     expect(parsed.audio.clips).toEqual([]);
     expect(parsed.exportSettings.width).toBe(1920);
     expect(parsed.assetLibrary.records).toEqual([]);
+    expect(parsed.performanceSettings.cacheStaticTerrain).toBe(true);
     expect(parsed.projectName).toBe(project.projectName);
     expect(parsed.scene.characters).toHaveLength(1);
     expect(parsed.animation.fps).toBe(24);
@@ -37,7 +38,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacy));
 
-    expect(parsed.schemaVersion).toBe(4);
+    expect(parsed.schemaVersion).toBe(5);
     expect(parsed.projectSettings.projectName).toBe(project.projectName);
     expect(parsed.projectSettings.fps).toBe(project.animation.fps);
     expect(parsed.renderSettings.renderPreviewEnabled).toBe(false);
@@ -66,13 +67,41 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV2));
 
-    expect(parsed.schemaVersion).toBe(4);
+    expect(parsed.schemaVersion).toBe(5);
     expect(parsed.activeCameraId).toBe(parsed.scene.cameras[0].id);
     expect(parsed.scene.cameras[0].active).toBe(true);
     expect(parsed.postProcessing.enabled).toBe(true);
     expect(parsed.exportSettings.fps).toBe(project.animation.fps);
     expect(parsed.packageMetadata.preferredFormat).toBe(".minemotion");
     expect(parsed.animation.timelineTracks).toHaveLength(4);
+  });
+
+  it("migrates schema v4 world scan metadata to schema v5 world import defaults", () => {
+    const project = createInitialProject();
+    const legacyV4 = {
+      ...project,
+      schemaVersion: 4,
+      world: {
+        sourceName: "TinyWorld",
+        levelDatFound: true,
+        dimensions: [
+          {
+            id: "overworld",
+            label: "Overworld",
+            regionFiles: ["region/r.0.0.mca"]
+          }
+        ],
+        importedAt: new Date(0).toISOString(),
+        notes: []
+      }
+    };
+
+    const parsed = ProjectSerializer.parse(JSON.stringify(legacyV4));
+
+    expect(parsed.schemaVersion).toBe(5);
+    expect(parsed.world?.selectedDimension).toBe("overworld");
+    expect(parsed.world?.importedChunks).toEqual([]);
+    expect(parsed.world?.renderOptions?.showChunkBorders).toBe(true);
   });
 
   it("rejects invalid project JSON", () => {

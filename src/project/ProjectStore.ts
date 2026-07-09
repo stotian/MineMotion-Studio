@@ -121,7 +121,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     projectName: projectSettings.projectName,
     projectSettings,
     packageMetadata: {
@@ -179,7 +179,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     metadata: {
       createdAt: now,
       updatedAt: now,
-      appVersion: "0.3.0"
+      appVersion: "0.4.0"
     }
   };
 }

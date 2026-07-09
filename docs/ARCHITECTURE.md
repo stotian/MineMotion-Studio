@@ -52,7 +52,7 @@ flowchart LR
 - `src/minecraft`: block palette, terrain presets, world folder detection, NBT
   skeleton, and Anvil region helpers.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
-- `src/project`: schema v4, serializer, migrations, package helpers, timeline
+- `src/project`: schema v5, serializer, migrations, package helpers, timeline
   sync, initial state, and object helpers.
 - `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
@@ -61,7 +61,7 @@ flowchart LR
 
 ## Project System
 
-Project files use schema v4. The serializer migrates v1, v2, and v3 projects by
+Project files use schema v5. The serializer migrates v1, v2, v3, and v4 projects by
 adding:
 
 - active camera
@@ -75,6 +75,7 @@ adding:
 - asset library data
 - export settings
 - performance settings
+- imported world chunk metadata
 
 ## Rendering
 

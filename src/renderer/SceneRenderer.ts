@@ -7,7 +7,8 @@ import type {
   ObjEntity,
   TransformData
 } from "../project/ProjectFile";
-import { ChunkMeshBuilder } from "../minecraft/ChunkMeshBuilder";
+import { ChunkMeshBuilder as PresetChunkMeshBuilder } from "../minecraft/ChunkMeshBuilder";
+import { ChunkMeshBuilder as ImportedChunkMeshBuilder } from "../minecraft/mesh/ChunkMeshBuilder";
 import { createDefaultSteveRig } from "../rigs/DefaultSteveRig";
 import { createSolidMaterial } from "./MinecraftMaterialSystem";
 import { SkySystem } from "./SkySystem";
@@ -93,6 +94,14 @@ export class SceneRenderer {
     this.controller.lookThrough(camera.transform.position);
   }
 
+  focusImportedWorld(): void {
+    const world = this.findObjectById("world");
+    if (!world) return;
+    const box = new THREE.Box3().setFromObject(world);
+    if (box.isEmpty()) return;
+    this.controller.focusBox(box);
+  }
+
   dispose(): void {
     cancelAnimationFrame(this.animationFrame);
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointer);
@@ -105,15 +114,28 @@ export class SceneRenderer {
   private rebuildSceneRoot(project: MineMotionProject): void {
     this.sceneRoot.clear();
 
-    const terrainChunk = ChunkMeshBuilder.createChunkForPreset(
-      project.projectSettings.terrainPreset
-    );
-    if (terrainChunk) {
-      const terrain = ChunkMeshBuilder.buildInstancedChunk(terrainChunk);
-      terrain.name = project.world
-        ? `Imported World Placeholder: ${project.world.sourceName}`
-        : `${project.projectSettings.terrainPreset} terrain`;
-      this.sceneRoot.add(terrain);
+    const importedChunks = project.world?.importedChunks ?? [];
+    if (importedChunks.length > 0) {
+      const imported = ImportedChunkMeshBuilder.buildImportedChunks(
+        importedChunks,
+        project.world?.renderOptions ?? {
+          showChunkBorders: true,
+          showWorldOrigin: true
+        }
+      );
+      imported.object.name = `Imported World: ${project.world?.sourceName ?? "Minecraft World"}`;
+      this.sceneRoot.add(imported.object);
+    } else {
+      const terrainChunk = PresetChunkMeshBuilder.createChunkForPreset(
+        project.projectSettings.terrainPreset
+      );
+      if (terrainChunk) {
+        const terrain = PresetChunkMeshBuilder.buildInstancedChunk(terrainChunk);
+        terrain.name = project.world
+          ? `Imported World Placeholder: ${project.world.sourceName}`
+          : `${project.projectSettings.terrainPreset} terrain`;
+        this.sceneRoot.add(terrain);
+      }
     }
 
     for (const character of project.scene.characters) {

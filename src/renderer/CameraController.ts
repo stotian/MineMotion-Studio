@@ -38,6 +38,24 @@ export class CameraController {
     this.controls.update();
   }
 
+  focusBox(box: THREE.Box3): void {
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    const radius = Math.max(size.x, size.y, size.z, 8);
+    this.controls.target.copy(center);
+    this.camera.position.set(
+      center.x + radius * 0.85,
+      center.y + radius * 0.55,
+      center.z + radius * 0.85
+    );
+    this.camera.near = Math.max(0.1, radius / 2000);
+    this.camera.far = Math.max(1000, radius * 8);
+    this.camera.updateProjectionMatrix();
+    this.controls.update();
+  }
+
   update(): void {
     this.controls.update();
   }

@@ -675,7 +675,8 @@ select {
 }
 
 .settings-grid,
-.export-layout {
+.export-layout,
+.world-import-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(260px, 1fr));
   gap: 0.9rem;
@@ -684,6 +685,7 @@ select {
 
 .settings-grid section,
 .export-layout section,
+.world-import-layout section,
 .plugin-row,
 .template-card {
   border: 1px solid #2b3443;
@@ -692,19 +694,22 @@ select {
 }
 
 .settings-grid section,
-.export-layout section {
+.export-layout section,
+.world-import-layout section {
   padding: 0.8rem;
 }
 
 .settings-grid h3,
-.export-layout h3 {
+.export-layout h3,
+.world-import-layout h3 {
   margin: 0 0 0.75rem;
   color: #c2cad8;
   font-size: 0.85rem;
 }
 
 .settings-grid label,
-.export-layout label {
+.export-layout label,
+.world-import-layout label {
   display: grid;
   gap: 0.35rem;
   margin-bottom: 0.65rem;
@@ -806,6 +811,42 @@ select {
 
 .export-progress progress {
   width: 100%;
+}
+
+.world-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.world-summary {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.6rem;
+}
+
+.world-dimension-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.world-dimension-list button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 0.5rem;
+  justify-content: stretch;
+  text-align: left;
+}
+
+.world-dimension-list button.selected {
+  border-color: #6d8cff;
+  background: #243049;
+}
+
+.world-dimension-list small {
+  grid-column: 1 / -1;
+  color: #7f8ba0;
 }
 
 .template-grid {

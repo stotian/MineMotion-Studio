@@ -3,39 +3,15 @@ import type {
   RegionFileSummary,
   WorldFolderScanResult
 } from "./MinecraftWorldTypes";
+import { WorldImportManager } from "./import/WorldImportManager";
+import { relativePathFor } from "./import/DimensionScanner";
 
 export class WorldImporter {
   static async importFromFileList(
     files: FileList | File[]
   ): Promise<ImportedWorldSummary> {
-    const fileArray = Array.from(files);
-    const scan = WorldImporter.scanFileList(fileArray);
-
-    const dimensions = [
-      {
-        id: "overworld" as const,
-        label: "Overworld",
-        regionFiles: scan.overworldRegions.map(WorldImporter.relativePathFor)
-      },
-      {
-        id: "nether" as const,
-        label: "Nether",
-        regionFiles: scan.netherRegions.map(WorldImporter.relativePathFor)
-      },
-      {
-        id: "end" as const,
-        label: "End",
-        regionFiles: scan.endRegions.map(WorldImporter.relativePathFor)
-      }
-    ];
-
-    return {
-      sourceName: scan.sourceName,
-      levelDatFound: Boolean(scan.levelDat),
-      dimensions,
-      importedAt: new Date().toISOString(),
-      notes: scan.notes
-    };
+    const scan = await WorldImportManager.scan(files);
+    return WorldImportManager.createSummaryFromScan(scan);
   }
 
   static scanFileList(files: File[]): WorldFolderScanResult {
@@ -46,7 +22,7 @@ export class WorldImporter {
     const endRegions: File[] = [];
 
     for (const file of files) {
-      const path = WorldImporter.relativePathFor(file);
+      const path = relativePathFor(file);
       const normalized = path.replaceAll("\\", "/").toLowerCase();
 
       if (normalized.endsWith("/level.dat") || normalized === "level.dat") {
@@ -113,8 +89,6 @@ export class WorldImporter {
   }
 
   private static relativePathFor(file: File): string {
-    const relativePath = (file as File & { webkitRelativePath?: string })
-      .webkitRelativePath;
-    return relativePath || file.name;
+    return relativePathFor(file);
   }
 }

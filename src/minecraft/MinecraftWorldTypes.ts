@@ -3,12 +3,22 @@ import type { Vector3Tuple } from "../project/ProjectFile";
 export type BlockId =
   | "air"
   | "grass"
+  | "grass_block"
   | "dirt"
   | "stone"
+  | "cobblestone"
+  | "deepslate"
   | "oak_log"
   | "oak_leaves"
   | "water"
-  | "glass";
+  | "glass"
+  | "sand"
+  | "gravel"
+  | "snow"
+  | "netherrack"
+  | "end_stone"
+  | "ore"
+  | "unknown";
 
 export interface BlockDefinition {
   id: BlockId;
@@ -46,4 +56,3 @@ export interface WorldFolderScanResult {
   endRegions: File[];
   notes: string[];
 }
-

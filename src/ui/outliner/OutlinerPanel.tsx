@@ -32,7 +32,13 @@ export function OutlinerPanel({
             id="world"
             name={project.world ? project.world.sourceName : "Demo World"}
             selected={selectedObjectId === "world"}
-            meta={project.world ? "imported placeholder" : "generated terrain"}
+            meta={
+              project.world?.importedChunks?.length
+                ? `${project.world.importedChunks.length} chunks`
+                : project.world
+                  ? "scanned world"
+                  : "generated terrain"
+            }
             onSelect={onSelectObject}
           />
         </Section>
@@ -158,4 +164,3 @@ function OutlinerItem({
     </button>
   );
 }
-

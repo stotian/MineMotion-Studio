@@ -12,6 +12,7 @@ interface ViewportProps {
   onSelectObject: (objectId: string | null) => void;
   lookThroughCameraRequest: number;
   resetCameraRequest: number;
+  focusWorldRequest: number;
   viewportSettings: ViewportSettings;
 }
 
@@ -21,6 +22,7 @@ export function Viewport({
   onSelectObject,
   lookThroughCameraRequest,
   resetCameraRequest,
+  focusWorldRequest,
   viewportSettings
 }: ViewportProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -141,6 +143,12 @@ export function Viewport({
     }
   }, [resetCameraRequest, project.scene.cameras]);
 
+  useEffect(() => {
+    if (focusWorldRequest > 0) {
+      rendererRef.current?.focusImportedWorld();
+    }
+  }, [focusWorldRequest]);
+
   return (
     <section
       className={`viewport-shell ${project.renderSettings.renderPreviewEnabled ? "render-preview" : ""}`}
@@ -162,6 +170,9 @@ export function Viewport({
         <span>Orbit: drag</span>
         <span>Pan: right drag</span>
         <span>Zoom: wheel</span>
+        {project.world?.importedChunks?.length ? (
+          <span>{project.world.importedChunks.length} imported chunks</span>
+        ) : null}
       </div>
       <div
         ref={containerRef}

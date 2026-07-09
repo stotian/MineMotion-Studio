@@ -18,7 +18,7 @@ import {
   createDefaultTimelineTracks
 } from "./ProjectStore";
 
-const CURRENT_SCHEMA_VERSION = 4;
+const CURRENT_SCHEMA_VERSION = 5;
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -49,7 +49,7 @@ export class ProjectSerializer {
       return ProjectSerializer.migrate(parsed);
     }
 
-    const project = ProjectSerializer.withV4Defaults(parsed);
+    const project = ProjectSerializer.withV5Defaults(parsed);
     ProjectSerializer.assertValidProject(project);
     return project;
   }
@@ -58,15 +58,19 @@ export class ProjectSerializer {
     if (parsed.schemaVersion === 1) {
       ProjectSerializer.assertLegacyCoreData(parsed);
       const migratedV2 = ProjectSerializer.withV2CompatibilityDefaults(parsed);
-      const migratedV4 = ProjectSerializer.withV4Defaults(migratedV2);
-      ProjectSerializer.assertValidProject(migratedV4);
-      return migratedV4;
+      const migratedV5 = ProjectSerializer.withV5Defaults(migratedV2);
+      ProjectSerializer.assertValidProject(migratedV5);
+      return migratedV5;
     }
 
-    if (parsed.schemaVersion === 2 || parsed.schemaVersion === 3) {
-      const migratedV4 = ProjectSerializer.withV4Defaults(parsed);
-      ProjectSerializer.assertValidProject(migratedV4);
-      return migratedV4;
+    if (
+      parsed.schemaVersion === 2 ||
+      parsed.schemaVersion === 3 ||
+      parsed.schemaVersion === 4
+    ) {
+      const migratedV5 = ProjectSerializer.withV5Defaults(parsed);
+      ProjectSerializer.assertValidProject(migratedV5);
+      return migratedV5;
     }
 
     if (parsed.schemaVersion === undefined) {
@@ -97,7 +101,7 @@ export class ProjectSerializer {
     };
   }
 
-  private static withV4Defaults(project: UnknownProject): MineMotionProject {
+  private static withV5Defaults(project: UnknownProject): MineMotionProject {
     const settingsDefaults = createDefaultProjectSettings();
     const effects = sanitizeEffects(project.effects?.instances);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
@@ -122,7 +126,7 @@ export class ProjectSerializer {
 
     return {
       ...(project as MineMotionProject),
-      schemaVersion: 4,
+      schemaVersion: 5,
       projectName: projectSettings.projectName,
       projectSettings,
       packageMetadata: {
@@ -134,6 +138,11 @@ export class ProjectSerializer {
           : []
       },
       activeCameraId,
+      sky: {
+        preset: project.sky?.preset ?? projectSettings.defaultSkyPreset,
+        customColor: project.sky?.customColor ?? "#87bfff"
+      },
+      world: ProjectSerializer.withWorldDefaults(project.world),
       scene: {
         characters: (project.scene?.characters ?? []).map((entity) => ({
           ...entity,
@@ -204,7 +213,58 @@ export class ProjectSerializer {
       metadata: {
         createdAt: project.metadata?.createdAt ?? new Date().toISOString(),
         updatedAt: project.metadata?.updatedAt ?? new Date().toISOString(),
-        appVersion: "0.3.0"
+        appVersion: "0.4.0"
+      }
+    };
+  }
+
+  private static withWorldDefaults(
+    world: MineMotionProject["world"] | undefined
+  ): MineMotionProject["world"] {
+    if (!world) return null;
+    const importedChunks = Array.isArray(world.importedChunks)
+      ? world.importedChunks
+      : [];
+    const importedBlocks = importedChunks.reduce(
+      (sum, chunk) => sum + chunk.blocks.length,
+      0
+    );
+    const regionFiles = world.dimensions.reduce(
+      (sum, dimension) => sum + dimension.regionFiles.length,
+      0
+    );
+
+    return {
+      ...world,
+      selectedDimension: world.selectedDimension ?? "overworld",
+      importedChunkRanges: Array.isArray(world.importedChunkRanges)
+        ? world.importedChunkRanges
+        : [],
+      importedChunks,
+      unknownBlockMappings: world.unknownBlockMappings ?? {},
+      unknownBlockCount: world.unknownBlockCount ?? 0,
+      performanceEstimate: world.performanceEstimate ?? {
+        regionFiles,
+        estimatedChunks: world.dimensions.reduce(
+          (sum, dimension) =>
+            sum + (dimension.estimatedChunks ?? dimension.regionFiles.length * 1024),
+          0
+        ),
+        importedChunks: importedChunks.length,
+        importedBlocks,
+        visibleBlocks: importedBlocks,
+        estimatedMemoryBytes: importedBlocks * 20,
+        warnings: world.notes
+      },
+      cachedMesh: world.cachedMesh ?? {
+        embedded: importedChunks.length > 0,
+        generatedAt: "",
+        chunkCount: importedChunks.length,
+        blockCount: importedBlocks
+      },
+      renderOptions: world.renderOptions ?? {
+        showChunkBorders: true,
+        showWorldOrigin: true
       }
     };
   }

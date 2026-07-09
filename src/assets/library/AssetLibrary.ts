@@ -41,18 +41,33 @@ export function collectProjectAssets(project: MineMotionProject): AssetLibraryDa
   }
 
   if (project.world) {
+    const worldPayload = JSON.stringify(project.world);
     records.push({
       id: "world_reference",
       name: project.world.sourceName,
       type: "worldReference",
       sourcePath: project.world.sourcePath ?? project.world.sourceName,
       packagePath: "metadata/world-summary.json",
-      sizeBytes: JSON.stringify(project.world).length,
+      sizeBytes: worldPayload.length,
       mimeType: "application/json",
       importedAt: project.world.importedAt,
-      hash: createSimpleHash(JSON.stringify(project.world)),
-      missing: false
+      hash: createSimpleHash(worldPayload),
+      missing: Boolean(project.world.sourcePathMissing)
     });
+    if (project.world.importedChunks?.length) {
+      records.push({
+        id: "world_chunk_cache",
+        name: `${project.world.sourceName} imported chunk cache`,
+        type: "worldCache",
+        sourcePath: project.world.sourcePath ?? project.world.sourceName,
+        packagePath: "metadata/world-chunk-cache.json",
+        sizeBytes: JSON.stringify(project.world.importedChunks).length,
+        mimeType: "application/json",
+        importedAt: project.world.importedAt,
+        hash: createSimpleHash(JSON.stringify(project.world.importedChunks)),
+        missing: false
+      });
+    }
   }
 
   return { records, warnings };

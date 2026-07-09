@@ -38,7 +38,16 @@ export function createMineMotionPackageData(
       audio,
       thumbnails: {},
       metadata: {
-        assetLibrary: library
+        assetLibrary: library,
+        importedWorld: project.world
+          ? {
+              sourceName: project.world.sourceName,
+              selectedDimension: project.world.selectedDimension,
+              importedChunkRanges: project.world.importedChunkRanges ?? [],
+              cachedMesh: project.world.cachedMesh,
+              sourcePathMissing: !project.world.sourcePath
+            }
+          : null
       }
     }
   };

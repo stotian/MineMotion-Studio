@@ -4,6 +4,13 @@ import type { AudioClip } from "../audio/AudioTypes";
 import type { AssetLibraryData } from "../assets/library/AssetRecord";
 import type { EffectInstance } from "../effects/EffectTypes";
 import type { ExportSettings } from "../export/ExportTypes";
+import type {
+  ImportedChunkData,
+  ImportedChunkRange,
+  MinecraftDimensionId,
+  WorldImportPerformanceEstimate,
+  WorldRenderOptions
+} from "../minecraft/import/MinecraftChunkTypes";
 import type { ProjectPackageMetadata } from "./package/PackageTypes";
 import type { PostProcessingSettings } from "../rendering/postprocessing/PostProcessingTypes";
 
@@ -74,6 +81,7 @@ export interface WorldDimensionSummary {
   id: "overworld" | "nether" | "end";
   label: string;
   regionFiles: string[];
+  estimatedChunks?: number;
 }
 
 export interface ImportedWorldSummary {
@@ -83,6 +91,21 @@ export interface ImportedWorldSummary {
   levelName?: string;
   spawn?: Vector3Tuple;
   dimensions: WorldDimensionSummary[];
+  selectedDimension?: MinecraftDimensionId;
+  importedChunkRanges?: ImportedChunkRange[];
+  importedChunks?: ImportedChunkData[];
+  unknownBlockMappings?: Record<string, string>;
+  unknownBlockCount?: number;
+  importSettings?: ImportedChunkRange;
+  performanceEstimate?: WorldImportPerformanceEstimate;
+  cachedMesh?: {
+    embedded: boolean;
+    generatedAt: string;
+    chunkCount: number;
+    blockCount: number;
+  };
+  renderOptions?: WorldRenderOptions;
+  sourcePathMissing?: boolean;
   importedAt: string;
   notes: string[];
 }
@@ -164,7 +187,7 @@ export interface RenderSettings {
 }
 
 export interface MineMotionProject {
-  schemaVersion: 4;
+  schemaVersion: 5;
   projectName: string;
   projectSettings: ProjectSettings;
   packageMetadata: ProjectPackageMetadata;

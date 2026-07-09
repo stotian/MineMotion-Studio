@@ -356,7 +356,32 @@ function WorldInspector({ project }: { project: MineMotionProject }) {
       {world ? (
         <>
           <InfoRow label="Source" value={world.sourceName} />
+          {world.levelName && <InfoRow label="Level" value={world.levelName} />}
           <InfoRow label="level.dat" value={world.levelDatFound ? "found" : "missing"} />
+          {world.spawn && <InfoRow label="Spawn" value={world.spawn.join(", ")} />}
+          <InfoRow
+            label="Dimension"
+            value={world.selectedDimension ?? "overworld"}
+          />
+          <InfoRow
+            label="Chunks"
+            value={String(world.importedChunks?.length ?? 0)}
+          />
+          <InfoRow
+            label="Blocks"
+            value={String(
+              world.performanceEstimate?.importedBlocks ??
+                world.importedChunks?.reduce(
+                  (sum, chunk) => sum + chunk.blocks.length,
+                  0
+                ) ??
+                0
+            )}
+          />
+          <InfoRow
+            label="Unknown"
+            value={String(world.unknownBlockCount ?? 0)}
+          />
           {world.dimensions.map((dimension) => (
             <InfoRow
               key={dimension.id}

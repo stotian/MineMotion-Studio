@@ -5,15 +5,15 @@ combines a Minecraft-like scene viewport, character/camera animation, timeline
 editing, cinematic VFX, SFX metadata, post-processing previews, and a Tauri
 desktop scaffold.
 
-Phase 3 adds the first production output layer: `.minemotion` project packages,
-PNG still export, PNG sequence ZIP export, browser WebM recording where
-supported, WAV audio mixdown where supported, export presets, an asset library
-index, schema v4 migration, and performance support utilities.
+Phase 4 adds the first real Minecraft world import engine: `level.dat` scanning,
+dimension detection, Anvil `.mca` headers, chunk NBT parsing, block state
+palette decoding, limited chunk import, face-culling mesh generation, and
+viewport display of imported chunks.
 
 ## Current Version
 
-- App version: `0.3.0`
-- Project schema: `4`
+- App version: `0.4.0`
+- Project schema: `5`
 - Settings schema: `1`
 - Package format: `.minemotion` JSON package v1
 - License: MIT
@@ -24,11 +24,11 @@ index, schema v4 migration, and performance support utilities.
 - Blender/Blockbench-style editor shell with outliner, effects panel, viewport,
   inspector, timeline, top bar, status bar, settings, plugins, templates,
   command palette, and export panel.
-- Three.js viewport with Minecraft-like terrain, character rig, camera helpers,
-  OBJ preview, sky presets, selection outline, and world-folder scan metadata.
+- Three.js viewport with Minecraft-like terrain, imported Minecraft chunks,
+  character rig, camera helpers, OBJ preview, sky presets, and selection outline.
 - Project save/load as `.minemotion` packages with legacy `.mmsproj` JSON import
   and export.
-- Migration from schema v1/v2/v3 projects to schema v4.
+- Migration from schema v1/v2/v3/v4 projects to schema v5.
 - App settings, autosave recovery, templates, presets, undo/redo, and plugin
   manager from earlier phases.
 - Cinematic effects library with lightning, impact frames, camera shake, flash,
@@ -50,6 +50,15 @@ index, schema v4 migration, and performance support utilities.
 - Export presets for 720p, 1080p, 1440p, vertical, square, cinematic 2.35:1,
   high-quality PNG sequences, and transparent PNG sequences.
 - Asset library index for OBJ assets, audio clips, and world summary metadata.
+- Real world import MVP:
+  - folder scan through browser directory selection
+  - `level.dat` parsing when gzip decompression is available
+  - Overworld, Nether, and End region discovery
+  - Anvil `.mca` region header parsing
+  - selected chunk import around spawn or manual chunk coordinates
+  - modern block state palette decoding
+  - face-culling instanced mesh preview
+  - chunk borders and world origin viewport helpers
 - Blender-like shortcuts:
   - `Ctrl+P` command palette
   - `Ctrl+S` save `.minemotion`
@@ -61,9 +70,12 @@ index, schema v4 migration, and performance support utilities.
 
 ## Current Limits
 
-- Full Minecraft `.mca` chunk decoding and real block-state meshing are not
-  implemented yet.
 - Real Minecraft texture/resource-pack loading is not implemented yet.
+- Import is intentionally bounded by max region files, max chunks, and max
+  vertical sections.
+- Tested assumptions target modern Java Edition Anvil worlds using palette-based
+  chunk sections. Older pre-flattening chunk sections are not fully decoded.
+- Browser decompression support is required for real gzip/zlib payloads.
 - Native Tauri file dialogs are not wired yet.
 - `.minemotion` is currently a JSON package payload, not a binary ZIP archive.
 - WebM export depends on browser `MediaRecorder` and records the live viewport
@@ -112,13 +124,14 @@ installed and that command has completed successfully.
 
 ## Project And Package Format
 
-Current projects use `schemaVersion: 4`. The main save path downloads a
+Current projects use `schemaVersion: 5`. The main save path downloads a
 `.minemotion` file containing:
 
 - package manifest
-- schema v4 project JSON
+- schema v5 project JSON
 - embedded OBJ model data
 - embedded audio data URLs
+- imported world metadata and optional imported chunk cache
 - asset library metadata
 - package warnings
 
@@ -128,6 +141,9 @@ panel.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Phase 4 World Import](docs/PHASE_4_WORLD_IMPORT.md)
+- [Minecraft World Format](docs/MINECRAFT_WORLD_FORMAT.md)
+- [World Import Limitations](docs/WORLD_IMPORT_LIMITATIONS.md)
 - [Phase 3](docs/PHASE_3.md)
 - [Export Pipeline](docs/EXPORT_PIPELINE.md)
 - [MineMotion Format](docs/MINEMOTION_FORMAT.md)

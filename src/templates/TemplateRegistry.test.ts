@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { templateRegistry } from "./TemplateRegistry";
 
 describe("TemplateRegistry", () => {
-  it("creates all built-in templates as schema v4 projects", () => {
+  it("creates all built-in templates as schema v5 projects", () => {
     for (const template of templateRegistry.list()) {
       const project = template.create();
 
-      expect(project.schemaVersion).toBe(4);
+      expect(project.schemaVersion).toBe(5);
       expect(project.projectName).toBeTruthy();
       expect(project.projectSettings.terrainPreset).toBeTruthy();
       expect(project.renderSettings.resolutionPreset).toBe("1080p");
