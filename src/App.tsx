@@ -5,6 +5,7 @@ import { AudioManager } from "./audio/AudioManager";
 import { createBuiltinAudioClip, createImportedAudioClip } from "./audio/AudioClip";
 import { findClipsStartingAtFrame } from "./audio/AudioTimelineIntegration";
 import { BUILTIN_SFX, getBuiltinSfx } from "./audio/BuiltinSfxRegistry";
+import { exportProjectWav } from "./audio/export/AudioMixdown";
 import { Animator } from "./animation/Animator";
 import { addTransformKeyframes, setCurrentFrame } from "./animation/Timeline";
 import { CommandPalette } from "./commands/CommandPalette";
@@ -12,6 +13,16 @@ import { createBuiltinCommands } from "./commands/BuiltinCommands";
 import { effectRegistry } from "./effects/EffectRegistry";
 import type { EffectInstance, EffectType } from "./effects/EffectTypes";
 import { spawnEffectAtFrame } from "./effects/EffectSpawner";
+import { exportCurrentFramePng } from "./export/FrameExporter";
+import { createExportProgress, IDLE_EXPORT_PROGRESS } from "./export/ExportProgress";
+import {
+  sanitizeOutputName,
+  validateExportSettings,
+  withExportSettingsDefaults
+} from "./export/ExportSettings";
+import type { ExportResult, ExportSettings } from "./export/ExportTypes";
+import { exportPngSequenceZip } from "./export/SequenceExporter";
+import { recordCanvasWebM } from "./export/video/WebMRecorder";
 import { HistoryStack } from "./history/HistoryStack";
 import { WorldImporter } from "./minecraft/WorldImporter";
 import { pluginRegistry } from "./plugins/PluginRegistry";
@@ -19,6 +30,8 @@ import { applyCameraPreset } from "./presets/CameraPresets";
 import { presetRegistry } from "./presets/PresetRegistry";
 import { applyRigPosePreset } from "./presets/RigPosePresets";
 import { syncCinematicTimeline } from "./project/CinematicTimeline";
+import { PackageReader } from "./project/package/PackageReader";
+import { PackageWriter } from "./project/package/PackageWriter";
 import type {
   CameraEntity,
   MineMotionProject,
@@ -47,12 +60,16 @@ import type {
   PostProcessingPresetId,
   PostProcessingSettings
 } from "./rendering/postprocessing/PostProcessingTypes";
+import { renderViewportFrameToPng } from "./rendering/export/OfflineFrameRenderer";
+import { createRenderStateSnapshot } from "./rendering/export/RenderStateSnapshot";
+import { restoreRenderState } from "./rendering/export/RenderStateRestore";
 import { type SkyPresetId } from "./renderer/SkySystem";
 import { Viewport } from "./renderer/Viewport";
 import { SettingsStore, type AppSettings } from "./settings/AppSettings";
 import { templateRegistry } from "./templates/TemplateRegistry";
 import { TopBar } from "./ui/TopBar";
 import { EffectsLibraryPanel } from "./ui/effects/EffectsLibraryPanel";
+import { ExportPanel } from "./ui/export/ExportPanel";
 import { HelpPanel } from "./ui/help/HelpPanel";
 import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
@@ -75,7 +92,7 @@ export function App() {
   );
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [status, setStatus] = useState(
-    "Ready. Phase 2 cinematic editor systems loaded."
+    "Ready. Phase 3 export and package systems loaded."
   );
   const [isDirty, setIsDirty] = useState(false);
   const [lookThroughCameraRequest, setLookThroughCameraRequest] = useState(0);
@@ -85,6 +102,8 @@ export function App() {
   const [pluginsOpen, setPluginsOpen] = useState(false);
   const [commandsOpen, setCommandsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportProgress, setExportProgress] = useState(IDLE_EXPORT_PROGRESS);
   const [plugins, setPlugins] = useState(() => pluginRegistry.list());
 
   const historyRef = useRef(new HistoryStack<MineMotionProject>());
@@ -95,6 +114,7 @@ export function App() {
   const audioManagerRef = useRef<AudioManager | null>(null);
   const lastPlaybackTimeRef = useRef<number | null>(null);
   const previousAudioFrameRef = useRef(0);
+  const exportCancelledRef = useRef(false);
 
   const presets = useMemo(() => presetRegistry.snapshot(), []);
   const templates = useMemo(() => templateRegistry.list(), []);
@@ -268,17 +288,8 @@ export function App() {
   );
 
   const handleSaveProject = useCallback(() => {
-    const raw = ProjectSerializer.serialize(project);
-    const blob = new Blob([raw], { type: "application/json" });
-    const link = document.createElement("a");
-    const filename = `${project.projectName
-      .replace(/[^a-z0-9]+/gi, "-")
-      .replace(/^-|-$/g, "")
-      .toLowerCase() || "minemotion-project"}.mmsproj`;
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    const filename = `${sanitizeOutputName(project.projectName)}.minemotion`;
+    downloadBlob(PackageWriter.write(project), filename);
 
     setSettings((currentSettings) =>
       SettingsStore.addRecentProject(currentSettings, {
@@ -290,6 +301,14 @@ export function App() {
     );
     setIsDirty(false);
     setStatus(`Project saved as ${filename}.`);
+  }, [project]);
+
+  const handleExportLegacyProject = useCallback(() => {
+    const raw = ProjectSerializer.serialize(project);
+    const blob = new Blob([raw], { type: "application/json" });
+    const filename = `${sanitizeOutputName(project.projectName)}.mmsproj`;
+    downloadBlob(blob, filename);
+    setStatus(`Legacy project exported as ${filename}.`);
   }, [project]);
 
   const handleLoadProject = useCallback(() => {
@@ -304,10 +323,17 @@ export function App() {
     if (!file || !confirmDiscardChanges()) return;
 
     try {
-      const loadedProject = ProjectSerializer.parse(await file.text());
+      const raw = await file.text();
+      const loadedProject = PackageReader.looksLikePackage(raw)
+        ? PackageReader.parse(raw)
+        : ProjectSerializer.parse(raw);
       historyRef.current.clear();
       setProject(loadedProject);
-      setSelectedObjectId(loadedProject.scene.characters[0]?.id ?? null);
+      setSelectedObjectId(
+        loadedProject.scene.characters[0]?.id ??
+          loadedProject.scene.cameras[0]?.id ??
+          null
+      );
       setSelectedEffectId(null);
       setIsDirty(false);
       setSettings((currentSettings) =>
@@ -588,6 +614,262 @@ export function App() {
     );
     setStatus("Cinematic bars toggled.");
   }, [commitProject]);
+
+  const handleExportSettingsChange = useCallback((settings: ExportSettings) => {
+    setProject((currentProject) => ({
+      ...currentProject,
+      exportSettings: withExportSettingsDefaults(settings, currentProject)
+    }));
+    setIsDirty(true);
+  }, []);
+
+  const validateCurrentExport = useCallback(() => {
+    const validation = validateExportSettings(project.exportSettings, project);
+    if (!validation.valid) {
+      const message = validation.errors.join(" ");
+      setStatus(message);
+      setExportProgress(
+        createExportProgress({
+          status: "error",
+          message: "Export settings are invalid.",
+          error: message
+        })
+      );
+      return false;
+    }
+    if (validation.warnings.length > 0) {
+      setStatus(validation.warnings.join(" "));
+    }
+    return true;
+  }, [project]);
+
+  const handleExportCurrentFrame = useCallback(async () => {
+    if (!validateCurrentExport()) return;
+    exportCancelledRef.current = false;
+    setExportProgress(
+      createExportProgress({
+        status: "preparing",
+        message: "Capturing current viewport frame."
+      })
+    );
+
+    try {
+      const result = await exportCurrentFramePng(
+        getViewportShell(),
+        project,
+        project.exportSettings
+      );
+      downloadExportResult(result);
+      setExportProgress(
+        createExportProgress({
+          status: "complete",
+          currentFrame: 1,
+          totalFrames: 1,
+          message: `Exported ${result.filename}.`
+        })
+      );
+      setStatus(`Exported ${result.filename}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "PNG export failed.";
+      setExportProgress(
+        createExportProgress({
+          status: "error",
+          message,
+          error: message
+        })
+      );
+      setStatus(message);
+    }
+  }, [project, validateCurrentExport]);
+
+  const handleExportSequence = useCallback(async () => {
+    if (!validateCurrentExport()) return;
+    exportCancelledRef.current = false;
+    const snapshot = createRenderStateSnapshot(project);
+    const settings = project.exportSettings;
+    setExportProgress(
+      createExportProgress({
+        status: "preparing",
+        message: "Preparing PNG sequence export."
+      })
+    );
+
+    try {
+      const viewportShell = getViewportShell();
+      const result = await exportPngSequenceZip({
+        settings,
+        onProgress: setExportProgress,
+        isCancelled: () => exportCancelledRef.current,
+        captureFrame: async (frame) => {
+          setProject((currentProject) => ({
+            ...currentProject,
+            animation: {
+              ...setCurrentFrame(currentProject.animation, frame),
+              isPlaying: false
+            }
+          }));
+          await waitForNextPaint();
+          return await renderViewportFrameToPng(
+            viewportShell,
+            {
+              ...project,
+              animation: {
+                ...project.animation,
+                currentFrame: frame,
+                isPlaying: false
+              }
+            },
+            settings
+          );
+        }
+      });
+      downloadExportResult(result);
+      setExportProgress(
+        createExportProgress({
+          status: "complete",
+          currentFrame: settings.endFrame - settings.startFrame + 1,
+          totalFrames: settings.endFrame - settings.startFrame + 1,
+          message: `Exported ${result.filename}.`
+        })
+      );
+      setStatus(`Exported ${result.filename}.`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "PNG sequence export failed.";
+      setExportProgress(
+        createExportProgress({
+          status: exportCancelledRef.current ? "cancelled" : "error",
+          message,
+          error: exportCancelledRef.current ? "" : message
+        })
+      );
+      setStatus(message);
+    } finally {
+      setProject((currentProject) => restoreRenderState(currentProject, snapshot));
+    }
+  }, [project, validateCurrentExport]);
+
+  const handleExportWebM = useCallback(async () => {
+    if (!validateCurrentExport()) return;
+    exportCancelledRef.current = false;
+    const settings = project.exportSettings;
+    const snapshot = createRenderStateSnapshot(project);
+    const totalFrames = settings.endFrame - settings.startFrame + 1;
+    const frameDurationMs = 1000 / settings.fps;
+    setExportProgress(
+      createExportProgress({
+        status: "preparing",
+        totalFrames,
+        message: "Recording viewport canvas as WebM."
+      })
+    );
+
+    try {
+      const canvas = getViewportShell().querySelector("canvas");
+      if (!canvas) {
+        throw new Error("No viewport canvas is available for WebM export.");
+      }
+
+      const recorder = recordCanvasWebM(
+        canvas,
+        totalFrames * frameDurationMs,
+        settings.fps
+      );
+      for (
+        let frame = settings.startFrame, index = 0;
+        frame <= settings.endFrame;
+        frame += 1, index += 1
+      ) {
+        if (exportCancelledRef.current) break;
+        setProject((currentProject) => ({
+          ...currentProject,
+          animation: {
+            ...setCurrentFrame(currentProject.animation, frame),
+            isPlaying: false
+          }
+        }));
+        setExportProgress(
+          createExportProgress({
+            status: "rendering",
+            currentFrame: index + 1,
+            totalFrames,
+            message: `Recording frame ${index + 1} of ${totalFrames}.`
+          })
+        );
+        await wait(frameDurationMs);
+      }
+      const blob = await recorder;
+      const filename = `${sanitizeOutputName(settings.outputName)}.webm`;
+      downloadBlob(blob, filename);
+      setExportProgress(
+        createExportProgress({
+          status: "complete",
+          currentFrame: totalFrames,
+          totalFrames,
+          message: `Exported ${filename}.`
+        })
+      );
+      setStatus(`Exported ${filename}. WebM uses live viewport resolution.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "WebM export failed.";
+      setExportProgress(
+        createExportProgress({
+          status: "error",
+          message,
+          error: message
+        })
+      );
+      setStatus(message);
+    } finally {
+      setProject((currentProject) => restoreRenderState(currentProject, snapshot));
+    }
+  }, [project, validateCurrentExport]);
+
+  const handleExportWav = useCallback(async () => {
+    exportCancelledRef.current = false;
+    setExportProgress(
+      createExportProgress({
+        status: "encoding",
+        message: "Mixing project audio to WAV."
+      })
+    );
+
+    try {
+      const blob = await exportProjectWav(project);
+      const filename = `${sanitizeOutputName(project.exportSettings.outputName)}.wav`;
+      downloadBlob(blob, filename);
+      setExportProgress(
+        createExportProgress({
+          status: "complete",
+          currentFrame: 1,
+          totalFrames: 1,
+          message: `Exported ${filename}.`
+        })
+      );
+      setStatus(`Exported ${filename}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "WAV export failed.";
+      setExportProgress(
+        createExportProgress({
+          status: "error",
+          message,
+          error: message
+        })
+      );
+      setStatus(message);
+    }
+  }, [project]);
+
+  const handleCancelExport = useCallback(() => {
+    exportCancelledRef.current = true;
+    setExportProgress(
+      createExportProgress({
+        status: "cancelled",
+        message: "Export cancellation requested."
+      })
+    );
+    setStatus("Export cancellation requested.");
+  }, []);
 
   const handleAudioSelected = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -1003,6 +1285,11 @@ export function App() {
         deleteSelected: handleDeleteSelectedObject,
         openSettings: () => setSettingsOpen(true),
         openPluginManager: () => setPluginsOpen(true),
+        openExportPanel: () => setExportOpen(true),
+        exportCurrentFrame: handleExportCurrentFrame,
+        exportPngSequence: handleExportSequence,
+        savePackage: handleSaveProject,
+        exportLegacyProject: handleExportLegacyProject,
         applySky: (sky) => handleSkyChange(sky, project.sky.customColor),
         togglePlayback: handleTogglePlayback,
         resetViewportCamera: handleResetViewportCamera,
@@ -1021,6 +1308,9 @@ export function App() {
       handleImportObj,
       handleDuplicateSelectedObject,
       handleDeleteSelectedObject,
+      handleExportCurrentFrame,
+      handleExportLegacyProject,
+      handleExportSequence,
       handleLoadProject,
       handleNewProject,
       handleRedo,
@@ -1103,6 +1393,7 @@ export function App() {
     `Post: ${project.postProcessing.presetId}`,
     `FX: ${project.effects.instances.length}`,
     `SFX: ${project.audio.clips.length}`,
+    `Export: ${project.exportSettings.width}x${project.exportSettings.height}`,
     project.renderSettings.renderPreviewEnabled ? "Render Preview" : "Viewport",
     project.world ? `World: ${project.world.sourceName}` : "World: demo"
   ].join(" | ");
@@ -1126,6 +1417,7 @@ export function App() {
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenPlugins={() => setPluginsOpen(true)}
         onOpenCommands={() => setCommandsOpen(true)}
+        onOpenExport={() => setExportOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
         onToggleRenderPreview={handleToggleRenderPreview}
       />
@@ -1221,6 +1513,25 @@ export function App() {
         commands={commands}
         onClose={() => setCommandsOpen(false)}
       />
+      <ExportPanel
+        open={exportOpen}
+        project={project}
+        progress={exportProgress}
+        isExporting={
+          exportProgress.status === "preparing" ||
+          exportProgress.status === "rendering" ||
+          exportProgress.status === "encoding"
+        }
+        onClose={() => setExportOpen(false)}
+        onSettingsChange={handleExportSettingsChange}
+        onSavePackage={handleSaveProject}
+        onExportLegacyProject={handleExportLegacyProject}
+        onExportCurrentFrame={handleExportCurrentFrame}
+        onExportSequence={handleExportSequence}
+        onExportWebM={handleExportWebM}
+        onExportWav={handleExportWav}
+        onCancelExport={handleCancelExport}
+      />
       <HelpPanel
         open={helpOpen}
         onClose={() => setHelpOpen(false)}
@@ -1257,4 +1568,34 @@ export function App() {
       />
     </main>
   );
+}
+
+function getViewportShell(): HTMLElement {
+  const shell = document.querySelector<HTMLElement>(".viewport-shell");
+  if (!shell) {
+    throw new Error("Viewport is not mounted.");
+  }
+  return shell;
+}
+
+function downloadExportResult(result: ExportResult): void {
+  downloadBlob(result.blob, result.filename);
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function waitForNextPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }

@@ -1,6 +1,6 @@
 # User Guide
 
-This guide describes the Phase 2 editor workflow.
+This guide describes the Phase 3 editor workflow.
 
 ## Start The App
 
@@ -35,7 +35,25 @@ Click **Render Preview** in the top bar or Effects panel. The viewport switches
 to a cinematic preview mode with active camera label, post-processing, effects,
 and optional bars.
 
-Render Preview is not full video export yet.
+## Export
+
+Click **Export** in the top bar.
+
+Available output:
+
+- **Save .minemotion**: saves the full Phase 3 package payload.
+- **Export .mmsproj**: exports legacy schema v4 project JSON.
+- **PNG Frame**: captures the current viewport frame.
+- **PNG ZIP**: captures the selected frame range as numbered PNG files inside a
+  ZIP archive.
+- **WebM**: records the live viewport canvas when browser `MediaRecorder`
+  support is available.
+- **WAV**: mixes imported audio and generated placeholder SFX when
+  `OfflineAudioContext` support is available.
+
+Export settings include output name, format, frame range, FPS, width, height,
+quality, camera target, transparency, post-processing, VFX overlays, cinematic
+bars, and audio inclusion flags.
 
 ## Add SFX
 
@@ -43,7 +61,9 @@ Use **Import SFX** in the Effects panel for `.wav`, `.mp3`, or `.ogg` files.
 You can also add built-in placeholder SFX such as Lightning Crack, Impact Hit,
 Whoosh, Deep Boom, Camera Rumble, Magic Pulse, or Glitch Pop.
 
-Audio clips appear on the timeline and trigger during playback.
+Audio clips appear on the timeline and trigger during playback. WAV export mixes
+these clips into a single output file when the browser supports offline audio
+rendering.
 
 ## Select And Edit Objects
 
@@ -72,7 +92,7 @@ chase, over-shoulder, and dramatic zoom setups.
 ## Keyboard Shortcuts
 
 - `Ctrl+P`: command palette
-- `Ctrl+S`: save project
+- `Ctrl+S`: save `.minemotion`
 - `Ctrl+Z`: undo
 - `Ctrl+Y`: redo
 - `Ctrl+Shift+Z`: redo
@@ -82,8 +102,9 @@ chase, over-shoulder, and dramatic zoom setups.
 
 ## Save And Load
 
-Use the top toolbar or `Ctrl+S` to download a `.mmsproj` file. Phase 1 and
-Phase 1.5 projects are migrated to schema v3 when opened.
+Use the top toolbar or `Ctrl+S` to download a `.minemotion` package. Legacy
+`.mmsproj` and JSON project files can still be opened. Phase 1, Phase 1.5, and
+Phase 2 projects are migrated to schema v4 when opened.
 
 ## Current Limits
 
@@ -91,4 +112,4 @@ Phase 1.5 projects are migrated to schema v3 when opened.
 - Resource packs are not loaded yet.
 - External plugin scripts are not executed yet.
 - Native Tauri file dialogs are not wired yet.
-- Full image sequence/video export is planned for a later phase.
+- MP4 export is planned for a future FFmpeg/native pipeline.

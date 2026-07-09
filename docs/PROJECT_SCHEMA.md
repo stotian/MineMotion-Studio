@@ -1,6 +1,14 @@
 # Project Schema
 
-Current project files use `schemaVersion: 3`.
+Current project files use `schemaVersion: 4`.
+
+## Added In Schema 4
+
+- `packageMetadata`
+- `assetLibrary`
+- `exportSettings`
+- `performanceSettings`
+- `.minemotion` package save/load support
 
 ## Added In Schema 3
 
@@ -17,16 +25,17 @@ Current project files use `schemaVersion: 3`.
 
 The serializer supports:
 
-- v1 -> v3
-- v2 -> v3
-- v3 round-trip
+- v1 -> v4
+- v2 -> v4
+- v3 -> v4
+- v4 round-trip
 
-Missing Phase 2 fields are filled with safe defaults. Invalid legacy projects
-that lack core scene, animation, or asset data are rejected.
+Missing Phase 2 and Phase 3 fields are filled with safe defaults. Invalid
+legacy projects that lack core scene, animation, or asset data are rejected.
 
 ## Timeline Lanes
 
-Phase 2 adds typed lanes:
+Typed lanes:
 
 - transform
 - effect
@@ -35,3 +44,16 @@ Phase 2 adds typed lanes:
 
 Effect and audio lanes are synchronized from `effects.instances` and
 `audio.clips`.
+
+## Package Metadata
+
+Schema v4 adds package metadata so the project can be saved inside a
+`.minemotion` payload:
+
+- preferred package extension
+- last package id
+- last packaged timestamp
+- package warnings
+
+The current `.minemotion` writer stores JSON, OBJ assets, audio data URLs, and
+an asset library index in a single JSON payload.

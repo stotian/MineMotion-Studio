@@ -3,6 +3,7 @@ import {
   Camera,
   Clapperboard,
   Command,
+  Download,
   FolderOpen,
   HelpCircle,
   LayoutTemplate,
@@ -33,6 +34,7 @@ interface TopBarProps {
   onOpenSettings: () => void;
   onOpenPlugins: () => void;
   onOpenCommands: () => void;
+  onOpenExport: () => void;
   onOpenHelp: () => void;
   onToggleRenderPreview: () => void;
 }
@@ -54,6 +56,7 @@ export function TopBar({
   onOpenSettings,
   onOpenPlugins,
   onOpenCommands,
+  onOpenExport,
   onOpenHelp,
   onToggleRenderPreview
 }: TopBarProps) {
@@ -117,6 +120,10 @@ export function TopBar({
         <button type="button" onClick={onOpenCommands}>
           <Command size={16} />
           Commands
+        </button>
+        <button type="button" onClick={onOpenExport}>
+          <Download size={16} />
+          Export
         </button>
         <button type="button" onClick={onOpenHelp}>
           <HelpCircle size={16} />

@@ -33,7 +33,19 @@
 - Project schema v3 migration.
 - Plugin extension points for cinematic systems.
 
-## Phase 3: Real Minecraft World Import
+## Phase 3: Export Pipeline And Packages
+
+- `.minemotion` package save/load.
+- Schema v4 migration.
+- Export settings panel and presets.
+- Current frame PNG export.
+- PNG sequence ZIP export.
+- Browser WebM recording where supported.
+- Browser WAV mixdown where supported.
+- Asset library index.
+- Performance monitoring and resource-tracking utilities.
+
+## Phase 4: Real Minecraft World Import
 
 - Read compressed `level.dat`.
 - Parse NBT compounds fully enough for modern Minecraft worlds.
@@ -44,16 +56,15 @@
 - Add chunk cache and bounded loading.
 - Add basic greedy meshing.
 
-## Phase 4: Professional Render And Export
+## Phase 5: Professional Native Render And Export
 
-- Still image export.
-- PNG sequence export.
-- Video export through ffmpeg or native pipeline.
+- MP4 export through FFmpeg or native pipeline.
 - Real EffectComposer/shader export stack.
 - Camera render queue.
-- Render settings presets.
+- Native save/open dialogs.
+- Offline Three.js render target.
 
-## Phase 5: Advanced Rigs And Assets
+## Phase 6: Advanced Rigs And Assets
 
 - Steve and Alex presets.
 - Custom skins.
@@ -63,7 +74,7 @@
 - Blockbench `.bbmodel` import.
 - Resource-pack import.
 
-## Phase 6: Advanced Timeline
+## Phase 7: Advanced Timeline
 
 - Dopesheet.
 - Simplified graph editor.
@@ -73,7 +84,7 @@
 - Animation layers.
 - Camera cuts.
 
-## Phase 7: External Plugin System
+## Phase 8: External Plugin System
 
 - Plugin package format.
 - Safe execution model.

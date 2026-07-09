@@ -1,7 +1,7 @@
 {
   "name": "minemotion-studio",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MineMotion Studio - A cinematic Minecraft animation editor.",
   "type": "module",
   "scripts": {

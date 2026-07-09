@@ -1,7 +1,9 @@
 import { sanitizeAudioClips } from "../audio/AudioSerializer";
 import { createAudioTimelineItems } from "../audio/AudioTrack";
+import { sanitizeAssetLibrary } from "../assets/library/AssetSerializer";
 import { sanitizeEffects } from "../effects/EffectSerializer";
 import { createEffectTimelineItems } from "../effects/EffectTimelineTrack";
+import { withExportSettingsDefaults } from "../export/ExportSettings";
 import {
   withPostProcessingDefaults
 } from "../rendering/postprocessing/PostProcessingPresets";
@@ -16,7 +18,7 @@ import {
   createDefaultTimelineTracks
 } from "./ProjectStore";
 
-const CURRENT_SCHEMA_VERSION = 3;
+const CURRENT_SCHEMA_VERSION = 4;
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -47,7 +49,7 @@ export class ProjectSerializer {
       return ProjectSerializer.migrate(parsed);
     }
 
-    const project = ProjectSerializer.withV3Defaults(parsed);
+    const project = ProjectSerializer.withV4Defaults(parsed);
     ProjectSerializer.assertValidProject(project);
     return project;
   }
@@ -56,15 +58,15 @@ export class ProjectSerializer {
     if (parsed.schemaVersion === 1) {
       ProjectSerializer.assertLegacyCoreData(parsed);
       const migratedV2 = ProjectSerializer.withV2CompatibilityDefaults(parsed);
-      const migratedV3 = ProjectSerializer.withV3Defaults(migratedV2);
-      ProjectSerializer.assertValidProject(migratedV3);
-      return migratedV3;
+      const migratedV4 = ProjectSerializer.withV4Defaults(migratedV2);
+      ProjectSerializer.assertValidProject(migratedV4);
+      return migratedV4;
     }
 
-    if (parsed.schemaVersion === 2) {
-      const migratedV3 = ProjectSerializer.withV3Defaults(parsed);
-      ProjectSerializer.assertValidProject(migratedV3);
-      return migratedV3;
+    if (parsed.schemaVersion === 2 || parsed.schemaVersion === 3) {
+      const migratedV4 = ProjectSerializer.withV4Defaults(parsed);
+      ProjectSerializer.assertValidProject(migratedV4);
+      return migratedV4;
     }
 
     if (parsed.schemaVersion === undefined) {
@@ -95,7 +97,7 @@ export class ProjectSerializer {
     };
   }
 
-  private static withV3Defaults(project: UnknownProject): MineMotionProject {
+  private static withV4Defaults(project: UnknownProject): MineMotionProject {
     const settingsDefaults = createDefaultProjectSettings();
     const effects = sanitizeEffects(project.effects?.instances);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
@@ -120,9 +122,17 @@ export class ProjectSerializer {
 
     return {
       ...(project as MineMotionProject),
-      schemaVersion: 3,
+      schemaVersion: 4,
       projectName: projectSettings.projectName,
       projectSettings,
+      packageMetadata: {
+        preferredFormat: ".minemotion",
+        lastPackageId: project.packageMetadata?.lastPackageId ?? "",
+        lastPackagedAt: project.packageMetadata?.lastPackagedAt ?? "",
+        warnings: Array.isArray(project.packageMetadata?.warnings)
+          ? project.packageMetadata.warnings
+          : []
+      },
       activeCameraId,
       scene: {
         characters: (project.scene?.characters ?? []).map((entity) => ({
@@ -157,6 +167,7 @@ export class ProjectSerializer {
       assets: {
         obj: project.assets?.obj ?? []
       },
+      assetLibrary: sanitizeAssetLibrary(project.assetLibrary),
       effects: {
         instances: effects
       },
@@ -167,6 +178,16 @@ export class ProjectSerializer {
       renderSettings: {
         ...createDefaultRenderSettings(),
         ...project.renderSettings
+      },
+      exportSettings: withExportSettingsDefaults(project.exportSettings),
+      performanceSettings: {
+        showDiagnostics: project.performanceSettings?.showDiagnostics ?? true,
+        targetFps: project.performanceSettings?.targetFps ?? 60,
+        renderQualityDuringPlayback:
+          project.performanceSettings?.renderQualityDuringPlayback ??
+          "balanced",
+        cacheStaticTerrain:
+          project.performanceSettings?.cacheStaticTerrain ?? true
       },
       animation: {
         fps: projectSettings.fps,
@@ -183,7 +204,7 @@ export class ProjectSerializer {
       metadata: {
         createdAt: project.metadata?.createdAt ?? new Date().toISOString(),
         updatedAt: project.metadata?.updatedAt ?? new Date().toISOString(),
-        appVersion: "0.2.0"
+        appVersion: "0.3.0"
       }
     };
   }
@@ -270,6 +291,10 @@ export class ProjectSerializer {
 
     if (!project.renderSettings) {
       throw new Error("Project file is missing render settings.");
+    }
+
+    if (!project.exportSettings || !project.assetLibrary) {
+      throw new Error("Project file is missing Phase 3 export/package data.");
     }
 
     if (!Array.isArray(project.animation.tracks)) {

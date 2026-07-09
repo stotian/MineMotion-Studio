@@ -674,7 +674,8 @@ select {
   font-size: 0.98rem;
 }
 
-.settings-grid {
+.settings-grid,
+.export-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(260px, 1fr));
   gap: 0.9rem;
@@ -682,6 +683,7 @@ select {
 }
 
 .settings-grid section,
+.export-layout section,
 .plugin-row,
 .template-card {
   border: 1px solid #2b3443;
@@ -689,17 +691,20 @@ select {
   background: #111720;
 }
 
-.settings-grid section {
+.settings-grid section,
+.export-layout section {
   padding: 0.8rem;
 }
 
-.settings-grid h3 {
+.settings-grid h3,
+.export-layout h3 {
   margin: 0 0 0.75rem;
   color: #c2cad8;
   font-size: 0.85rem;
 }
 
-.settings-grid label {
+.settings-grid label,
+.export-layout label {
   display: grid;
   gap: 0.35rem;
   margin-bottom: 0.65rem;
@@ -707,7 +712,8 @@ select {
   font-size: 0.78rem;
 }
 
-.settings-grid textarea {
+.settings-grid textarea,
+.export-layout textarea {
   min-height: 72px;
   color: #e7ebf2;
   background: #121720;
@@ -726,6 +732,80 @@ select {
 
 .checkbox-label input {
   width: auto;
+}
+
+.export-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.export-actions,
+.export-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.export-presets {
+  margin-top: 0.8rem;
+}
+
+.export-library {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  padding: 0.65rem;
+  border: 1px solid #293241;
+  border-radius: 6px;
+  color: #aab4c4;
+  font-size: 0.78rem;
+}
+
+.export-library strong,
+.export-library span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.export-status {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.export-errors,
+.export-warnings {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.export-errors {
+  color: #ffadad;
+}
+
+.export-warnings {
+  color: #eadca5;
+}
+
+.export-progress {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem;
+  border: 1px solid #293241;
+  border-radius: 6px;
+  background: #101620;
+  color: #aeb8c8;
+  font-size: 0.78rem;
+}
+
+.export-progress progress {
+  width: 100%;
 }
 
 .template-grid {

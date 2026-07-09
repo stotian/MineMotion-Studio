@@ -22,5 +22,6 @@ project settings.
 
 ## Current Limits
 
-Render Preview does not export full video yet. Exporting stills, PNG sequences,
-and video should be a later rendering/export phase.
+Phase 3 can export PNG stills and PNG sequence ZIP files from the viewport.
+WebM recording is available when the browser supports `MediaRecorder`; MP4
+requires a future native/FFmpeg pipeline.

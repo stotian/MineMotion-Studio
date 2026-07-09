@@ -3,8 +3,8 @@ import type { PluginManifest } from "../PluginManifest";
 export const BuiltinPresetPlugin: PluginManifest = {
   id: "minemotion.builtin.presets",
   name: "Built-in Presets",
-  version: "0.2.0",
-  minMineMotionVersion: "0.2.0",
+  version: "0.3.0",
+  minMineMotionVersion: "0.3.0",
   description: "Registers bundled camera, rig pose, animation, sky, and block palette presets.",
   author: "MineMotion Studio",
   permissions: ["registerPresets"],

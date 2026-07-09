@@ -1,7 +1,10 @@
 import type { SkyPresetId } from "../renderer/SkySystem";
 import type { BlockPaletteStyle } from "../settings/SettingsTypes";
 import type { AudioClip } from "../audio/AudioTypes";
+import type { AssetLibraryData } from "../assets/library/AssetRecord";
 import type { EffectInstance } from "../effects/EffectTypes";
+import type { ExportSettings } from "../export/ExportTypes";
+import type { ProjectPackageMetadata } from "./package/PackageTypes";
 import type { PostProcessingSettings } from "../rendering/postprocessing/PostProcessingTypes";
 
 export type Vector3Tuple = [number, number, number];
@@ -161,9 +164,10 @@ export interface RenderSettings {
 }
 
 export interface MineMotionProject {
-  schemaVersion: 3;
+  schemaVersion: 4;
   projectName: string;
   projectSettings: ProjectSettings;
+  packageMetadata: ProjectPackageMetadata;
   activeCameraId: string;
   sky: {
     preset: SkyPresetId;
@@ -179,6 +183,7 @@ export interface MineMotionProject {
   assets: {
     obj: ImportedObjAsset[];
   };
+  assetLibrary: AssetLibraryData;
   effects: {
     instances: EffectInstance[];
   };
@@ -187,6 +192,13 @@ export interface MineMotionProject {
   };
   postProcessing: PostProcessingSettings;
   renderSettings: RenderSettings;
+  exportSettings: ExportSettings;
+  performanceSettings: {
+    showDiagnostics: boolean;
+    targetFps: number;
+    renderQualityDuringPlayback: "draft" | "balanced" | "final";
+    cacheStaticTerrain: boolean;
+  };
   animation: TimelineData;
   metadata: {
     createdAt: string;

@@ -496,7 +496,7 @@ export function SettingsModal({
               }
             />
             <p className="empty-note">
-              External plugin JavaScript execution is disabled in Phase 2.
+              External plugin JavaScript execution is disabled in this build.
             </p>
           </section>
         </div>

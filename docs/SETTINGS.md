@@ -52,8 +52,8 @@ App settings are stored locally in the runtime and use settings schema version
 
 ## Project Settings
 
-Project settings are saved inside `.mmsproj` files and use project settings
-schema version `1`.
+Project settings are saved inside `.minemotion` packages and legacy `.mmsproj`
+exports. They use project settings schema version `1`.
 
 - project name
 - FPS
@@ -69,7 +69,8 @@ schema version `1`.
 ## Migration
 
 Phase 1 projects used project schema version `1`; Phase 1.5 used schema version
-`2`. Phase 2 opens both and migrates them to schema version `3` by adding
-missing project settings, object metadata, cinematic effects, audio clips,
-post-processing settings, render settings, active camera data, and timeline
-lanes.
+`2`; Phase 2 used schema version `3`. Phase 3 opens all of them and migrates
+them to schema version `4` by adding missing project settings, object metadata,
+cinematic effects, audio clips, post-processing settings, render settings,
+active camera data, timeline lanes, package metadata, asset library data, export
+settings, and performance settings.

@@ -1,6 +1,6 @@
 # Plugin Sandbox Notes
 
-Phase 2 does not execute arbitrary external plugin JavaScript.
+The current build does not execute arbitrary external plugin JavaScript.
 
 Current behavior:
 

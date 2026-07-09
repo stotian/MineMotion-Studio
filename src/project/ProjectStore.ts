@@ -14,6 +14,7 @@ import type {
 import { cloneTransform, createTransform } from "./ProjectFile";
 import type { AppSettings } from "../settings/AppSettings";
 import { DEFAULT_POST_PROCESSING } from "../rendering/postprocessing/PostProcessingPresets";
+import { DEFAULT_EXPORT_SETTINGS } from "../export/ExportSettings";
 
 export function createId(prefix: string): string {
   const random = Math.random().toString(36).slice(2, 8);
@@ -120,9 +121,15 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     projectName: projectSettings.projectName,
     projectSettings,
+    packageMetadata: {
+      preferredFormat: ".minemotion",
+      lastPackageId: "",
+      lastPackagedAt: "",
+      warnings: []
+    },
     activeCameraId: defaultCamera.id,
     sky: {
       preset: projectSettings.defaultSkyPreset,
@@ -138,6 +145,10 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     assets: {
       obj: []
     },
+    assetLibrary: {
+      records: [],
+      warnings: []
+    },
     effects: {
       instances: []
     },
@@ -146,6 +157,17 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     },
     postProcessing: DEFAULT_POST_PROCESSING,
     renderSettings: createDefaultRenderSettings(),
+    exportSettings: {
+      ...DEFAULT_EXPORT_SETTINGS,
+      endFrame: projectSettings.durationFrames,
+      fps: projectSettings.fps
+    },
+    performanceSettings: {
+      showDiagnostics: true,
+      targetFps: 60,
+      renderQualityDuringPlayback: "balanced",
+      cacheStaticTerrain: true
+    },
     animation: {
       fps: projectSettings.fps,
       durationFrames: projectSettings.durationFrames,
@@ -157,7 +179,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     metadata: {
       createdAt: now,
       updatedAt: now,
-      appVersion: "0.2.0"
+      appVersion: "0.3.0"
     }
   };
 }

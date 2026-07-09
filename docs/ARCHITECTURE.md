@@ -15,8 +15,10 @@ flowchart LR
   UI --> Commands["Command Registry"]
   UI --> Effects["Effects Registry"]
   UI --> Audio["Audio Manager"]
+  UI --> Export["Export Panel"]
   UI --> Plugins["Plugin Registry"]
   Project --> Animation["Animation System"]
+  Project --> Packages[".minemotion Package"]
   Project --> Post["Post Pipeline"]
   Project --> Renderer["Three.js Renderer"]
   Effects --> Renderer
@@ -37,22 +39,29 @@ flowchart LR
   terrain, scene rendering, and world-space effect preview.
 - `src/rendering/postprocessing`: post-processing settings, presets, and
   overlay style pipeline.
+- `src/rendering/export`: render state snapshot/restore and viewport frame
+  export helpers.
+- `src/export`: export settings, progress, PNG frame export, PNG sequence ZIP,
+  and browser video support checks.
 - `src/effects`: effect definitions, instances, registry, serializer, spawner,
   and timeline helpers.
 - `src/audio`: audio clip types, import helpers, placeholder SFX registry,
   playback manager, serializer, and timeline helpers.
+- `src/audio/export`: browser WAV mixdown and WAV encoding.
+- `src/assets/library`: package asset records and asset library serialization.
 - `src/minecraft`: block palette, terrain presets, world folder detection, NBT
   skeleton, and Anvil region helpers.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
-- `src/project`: schema v3, serializer, migrations, timeline sync, initial
-  state, and object helpers.
+- `src/project`: schema v4, serializer, migrations, package helpers, timeline
+  sync, initial state, and object helpers.
+- `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
   built-in plugin metadata.
 - `src-tauri`: Tauri v2 desktop shell scaffold.
 
 ## Project System
 
-Project files use schema v3. The serializer migrates v1 and v2 projects by
+Project files use schema v4. The serializer migrates v1, v2, and v3 projects by
 adding:
 
 - active camera
@@ -62,6 +71,10 @@ adding:
 - audio clips
 - typed timeline lanes
 - camera focal length/active flags
+- package metadata
+- asset library data
+- export settings
+- performance settings
 
 ## Rendering
 
@@ -73,8 +86,9 @@ world-space VFX into the scene root:
 - glow burst cube particles
 
 Screen-space effects and post-processing are handled by React overlays around
-the canvas. This keeps Phase 2 buildable without a heavy dependency or risky
-shader stack.
+the canvas. Phase 3 export captures those overlays through a canvas capture
+path for PNG output and records the live viewport canvas for WebM where browser
+support allows it.
 
 ## Timeline
 

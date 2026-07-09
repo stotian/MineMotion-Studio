@@ -45,8 +45,8 @@ export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) 
             <li>Toggle Render Preview to view bars, post effects, and active camera framing.</li>
             <li>Import SFX or add placeholder SFX to the timeline.</li>
             <li>Use Play to preview linear animation.</li>
-            <li>World import currently scans folder structure; real chunk rendering is Phase 3.</li>
-            <li>Save projects as `.mmsproj` JSON files.</li>
+            <li>World import scans folder structure and packages the summary metadata.</li>
+            <li>Save projects as `.minemotion` packages; legacy `.mmsproj` export is in Export.</li>
           </ul>
         </div>
       </section>

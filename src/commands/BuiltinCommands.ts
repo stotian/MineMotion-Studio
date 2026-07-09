@@ -14,6 +14,11 @@ export interface BuiltinCommandActions {
   deleteSelected: () => void;
   openSettings: () => void;
   openPluginManager: () => void;
+  openExportPanel: () => void;
+  exportCurrentFrame: () => void;
+  exportPngSequence: () => void;
+  savePackage: () => void;
+  exportLegacyProject: () => void;
   applySky: (sky: SkyPresetId) => void;
   togglePlayback: () => void;
   resetViewportCamera: () => void;
@@ -46,6 +51,19 @@ export function createBuiltinCommands(actions: BuiltinCommandActions): Command[]
       title: "Load Project",
       group: "Project",
       run: actions.loadProject
+    },
+    {
+      id: "project.savePackage",
+      title: "Save .minemotion Package",
+      group: "Project",
+      shortcut: "Ctrl+S",
+      run: actions.savePackage
+    },
+    {
+      id: "project.exportLegacy",
+      title: "Export Legacy .mmsproj",
+      group: "Project",
+      run: actions.exportLegacyProject
     },
     {
       id: "scene.addCharacter",
@@ -141,6 +159,24 @@ export function createBuiltinCommands(actions: BuiltinCommandActions): Command[]
       title: "Toggle Cinematic Bars",
       group: "Render",
       run: actions.toggleCinematicBars
+    },
+    {
+      id: "render.openExport",
+      title: "Open Export Panel",
+      group: "Render",
+      run: actions.openExportPanel
+    },
+    {
+      id: "render.exportFrame",
+      title: "Export Current Frame PNG",
+      group: "Render",
+      run: actions.exportCurrentFrame
+    },
+    {
+      id: "render.exportSequence",
+      title: "Export PNG Sequence ZIP",
+      group: "Render",
+      run: actions.exportPngSequence
     },
     ...([
       ["cinematic-warm", "Post: Cinematic Warm"],
