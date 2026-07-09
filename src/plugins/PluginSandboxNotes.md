@@ -1,6 +1,6 @@
 # Plugin Sandbox Notes
 
-Phase 1.5 does not execute arbitrary external plugin JavaScript.
+Phase 2 does not execute arbitrary external plugin JavaScript.
 
 Current behavior:
 
@@ -20,4 +20,3 @@ Future safe plugin execution should use:
 
 Do not use `eval`, dynamic script tags, or unsandboxed imported plugin code for
 third-party plugins.
-

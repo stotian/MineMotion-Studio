@@ -11,7 +11,6 @@ export class PluginLoader {
   }
 
   static externalCodeExecutionStatus(): string {
-    return "External plugin JavaScript execution is disabled in Phase 1.5. Only manifests can be inspected.";
+    return "External plugin JavaScript execution is disabled in Phase 2. Only manifests and built-in extension points can be inspected.";
   }
 }
-

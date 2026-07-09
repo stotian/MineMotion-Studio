@@ -16,15 +16,24 @@
 
 - App settings.
 - Project settings and schema v2 migration.
-- Templates.
-- Camera, rig pose, animation, block palette, and sky presets.
+- Templates and presets.
 - Command palette.
 - Undo/redo.
 - Autosave.
 - Plugin registry skeleton and plugin manager UI.
-- Documentation and expanded tests.
 
-## Phase 2: Real World Import
+## Phase 2: Cinematic Editor Upgrade
+
+- Cinematic effects.
+- Post-processing presets.
+- Render Preview mode.
+- Timeline effect/audio blocks.
+- Basic SFX import and placeholder SFX.
+- Camera preset expansion.
+- Project schema v3 migration.
+- Plugin extension points for cinematic systems.
+
+## Phase 3: Real Minecraft World Import
 
 - Read compressed `level.dat`.
 - Parse NBT compounds fully enough for modern Minecraft worlds.
@@ -35,26 +44,26 @@
 - Add chunk cache and bounded loading.
 - Add basic greedy meshing.
 
-## Phase 3: Minecraft Assets
+## Phase 4: Professional Render And Export
 
-- User resource-pack import.
-- Block textures and UV mapping.
-- Animated texture metadata.
-- Item/entity asset registry.
-- Material variants for water, glass, leaves, and emissive blocks.
+- Still image export.
+- PNG sequence export.
+- Video export through ffmpeg or native pipeline.
+- Real EffectComposer/shader export stack.
+- Camera render queue.
+- Render settings presets.
 
-## Phase 4: Advanced Rigs
+## Phase 5: Advanced Rigs And Assets
 
 - Steve and Alex presets.
 - Custom skins.
-- Selectable bones.
 - Per-bone keyframes.
 - Pose library.
 - Walk-cycle generator.
 - Blockbench `.bbmodel` import.
-- Basic IK for arms and legs.
+- Resource-pack import.
 
-## Phase 5: Advanced Timeline
+## Phase 6: Advanced Timeline
 
 - Dopesheet.
 - Simplified graph editor.
@@ -64,30 +73,12 @@
 - Animation layers.
 - Camera cuts.
 
-## Phase 6: Rendering And Export
-
-- Render still images.
-- PNG sequence export.
-- Video export through ffmpeg.
-- Camera render mode.
-- Styled shadows.
-- Motion blur approximation.
-
-## Phase 7: Cinematic Tools
-
-- Camera paths.
-- Focus targets.
-- Camera shake.
-- Storyboard panels.
-- Shot presets.
-
-## Phase 8: External Plugin System
+## Phase 7: External Plugin System
 
 - Plugin package format.
 - Safe execution model.
 - Custom importers.
 - Custom rigs.
 - Custom block definitions.
-- Custom sky presets.
-- Scripting hooks.
+- Custom sky/effect/post presets.
 - Asset/template marketplace architecture.

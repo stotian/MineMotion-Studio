@@ -496,7 +496,7 @@ export function SettingsModal({
               }
             />
             <p className="empty-note">
-              External plugin JavaScript execution is disabled in Phase 1.5.
+              External plugin JavaScript execution is disabled in Phase 2.
             </p>
           </section>
         </div>
@@ -572,4 +572,3 @@ function ColorSetting({
     </label>
   );
 }
-

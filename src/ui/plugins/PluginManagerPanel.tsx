@@ -35,7 +35,7 @@ export function PluginManagerPanel({
           </button>
         </div>
         <p className="warning-note">
-          External plugin JavaScript execution is disabled in Phase 1.5. Built-in
+          External plugin JavaScript execution is disabled in Phase 2. Built-in
           plugins are bundled TypeScript modules; external manifests should not
           be executed without a future sandbox.
         </p>
@@ -77,4 +77,3 @@ export function PluginManagerPanel({
     </div>
   );
 }
-

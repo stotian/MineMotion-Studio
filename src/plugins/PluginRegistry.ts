@@ -1,6 +1,7 @@
 import type { PluginManifest } from "./PluginManifest";
 import { validatePluginManifest } from "./PluginManifest";
 import { BuiltinObjImporterPlugin } from "./builtin/BuiltinObjImporterPlugin";
+import { BuiltinCinematicEffectsPlugin } from "./builtin/BuiltinCinematicEffectsPlugin";
 import { BuiltinPresetPlugin } from "./builtin/BuiltinPresetPlugin";
 import { BuiltinTemplatePlugin } from "./builtin/BuiltinTemplatePlugin";
 
@@ -44,8 +45,8 @@ export class PluginRegistry {
 export const BUILTIN_PLUGIN_MANIFESTS: PluginManifest[] = [
   BuiltinTemplatePlugin,
   BuiltinPresetPlugin,
+  BuiltinCinematicEffectsPlugin,
   BuiltinObjImporterPlugin
 ];
 
 export const pluginRegistry = new PluginRegistry();
-

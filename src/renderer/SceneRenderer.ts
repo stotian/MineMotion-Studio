@@ -14,6 +14,8 @@ import { SkySystem } from "./SkySystem";
 import { createGridFloor } from "./GridFloor";
 import { CameraController } from "./CameraController";
 import type { ViewportSettings } from "../settings/AppSettings";
+import type { EffectInstance } from "../effects/EffectTypes";
+import { getEffectProgress, isEffectActive } from "../effects/EffectTypes";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -129,6 +131,14 @@ export class SceneRenderer {
       if (!obj.visible) continue;
       this.sceneRoot.add(this.createObjObject(project, obj));
     }
+
+    for (const effect of project.effects.instances) {
+      if (!isEffectActive(effect, project.animation.currentFrame)) continue;
+      const object = this.createWorldEffectObject(effect, project.animation.currentFrame);
+      if (object) {
+        this.sceneRoot.add(object);
+      }
+    }
   }
 
   private createCharacterObject(character: CharacterEntity): THREE.Group {
@@ -193,6 +203,91 @@ export class SceneRenderer {
     this.applyTransform(object, obj.transform);
     this.markSelectable(object, obj.id, "obj");
     return object;
+  }
+
+  private createWorldEffectObject(
+    effect: EffectInstance,
+    frame: number
+  ): THREE.Object3D | null {
+    const progress = getEffectProgress(effect, frame);
+    const color = effect.parameters.color ?? "#ffffff";
+    const alpha = effect.parameters.alpha ?? 0.8;
+
+    if (effect.type === "lightningStrike") {
+      const points: THREE.Vector3[] = [];
+      const height = Math.max(2, effect.parameters.radius ?? 3);
+      const seed = effect.id
+        .split("")
+        .reduce((sum, character) => sum + character.charCodeAt(0), 0);
+      for (let index = 0; index <= 8; index += 1) {
+        const t = index / 8;
+        const offset = index === 0 || index === 8
+          ? 0
+          : Math.sin(seed + index * 1.7) * 0.24;
+        points.push(
+          new THREE.Vector3(
+            effect.position[0] + offset,
+            effect.position[1] + height * (1 - t),
+            effect.position[2] + Math.cos(seed + index * 2.1) * 0.18
+          )
+        );
+      }
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity: alpha * (1 - progress * 0.35)
+      });
+      const line = new THREE.Line(geometry, material);
+      line.name = effect.name;
+      return line;
+    }
+
+    if (effect.type === "shockwave") {
+      const radius = Math.max(0.2, (effect.parameters.radius ?? 4) * progress);
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, 0.035, 8, 96),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: alpha * (1 - progress)
+        })
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(...effect.position);
+      ring.name = effect.name;
+      return ring;
+    }
+
+    if (effect.type === "glowBurst") {
+      const group = new THREE.Group();
+      const count = Math.max(4, Math.round(effect.parameters.count ?? 18));
+      const radius = (effect.parameters.radius ?? 2) * Math.max(0.15, progress);
+      const size = effect.parameters.size ?? 0.16;
+      const material = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: alpha * (1 - progress * 0.8)
+      });
+      for (let index = 0; index < count; index += 1) {
+        const angle = (index / count) * Math.PI * 2;
+        const vertical = Math.sin(index * 1.618) * radius * 0.45;
+        const particle = new THREE.Mesh(
+          new THREE.BoxGeometry(size, size, size),
+          material
+        );
+        particle.position.set(
+          effect.position[0] + Math.cos(angle) * radius,
+          effect.position[1] + vertical + 1,
+          effect.position[2] + Math.sin(angle) * radius
+        );
+        group.add(particle);
+      }
+      group.name = effect.name;
+      return group;
+    }
+
+    return null;
   }
 
   private applyTransform(object: THREE.Object3D, transform: TransformData): void {

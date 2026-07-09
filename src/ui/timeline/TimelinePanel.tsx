@@ -1,22 +1,26 @@
 import { Pause, Play, SkipBack } from "lucide-react";
-import type { MineMotionProject } from "../../project/ProjectFile";
+import type { MineMotionProject, TimelineItem } from "../../project/ProjectFile";
 
 interface TimelinePanelProps {
   project: MineMotionProject;
   selectedObjectId: string | null;
+  selectedEffectId: string | null;
   onSetFrame: (frame: number) => void;
   onSetFps: (fps: number) => void;
   onTogglePlayback: () => void;
   onAddKeyframe: () => void;
+  onSelectEffect: (effectId: string) => void;
 }
 
 export function TimelinePanel({
   project,
   selectedObjectId,
+  selectedEffectId,
   onSetFrame,
   onSetFps,
   onTogglePlayback,
-  onAddKeyframe
+  onAddKeyframe,
+  onSelectEffect
 }: TimelinePanelProps) {
   const { animation } = project;
   const selectedTracks = selectedObjectId
@@ -27,6 +31,12 @@ export function TimelinePanel({
   );
   const ticks = Array.from({ length: 31 }, (_, index) =>
     Math.round((animation.durationFrames / 30) * index)
+  );
+  const effectTrack = animation.timelineTracks.find(
+    (track) => track.type === "effect"
+  );
+  const audioTrack = animation.timelineTracks.find(
+    (track) => track.type === "audio"
   );
 
   return (
@@ -63,7 +73,8 @@ export function TimelinePanel({
           Add Transform Keyframe
         </button>
         <span className="timeline-summary">
-          {animation.tracks.length} tracks / {selectedTracks.length} selected
+          {animation.tracks.length} transform tracks /{" "}
+          {project.effects.instances.length} effects / {project.audio.clips.length} audio
         </span>
       </div>
       <div className="timeline-track">
@@ -94,8 +105,71 @@ export function TimelinePanel({
             />
           ))}
         </div>
+        <TimelineBlockLane
+          label="Effects"
+          durationFrames={animation.durationFrames}
+          items={effectTrack?.items ?? []}
+          selectedEffectId={selectedEffectId}
+          onSetFrame={onSetFrame}
+          onSelectEffect={onSelectEffect}
+        />
+        <TimelineBlockLane
+          label="Audio"
+          durationFrames={animation.durationFrames}
+          items={audioTrack?.items ?? []}
+          selectedEffectId={null}
+          onSetFrame={onSetFrame}
+          onSelectEffect={onSelectEffect}
+        />
       </div>
     </footer>
   );
 }
 
+function TimelineBlockLane({
+  label,
+  durationFrames,
+  items,
+  selectedEffectId,
+  onSetFrame,
+  onSelectEffect
+}: {
+  label: string;
+  durationFrames: number;
+  items: TimelineItem[];
+  selectedEffectId: string | null;
+  onSetFrame: (frame: number) => void;
+  onSelectEffect: (effectId: string) => void;
+}) {
+  return (
+    <div className="timeline-block-lane" aria-label={`${label} lane`}>
+      <span>{label}</span>
+      <div>
+        {items.map((item) => {
+          const left = (item.startFrame / durationFrames) * 100;
+          const width = Math.max(1, (item.durationFrames / durationFrames) * 100);
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`timeline-block ${item.effectId === selectedEffectId ? "selected" : ""} ${item.type}`}
+              style={{
+                left: `${left}%`,
+                width: `${width}%`
+              }}
+              title={`${item.label} @ ${item.startFrame}`}
+              onClick={() => {
+                onSetFrame(item.startFrame);
+                if (item.effectId) {
+                  onSelectEffect(item.effectId);
+                }
+              }}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

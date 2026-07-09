@@ -63,9 +63,9 @@ select {
 
 .app-shell {
   height: 100%;
-  min-width: 1000px;
+  min-width: 1180px;
   display: grid;
-  grid-template-rows: 52px minmax(0, 1fr) 176px 28px;
+  grid-template-rows: 52px minmax(0, 1fr) 232px 28px;
   background: #101218;
   font-size: calc(14px * var(--ui-scale));
 }
@@ -126,7 +126,7 @@ select {
 .workspace {
   min-height: 0;
   display: grid;
-  grid-template-columns: 270px minmax(420px, 1fr) 320px;
+  grid-template-columns: 250px 280px minmax(420px, 1fr) 330px;
 }
 
 .panel {
@@ -137,6 +137,10 @@ select {
 }
 
 .panel-left {
+  border-right: 1px solid #2b3240;
+}
+
+.effects-panel {
   border-right: 1px solid #2b3240;
 }
 
@@ -221,6 +225,11 @@ select {
   min-height: 0;
   position: relative;
   background: #0d1016;
+  overflow: hidden;
+}
+
+.viewport-shell.render-preview {
+  background: #05070b;
 }
 
 .viewport-toolbar {
@@ -247,12 +256,128 @@ select {
 .viewport-canvas {
   width: 100%;
   height: 100%;
+  transition: filter 120ms ease, transform 60ms linear;
 }
 
 .viewport-canvas canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.post-bloom-overlay,
+.post-vignette-overlay,
+.post-grain-overlay,
+.post-chromatic-overlay,
+.fog-overlay,
+.flash-overlay,
+.speed-lines-overlay,
+.cinematic-bars-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.post-bloom-overlay,
+.fog-overlay,
+.flash-overlay,
+.post-chromatic-overlay {
+  mix-blend-mode: screen;
+}
+
+.post-vignette-overlay {
+  mix-blend-mode: multiply;
+}
+
+.post-grain-overlay {
+  mix-blend-mode: overlay;
+}
+
+.speed-lines-overlay {
+  opacity: 0.46;
+  background:
+    repeating-radial-gradient(ellipse at center, transparent 0 14px, rgb(255 255 255 / 42%) 15px 17px, transparent 18px 26px);
+  mask-image: radial-gradient(circle at center, transparent 0 16%, black 26%, transparent 76%);
+  animation: speed-lines-pulse 420ms linear infinite;
+}
+
+.cinematic-bars-overlay {
+  --bar-size: 14%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 4;
+}
+
+.cinematic-bars-overlay span {
+  display: block;
+  height: var(--bar-size);
+  background: #000;
+}
+
+@keyframes speed-lines-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.effects-section {
+  padding: 0.75rem;
+  border-bottom: 1px solid #252c38;
+}
+
+.effects-section h3 {
+  margin: 0 0 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #96a0b4;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.effect-library-list,
+.sfx-list,
+.stacked-actions {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.effect-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.18rem 0.45rem;
+  align-items: start;
+  padding: 0.55rem;
+  text-align: left;
+}
+
+.effect-card strong,
+.effect-card small {
+  min-width: 0;
+}
+
+.effect-card span {
+  color: #8ba1ff;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+}
+
+.effect-card small {
+  grid-column: 1 / -1;
+  color: #8a95a8;
+  line-height: 1.35;
+}
+
+.compact-action {
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .inspector-section {
@@ -385,7 +510,7 @@ select {
 
 .timeline-track {
   position: relative;
-  height: 84px;
+  height: 140px;
   padding-top: 0.1rem;
 }
 
@@ -413,6 +538,55 @@ select {
   background: #10141d;
   border: 1px solid #272f3d;
   border-radius: 5px;
+}
+
+.timeline-block-lane {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  height: 30px;
+  margin-top: 0.25rem;
+  color: #7f8ba0;
+  font-size: 0.7rem;
+}
+
+.timeline-block-lane > div {
+  position: relative;
+  height: 24px;
+  background: #10141d;
+  border: 1px solid #272f3d;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.timeline-block {
+  position: absolute;
+  top: 3px;
+  height: 16px;
+  min-width: 18px;
+  padding: 0 0.35rem;
+  justify-content: flex-start;
+  overflow: hidden;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.timeline-block.effect {
+  border-color: #7b61ff;
+  background: #35266f;
+}
+
+.timeline-block.audio {
+  border-color: #4da876;
+  background: #1f5f43;
+}
+
+.timeline-block.selected {
+  outline: 2px solid #f6d36b;
+  outline-offset: 1px;
 }
 
 .keyframe-marker {
@@ -690,7 +864,7 @@ select {
   }
 
   .workspace {
-    grid-template-columns: 220px minmax(340px, 1fr) 280px;
+    grid-template-columns: 220px 240px minmax(340px, 1fr) 280px;
   }
 
   .brand {

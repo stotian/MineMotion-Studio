@@ -1,20 +1,34 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AssetManager } from "./assets/AssetManager";
 import { ObjImporter } from "./assets/ObjImporter";
+import { AudioManager } from "./audio/AudioManager";
+import { createBuiltinAudioClip, createImportedAudioClip } from "./audio/AudioClip";
+import { findClipsStartingAtFrame } from "./audio/AudioTimelineIntegration";
+import { BUILTIN_SFX, getBuiltinSfx } from "./audio/BuiltinSfxRegistry";
 import { Animator } from "./animation/Animator";
 import { addTransformKeyframes, setCurrentFrame } from "./animation/Timeline";
 import { CommandPalette } from "./commands/CommandPalette";
 import { createBuiltinCommands } from "./commands/BuiltinCommands";
+import { effectRegistry } from "./effects/EffectRegistry";
+import type { EffectInstance, EffectType } from "./effects/EffectTypes";
+import { spawnEffectAtFrame } from "./effects/EffectSpawner";
 import { HistoryStack } from "./history/HistoryStack";
 import { WorldImporter } from "./minecraft/WorldImporter";
 import { pluginRegistry } from "./plugins/PluginRegistry";
 import { applyCameraPreset } from "./presets/CameraPresets";
 import { presetRegistry } from "./presets/PresetRegistry";
 import { applyRigPosePreset } from "./presets/RigPosePresets";
-import type { MineMotionProject, ProjectSettings, TransformData } from "./project/ProjectFile";
+import { syncCinematicTimeline } from "./project/CinematicTimeline";
+import type {
+  CameraEntity,
+  MineMotionProject,
+  ProjectSettings,
+  TransformData
+} from "./project/ProjectFile";
 import { ProjectSerializer } from "./project/ProjectSerializer";
 import {
   createCharacter,
+  createId,
   createInitialProject,
   createObjEntity,
   createSceneCamera,
@@ -25,11 +39,20 @@ import {
   updateObjectVisibility,
   updateProjectSettings
 } from "./project/ProjectStore";
+import {
+  getPostProcessingPreset,
+  POST_PROCESSING_PRESETS
+} from "./rendering/postprocessing/PostProcessingPresets";
+import type {
+  PostProcessingPresetId,
+  PostProcessingSettings
+} from "./rendering/postprocessing/PostProcessingTypes";
 import { type SkyPresetId } from "./renderer/SkySystem";
 import { Viewport } from "./renderer/Viewport";
 import { SettingsStore, type AppSettings } from "./settings/AppSettings";
 import { templateRegistry } from "./templates/TemplateRegistry";
 import { TopBar } from "./ui/TopBar";
+import { EffectsLibraryPanel } from "./ui/effects/EffectsLibraryPanel";
 import { HelpPanel } from "./ui/help/HelpPanel";
 import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
@@ -50,8 +73,9 @@ export function App() {
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(
     project.scene.characters[0]?.id ?? null
   );
+  const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [status, setStatus] = useState(
-    "Ready. Phase 1.5 editor systems loaded."
+    "Ready. Phase 2 cinematic editor systems loaded."
   );
   const [isDirty, setIsDirty] = useState(false);
   const [lookThroughCameraRequest, setLookThroughCameraRequest] = useState(0);
@@ -67,10 +91,14 @@ export function App() {
   const worldInputRef = useRef<HTMLInputElement | null>(null);
   const projectInputRef = useRef<HTMLInputElement | null>(null);
   const objInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
+  const audioManagerRef = useRef<AudioManager | null>(null);
   const lastPlaybackTimeRef = useRef<number | null>(null);
+  const previousAudioFrameRef = useRef(0);
 
   const presets = useMemo(() => presetRegistry.snapshot(), []);
   const templates = useMemo(() => templateRegistry.list(), []);
+  const effectDefinitions = useMemo(() => effectRegistry.list(), []);
   const selectedObject = useMemo(
     () => findObject(project, selectedObjectId)?.entity ?? null,
     [project, selectedObjectId]
@@ -127,6 +155,30 @@ export function App() {
   ]);
 
   useEffect(() => {
+    audioManagerRef.current ??= new AudioManager();
+    if (!project.animation.isPlaying) {
+      previousAudioFrameRef.current = project.animation.currentFrame;
+      return;
+    }
+
+    const previousFrame = previousAudioFrameRef.current;
+    const currentFrame = project.animation.currentFrame;
+    const clips = findClipsStartingAtFrame(
+      project.audio.clips,
+      currentFrame,
+      previousFrame
+    );
+    for (const clip of clips) {
+      audioManagerRef.current.playClip(clip);
+    }
+    previousAudioFrameRef.current = currentFrame;
+  }, [
+    project.animation.currentFrame,
+    project.animation.isPlaying,
+    project.audio.clips
+  ]);
+
+  useEffect(() => {
     if (!project.animation.isPlaying) {
       lastPlaybackTimeRef.current = null;
       return;
@@ -180,6 +232,7 @@ export function App() {
     historyRef.current.clear();
     setProject(nextProject);
     setSelectedObjectId(nextProject.scene.characters[0]?.id ?? nextProject.scene.cameras[0]?.id ?? null);
+    setSelectedEffectId(null);
     setIsDirty(true);
     setStatus(label);
   }, []);
@@ -191,6 +244,12 @@ export function App() {
 
   const handleSelectObject = useCallback((objectId: string | null) => {
     setSelectedObjectId(objectId);
+    setSelectedEffectId(null);
+  }, []);
+
+  const handleSelectEffect = useCallback((effectId: string) => {
+    setSelectedEffectId(effectId);
+    setSelectedObjectId(null);
   }, []);
 
   const handleNewProject = useCallback(() => {
@@ -249,6 +308,7 @@ export function App() {
       historyRef.current.clear();
       setProject(loadedProject);
       setSelectedObjectId(loadedProject.scene.characters[0]?.id ?? null);
+      setSelectedEffectId(null);
       setIsDirty(false);
       setSettings((currentSettings) =>
         SettingsStore.addRecentProject(currentSettings, {
@@ -336,6 +396,10 @@ export function App() {
     objInputRef.current?.click();
   }, []);
 
+  const handleImportAudio = useCallback(() => {
+    audioInputRef.current?.click();
+  }, []);
+
   const handleObjSelected = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -392,6 +456,191 @@ export function App() {
     [commitProject, project]
   );
 
+  const handleAddEffect = useCallback(
+    (type: EffectType) => {
+      const effect = spawnEffectAtFrame(
+        type,
+        project.animation.currentFrame,
+        selectedObjectId ?? ""
+      );
+      commitProject(
+        (currentProject) =>
+          syncCinematicTimeline({
+            ...currentProject,
+            effects: {
+              instances: [...currentProject.effects.instances, effect]
+            }
+          }),
+        "Add cinematic effect"
+      );
+      setSelectedEffectId(effect.id);
+      setSelectedObjectId(null);
+      setStatus(`Added effect ${effect.name} at frame ${effect.startFrame}.`);
+    },
+    [commitProject, project.animation.currentFrame, selectedObjectId]
+  );
+
+  const handleUpdateEffect = useCallback(
+    (effectId: string, patch: Partial<EffectInstance>) => {
+      commitProject(
+        (currentProject) =>
+          syncCinematicTimeline({
+            ...currentProject,
+            effects: {
+              instances: currentProject.effects.instances.map((effect) =>
+                effect.id === effectId
+                  ? {
+                      ...effect,
+                      ...patch,
+                      parameters: patch.parameters
+                        ? { ...effect.parameters, ...patch.parameters }
+                        : effect.parameters
+                    }
+                  : effect
+              )
+            }
+          }),
+        "Edit cinematic effect"
+      );
+      setStatus("Effect updated.");
+    },
+    [commitProject]
+  );
+
+  const handleDeleteEffect = useCallback(
+    (effectId: string) => {
+      commitProject(
+        (currentProject) =>
+          syncCinematicTimeline({
+            ...currentProject,
+            effects: {
+              instances: currentProject.effects.instances.filter(
+                (effect) => effect.id !== effectId
+              )
+            }
+          }),
+        "Delete cinematic effect"
+      );
+      setSelectedEffectId(null);
+      setStatus("Effect deleted.");
+    },
+    [commitProject]
+  );
+
+  const handleApplyPostPreset = useCallback(
+    (presetId: PostProcessingPresetId) => {
+      const preset = getPostProcessingPreset(presetId);
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          postProcessing: preset.settings
+        }),
+        "Apply post-processing preset"
+      );
+      setStatus(`Post-processing preset applied: ${preset.name}.`);
+    },
+    [commitProject]
+  );
+
+  const handleUpdatePostProcessing = useCallback(
+    (postSettings: Partial<PostProcessingSettings>) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          postProcessing: {
+            ...currentProject.postProcessing,
+            ...postSettings
+          }
+        }),
+        "Edit post-processing"
+      );
+      setStatus("Post-processing updated.");
+    },
+    [commitProject]
+  );
+
+  const handleToggleRenderPreview = useCallback(() => {
+    commitProject(
+      (currentProject) => ({
+        ...currentProject,
+        renderSettings: {
+          ...currentProject.renderSettings,
+          renderPreviewEnabled:
+            !currentProject.renderSettings.renderPreviewEnabled
+        }
+      }),
+      "Toggle render preview"
+    );
+    setStatus("Render preview toggled.");
+  }, [commitProject]);
+
+  const handleToggleCinematicBars = useCallback(() => {
+    commitProject(
+      (currentProject) => ({
+        ...currentProject,
+        renderSettings: {
+          ...currentProject.renderSettings,
+          cinematicBarsEnabled:
+            !currentProject.renderSettings.cinematicBarsEnabled
+        }
+      }),
+      "Toggle cinematic bars"
+    );
+    setStatus("Cinematic bars toggled.");
+  }, [commitProject]);
+
+  const handleAudioSelected = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("audio/")) {
+      setStatus("Unsupported SFX file type. Use wav, mp3, or ogg audio.");
+      return;
+    }
+
+    try {
+      const clip = await createImportedAudioClip(
+        file,
+        project.animation.currentFrame
+      );
+      commitProject(
+        (currentProject) =>
+          syncCinematicTimeline({
+            ...currentProject,
+            audio: {
+              clips: [...currentProject.audio.clips, clip]
+            }
+          }),
+        "Import SFX"
+      );
+      setStatus(`Imported SFX ${clip.name}.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Could not import SFX.");
+    }
+  };
+
+  const handleAddBuiltinSfx = useCallback(
+    (sfxId: string) => {
+      const sfx = getBuiltinSfx(sfxId);
+      if (!sfx) return;
+      const clip = createBuiltinAudioClip(sfx, project.animation.currentFrame);
+      commitProject(
+        (currentProject) =>
+          syncCinematicTimeline({
+            ...currentProject,
+            audio: {
+              clips: [...currentProject.audio.clips, clip]
+            }
+          }),
+        "Add builtin SFX"
+      );
+      setStatus(`Added placeholder SFX ${clip.name}.`);
+    },
+    [commitProject, project.animation.currentFrame]
+  );
+
   const handleRenameObject = useCallback(
     (objectId: string, name: string) => {
       commitProject(
@@ -422,6 +671,101 @@ export function App() {
     },
     [commitProject]
   );
+
+  const handleDuplicateSelectedObject = useCallback(() => {
+    if (!selectedObjectId) return;
+    const lookup = findObject(project, selectedObjectId);
+    if (!lookup) {
+      setStatus("Select an object before duplicating.");
+      return;
+    }
+    if (lookup.entity.locked) {
+      setStatus(`${lookup.entity.name} is locked.`);
+      return;
+    }
+
+    const duplicate = structuredClone(lookup.entity) as typeof lookup.entity;
+    duplicate.id = createId(duplicate.type);
+    duplicate.name = `${duplicate.name} Copy`;
+    duplicate.transform.position = [
+      duplicate.transform.position[0] + 1,
+      duplicate.transform.position[1],
+      duplicate.transform.position[2] + 1
+    ];
+    duplicate.metadata = {
+      ...duplicate.metadata,
+      duplicatedFrom: lookup.entity.id
+    };
+    if (duplicate.type === "camera") {
+      (duplicate as CameraEntity).active = false;
+    }
+
+    commitProject(
+      (currentProject) => ({
+        ...currentProject,
+        scene: {
+          ...currentProject.scene,
+          [lookup.collection]: [
+            ...currentProject.scene[lookup.collection],
+            duplicate
+          ]
+        }
+      }),
+      "Duplicate object"
+    );
+    setSelectedObjectId(duplicate.id);
+    setSelectedEffectId(null);
+    setStatus(`Duplicated ${lookup.entity.name}.`);
+  }, [commitProject, project, selectedObjectId]);
+
+  const handleDeleteSelectedObject = useCallback(() => {
+    if (!selectedObjectId) return;
+    const lookup = findObject(project, selectedObjectId);
+    if (!lookup) {
+      setStatus("Select an object before deleting.");
+      return;
+    }
+    if (lookup.entity.locked) {
+      setStatus(`${lookup.entity.name} is locked.`);
+      return;
+    }
+
+    commitProject(
+      (currentProject) => {
+        const nextCollection = currentProject.scene[lookup.collection].filter(
+          (entity) => entity.id !== selectedObjectId
+        );
+        const nextProject = {
+          ...currentProject,
+          scene: {
+            ...currentProject.scene,
+            [lookup.collection]: nextCollection
+          }
+        };
+        if (
+          lookup.collection === "cameras" &&
+          currentProject.activeCameraId === selectedObjectId
+        ) {
+          const nextCamera = nextProject.scene.cameras[0];
+          return {
+            ...nextProject,
+            activeCameraId: nextCamera?.id ?? "",
+            scene: {
+              ...nextProject.scene,
+              cameras: nextProject.scene.cameras.map((camera, index) => ({
+                ...camera,
+                active: index === 0
+              }))
+            }
+          };
+        }
+        return nextProject;
+      },
+      "Delete object"
+    );
+    setSelectedObjectId(null);
+    setStatus(`Deleted ${lookup.entity.name}.`);
+  }, [commitProject, project, selectedObjectId]);
 
   const handleAddKeyframe = useCallback(() => {
     if (!selectedObjectId || selectedObjectId === "world") {
@@ -655,12 +999,18 @@ export function App() {
         addCharacter: handleAddCharacter,
         addCamera: handleAddCamera,
         importObj: handleImportObj,
+        duplicateSelected: handleDuplicateSelectedObject,
+        deleteSelected: handleDeleteSelectedObject,
         openSettings: () => setSettingsOpen(true),
         openPluginManager: () => setPluginsOpen(true),
         applySky: (sky) => handleSkyChange(sky, project.sky.customColor),
         togglePlayback: handleTogglePlayback,
         resetViewportCamera: handleResetViewportCamera,
         addKeyframe: handleAddKeyframe,
+        addEffect: handleAddEffect,
+        toggleRenderPreview: handleToggleRenderPreview,
+        toggleCinematicBars: handleToggleCinematicBars,
+        applyPostPreset: handleApplyPostPreset,
         undo: handleUndo,
         redo: handleRedo
       }),
@@ -669,11 +1019,17 @@ export function App() {
       handleAddCharacter,
       handleAddKeyframe,
       handleImportObj,
+      handleDuplicateSelectedObject,
+      handleDeleteSelectedObject,
       handleLoadProject,
       handleNewProject,
       handleRedo,
       handleResetViewportCamera,
       handleSaveProject,
+      handleAddEffect,
+      handleApplyPostPreset,
+      handleToggleCinematicBars,
+      handleToggleRenderPreview,
       handleSkyChange,
       handleTogglePlayback,
       handleUndo,
@@ -684,6 +1040,11 @@ export function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
+      const target = event.target as HTMLElement | null;
+      const isTextInput =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT";
       if ((event.ctrlKey || event.metaKey) && key === "p") {
         event.preventDefault();
         setCommandsOpen(true);
@@ -703,17 +1064,46 @@ export function App() {
         event.preventDefault();
         handleRedo();
       }
+      if ((event.ctrlKey || event.metaKey) && key === "d") {
+        event.preventDefault();
+        handleDuplicateSelectedObject();
+      }
+      if (!isTextInput && event.key === "Delete") {
+        event.preventDefault();
+        if (selectedEffectId) {
+          handleDeleteEffect(selectedEffectId);
+        } else {
+          handleDeleteSelectedObject();
+        }
+      }
+      if (!isTextInput && event.code === "Space") {
+        event.preventDefault();
+        handleTogglePlayback();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleRedo, handleSaveProject, handleUndo]);
+  }, [
+    handleDeleteEffect,
+    handleDeleteSelectedObject,
+    handleDuplicateSelectedObject,
+    handleRedo,
+    handleSaveProject,
+    handleTogglePlayback,
+    handleUndo,
+    selectedEffectId
+  ]);
 
   const statusDetails = [
     `Selected: ${selectedObject?.name ?? "none"}`,
     `Frame: ${project.animation.currentFrame}`,
     `FPS: ${project.animation.fps}`,
     isDirty ? "Unsaved" : "Saved",
+    `Post: ${project.postProcessing.presetId}`,
+    `FX: ${project.effects.instances.length}`,
+    `SFX: ${project.audio.clips.length}`,
+    project.renderSettings.renderPreviewEnabled ? "Render Preview" : "Viewport",
     project.world ? `World: ${project.world.sourceName}` : "World: demo"
   ].join(" | ");
 
@@ -723,6 +1113,7 @@ export function App() {
         projectName={project.projectName}
         isPlaying={project.animation.isPlaying}
         isDirty={isDirty}
+        renderPreviewEnabled={project.renderSettings.renderPreviewEnabled}
         onNewProject={handleNewProject}
         onNewProjectFromTemplate={() => setTemplatesOpen(true)}
         onOpenWorld={handleOpenWorld}
@@ -736,12 +1127,30 @@ export function App() {
         onOpenPlugins={() => setPluginsOpen(true)}
         onOpenCommands={() => setCommandsOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
+        onToggleRenderPreview={handleToggleRenderPreview}
       />
       <div className="workspace">
         <OutlinerPanel
           project={project}
           selectedObjectId={selectedObjectId}
           onSelectObject={handleSelectObject}
+        />
+        <EffectsLibraryPanel
+          effects={effectDefinitions}
+          selectedEffectId={selectedEffectId}
+          effectCount={project.effects.instances.length}
+          audioClips={project.audio.clips}
+          builtinSfx={BUILTIN_SFX}
+          postPresets={POST_PROCESSING_PRESETS}
+          activePostPresetId={project.postProcessing.presetId}
+          renderSettings={project.renderSettings}
+          onAddEffect={handleAddEffect}
+          onSelectEffect={handleSelectEffect}
+          onApplyPostPreset={handleApplyPostPreset}
+          onToggleRenderPreview={handleToggleRenderPreview}
+          onToggleCinematicBars={handleToggleCinematicBars}
+          onImportAudio={handleImportAudio}
+          onAddBuiltinSfx={handleAddBuiltinSfx}
         />
         <Viewport
           project={displayProject}
@@ -754,10 +1163,14 @@ export function App() {
         <InspectorPanel
           project={project}
           selectedObjectId={selectedObjectId}
+          selectedEffectId={selectedEffectId}
           onUpdateTransform={handleUpdateTransform}
           onRenameObject={handleRenameObject}
           onToggleVisibility={handleToggleVisibility}
           onToggleLocked={handleToggleLocked}
+          onUpdateEffect={handleUpdateEffect}
+          onDeleteEffect={handleDeleteEffect}
+          onUpdatePostProcessing={handleUpdatePostProcessing}
           onAddKeyframe={handleAddKeyframe}
           onSkyChange={handleSkyChange}
           onLookThroughCamera={handleLookThroughCamera}
@@ -772,10 +1185,12 @@ export function App() {
       <TimelinePanel
         project={project}
         selectedObjectId={selectedObjectId}
+        selectedEffectId={selectedEffectId}
         onSetFrame={handleSetFrame}
         onSetFps={handleSetFps}
         onTogglePlayback={handleTogglePlayback}
         onAddKeyframe={handleAddKeyframe}
+        onSelectEffect={handleSelectEffect}
       />
       <div className="status-bar">
         <span>{status}</span>
@@ -833,7 +1248,13 @@ export function App() {
         accept=".obj"
         onChange={handleObjSelected}
       />
+      <input
+        ref={audioInputRef}
+        className="hidden-input"
+        type="file"
+        accept="audio/wav,audio/mpeg,audio/ogg,audio/mp3,.wav,.mp3,.ogg"
+        onChange={handleAudioSelected}
+      />
     </main>
   );
 }
-

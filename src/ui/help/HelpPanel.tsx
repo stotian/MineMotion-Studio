@@ -40,8 +40,12 @@ export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) 
             <li>Select objects in the viewport or outliner.</li>
             <li>Edit transforms in the inspector.</li>
             <li>Add a keyframe, move to another frame, edit, then add another.</li>
+            <li>Add cinematic effects from the Effects panel at the current frame.</li>
+            <li>Use post-processing presets for cinematic looks.</li>
+            <li>Toggle Render Preview to view bars, post effects, and active camera framing.</li>
+            <li>Import SFX or add placeholder SFX to the timeline.</li>
             <li>Use Play to preview linear animation.</li>
-            <li>World import currently scans folder structure; real chunk rendering is Phase 2.</li>
+            <li>World import currently scans folder structure; real chunk rendering is Phase 3.</li>
             <li>Save projects as `.mmsproj` JSON files.</li>
           </ul>
         </div>
@@ -49,4 +53,3 @@ export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) 
     </div>
   );
 }
-

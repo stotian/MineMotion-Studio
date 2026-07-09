@@ -1,4 +1,6 @@
 import type { SkyPresetId } from "../renderer/SkySystem";
+import type { EffectType } from "../effects/EffectTypes";
+import type { PostProcessingPresetId } from "../rendering/postprocessing/PostProcessingTypes";
 import type { Command } from "./Command";
 
 export interface BuiltinCommandActions {
@@ -8,12 +10,18 @@ export interface BuiltinCommandActions {
   addCharacter: () => void;
   addCamera: () => void;
   importObj: () => void;
+  duplicateSelected: () => void;
+  deleteSelected: () => void;
   openSettings: () => void;
   openPluginManager: () => void;
   applySky: (sky: SkyPresetId) => void;
   togglePlayback: () => void;
   resetViewportCamera: () => void;
   addKeyframe: () => void;
+  addEffect: (type: EffectType) => void;
+  toggleRenderPreview: () => void;
+  toggleCinematicBars: () => void;
+  applyPostPreset: (presetId: PostProcessingPresetId) => void;
   undo: () => void;
   redo: () => void;
 }
@@ -58,6 +66,20 @@ export function createBuiltinCommands(actions: BuiltinCommandActions): Command[]
       run: actions.importObj
     },
     {
+      id: "scene.duplicateSelected",
+      title: "Duplicate Selected Object",
+      group: "Scene",
+      shortcut: "Ctrl+D",
+      run: actions.duplicateSelected
+    },
+    {
+      id: "scene.deleteSelected",
+      title: "Delete Selected Object",
+      group: "Scene",
+      shortcut: "Delete",
+      run: actions.deleteSelected
+    },
+    {
       id: "settings.open",
       title: "Open Settings",
       group: "Settings",
@@ -94,6 +116,43 @@ export function createBuiltinCommands(actions: BuiltinCommandActions): Command[]
       group: "Timeline",
       run: actions.addKeyframe
     },
+    ...([
+      ["lightningStrike", "Add Lightning Strike"],
+      ["impactFrame", "Add Impact Frame"],
+      ["cameraShake", "Add Camera Shake"],
+      ["flash", "Add Flash"],
+      ["speedLines", "Add Speed Lines"],
+      ["shockwave", "Add Shockwave"],
+      ["glowBurst", "Add Glow Burst"]
+    ] as Array<[EffectType, string]>).map(([type, title]) => ({
+      id: `effects.${type}`,
+      title,
+      group: "Effects" as const,
+      run: () => actions.addEffect(type)
+    })),
+    {
+      id: "render.togglePreview",
+      title: "Toggle Render Preview",
+      group: "Render",
+      run: actions.toggleRenderPreview
+    },
+    {
+      id: "render.toggleBars",
+      title: "Toggle Cinematic Bars",
+      group: "Render",
+      run: actions.toggleCinematicBars
+    },
+    ...([
+      ["cinematic-warm", "Post: Cinematic Warm"],
+      ["dark-horror", "Post: Dark Horror"],
+      ["anime-impact", "Post: Anime Impact"],
+      ["retro-pixel", "Post: Retro Pixel"]
+    ] as Array<[PostProcessingPresetId, string]>).map(([presetId, title]) => ({
+      id: `post.${presetId}`,
+      title,
+      group: "Post" as const,
+      run: () => actions.applyPostPreset(presetId)
+    })),
     {
       id: "history.undo",
       title: "Undo",
@@ -110,4 +169,3 @@ export function createBuiltinCommands(actions: BuiltinCommandActions): Command[]
     }
   ];
 }
-

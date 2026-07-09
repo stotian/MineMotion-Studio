@@ -1,5 +1,8 @@
 import type { SkyPresetId } from "../renderer/SkySystem";
 import type { BlockPaletteStyle } from "../settings/SettingsTypes";
+import type { AudioClip } from "../audio/AudioTypes";
+import type { EffectInstance } from "../effects/EffectTypes";
+import type { PostProcessingSettings } from "../rendering/postprocessing/PostProcessingTypes";
 
 export type Vector3Tuple = [number, number, number];
 export type TerrainPresetId = "none" | "demo" | "flat" | "nether";
@@ -40,8 +43,10 @@ export interface CharacterEntity extends SceneEntity {
 export interface CameraEntity extends SceneEntity {
   type: "camera";
   fov: number;
+  focalLength: number;
   near: number;
   far: number;
+  active: boolean;
 }
 
 export interface ObjEntity extends SceneEntity {
@@ -96,12 +101,39 @@ export interface AnimationTrack {
   keyframes: Keyframe<Vector3Tuple>[];
 }
 
+export type TimelineTrackType =
+  | "transform"
+  | "camera"
+  | "effect"
+  | "audio"
+  | "postProcessing"
+  | "sky";
+
+export interface TimelineItem {
+  id: string;
+  type: TimelineTrackType;
+  label: string;
+  startFrame: number;
+  durationFrames: number;
+  targetId: string;
+  effectId?: string;
+  audioClipId?: string;
+}
+
+export interface TimelineTrackLane {
+  id: string;
+  type: TimelineTrackType;
+  name: string;
+  items: TimelineItem[];
+}
+
 export interface TimelineData {
   fps: number;
   durationFrames: number;
   currentFrame: number;
   isPlaying: boolean;
   tracks: AnimationTrack[];
+  timelineTracks: TimelineTrackLane[];
 }
 
 export interface ProjectSettings {
@@ -118,10 +150,21 @@ export interface ProjectSettings {
   blockPaletteStyle: BlockPaletteStyle;
 }
 
+export interface RenderSettings {
+  resolutionPreset: "720p" | "1080p" | "1440p" | "4k" | "custom";
+  customWidth: number;
+  customHeight: number;
+  aspectRatio: "16:9" | "2.35:1" | "1:1" | "9:16";
+  renderPreviewEnabled: boolean;
+  cinematicBarsEnabled: boolean;
+  cinematicBarsRatio: "16:9" | "2.35:1";
+}
+
 export interface MineMotionProject {
-  schemaVersion: 2;
+  schemaVersion: 3;
   projectName: string;
   projectSettings: ProjectSettings;
+  activeCameraId: string;
   sky: {
     preset: SkyPresetId;
     customColor: string;
@@ -136,6 +179,14 @@ export interface MineMotionProject {
   assets: {
     obj: ImportedObjAsset[];
   };
+  effects: {
+    instances: EffectInstance[];
+  };
+  audio: {
+    clips: AudioClip[];
+  };
+  postProcessing: PostProcessingSettings;
+  renderSettings: RenderSettings;
   animation: TimelineData;
   metadata: {
     createdAt: string;

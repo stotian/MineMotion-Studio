@@ -7,10 +7,13 @@ import type {
   ObjectLookupResult,
   ObjEntity,
   ProjectSettings,
+  RenderSettings,
+  TimelineTrackLane,
   TransformData
 } from "./ProjectFile";
 import { cloneTransform, createTransform } from "./ProjectFile";
 import type { AppSettings } from "../settings/AppSettings";
+import { DEFAULT_POST_PROCESSING } from "../rendering/postprocessing/PostProcessingPresets";
 
 export function createId(prefix: string): string {
   const random = Math.random().toString(36).slice(2, 8);
@@ -39,6 +42,47 @@ export function createDefaultProjectSettings(
   };
 }
 
+export function createDefaultRenderSettings(): RenderSettings {
+  return {
+    resolutionPreset: "1080p",
+    customWidth: 1920,
+    customHeight: 1080,
+    aspectRatio: "16:9",
+    renderPreviewEnabled: false,
+    cinematicBarsEnabled: false,
+    cinematicBarsRatio: "2.35:1"
+  };
+}
+
+export function createDefaultTimelineTracks(): TimelineTrackLane[] {
+  return [
+    {
+      id: "track_transform_main",
+      type: "transform",
+      name: "Transform",
+      items: []
+    },
+    {
+      id: "track_effects_main",
+      type: "effect",
+      name: "Effects",
+      items: []
+    },
+    {
+      id: "track_audio_main",
+      type: "audio",
+      name: "Audio",
+      items: []
+    },
+    {
+      id: "track_post_main",
+      type: "postProcessing",
+      name: "Post",
+      items: []
+    }
+  ];
+}
+
 export function createInitialProject(appSettings?: AppSettings): MineMotionProject {
   const now = new Date().toISOString();
   const projectSettings = createDefaultProjectSettings(appSettings);
@@ -55,8 +99,10 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
       rotation: [-30, 45, 0]
     }),
     fov: 45,
+    focalLength: 35,
     near: 0.1,
-    far: 1000
+    far: 1000,
+    active: true
   };
 
   const sun: LightEntity = {
@@ -74,9 +120,10 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     projectName: projectSettings.projectName,
     projectSettings,
+    activeCameraId: defaultCamera.id,
     sky: {
       preset: projectSettings.defaultSkyPreset,
       customColor: "#87bfff"
@@ -91,17 +138,26 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     assets: {
       obj: []
     },
+    effects: {
+      instances: []
+    },
+    audio: {
+      clips: []
+    },
+    postProcessing: DEFAULT_POST_PROCESSING,
+    renderSettings: createDefaultRenderSettings(),
     animation: {
       fps: projectSettings.fps,
       durationFrames: projectSettings.durationFrames,
       currentFrame: 0,
       isPlaying: false,
-      tracks: []
+      tracks: [],
+      timelineTracks: createDefaultTimelineTracks()
     },
     metadata: {
       createdAt: now,
       updatedAt: now,
-      appVersion: "0.1.5"
+      appVersion: "0.2.0"
     }
   };
 }
@@ -144,8 +200,10 @@ export function createSceneCamera(name = "Camera"): CameraEntity {
       rotation: [-20, 35, 0]
     }),
     fov: 45,
+    focalLength: 35,
     near: 0.1,
-    far: 1000
+    far: 1000,
+    active: false
   };
 }
 
@@ -279,6 +337,26 @@ export function updateProjectSettings(
         project.animation.currentFrame,
         settings.durationFrames ?? project.animation.durationFrames
       )
+    }
+  };
+}
+
+export function setActiveCamera(
+  project: MineMotionProject,
+  cameraId: string
+): MineMotionProject {
+  const exists = project.scene.cameras.some((camera) => camera.id === cameraId);
+  if (!exists) return project;
+
+  return {
+    ...project,
+    activeCameraId: cameraId,
+    scene: {
+      ...project.scene,
+      cameras: project.scene.cameras.map((camera) => ({
+        ...camera,
+        active: camera.id === cameraId
+      }))
     }
   };
 }

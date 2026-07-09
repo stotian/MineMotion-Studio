@@ -63,6 +63,50 @@ export const CAMERA_PRESETS: CameraPreset[] = [
       rotation: [-18, 90, 0],
       scale: [1, 1, 1]
     }
+  },
+  {
+    id: "dutch-angle",
+    name: "Dutch angle",
+    description: "Tilted camera for uneasy dramatic beats.",
+    fov: 42,
+    transform: {
+      position: [6, 3.2, 6],
+      rotation: [-18, 45, 12],
+      scale: [1, 1, 1]
+    }
+  },
+  {
+    id: "chase-camera",
+    name: "Chase camera",
+    description: "Low trailing shot for movement and action scenes.",
+    fov: 58,
+    transform: {
+      position: [-4, 2.2, 7],
+      rotation: [-10, -28, 0],
+      scale: [1, 1, 1]
+    }
+  },
+  {
+    id: "over-shoulder",
+    name: "Over the shoulder",
+    description: "Character-focused over-shoulder cinematic framing.",
+    fov: 38,
+    transform: {
+      position: [-1.4, 2.3, 3.2],
+      rotation: [-8, -16, 0],
+      scale: [1, 1, 1]
+    }
+  },
+  {
+    id: "dramatic-zoom",
+    name: "Dramatic zoom",
+    description: "Compressed lens style setup for zoom-in animation presets.",
+    fov: 26,
+    transform: {
+      position: [0, 2.4, 7.5],
+      rotation: [-8, 0, 0],
+      scale: [1, 1, 1]
+    }
   }
 ];
 
@@ -80,4 +124,3 @@ export function applyCameraPreset(
     }
   };
 }
-

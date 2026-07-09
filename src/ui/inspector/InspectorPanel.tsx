@@ -1,4 +1,5 @@
-import { Camera, Eye, EyeOff, KeyRound, Lock, Palette, Unlock } from "lucide-react";
+import { Camera, Eye, EyeOff, Film, KeyRound, Lock, Palette, Sparkles, Trash2, Unlock } from "lucide-react";
+import type { EffectInstance } from "../../effects/EffectTypes";
 import type { AnimationPreset } from "../../presets/AnimationPresets";
 import type { CameraPreset } from "../../presets/CameraPresets";
 import type { RigPosePreset } from "../../presets/RigPosePresets";
@@ -9,15 +10,20 @@ import type {
   Vector3Tuple
 } from "../../project/ProjectFile";
 import { findObject } from "../../project/ProjectStore";
+import type { PostProcessingSettings } from "../../rendering/postprocessing/PostProcessingTypes";
 import { SKY_PRESETS, type SkyPresetId } from "../../renderer/SkySystem";
 
 interface InspectorPanelProps {
   project: MineMotionProject;
   selectedObjectId: string | null;
+  selectedEffectId: string | null;
   onUpdateTransform: (objectId: string, transform: TransformData) => void;
   onRenameObject: (objectId: string, name: string) => void;
   onToggleVisibility: (objectId: string, visible: boolean) => void;
   onToggleLocked: (objectId: string, locked: boolean) => void;
+  onUpdateEffect: (effectId: string, patch: Partial<EffectInstance>) => void;
+  onDeleteEffect: (effectId: string) => void;
+  onUpdatePostProcessing: (settings: Partial<PostProcessingSettings>) => void;
   onAddKeyframe: () => void;
   onSkyChange: (preset: SkyPresetId, customColor: string) => void;
   onLookThroughCamera: () => void;
@@ -32,10 +38,14 @@ interface InspectorPanelProps {
 export function InspectorPanel({
   project,
   selectedObjectId,
+  selectedEffectId,
   onUpdateTransform,
   onRenameObject,
   onToggleVisibility,
   onToggleLocked,
+  onUpdateEffect,
+  onDeleteEffect,
+  onUpdatePostProcessing,
   onAddKeyframe,
   onSkyChange,
   onLookThroughCamera,
@@ -47,6 +57,9 @@ export function InspectorPanel({
   onApplyAnimationPreset
 }: InspectorPanelProps) {
   const lookup = findObject(project, selectedObjectId);
+  const selectedEffect =
+    project.effects.instances.find((effect) => effect.id === selectedEffectId) ??
+    null;
 
   return (
     <aside className="panel panel-right">
@@ -84,8 +97,18 @@ export function InspectorPanel({
           />
         </label>
       </section>
+      <PostProcessingInspector
+        settings={project.postProcessing}
+        onUpdate={onUpdatePostProcessing}
+      />
 
-      {selectedObjectId === "world" ? (
+      {selectedEffect ? (
+        <EffectInspector
+          effect={selectedEffect}
+          onUpdate={(patch) => onUpdateEffect(selectedEffect.id, patch)}
+          onDelete={() => onDeleteEffect(selectedEffect.id)}
+        />
+      ) : selectedObjectId === "world" ? (
         <WorldInspector project={project} />
       ) : lookup ? (
         <EntityInspector
@@ -111,6 +134,217 @@ export function InspectorPanel({
         <p className="empty-note">Select an object to edit its transform.</p>
       )}
     </aside>
+  );
+}
+
+function PostProcessingInspector({
+  settings,
+  onUpdate
+}: {
+  settings: PostProcessingSettings;
+  onUpdate: (settings: Partial<PostProcessingSettings>) => void;
+}) {
+  return (
+    <section className="inspector-section">
+      <h3>
+        <Film size={15} />
+        Post
+      </h3>
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          checked={settings.enabled}
+          onChange={(event) => onUpdate({ enabled: event.target.checked })}
+        />
+        Enable post-processing
+      </label>
+      <NumberField
+        label="Bloom"
+        value={settings.bloomIntensity}
+        min={0}
+        max={1}
+        step={0.01}
+        onChange={(bloomIntensity) => onUpdate({ bloomIntensity })}
+      />
+      <NumberField
+        label="Vignette"
+        value={settings.vignetteAmount}
+        min={0}
+        max={1}
+        step={0.01}
+        onChange={(vignetteAmount) => onUpdate({ vignetteAmount })}
+      />
+      <NumberField
+        label="Saturation"
+        value={settings.saturation}
+        min={0}
+        max={2}
+        step={0.01}
+        onChange={(saturation) => onUpdate({ saturation })}
+      />
+      <NumberField
+        label="Contrast"
+        value={settings.contrast}
+        min={0.2}
+        max={2}
+        step={0.01}
+        onChange={(contrast) => onUpdate({ contrast })}
+      />
+      <NumberField
+        label="Grain"
+        value={settings.grainAmount}
+        min={0}
+        max={1}
+        step={0.01}
+        onChange={(grainAmount) => onUpdate({ grainAmount })}
+      />
+      <NumberField
+        label="Pixelate"
+        value={settings.pixelationAmount}
+        min={0}
+        max={1}
+        step={0.01}
+        onChange={(pixelationAmount) => onUpdate({ pixelationAmount })}
+      />
+    </section>
+  );
+}
+
+function EffectInspector({
+  effect,
+  onUpdate,
+  onDelete
+}: {
+  effect: EffectInstance;
+  onUpdate: (patch: Partial<EffectInstance>) => void;
+  onDelete: () => void;
+}) {
+  const updateParameter = (
+    key: keyof EffectInstance["parameters"],
+    value: string | number | boolean
+  ) => {
+    onUpdate({
+      parameters: {
+        ...effect.parameters,
+        [key]: value
+      }
+    });
+  };
+
+  return (
+    <section className="inspector-section">
+      <h3>
+        <Sparkles size={15} />
+        {effect.name}
+      </h3>
+      <InfoRow label="Type" value={effect.type} />
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          checked={effect.enabled}
+          onChange={(event) => onUpdate({ enabled: event.target.checked })}
+        />
+        Enabled
+      </label>
+      <NumberField
+        label="Start"
+        value={effect.startFrame}
+        min={0}
+        step={1}
+        onChange={(startFrame) => onUpdate({ startFrame: Math.round(startFrame) })}
+      />
+      <NumberField
+        label="Duration"
+        value={effect.durationFrames}
+        min={1}
+        step={1}
+        onChange={(durationFrames) =>
+          onUpdate({ durationFrames: Math.round(durationFrames) })
+        }
+      />
+      <VectorEditor
+        label="Position"
+        value={effect.position}
+        step={0.1}
+        onChange={(position) => onUpdate({ position })}
+      />
+      {typeof effect.parameters.color === "string" && (
+        <label>
+          Color
+          <input
+            type="color"
+            value={effect.parameters.color}
+            onChange={(event) => updateParameter("color", event.target.value)}
+          />
+        </label>
+      )}
+      {typeof effect.parameters.alpha === "number" && (
+        <NumberField
+          label="Alpha"
+          value={effect.parameters.alpha}
+          min={0}
+          max={1}
+          step={0.01}
+          onChange={(alpha) => updateParameter("alpha", alpha)}
+        />
+      )}
+      {typeof effect.parameters.intensity === "number" && (
+        <NumberField
+          label="Intensity"
+          value={effect.parameters.intensity}
+          min={0}
+          max={3}
+          step={0.05}
+          onChange={(intensity) => updateParameter("intensity", intensity)}
+        />
+      )}
+      {typeof effect.parameters.radius === "number" && (
+        <NumberField
+          label="Radius"
+          value={effect.parameters.radius}
+          min={0.1}
+          max={12}
+          step={0.1}
+          onChange={(radius) => updateParameter("radius", radius)}
+        />
+      )}
+      {typeof effect.parameters.strength === "number" && (
+        <NumberField
+          label="Strength"
+          value={effect.parameters.strength}
+          min={0}
+          max={3}
+          step={0.05}
+          onChange={(strength) => updateParameter("strength", strength)}
+        />
+      )}
+      {typeof effect.parameters.frequency === "number" && (
+        <NumberField
+          label="Frequency"
+          value={effect.parameters.frequency}
+          min={1}
+          max={60}
+          step={1}
+          onChange={(frequency) => updateParameter("frequency", frequency)}
+        />
+      )}
+      {typeof effect.parameters.count === "number" && (
+        <NumberField
+          label="Count"
+          value={effect.parameters.count}
+          min={1}
+          max={80}
+          step={1}
+          onChange={(count) => updateParameter("count", Math.round(count))}
+        />
+      )}
+      <div className="inspector-actions">
+        <button type="button" onClick={onDelete}>
+          <Trash2 size={15} />
+          Delete Effect
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -305,6 +539,36 @@ function VectorEditor({
         </label>
       ))}
     </fieldset>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange
+}: {
+  label: string;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label>
+      {label}
+      <input
+        type="number"
+        value={Number(value.toFixed(3))}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
   );
 }
 

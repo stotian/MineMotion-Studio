@@ -1,46 +1,42 @@
 # Plugin System
 
-Phase 1.5 adds the first plugin-ready architecture. It is intentionally
-conservative: built-in plugins are registered, manifests are validated, and the
-UI can manage plugin enabled state, but external plugin JavaScript is not
-executed yet.
-
-## Current Pieces
-
-- `PluginManifest`: plugin identity, version, permissions, and entry metadata.
-- `PluginPermissions`: known permission names.
-- `PluginRegistry`: stores plugin registrations and enabled state.
-- `PluginLoader`: registers built-in plugins and blocks external execution for
-  now.
-- `PluginAPI`: shape of the future API exposed to trusted plugins.
-- `PluginManagerPanel`: UI for viewing and toggling plugins.
+MineMotion Studio has a plugin-ready architecture. External JavaScript execution
+is still disabled, but manifests, permissions, built-in plugins, and extension
+points are modeled explicitly.
 
 ## Built-In Plugins
 
 - `minemotion.builtin.templates`
 - `minemotion.builtin.presets`
+- `minemotion.builtin.cinematic-effects`
 - `minemotion.builtin.obj-importer`
 
 ## Permissions
 
-Current permission names:
-
 - `registerTemplates`
 - `registerPresets`
+- `registerEffects`
+- `registerPostProcessing`
+- `registerSfx`
+- `registerRenderPresets`
+- `registerTimelineItemTypes`
 - `registerImporters`
-- `readProject`
-- `writeProject`
-- `readSettings`
-- `writeSettings`
+- `registerExporters`
+- `registerTools`
+
+## Phase 2 Extension Points
+
+Plugins can declare future support for:
+
+- effects
+- post-processing presets
+- SFX metadata
+- camera presets
+- render presets
+- timeline item types
 
 ## Security Boundary
 
-External scripts are disabled in Phase 1.5. This avoids pretending there is a
-real sandbox before one exists. Future work should define:
-
-- package format
-- signature or trust model
-- sandboxed execution environment
-- capability-based API access
-- plugin install and update flow
-- crash isolation and diagnostics
+External scripts are disabled in Phase 2. Future work needs a real sandbox,
+trust model, crash isolation, capability-based API access, and installation
+flow before third-party code can run.

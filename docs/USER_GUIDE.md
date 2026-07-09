@@ -1,6 +1,6 @@
 # User Guide
 
-This guide describes the current Phase 1.5 editor workflow.
+This guide describes the Phase 2 editor workflow.
 
 ## Start The App
 
@@ -10,18 +10,40 @@ npm run dev
 
 Open the local Vite URL shown by the terminal.
 
-## Create A Scene
+## Add A Cinematic Effect
 
-Use **Templates** in the top toolbar to start from one of the built-in scenes:
+1. Move the timeline to the desired frame.
+2. Use the **Effects** panel.
+3. Click an effect such as **Lightning Strike**, **Impact Frame**, **Flash**,
+   **Camera Shake**, **Speed Lines**, **Shockwave**, or **Glow Burst**.
+4. Select the new timeline block.
+5. Edit timing, position, color, alpha, radius, strength, or count in the
+   inspector.
+6. Press **Play** or scrub the timeline.
 
-- Empty Scene
-- Flat World
-- Character Animation
-- Cinematic Camera
-- Sunset Scene
-- Nether Mood
+## Change Post-Processing
 
-Creating a template replaces the current project. Save important work first.
+Use the **Post** section in the Effects panel to choose a preset such as
+**Cinematic Warm**, **Dark Horror**, **Anime Impact**, **Retro Pixel**, or
+**Noir**.
+
+Use the inspector's **Post** section for numeric tuning.
+
+## Use Render Preview
+
+Click **Render Preview** in the top bar or Effects panel. The viewport switches
+to a cinematic preview mode with active camera label, post-processing, effects,
+and optional bars.
+
+Render Preview is not full video export yet.
+
+## Add SFX
+
+Use **Import SFX** in the Effects panel for `.wav`, `.mp3`, or `.ogg` files.
+You can also add built-in placeholder SFX such as Lightning Crack, Impact Hit,
+Whoosh, Deep Boom, Camera Rumble, Magic Pulse, or Glitch Pop.
+
+Audio clips appear on the timeline and trigger during playback.
 
 ## Select And Edit Objects
 
@@ -34,47 +56,18 @@ Use the outliner or viewport to select an object. The inspector can edit:
 - rotation
 - scale
 
-Locked objects cannot be transformed from the inspector.
+Locked objects cannot be transformed, duplicated, or deleted.
 
 ## Use Presets
 
-When a compatible object is selected, the inspector exposes preset buttons:
+When a compatible object is selected, the inspector exposes:
 
-- camera presets for scene cameras
-- rig pose presets for characters
-- animation presets for characters and cameras
+- camera presets
+- rig pose presets
+- animation presets
 
-Animation presets add starter tracks to the timeline.
-
-## Animate
-
-Move to a frame on the timeline, select an object, adjust its transform, and use
-the keyframe action. The current system supports transform tracks:
-
-- `transform.position`
-- `transform.rotation`
-- `transform.scale`
-
-Playback samples these tracks with linear interpolation.
-
-## Save And Load
-
-Use the top toolbar or `Ctrl+S` to download a `.mmsproj` file. Use the load
-control to open an existing project.
-
-Phase 1 project files using schema v1 are migrated to schema v2 when opened.
-
-## Autosave
-
-Autosave stores a local recovery snapshot. If a snapshot exists on startup, the
-app asks whether to restore it.
-
-Autosave is not a replacement for downloading `.mmsproj` files.
-
-## Command Palette
-
-Open the command palette with `Ctrl+P`. It can run project, object, animation,
-viewport, settings, plugin, and sky commands.
+Camera presets include wide, close-up, low angle, top-down, orbit, Dutch angle,
+chase, over-shoulder, and dramatic zoom setups.
 
 ## Keyboard Shortcuts
 
@@ -83,6 +76,14 @@ viewport, settings, plugin, and sky commands.
 - `Ctrl+Z`: undo
 - `Ctrl+Y`: redo
 - `Ctrl+Shift+Z`: redo
+- `Space`: play/pause
+- `Ctrl+D`: duplicate selected object
+- `Delete`: delete selected object or selected effect
+
+## Save And Load
+
+Use the top toolbar or `Ctrl+S` to download a `.mmsproj` file. Phase 1 and
+Phase 1.5 projects are migrated to schema v3 when opened.
 
 ## Current Limits
 
@@ -90,4 +91,4 @@ viewport, settings, plugin, and sky commands.
 - Resource packs are not loaded yet.
 - External plugin scripts are not executed yet.
 - Native Tauri file dialogs are not wired yet.
-- Render export is planned for a later phase.
+- Full image sequence/video export is planned for a later phase.

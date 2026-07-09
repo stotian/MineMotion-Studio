@@ -20,6 +20,7 @@ interface TopBarProps {
   projectName: string;
   isPlaying: boolean;
   isDirty: boolean;
+  renderPreviewEnabled: boolean;
   onNewProject: () => void;
   onNewProjectFromTemplate: () => void;
   onOpenWorld: () => void;
@@ -33,12 +34,14 @@ interface TopBarProps {
   onOpenPlugins: () => void;
   onOpenCommands: () => void;
   onOpenHelp: () => void;
+  onToggleRenderPreview: () => void;
 }
 
 export function TopBar({
   projectName,
   isPlaying,
   isDirty,
+  renderPreviewEnabled,
   onNewProject,
   onNewProjectFromTemplate,
   onOpenWorld,
@@ -51,7 +54,8 @@ export function TopBar({
   onOpenSettings,
   onOpenPlugins,
   onOpenCommands,
-  onOpenHelp
+  onOpenHelp,
+  onToggleRenderPreview
 }: TopBarProps) {
   return (
     <header className="top-bar">
@@ -118,7 +122,10 @@ export function TopBar({
           <HelpCircle size={16} />
           Help
         </button>
-        <Video size={18} className="toolbar-status-icon" aria-hidden="true" />
+        <button type="button" onClick={onToggleRenderPreview}>
+          <Video size={16} />
+          {renderPreviewEnabled ? "Viewport" : "Render Preview"}
+        </button>
       </nav>
     </header>
   );
