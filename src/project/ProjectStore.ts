@@ -139,7 +139,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 7,
+    schemaVersion: 8,
     projectName: projectSettings.projectName,
     projectSettings,
     packageMetadata: {
@@ -214,12 +214,15 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
       currentFrame: 0,
       isPlaying: false,
       tracks: [],
-      timelineTracks: createDefaultTimelineTracks()
+      timelineTracks: createDefaultTimelineTracks(),
+      markers: [],
+      clips: [],
+      nlaTracks: []
     },
     metadata: {
       createdAt: now,
       updatedAt: now,
-      appVersion: "0.8.0"
+      appVersion: "0.8.1"
     }
   };
 }

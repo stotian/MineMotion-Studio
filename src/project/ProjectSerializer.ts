@@ -11,6 +11,9 @@ import { withLightingDefaults } from "../lighting/LightingSerializer";
 import { withBiomeTintDefaults } from "../minecraft/resources/BiomeTint";
 import { withMinecraftMaterialDefaults } from "../minecraft/materials/MinecraftMaterialPresets";
 import { sanitizeResourcePackAssets } from "../minecraft/resources/ResourcePackScanner";
+import { ensureKeyframeMetadata } from "../animation/editor/KeyframeModel";
+import { parseMarkers } from "../animation/editor/Markers";
+import { parseAnimationClip } from "../animation/editor/ClipSystem";
 import {
   getRigTimelineItems,
   sanitizeCharacterRig,
@@ -27,7 +30,7 @@ import {
   createDefaultTimelineTracks
 } from "./ProjectStore";
 
-const CURRENT_SCHEMA_VERSION = 7;
+const CURRENT_SCHEMA_VERSION = 8;
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -58,7 +61,7 @@ export class ProjectSerializer {
       return ProjectSerializer.migrate(parsed);
     }
 
-    const project = ProjectSerializer.withV7Defaults(parsed);
+    const project = ProjectSerializer.withV8Defaults(parsed);
     ProjectSerializer.assertValidProject(project);
     return project;
   }
@@ -67,9 +70,9 @@ export class ProjectSerializer {
     if (parsed.schemaVersion === 1) {
       ProjectSerializer.assertLegacyCoreData(parsed);
       const migratedV2 = ProjectSerializer.withV2CompatibilityDefaults(parsed);
-      const migratedV7 = ProjectSerializer.withV7Defaults(migratedV2);
-      ProjectSerializer.assertValidProject(migratedV7);
-      return migratedV7;
+      const migratedV8 = ProjectSerializer.withV8Defaults(migratedV2);
+      ProjectSerializer.assertValidProject(migratedV8);
+      return migratedV8;
     }
 
     if (
@@ -77,11 +80,12 @@ export class ProjectSerializer {
       parsed.schemaVersion === 3 ||
       parsed.schemaVersion === 4 ||
       parsed.schemaVersion === 5 ||
-      parsed.schemaVersion === 6
+      parsed.schemaVersion === 6 ||
+      parsed.schemaVersion === 7
     ) {
-      const migratedV7 = ProjectSerializer.withV7Defaults(parsed);
-      ProjectSerializer.assertValidProject(migratedV7);
-      return migratedV7;
+      const migratedV8 = ProjectSerializer.withV8Defaults(parsed);
+      ProjectSerializer.assertValidProject(migratedV8);
+      return migratedV8;
     }
 
     if (parsed.schemaVersion === undefined) {
@@ -112,7 +116,7 @@ export class ProjectSerializer {
     };
   }
 
-  private static withV7Defaults(project: UnknownProject): MineMotionProject {
+  private static withV8Defaults(project: UnknownProject): MineMotionProject {
     const settingsDefaults = createDefaultProjectSettings();
     const effects = sanitizeEffects(project.effects?.instances);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
@@ -147,7 +151,7 @@ export class ProjectSerializer {
 
     return {
       ...(project as MineMotionProject),
-      schemaVersion: 7,
+      schemaVersion: 8,
       projectName: projectSettings.projectName,
       projectSettings,
       packageMetadata: {
@@ -238,7 +242,7 @@ export class ProjectSerializer {
         durationFrames: projectSettings.durationFrames,
         currentFrame: project.animation?.currentFrame ?? 0,
         isPlaying: project.animation?.isPlaying ?? false,
-        tracks: project.animation?.tracks ?? [],
+        tracks: ensureKeyframeMetadata(project.animation?.tracks ?? []),
         timelineTracks: ProjectSerializer.withTimelineDefaults(
           {
             ...(project as MineMotionProject),
@@ -256,12 +260,15 @@ export class ProjectSerializer {
           project.animation?.timelineTracks,
           effects,
           audioClips
-        )
+        ),
+        markers: parseMarkers(JSON.stringify(project.animation?.markers ?? [])),
+        clips: ProjectSerializer.withClipDefaults(project.animation?.clips),
+        nlaTracks: ProjectSerializer.withNlaDefaults(project.animation?.nlaTracks)
       },
       metadata: {
         createdAt: project.metadata?.createdAt ?? new Date().toISOString(),
         updatedAt: project.metadata?.updatedAt ?? new Date().toISOString(),
-        appVersion: "0.8.0"
+        appVersion: "0.8.1"
       }
     };
   }
@@ -385,6 +392,48 @@ export class ProjectSerializer {
             ? environmentItems
             : (tracks.find((track) => track.id === defaultTrack.id)?.items ?? [])
     }));
+  }
+
+  private static withClipDefaults(
+    clips: MineMotionProject["animation"]["clips"] | undefined
+  ): MineMotionProject["animation"]["clips"] {
+    if (!Array.isArray(clips)) return [];
+    return clips.flatMap((clip) => {
+      try {
+        return [parseAnimationClip(JSON.stringify(clip))];
+      } catch {
+        return [];
+      }
+    });
+  }
+
+  private static withNlaDefaults(
+    tracks: MineMotionProject["animation"]["nlaTracks"] | undefined
+  ): MineMotionProject["animation"]["nlaTracks"] {
+    if (!Array.isArray(tracks)) return [];
+    return tracks.flatMap((track, trackIndex) => {
+      if (!track || typeof track !== "object") return [];
+      return [{
+        id: typeof track.id === "string" ? track.id : `nla_track_${trackIndex}`,
+        name: typeof track.name === "string" ? track.name : "NLA Clips",
+        targetId: typeof track.targetId === "string" ? track.targetId : "",
+        clips: Array.isArray(track.clips)
+          ? track.clips.flatMap((clip, clipIndex) => {
+              if (!clip || typeof clip !== "object") return [];
+              return [{
+                id: typeof clip.id === "string" ? clip.id : `nla_clip_${clipIndex}`,
+                clipId: typeof clip.clipId === "string" ? clip.clipId : "",
+                targetId: typeof clip.targetId === "string" ? clip.targetId : "",
+                startFrame: Math.max(0, Math.round(Number(clip.startFrame) || 0)),
+                durationFrames: Math.max(1, Math.round(Number(clip.durationFrames) || 1)),
+                timeScale: Math.max(0.01, Number(clip.timeScale) || 1),
+                weight: Math.min(1, Math.max(0, Number(clip.weight) || 1)),
+                muted: clip.muted === true
+              }];
+            })
+          : []
+      }];
+    });
   }
 
   private static assertLegacyCoreData(project: UnknownProject): void {

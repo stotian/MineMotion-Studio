@@ -3,12 +3,12 @@ import { createInitialProject } from "./ProjectStore";
 import { ProjectSerializer } from "./ProjectSerializer";
 
 describe("ProjectSerializer", () => {
-  it("round-trips a schema v7 project", () => {
+  it("round-trips a schema v8 project", () => {
     const project = createInitialProject();
     const raw = ProjectSerializer.serialize(project);
     const parsed = ProjectSerializer.parse(raw);
 
-    expect(parsed.schemaVersion).toBe(7);
+    expect(parsed.schemaVersion).toBe(8);
     expect(parsed.projectSettings.schemaVersion).toBe(1);
     expect(parsed.postProcessing.presetId).toBe("clean-preview");
     expect(parsed.renderSettings.resolutionPreset).toBe("1080p");
@@ -43,7 +43,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacy));
 
-    expect(parsed.schemaVersion).toBe(7);
+    expect(parsed.schemaVersion).toBe(8);
     expect(parsed.projectSettings.projectName).toBe(project.projectName);
     expect(parsed.projectSettings.fps).toBe(project.animation.fps);
     expect(parsed.renderSettings.renderPreviewEnabled).toBe(false);
@@ -73,7 +73,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV2));
 
-    expect(parsed.schemaVersion).toBe(7);
+    expect(parsed.schemaVersion).toBe(8);
     expect(parsed.activeCameraId).toBe(parsed.scene.cameras[0].id);
     expect(parsed.scene.cameras[0].active).toBe(true);
     expect(parsed.postProcessing.enabled).toBe(true);
@@ -105,7 +105,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV4));
 
-    expect(parsed.schemaVersion).toBe(7);
+    expect(parsed.schemaVersion).toBe(8);
     expect(parsed.world?.selectedDimension).toBe("overworld");
     expect(parsed.world?.importedChunks).toEqual([]);
     expect(parsed.world?.renderOptions?.showChunkBorders).toBe(true);
@@ -134,7 +134,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV5));
 
-    expect(parsed.schemaVersion).toBe(7);
+    expect(parsed.schemaVersion).toBe(8);
     expect(parsed.scene.characters[0].rigPreset).toBe("steve");
     expect(parsed.scene.characters[0].skin).toBeNull();
     expect(parsed.scene.characters[0].attachments?.length).toBeGreaterThan(0);
@@ -157,11 +157,40 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV6));
 
-    expect(parsed.schemaVersion).toBe(7);
+    expect(parsed.schemaVersion).toBe(8);
     expect(parsed.lighting.presetId).toBe("clear-day");
     expect(parsed.minecraftResources.textureFiltering).toBe("nearest");
     expect(parsed.minecraftResources.activeResourcePackId).toBeNull();
     expect(parsed.assets.resourcePacks).toEqual([]);
+  });
+
+  it("migrates a schema v7 project to Phase 6 editor defaults", () => {
+    const project = createInitialProject();
+    const legacyV7 = {
+      ...project,
+      schemaVersion: 7,
+      animation: {
+        ...project.animation,
+        markers: undefined,
+        clips: undefined,
+        nlaTracks: undefined,
+        tracks: [{
+          id: "camera_main:transform.position",
+          targetId: "camera_main",
+          property: "transform.position",
+          keyframes: [{ frame: 4, value: [1, 2, 3] }]
+        }]
+      }
+    };
+
+    const parsed = ProjectSerializer.parse(JSON.stringify(legacyV7));
+
+    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.animation.markers).toEqual([]);
+    expect(parsed.animation.clips).toEqual([]);
+    expect(parsed.animation.nlaTracks).toEqual([]);
+    expect(parsed.animation.tracks[0].keyframes[0].id).toBeTruthy();
+    expect(parsed.animation.tracks[0].keyframes[0].interpolation).toBe("linear");
   });
 
   it("rejects invalid project JSON", () => {

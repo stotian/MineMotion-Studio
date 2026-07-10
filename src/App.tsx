@@ -56,6 +56,7 @@ import type {
   CameraEntity,
   MineMotionProject,
   ProjectSettings,
+  TimelineData,
   TransformData
 } from "./project/ProjectFile";
 import { ProjectSerializer } from "./project/ProjectSerializer";
@@ -130,7 +131,7 @@ export function App() {
   );
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [status, setStatus] = useState(
-    "Ready. Phase 8 resource-pack, material, and lighting systems loaded."
+    "Ready. Professional animation, resource-pack, and lighting systems loaded."
   );
   const [isDirty, setIsDirty] = useState(false);
   const [lookThroughCameraRequest, setLookThroughCameraRequest] = useState(0);
@@ -1818,6 +1819,20 @@ export function App() {
     }));
   }, []);
 
+  const handleUpdateAnimation = useCallback(
+    (animation: TimelineData, label: string) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          animation
+        }),
+        label
+      );
+      setStatus(`${label}.`);
+    },
+    [commitProject]
+  );
+
   const handleSetFps = useCallback(
     (fps: number) => {
       const safeFps = Math.min(120, Math.max(1, Math.round(fps || 1)));
@@ -2202,6 +2217,7 @@ export function App() {
         onTogglePlayback={handleTogglePlayback}
         onAddKeyframe={handleAddKeyframe}
         onSelectEffect={handleSelectEffect}
+        onUpdateAnimation={handleUpdateAnimation}
       />
       <div className="status-bar">
         <span>{status}</span>

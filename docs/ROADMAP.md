@@ -81,13 +81,13 @@
 
 ## Phase 6: Advanced Timeline
 
-- Dopesheet.
-- Simplified graph editor.
-- Easing curves.
-- Copy/paste keyframes.
-- Markers.
-- Animation layers.
-- Camera cuts.
+- Hierarchical Dopesheet.
+- Simplified Graph Editor.
+- Easing and interpolation curves.
+- Keyframe copy/paste, move, duplicate, delete, snap, and timing scale.
+- Named timeline markers.
+- Reusable animation clips.
+- NLA-style clip stacking skeleton.
 
 ## Phase 7: Production Rendering (Pending Completion)
 

@@ -65,12 +65,15 @@ select {
   height: 100%;
   min-width: 1180px;
   display: grid;
-  grid-template-rows: 52px minmax(0, 1fr) 232px 28px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 52px minmax(0, 1fr) 310px 28px;
   background: #101218;
   font-size: calc(14px * var(--ui-scale));
 }
 
 .top-bar {
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -78,6 +81,7 @@ select {
   padding: 0 0.75rem;
   background: #151922;
   border-bottom: 1px solid #2b3240;
+  overflow: hidden;
 }
 
 .brand {
@@ -101,6 +105,7 @@ select {
 }
 
 .top-actions {
+  flex: 1 1 auto;
   display: flex;
   gap: 0.35rem;
   align-items: center;
@@ -491,18 +496,38 @@ select {
 }
 
 .timeline-panel {
+  width: 100%;
+  min-width: 0;
   min-height: 0;
-  padding: 0.65rem 0.75rem;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.4rem;
+  padding: 0.5rem 0.65rem;
   background: #151922;
   border-top: 1px solid #2b3240;
+  overflow: hidden;
 }
 
 .timeline-controls {
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0;
   overflow-x: auto;
+}
+
+.timeline-view-tabs {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding-right: 0.4rem;
+  border-right: 1px solid #313947;
+}
+
+.timeline-view-tabs button.selected {
+  border-color: #6d8cff;
+  background: #243a70;
 }
 
 .timeline-controls label {
@@ -524,10 +549,59 @@ select {
   white-space: nowrap;
 }
 
+.keyframe-command-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #29313e;
+}
+
+.keyframe-command-bar button,
+.keyframe-command-bar select,
+.keyframe-command-bar input {
+  min-height: 28px;
+  padding: 0.25rem 0.42rem;
+  font-size: 0.72rem;
+}
+
+.keyframe-command-bar .compact-control {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.25rem !important;
+  margin: 0;
+  color: #9ba7b9;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.compact-control input[type="number"] {
+  width: 52px;
+}
+
+.animation-editor-content {
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #272f3d;
+  border-radius: 5px;
+  background: #10141d;
+}
+
 .timeline-track {
   position: relative;
   height: 140px;
   padding-top: 0.1rem;
+}
+
+.professional-timeline {
+  height: auto;
+  min-height: 100%;
+  padding: 0.35rem 0.45rem 0.6rem;
 }
 
 .timeline-track input[type="range"] {
@@ -545,6 +619,10 @@ select {
 .timeline-ruler span {
   border-left: 1px solid #2c3441;
   padding-left: 0.2rem;
+}
+
+.timeline-ruler-21 {
+  grid-template-columns: repeat(21, 1fr);
 }
 
 .keyframe-lane {
@@ -605,6 +683,12 @@ select {
   background: #5d3c18;
 }
 
+.timeline-block.sky,
+.timeline-block.postProcessing {
+  border-color: #57a8c7;
+  background: #1c5368;
+}
+
 .timeline-block.selected {
   outline: 2px solid #f6d36b;
   outline-offset: 1px;
@@ -621,6 +705,208 @@ select {
   background: #f1c453;
   border: 1px solid #ffe5a3;
   border-radius: 2px;
+}
+
+.timeline-named-marker {
+  position: absolute;
+  top: 1px;
+  z-index: 2;
+  height: 22px;
+  max-width: 110px;
+  min-width: 8px;
+  padding: 0 0.25rem;
+  transform: translateX(-2px);
+  border-color: currentColor;
+  background: #202733;
+  color: inherit;
+  overflow: hidden;
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+.timeline-empty {
+  display: grid;
+  place-items: center;
+  min-height: 130px;
+  margin: 0;
+  color: #778398;
+  font-size: 0.78rem;
+}
+
+.dopesheet {
+  min-width: 720px;
+  padding: 0.35rem;
+}
+
+.dopesheet-group {
+  margin-bottom: 0.4rem;
+}
+
+.dopesheet-group header {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 24px;
+  padding: 0 0.45rem;
+  background: #1a202b;
+  border-bottom: 1px solid #303847;
+  font-size: 0.72rem;
+}
+
+.dopesheet-group header span {
+  color: #7d899c;
+}
+
+.dopesheet-row {
+  display: grid;
+  grid-template-columns: 175px minmax(520px, 1fr);
+  min-height: 27px;
+  border-bottom: 1px solid #222a36;
+}
+
+.dopesheet-row > span {
+  padding: 0.42rem 0.5rem;
+  color: #aab4c5;
+  overflow: hidden;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dopesheet-lane {
+  position: relative;
+  min-height: 26px;
+  overflow: hidden;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(5% - 1px),
+    #252d39 calc(5% - 1px),
+    #252d39 5%
+  );
+}
+
+.timeline-playhead-line {
+  position: absolute;
+  inset-block: 0;
+  z-index: 1;
+  width: 1px;
+  background: #e86a73;
+  pointer-events: none;
+}
+
+.dopesheet-key {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  padding: 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 1px solid #d9b75c;
+  border-radius: 2px;
+  background: #99752d;
+}
+
+.dopesheet-key.selected {
+  border-color: #fff0ae;
+  background: #f4ce61;
+  box-shadow: 0 0 0 2px rgb(244 206 97 / 24%);
+}
+
+.graph-editor {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(130px, 1fr);
+  min-height: 100%;
+  padding: 0.4rem;
+}
+
+.graph-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #aeb8c8;
+  font-size: 0.74rem;
+}
+
+.graph-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.graph-toolbar select {
+  padding: 0.25rem 0.4rem;
+}
+
+.graph-legend {
+  display: flex;
+  gap: 0.45rem;
+  margin-left: auto;
+  font-weight: 700;
+}
+
+.graph-canvas {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 150px;
+  background: #0d1219;
+  border: 1px solid #27303d;
+}
+
+.graph-grid {
+  fill: none;
+  stroke: #26303d;
+  stroke-width: 1;
+}
+
+.nla-editor {
+  min-width: 700px;
+  padding: 0.4rem;
+}
+
+.nla-row {
+  display: grid;
+  grid-template-columns: 150px minmax(520px, 1fr);
+  align-items: center;
+  min-height: 34px;
+  color: #9ca8ba;
+  font-size: 0.7rem;
+}
+
+.nla-row > div {
+  position: relative;
+  height: 28px;
+  overflow: hidden;
+  border: 1px solid #293342;
+  background: #0d1219;
+}
+
+.nla-clip {
+  position: absolute;
+  top: 3px;
+  height: 20px;
+  min-width: 30px;
+  padding: 0 0.35rem;
+  justify-content: flex-start;
+  overflow: hidden;
+  border-color: #7a68d7;
+  background: #3b3270;
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
+
+.nla-clip.muted {
+  opacity: 0.4;
+  filter: grayscale(1);
 }
 
 .status-bar {

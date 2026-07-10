@@ -1,6 +1,14 @@
 # Project Schema
 
-Current project files use `schemaVersion: 7`.
+Current project files use `schemaVersion: 8`.
+
+## Added In Schema 8
+
+- stable keyframe IDs and interpolation modes
+- named timeline markers
+- reusable animation clips
+- NLA clip-instance tracks
+- Dopesheet/Graph Editor compatible animation defaults
 
 ## Added In Schema 7
 
@@ -55,15 +63,16 @@ Current project files use `schemaVersion: 7`.
 
 The serializer supports:
 
-- v1 -> v7
-- v2 -> v7
-- v3 -> v7
-- v4 -> v7
-- v5 -> v7
-- v6 -> v7
-- v7 round-trip
+- v1 -> v8
+- v2 -> v8
+- v3 -> v8
+- v4 -> v8
+- v5 -> v8
+- v6 -> v8
+- v7 -> v8
+- v8 round-trip
 
-Missing Phase 2, Phase 3, Phase 4, Phase 5, and Phase 8 fields are filled with safe
+Missing Phase 2, Phase 3, Phase 4, Phase 5, Phase 6, and Phase 8 fields are filled with safe
 defaults.
 Invalid legacy projects that lack core scene, animation, or asset data are
 rejected.
@@ -97,3 +106,5 @@ Blockbench raw JSON, audio data URLs, and an asset library index in a single
 JSON payload. Schema v5 adds imported world metadata and optional imported
 chunk cache data. Schema v6 adds rig, skin, pose, and Blockbench data. Schema
 v7 adds resource packs, materials, lighting, atmosphere, and environment keys.
+Schema v8 adds professional animation-editor metadata, markers, reusable clips,
+and NLA tracks.

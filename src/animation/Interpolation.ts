@@ -1,4 +1,5 @@
 import type { Keyframe, Vector3Tuple } from "../project/ProjectFile";
+import { applyInterpolationCurve } from "./editor/InterpolationCurves";
 
 export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
@@ -36,11 +37,13 @@ export function sampleVectorTrack(
     const right = sorted[index + 1];
     if (frame >= left.frame && frame <= right.frame) {
       const span = right.frame - left.frame || 1;
-      const t = (frame - left.frame) / span;
+      const t = applyInterpolationCurve(
+        left.interpolation ?? "linear",
+        (frame - left.frame) / span
+      );
       return lerpVector3(left.value, right.value, t);
     }
   }
 
   return null;
 }
-

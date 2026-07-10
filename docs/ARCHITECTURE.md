@@ -55,7 +55,7 @@ flowchart LR
 - `src/rigs`: Minecraft rig definitions, Steve/Alex presets, skin import/UV
   mapping, pose and animation presets, IK placeholders, and Blockbench import.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
-- `src/project`: schema v7, serializer, migrations, package helpers, timeline
+- `src/project`: schema v8, serializer, migrations, package helpers, timeline
   sync, initial state, and object helpers.
 - `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
@@ -64,7 +64,7 @@ flowchart LR
 
 ## Project System
 
-Project files use schema v7. The serializer migrates v1, v2, v3, v4, v5, and v6
+Project files use schema v8. The serializer migrates v1 through v7
 projects by
 adding:
 

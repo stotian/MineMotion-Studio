@@ -128,9 +128,19 @@ export interface ImportedWorldSummary {
   notes: string[];
 }
 
+export type KeyframeInterpolation =
+  | "constant"
+  | "linear"
+  | "ease-in"
+  | "ease-out"
+  | "ease-in-out"
+  | "bezier";
+
 export interface Keyframe<T = number | Vector3Tuple> {
+  id?: string;
   frame: number;
   value: T;
+  interpolation?: KeyframeInterpolation;
 }
 
 export type AnimatableProperty =
@@ -182,6 +192,49 @@ export interface TimelineData {
   isPlaying: boolean;
   tracks: AnimationTrack[];
   timelineTracks: TimelineTrackLane[];
+  markers: TimelineMarker[];
+  clips: ReusableAnimationClip[];
+  nlaTracks: NlaTrackData[];
+}
+
+export interface TimelineMarker {
+  id: string;
+  name: string;
+  frame: number;
+  color: string;
+}
+
+export interface ReusableAnimationClipTrack {
+  property: AnimatableProperty;
+  keyframes: Keyframe<Vector3Tuple>[];
+}
+
+export interface ReusableAnimationClip {
+  id: string;
+  name: string;
+  description: string;
+  targetType: "character" | "camera" | "object";
+  durationFrames: number;
+  tracks: ReusableAnimationClipTrack[];
+  createdAt: string;
+}
+
+export interface NlaClipInstance {
+  id: string;
+  clipId: string;
+  targetId: string;
+  startFrame: number;
+  durationFrames: number;
+  timeScale: number;
+  weight: number;
+  muted: boolean;
+}
+
+export interface NlaTrackData {
+  id: string;
+  name: string;
+  targetId: string;
+  clips: NlaClipInstance[];
 }
 
 export interface ProjectSettings {
@@ -209,7 +262,7 @@ export interface RenderSettings {
 }
 
 export interface MineMotionProject {
-  schemaVersion: 7;
+  schemaVersion: 8;
   projectName: string;
   projectSettings: ProjectSettings;
   packageMetadata: ProjectPackageMetadata;

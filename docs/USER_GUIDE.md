@@ -29,6 +29,24 @@ Use the **Post** section in the Effects panel to choose a preset such as
 
 Use the inspector's **Post** section for numeric tuning.
 
+## Edit Animation In The Timeline
+
+Use the view tabs at the bottom of the editor:
+
+- **Timeline** shows the playhead, markers, rig, effect, audio, and lighting lanes.
+- **Dopesheet** groups keyframes by target and property.
+- **Graph** displays X/Y/Z value curves for the selected property.
+- **NLA** stores reusable clip instances on target lanes.
+
+In the Dopesheet, click to select, Ctrl-click to toggle, Shift-click for a
+range, and drag selected keys to retime them. The command row supports copy,
+paste, duplicate, delete, frame snap, exact nudges, timing scale, and
+interpolation changes.
+
+Use **Add Marker** for cuts, beats, and SFX cues. Select keys and choose
+**Save Clip** to create a reusable animation clip, then apply it to a compatible
+target or add it to the NLA stack.
+
 ## Use Lighting Studio
 
 1. Click **Lighting** in the top bar.
@@ -51,7 +69,7 @@ Environment keyframes appear on the **Lighting & Sky** timeline lane.
 4. Review the imported `pack_format`, description, texture count, and warnings.
 5. Click **Apply** on a stored pack, or **Reset Textures** for generated colors.
 
-MineMotion embeds selected block textures in schema v7 projects. It does not
+MineMotion embeds selected block textures in current projects. It does not
 bundle Minecraft textures.
 
 ## Use Render Preview
@@ -132,7 +150,7 @@ Click **Export** in the top bar.
 Available output:
 
 - **Save .minemotion**: saves the full package payload.
-- **Export .mmsproj**: exports legacy-compatible schema v7 project JSON.
+- **Export .mmsproj**: exports legacy-compatible schema v8 project JSON.
 - **PNG Frame**: captures the current viewport frame.
 - **PNG ZIP**: captures the selected frame range as numbered PNG files inside a
   ZIP archive.
@@ -194,7 +212,7 @@ chase, over-shoulder, and dramatic zoom setups.
 
 Use the top toolbar or `Ctrl+S` to download a `.minemotion` package. Legacy
 `.mmsproj` and JSON project files can still be opened. Phase 1, Phase 1.5, and
-Phase 2/3/4/5 and schema v6 projects are migrated to schema v7 when opened.
+Projects using schemas v1 through v7 are migrated to schema v8 when opened.
 
 ## Current Limits
 

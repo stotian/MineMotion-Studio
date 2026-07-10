@@ -11,8 +11,8 @@ and a unified Lighting Studio with cinematic mood/post presets.
 
 ## Current Version
 
-- App version: `0.8.0`
-- Project schema: `7`
+- App version: `0.8.1`
+- Project schema: `8`
 - Settings schema: `1`
 - Package format: `.minemotion` JSON package v1
 - License: MIT
@@ -27,7 +27,7 @@ and a unified Lighting Studio with cinematic mood/post presets.
   character rig, camera helpers, OBJ preview, sky presets, and selection outline.
 - Project save/load as `.minemotion` packages with legacy `.mmsproj` JSON import
   and export.
-- Migration from schema v1/v2/v3/v4/v5/v6 projects to schema v7.
+- Migration from schema v1/v2/v3/v4/v5/v6/v7 projects to schema v8.
 - App settings, autosave recovery, templates, presets, undo/redo, and plugin
   manager from earlier phases.
 - Cinematic effects library with lightning, impact frames, camera shake, flash,
@@ -78,6 +78,12 @@ and a unified Lighting Studio with cinematic mood/post presets.
   - Lighting Studio with eight cinematic mood presets
   - sun, ambient light, shadows, fog, time-of-day, and post controls
   - environment keyframes on the Lighting & Sky timeline lane
+- Professional animation editor:
+  - Timeline, hierarchical Dopesheet, Graph Editor, and NLA views
+  - keyframe multi-selection, drag, copy/paste, duplicate, delete, snap, and scale
+  - constant, linear, easing, and Bezier-placeholder interpolation
+  - named timeline markers
+  - reusable animation clips and NLA-style clip stacking data
 - Blender-like shortcuts:
   - `Ctrl+P` command palette
   - `Ctrl+S` save `.minemotion`
@@ -148,11 +154,11 @@ installed and that command has completed successfully.
 
 ## Project And Package Format
 
-Current projects use `schemaVersion: 7`. The main save path downloads a
+Current projects use `schemaVersion: 8`. The main save path downloads a
 `.minemotion` file containing:
 
 - package manifest
-- schema v7 project JSON
+- schema v8 project JSON
 - embedded OBJ model data
 - embedded Minecraft skin data URLs
 - embedded Blockbench raw JSON
@@ -175,6 +181,10 @@ panel.
 - [Blockbench Import](docs/BLOCKBENCH_IMPORT.md)
 - [Animation Presets](docs/ANIMATION_PRESETS.md)
 - [Phase 8 Materials And Lighting](docs/PHASE_8_MATERIALS_LIGHTING.md)
+- [Phase 6 Animation Editor](docs/PHASE_6_ANIMATION_EDITOR.md)
+- [Dopesheet](docs/DOPESHEET.md)
+- [Graph Editor](docs/GRAPH_EDITOR.md)
+- [Animation Clips](docs/ANIMATION_CLIPS.md)
 - [Resource Packs](docs/RESOURCE_PACKS.md)
 - [Lighting Studio](docs/LIGHTING_STUDIO.md)
 - [Phase 4 World Import](docs/PHASE_4_WORLD_IMPORT.md)
