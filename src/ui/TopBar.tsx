@@ -11,6 +11,7 @@ import {
   Plug,
   Save,
   Settings,
+  Sun,
   Square,
   UserPlus,
   Video,
@@ -36,6 +37,7 @@ interface TopBarProps {
   onOpenCommands: () => void;
   onOpenExport: () => void;
   onOpenRigStudio: () => void;
+  onOpenLightingStudio: () => void;
   onOpenHelp: () => void;
   onToggleRenderPreview: () => void;
 }
@@ -59,6 +61,7 @@ export function TopBar({
   onOpenCommands,
   onOpenExport,
   onOpenRigStudio,
+  onOpenLightingStudio,
   onOpenHelp,
   onToggleRenderPreview
 }: TopBarProps) {
@@ -130,6 +133,10 @@ export function TopBar({
         <button type="button" onClick={onOpenRigStudio}>
           <UserPlus size={16} />
           Rig Studio
+        </button>
+        <button type="button" onClick={onOpenLightingStudio}>
+          <Sun size={16} />
+          Lighting
         </button>
         <button type="button" onClick={onOpenHelp}>
           <HelpCircle size={16} />

@@ -7,6 +7,10 @@ import { withExportSettingsDefaults } from "../export/ExportSettings";
 import {
   withPostProcessingDefaults
 } from "../rendering/postprocessing/PostProcessingPresets";
+import { withLightingDefaults } from "../lighting/LightingSerializer";
+import { withBiomeTintDefaults } from "../minecraft/resources/BiomeTint";
+import { withMinecraftMaterialDefaults } from "../minecraft/materials/MinecraftMaterialPresets";
+import { sanitizeResourcePackAssets } from "../minecraft/resources/ResourcePackScanner";
 import {
   getRigTimelineItems,
   sanitizeCharacterRig,
@@ -23,7 +27,7 @@ import {
   createDefaultTimelineTracks
 } from "./ProjectStore";
 
-const CURRENT_SCHEMA_VERSION = 6;
+const CURRENT_SCHEMA_VERSION = 7;
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -54,7 +58,7 @@ export class ProjectSerializer {
       return ProjectSerializer.migrate(parsed);
     }
 
-    const project = ProjectSerializer.withV6Defaults(parsed);
+    const project = ProjectSerializer.withV7Defaults(parsed);
     ProjectSerializer.assertValidProject(project);
     return project;
   }
@@ -63,20 +67,21 @@ export class ProjectSerializer {
     if (parsed.schemaVersion === 1) {
       ProjectSerializer.assertLegacyCoreData(parsed);
       const migratedV2 = ProjectSerializer.withV2CompatibilityDefaults(parsed);
-      const migratedV6 = ProjectSerializer.withV6Defaults(migratedV2);
-      ProjectSerializer.assertValidProject(migratedV6);
-      return migratedV6;
+      const migratedV7 = ProjectSerializer.withV7Defaults(migratedV2);
+      ProjectSerializer.assertValidProject(migratedV7);
+      return migratedV7;
     }
 
     if (
       parsed.schemaVersion === 2 ||
       parsed.schemaVersion === 3 ||
       parsed.schemaVersion === 4 ||
-      parsed.schemaVersion === 5
+      parsed.schemaVersion === 5 ||
+      parsed.schemaVersion === 6
     ) {
-      const migratedV6 = ProjectSerializer.withV6Defaults(parsed);
-      ProjectSerializer.assertValidProject(migratedV6);
-      return migratedV6;
+      const migratedV7 = ProjectSerializer.withV7Defaults(parsed);
+      ProjectSerializer.assertValidProject(migratedV7);
+      return migratedV7;
     }
 
     if (parsed.schemaVersion === undefined) {
@@ -107,11 +112,13 @@ export class ProjectSerializer {
     };
   }
 
-  private static withV6Defaults(project: UnknownProject): MineMotionProject {
+  private static withV7Defaults(project: UnknownProject): MineMotionProject {
     const settingsDefaults = createDefaultProjectSettings();
     const effects = sanitizeEffects(project.effects?.instances);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
     const rigs = sanitizeRigProjectData(project.rigs);
+    const resourcePacks = sanitizeResourcePackAssets(project.assets?.resourcePacks);
+    const lighting = withLightingDefaults(project.lighting);
     const characters = (project.scene?.characters ?? []).map((entity) =>
       sanitizeCharacterRig({
         ...entity,
@@ -140,7 +147,7 @@ export class ProjectSerializer {
 
     return {
       ...(project as MineMotionProject),
-      schemaVersion: 6,
+      schemaVersion: 7,
       projectName: projectSettings.projectName,
       projectSettings,
       packageMetadata: {
@@ -186,8 +193,23 @@ export class ProjectSerializer {
       assets: {
         obj: project.assets?.obj ?? [],
         skins: project.assets?.skins ?? [],
-        blockbench: project.assets?.blockbench ?? []
+        blockbench: project.assets?.blockbench ?? [],
+        resourcePacks
       },
+      minecraftResources: {
+        activeResourcePackId: resourcePacks.some(
+          (pack) => pack.id === project.minecraftResources?.activeResourcePackId
+        )
+          ? project.minecraftResources?.activeResourcePackId ?? null
+          : resourcePacks[0]?.id ?? null,
+        textureFiltering:
+          project.minecraftResources?.textureFiltering === "linear"
+            ? "linear"
+            : "nearest",
+        biomeTint: withBiomeTintDefaults(project.minecraftResources?.biomeTint),
+        materials: withMinecraftMaterialDefaults(project.minecraftResources?.materials)
+      },
+      lighting,
       rigs,
       assetLibrary: sanitizeAssetLibrary(project.assetLibrary),
       effects: {
@@ -228,7 +250,8 @@ export class ProjectSerializer {
               ...(project.scene as MineMotionProject["scene"]),
               characters
             },
-            rigs
+            rigs,
+            lighting
           },
           project.animation?.timelineTracks,
           effects,
@@ -238,7 +261,7 @@ export class ProjectSerializer {
       metadata: {
         createdAt: project.metadata?.createdAt ?? new Date().toISOString(),
         updatedAt: project.metadata?.updatedAt ?? new Date().toISOString(),
-        appVersion: "0.5.0"
+        appVersion: "0.8.0"
       }
     };
   }
@@ -324,11 +347,23 @@ export class ProjectSerializer {
       })
     );
     const rigItems: TimelineItem[] = getRigTimelineItems(project);
+    const environmentItems: TimelineItem[] = project.lighting.keyframes.map(
+      (keyframe) => ({
+        id: `item_${keyframe.id}`,
+        type: "sky",
+        label: `Environment @ ${keyframe.frame}`,
+        targetId: "environment",
+        environmentKeyframeId: keyframe.id,
+        startFrame: keyframe.frame,
+        durationFrames: 1
+      })
+    );
 
     const hydratedDefaults = defaultTracks.map((track) => {
       if (track.type === "rig") return { ...track, items: rigItems };
       if (track.type === "effect") return { ...track, items: effectItems };
       if (track.type === "audio") return { ...track, items: audioItems };
+      if (track.type === "sky") return { ...track, items: environmentItems };
       return track;
     });
 
@@ -346,6 +381,8 @@ export class ProjectSerializer {
             ? rigItems
           : defaultTrack.type === "audio"
             ? audioItems
+          : defaultTrack.type === "sky"
+            ? environmentItems
             : (tracks.find((track) => track.id === defaultTrack.id)?.items ?? [])
     }));
   }
@@ -385,6 +422,10 @@ export class ProjectSerializer {
 
     if (!project.exportSettings || !project.assetLibrary) {
       throw new Error("Project file is missing Phase 3 export/package data.");
+    }
+
+    if (!project.minecraftResources || !project.lighting) {
+      throw new Error("Project file is missing Phase 8 environment data.");
     }
 
     if (!Array.isArray(project.animation.tracks)) {

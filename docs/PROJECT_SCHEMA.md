@@ -1,6 +1,16 @@
 # Project Schema
 
-Current project files use `schemaVersion: 6`.
+Current project files use `schemaVersion: 7`.
+
+## Added In Schema 7
+
+- imported resource pack metadata and selected block texture assets
+- active resource pack and texture-filtering settings
+- Minecraft material preset overrides
+- biome tint placeholder settings
+- Lighting Studio sun, ambient, shadow, fog, and time-of-day settings
+- environment keyframes for lighting and post-processing values
+- Lighting & Sky timeline lane
 
 ## Added In Schema 6
 
@@ -45,14 +55,15 @@ Current project files use `schemaVersion: 6`.
 
 The serializer supports:
 
-- v1 -> v6
-- v2 -> v6
-- v3 -> v6
-- v4 -> v6
-- v5 -> v6
-- v6 round-trip
+- v1 -> v7
+- v2 -> v7
+- v3 -> v7
+- v4 -> v7
+- v5 -> v7
+- v6 -> v7
+- v7 round-trip
 
-Missing Phase 2, Phase 3, Phase 4, and Phase 5 fields are filled with safe
+Missing Phase 2, Phase 3, Phase 4, Phase 5, and Phase 8 fields are filled with safe
 defaults.
 Invalid legacy projects that lack core scene, animation, or asset data are
 rejected.
@@ -66,6 +77,7 @@ Typed lanes:
 - effect
 - audio
 - postProcessing
+- sky
 
 Effect and audio lanes are synchronized from `effects.instances` and
 `audio.clips`. Rig lanes are synchronized from `bone.rotation.*` tracks.
@@ -83,4 +95,5 @@ Schema v4 adds package metadata so the project can be saved inside a
 The current `.minemotion` writer stores JSON, OBJ assets, skin data URLs,
 Blockbench raw JSON, audio data URLs, and an asset library index in a single
 JSON payload. Schema v5 adds imported world metadata and optional imported
-chunk cache data. Schema v6 adds rig, skin, pose, and Blockbench data.
+chunk cache data. Schema v6 adds rig, skin, pose, and Blockbench data. Schema
+v7 adds resource packs, materials, lighting, atmosphere, and environment keys.

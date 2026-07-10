@@ -7,6 +7,7 @@ export function resolvePackagedTextAsset(
   return (
     data.assets.models[packagePath] ??
     data.assets.audio[packagePath] ??
+    data.assets.resourcePacks?.[packagePath] ??
     null
   );
 }

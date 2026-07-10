@@ -10,6 +10,7 @@ export function createMineMotionPackageData(
   const models: Record<string, string> = {};
   const skins: Record<string, string> = {};
   const blockbench: Record<string, string> = {};
+  const resourcePacks: Record<string, string> = {};
   const audio: Record<string, string> = {};
 
   for (const asset of project.assets.obj) {
@@ -22,6 +23,20 @@ export function createMineMotionPackageData(
 
   for (const model of project.assets.blockbench ?? []) {
     blockbench[`assets/blockbench/${model.id}.bbmodel.json`] = model.rawJson;
+  }
+
+  for (const pack of project.assets.resourcePacks ?? []) {
+    resourcePacks[`assets/resource-packs/${pack.id}/pack.mcmeta`] = JSON.stringify(
+      { pack: {
+        pack_format: pack.metadata.packFormat,
+        description: pack.metadata.description
+      } },
+      null,
+      2
+    );
+    for (const texture of pack.textures) {
+      resourcePacks[`assets/resource-packs/${pack.id}/${texture.path}`] = texture.dataUrl;
+    }
   }
 
   for (const clip of project.audio.clips) {
@@ -47,6 +62,7 @@ export function createMineMotionPackageData(
       models,
       skins,
       blockbench,
+      resourcePacks,
       audio,
       thumbnails: {},
       metadata: {

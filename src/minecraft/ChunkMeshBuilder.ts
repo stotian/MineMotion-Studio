@@ -1,5 +1,8 @@
 import * as THREE from "three";
-import { getMaterialForBlock } from "../renderer/MinecraftMaterialSystem";
+import {
+  getMaterialForBlock,
+  type MinecraftMaterialContext
+} from "../renderer/MinecraftMaterialSystem";
 import type { TerrainPresetId } from "../project/ProjectFile";
 import type { BlockId, ChunkData } from "./MinecraftWorldTypes";
 import { listRenderableBlockIds } from "./BlockPalette";
@@ -110,7 +113,10 @@ export class ChunkMeshBuilder {
     };
   }
 
-  static buildInstancedChunk(chunk: ChunkData): THREE.Group {
+  static buildInstancedChunk(
+    chunk: ChunkData,
+    materialContext?: MinecraftMaterialContext
+  ): THREE.Group {
     const group = new THREE.Group();
     group.name = chunk.id;
     group.userData.objectId = "world";
@@ -127,7 +133,7 @@ export class ChunkMeshBuilder {
 
       const mesh = new THREE.InstancedMesh(
         cubeGeometry,
-        getMaterialForBlock(blockId),
+        getMaterialForBlock(blockId, materialContext),
         blockSamples.length
       );
       mesh.name = `blocks_${blockId}`;

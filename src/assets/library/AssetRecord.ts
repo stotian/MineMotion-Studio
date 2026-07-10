@@ -5,6 +5,7 @@ export type AssetType =
   | "image"
   | "minecraftSkin"
   | "blockbenchModel"
+  | "resourcePack"
   | "worldReference"
   | "worldCache"
   | "preset"

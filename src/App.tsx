@@ -34,6 +34,17 @@ import {
   createWorldImportProgress,
   IDLE_WORLD_IMPORT_PROGRESS
 } from "./minecraft/import/WorldImportProgress";
+import { ResourcePackImporter } from "./minecraft/resources/ResourcePackImporter";
+import type { MinecraftResourceSettings } from "./minecraft/resources/ResourcePackTypes";
+import {
+  addEnvironmentKeyframe,
+  sampleEnvironmentProject
+} from "./lighting/LightingController";
+import { getLightingMoodPreset } from "./lighting/LightingPresets";
+import type {
+  LightingMoodPresetId,
+  LightingSettings
+} from "./lighting/LightingTypes";
 import { pluginRegistry } from "./plugins/PluginRegistry";
 import { applyCameraPreset } from "./presets/CameraPresets";
 import { presetRegistry } from "./presets/PresetRegistry";
@@ -99,6 +110,7 @@ import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
 import { PluginManagerPanel } from "./ui/plugins/PluginManagerPanel";
 import { RigStudioPanel } from "./ui/rig/RigStudioPanel";
+import { LightingStudioPanel } from "./ui/lighting/LightingStudioPanel";
 import { SettingsModal } from "./ui/settings/SettingsModal";
 import { TemplatePicker } from "./ui/templates/TemplatePicker";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
@@ -118,7 +130,7 @@ export function App() {
   );
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [status, setStatus] = useState(
-    "Ready. Phase 5 rig, skin, pose, and Blockbench systems loaded."
+    "Ready. Phase 8 resource-pack, material, and lighting systems loaded."
   );
   const [isDirty, setIsDirty] = useState(false);
   const [lookThroughCameraRequest, setLookThroughCameraRequest] = useState(0);
@@ -131,6 +143,7 @@ export function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [rigStudioOpen, setRigStudioOpen] = useState(false);
+  const [lightingStudioOpen, setLightingStudioOpen] = useState(false);
   const [worldImportOpen, setWorldImportOpen] = useState(false);
   const [worldScan, setWorldScan] = useState<MinecraftWorldScan | null>(null);
   const [worldImportOptions, setWorldImportOptions] =
@@ -148,6 +161,8 @@ export function App() {
   const skinInputRef = useRef<HTMLInputElement | null>(null);
   const skinTargetCharacterIdRef = useRef<string | null>(null);
   const blockbenchInputRef = useRef<HTMLInputElement | null>(null);
+  const resourcePackZipInputRef = useRef<HTMLInputElement | null>(null);
+  const resourcePackFolderInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const audioManagerRef = useRef<AudioManager | null>(null);
   const lastPlaybackTimeRef = useRef<number | null>(null);
@@ -168,7 +183,11 @@ export function App() {
   );
 
   const displayProject = useMemo(
-    () => Animator.sampleProject(project, project.animation.currentFrame),
+    () =>
+      sampleEnvironmentProject(
+        Animator.sampleProject(project, project.animation.currentFrame),
+        project.animation.currentFrame
+      ),
     [project]
   );
 
@@ -1580,6 +1599,207 @@ export function App() {
     [commitProject]
   );
 
+  const handleApplyLightingMood = useCallback(
+    (presetId: LightingMoodPresetId) => {
+      const preset = getLightingMoodPreset(presetId);
+      const postPreset = getPostProcessingPreset(preset.postPresetId);
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          projectSettings: {
+            ...currentProject.projectSettings,
+            defaultSkyPreset: preset.skyPresetId
+          },
+          sky: {
+            ...currentProject.sky,
+            preset: preset.skyPresetId
+          },
+          lighting: {
+            ...preset.settings,
+            sunDirection: [...preset.settings.sunDirection],
+            keyframes: currentProject.lighting.keyframes
+          },
+          postProcessing: {
+            ...postPreset.settings
+          }
+        }),
+        "Apply lighting mood"
+      );
+      setStatus(`Lighting mood applied: ${preset.name}.`);
+    },
+    [commitProject]
+  );
+
+  const handleUpdateLighting = useCallback(
+    (patch: Partial<LightingSettings>) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          lighting: {
+            ...currentProject.lighting,
+            ...patch
+          }
+        }),
+        "Edit lighting"
+      );
+      setStatus("Lighting updated.");
+    },
+    [commitProject]
+  );
+
+  const handleUpdateMinecraftResources = useCallback(
+    (minecraftResources: MinecraftResourceSettings) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          minecraftResources
+        }),
+        "Edit Minecraft materials"
+      );
+      setStatus("Minecraft material settings updated.");
+    },
+    [commitProject]
+  );
+
+  const handleChooseResourcePackZip = useCallback(() => {
+    resourcePackZipInputRef.current?.click();
+  }, []);
+
+  const handleChooseResourcePackFolder = useCallback(() => {
+    resourcePackFolderInputRef.current?.click();
+  }, []);
+
+  const handleResourcePackZipSelected = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const pack = await ResourcePackImporter.importZip(file);
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          assets: {
+            ...currentProject.assets,
+            resourcePacks: [...currentProject.assets.resourcePacks, pack]
+          },
+          minecraftResources: {
+            ...currentProject.minecraftResources,
+            activeResourcePackId: pack.id
+          }
+        }),
+        "Import resource pack ZIP"
+      );
+      setLightingStudioOpen(true);
+      setStatus(
+        `Imported resource pack ${pack.name}: ${pack.textures.length} block textures.`
+      );
+    } catch (error) {
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Could not import resource pack ZIP."
+      );
+    }
+  };
+
+  const handleResourcePackFolderSelected = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    event.target.value = "";
+    if (!files || files.length === 0) return;
+    try {
+      const pack = await ResourcePackImporter.importFolder(files);
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          assets: {
+            ...currentProject.assets,
+            resourcePacks: [...currentProject.assets.resourcePacks, pack]
+          },
+          minecraftResources: {
+            ...currentProject.minecraftResources,
+            activeResourcePackId: pack.id
+          }
+        }),
+        "Import resource pack folder"
+      );
+      setLightingStudioOpen(true);
+      setStatus(
+        `Imported resource pack ${pack.name}: ${pack.textures.length} block textures.`
+      );
+    } catch (error) {
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Could not import resource pack folder."
+      );
+    }
+  };
+
+  const handleSetActiveResourcePack = useCallback(
+    (packId: string | null) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          minecraftResources: {
+            ...currentProject.minecraftResources,
+            activeResourcePackId: packId
+          }
+        }),
+        "Change active resource pack"
+      );
+      setStatus(packId ? "Resource pack applied." : "Resource pack textures reset.");
+    },
+    [commitProject]
+  );
+
+  const handleRemoveResourcePack = useCallback(
+    (packId: string) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          assets: {
+            ...currentProject.assets,
+            resourcePacks: currentProject.assets.resourcePacks.filter(
+              (pack) => pack.id !== packId
+            )
+          },
+          minecraftResources: {
+            ...currentProject.minecraftResources,
+            activeResourcePackId:
+              currentProject.minecraftResources.activeResourcePackId === packId
+                ? null
+                : currentProject.minecraftResources.activeResourcePackId
+          }
+        }),
+        "Remove resource pack"
+      );
+      setStatus("Resource pack removed.");
+    },
+    [commitProject]
+  );
+
+  const handleAddEnvironmentKeyframe = useCallback(() => {
+    commitProject(
+      (currentProject) =>
+        syncCinematicTimeline({
+          ...currentProject,
+          lighting: addEnvironmentKeyframe(
+            currentProject.lighting,
+            currentProject.postProcessing,
+            currentProject.animation.currentFrame
+          )
+        }),
+      "Add environment keyframe"
+    );
+    setStatus(
+      `Environment keyframe added at frame ${project.animation.currentFrame}.`
+    );
+  }, [commitProject, project.animation.currentFrame]);
+
   const handleProjectSettingsChange = useCallback(
     (projectSettings: ProjectSettings) => {
       commitProject(
@@ -1879,6 +2099,7 @@ export function App() {
     `FPS: ${project.animation.fps}`,
     isDirty ? "Unsaved" : "Saved",
     `Post: ${project.postProcessing.presetId}`,
+    `Lighting: ${project.lighting.presetId}`,
     `FX: ${project.effects.instances.length}`,
     `SFX: ${project.audio.clips.length}`,
     `Export: ${project.exportSettings.width}x${project.exportSettings.height}`,
@@ -1907,6 +2128,7 @@ export function App() {
         onOpenCommands={() => setCommandsOpen(true)}
         onOpenExport={() => setExportOpen(true)}
         onOpenRigStudio={() => setRigStudioOpen(true)}
+        onOpenLightingStudio={() => setLightingStudioOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
         onToggleRenderPreview={handleToggleRenderPreview}
       />
@@ -2045,6 +2267,24 @@ export function App() {
         onApplyAnimation={handleApplyAnimationPreset}
         onImportBlockbench={handleImportBlockbench}
       />
+      <LightingStudioPanel
+        open={lightingStudioOpen}
+        lighting={project.lighting}
+        postProcessing={project.postProcessing}
+        resources={project.minecraftResources}
+        resourcePacks={project.assets.resourcePacks}
+        currentFrame={project.animation.currentFrame}
+        onClose={() => setLightingStudioOpen(false)}
+        onApplyMood={handleApplyLightingMood}
+        onUpdateLighting={handleUpdateLighting}
+        onUpdatePostProcessing={handleUpdatePostProcessing}
+        onUpdateResources={handleUpdateMinecraftResources}
+        onChooseResourcePackZip={handleChooseResourcePackZip}
+        onChooseResourcePackFolder={handleChooseResourcePackFolder}
+        onSetActiveResourcePack={handleSetActiveResourcePack}
+        onRemoveResourcePack={handleRemoveResourcePack}
+        onAddEnvironmentKeyframe={handleAddEnvironmentKeyframe}
+      />
       <WorldImportPanel
         open={worldImportOpen}
         scan={worldScan}
@@ -2113,6 +2353,21 @@ export function App() {
         type="file"
         accept="audio/wav,audio/mpeg,audio/ogg,audio/mp3,.wav,.mp3,.ogg"
         onChange={handleAudioSelected}
+      />
+      <input
+        ref={resourcePackZipInputRef}
+        className="hidden-input"
+        type="file"
+        accept=".zip,application/zip"
+        onChange={handleResourcePackZipSelected}
+      />
+      <input
+        ref={resourcePackFolderInputRef}
+        className="hidden-input"
+        type="file"
+        multiple
+        {...{ webkitdirectory: "", directory: "" }}
+        onChange={handleResourcePackFolderSelected}
       />
     </main>
   );

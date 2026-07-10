@@ -1,6 +1,6 @@
 [package]
 name = "minemotion-studio"
-version = "0.5.0"
+version = "0.8.0"
 description = "MineMotion Studio - A cinematic Minecraft animation editor."
 authors = ["stotian"]
 license = "MIT"

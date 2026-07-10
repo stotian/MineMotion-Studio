@@ -5,14 +5,14 @@ combines a Minecraft-like scene viewport, character/camera animation, timeline
 editing, cinematic VFX, SFX metadata, post-processing previews, and a Tauri
 desktop scaffold.
 
-Phase 5 adds professional Minecraft character tools: Steve/Alex rig presets,
-skin import and UV mapping, bone selection/editing, pose and animation
-libraries, rig timeline tracks, and a Blockbench `.bbmodel` import MVP.
+Phase 8 adds user-supplied Minecraft resource packs, texture-aware block
+materials, biome tint controls, animated time of day, environment keyframes,
+and a unified Lighting Studio with cinematic mood/post presets.
 
 ## Current Version
 
-- App version: `0.5.0`
-- Project schema: `6`
+- App version: `0.8.0`
+- Project schema: `7`
 - Settings schema: `1`
 - Package format: `.minemotion` JSON package v1
 - License: MIT
@@ -27,7 +27,7 @@ libraries, rig timeline tracks, and a Blockbench `.bbmodel` import MVP.
   character rig, camera helpers, OBJ preview, sky presets, and selection outline.
 - Project save/load as `.minemotion` packages with legacy `.mmsproj` JSON import
   and export.
-- Migration from schema v1/v2/v3/v4/v5 projects to schema v6.
+- Migration from schema v1/v2/v3/v4/v5/v6 projects to schema v7.
 - App settings, autosave recovery, templates, presets, undo/redo, and plugin
   manager from earlier phases.
 - Cinematic effects library with lightning, impact frames, camera shake, flash,
@@ -67,6 +67,17 @@ libraries, rig timeline tracks, and a Blockbench `.bbmodel` import MVP.
   - Minecraft skin UV mapping for core body parts
   - Blockbench `.bbmodel` static geometry import MVP
   - hand/head/back attachment point data
+- Minecraft materials and lighting:
+  - resource pack import from ZIP or browser folder selection
+  - `pack.mcmeta` metadata and block PNG scanning
+  - block texture resolution with generated-color fallback
+  - texture atlas layout and browser canvas atlas builder
+  - solid, transparent, leaves, water, glass, and emissive presets
+  - nearest-neighbor Minecraft texture filtering
+  - optional grass, foliage, and water biome tint placeholders
+  - Lighting Studio with eight cinematic mood presets
+  - sun, ambient light, shadows, fog, time-of-day, and post controls
+  - environment keyframes on the Lighting & Sky timeline lane
 - Blender-like shortcuts:
   - `Ctrl+P` command palette
   - `Ctrl+S` save `.minemotion`
@@ -78,7 +89,9 @@ libraries, rig timeline tracks, and a Blockbench `.bbmodel` import MVP.
 
 ## Current Limits
 
-- Real Minecraft texture/resource-pack loading is not implemented yet.
+- Animated resource-pack textures are detected but not played yet.
+- Per-face atlas rendering is prepared; the MVP applies one resolved texture
+  to all faces of each instanced block material.
 - Blockbench rig mapping is not automatic yet; Phase 5 imports static cube
   geometry as a preview object.
 - IK solver math is prepared but not implemented.
@@ -135,14 +148,15 @@ installed and that command has completed successfully.
 
 ## Project And Package Format
 
-Current projects use `schemaVersion: 6`. The main save path downloads a
+Current projects use `schemaVersion: 7`. The main save path downloads a
 `.minemotion` file containing:
 
 - package manifest
-- schema v6 project JSON
+- schema v7 project JSON
 - embedded OBJ model data
 - embedded Minecraft skin data URLs
 - embedded Blockbench raw JSON
+- embedded resource-pack metadata and selected block texture PNG data
 - embedded audio data URLs
 - imported world metadata and optional imported chunk cache
 - rig poses and bone animation tracks
@@ -160,6 +174,9 @@ panel.
 - [Rigging](docs/RIGGING.md)
 - [Blockbench Import](docs/BLOCKBENCH_IMPORT.md)
 - [Animation Presets](docs/ANIMATION_PRESETS.md)
+- [Phase 8 Materials And Lighting](docs/PHASE_8_MATERIALS_LIGHTING.md)
+- [Resource Packs](docs/RESOURCE_PACKS.md)
+- [Lighting Studio](docs/LIGHTING_STUDIO.md)
 - [Phase 4 World Import](docs/PHASE_4_WORLD_IMPORT.md)
 - [Minecraft World Format](docs/MINECRAFT_WORLD_FORMAT.md)
 - [World Import Limitations](docs/WORLD_IMPORT_LIMITATIONS.md)

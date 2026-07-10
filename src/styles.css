@@ -698,7 +698,8 @@ select {
 .settings-grid,
 .export-layout,
 .world-import-layout,
-.rig-studio-layout {
+.rig-studio-layout,
+.lighting-studio-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(260px, 1fr));
   gap: 0.9rem;
@@ -709,6 +710,7 @@ select {
 .export-layout section,
 .world-import-layout section,
 .rig-studio-layout section,
+.lighting-studio-layout section,
 .plugin-row,
 .template-card {
   border: 1px solid #2b3443;
@@ -719,14 +721,16 @@ select {
 .settings-grid section,
 .export-layout section,
 .world-import-layout section,
-.rig-studio-layout section {
+.rig-studio-layout section,
+.lighting-studio-layout section {
   padding: 0.8rem;
 }
 
 .settings-grid h3,
 .export-layout h3,
 .world-import-layout h3,
-.rig-studio-layout h3 {
+.rig-studio-layout h3,
+.lighting-studio-layout h3 {
   margin: 0 0 0.75rem;
   display: flex;
   align-items: center;
@@ -737,12 +741,116 @@ select {
 
 .settings-grid label,
 .export-layout label,
-.world-import-layout label {
+.world-import-layout label,
+.lighting-studio-layout label {
   display: grid;
   gap: 0.35rem;
   margin-bottom: 0.65rem;
   color: #9ca8ba;
   font-size: 0.78rem;
+}
+
+.lighting-studio-panel {
+  width: min(1120px, 97vw);
+  max-height: min(90vh, 900px);
+}
+
+.lighting-wide-section {
+  grid-column: 1 / -1;
+}
+
+.lighting-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.lighting-preset-grid button {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.lighting-preset-grid button.selected,
+.resource-pack-row.selected {
+  border-color: #6d8cff;
+  background: #202c43;
+}
+
+.lighting-preset-grid span,
+.resource-pack-row span,
+.resource-pack-row small,
+.lighting-keyframe-row span {
+  color: #8f9bb0;
+  font-size: 0.72rem;
+}
+
+.slider-field > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.slider-field output {
+  color: #d8dfeb;
+  font-variant-numeric: tabular-nums;
+}
+
+.lighting-keyframe-row,
+.resource-pack-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.resource-pack-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.resource-pack-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  padding: 0.65rem;
+  border: 1px solid #2d3544;
+  border-radius: 6px;
+  background: #151b25;
+}
+
+.resource-pack-row > div:first-child {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.warning-text {
+  color: #eadca5 !important;
+}
+
+@media (max-width: 820px) {
+  .lighting-studio-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .lighting-preset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lighting-wide-section {
+    grid-column: auto;
+  }
+
+  .resource-pack-row {
+    grid-template-columns: 1fr;
+  }
+
+  .resource-pack-actions {
+    justify-content: flex-start;
+  }
 }
 
 .asset-list {

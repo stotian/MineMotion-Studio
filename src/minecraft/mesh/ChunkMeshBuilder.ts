@@ -22,7 +22,7 @@ export class ChunkMeshBuilder {
       if (samples.length === 0) continue;
       const mesh = new THREE.InstancedMesh(
         cubeGeometry,
-        BlockMaterialResolver.resolve(blockId),
+        BlockMaterialResolver.resolve(blockId, options.materialContext),
         samples.length
       );
       mesh.name = `imported_${blockId}`;

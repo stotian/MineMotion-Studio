@@ -41,6 +41,17 @@ export function syncCinematicTimeline(
     };
   });
   const rigItems = getRigTimelineItems(project);
+  const environmentItems: TimelineItem[] = project.lighting.keyframes.map(
+    (keyframe) => ({
+      id: `item_${keyframe.id}`,
+      type: "sky",
+      label: `Environment @ ${keyframe.frame}`,
+      targetId: "environment",
+      environmentKeyframeId: keyframe.id,
+      startFrame: keyframe.frame,
+      durationFrames: 1
+    })
+  );
 
   const existingTracks = project.animation.timelineTracks;
   const defaults = createDefaultTimelineTracks();
@@ -54,6 +65,9 @@ export function syncCinematicTimeline(
     }
     if (defaultTrack.type === "audio") {
       return { ...(existing ?? defaultTrack), items: audioItems };
+    }
+    if (defaultTrack.type === "sky") {
+      return { ...(existing ?? defaultTrack), items: environmentItems };
     }
     return existing ?? defaultTrack;
   });

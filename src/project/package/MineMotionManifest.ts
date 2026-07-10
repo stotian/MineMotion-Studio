@@ -36,7 +36,7 @@ export function createMineMotionManifest(
     pluginRequirements: [],
     warnings: assets.warnings,
     compatibility: {
-      minAppVersion: "0.5.0",
+      minAppVersion: "0.8.0",
       projectSchemaVersion: project.schemaVersion,
       packageEncoding: "json"
     }

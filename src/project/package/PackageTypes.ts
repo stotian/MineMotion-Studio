@@ -9,6 +9,7 @@ export interface MineMotionPackageData {
     models: Record<string, string>;
     skins: Record<string, string>;
     blockbench: Record<string, string>;
+    resourcePacks: Record<string, string>;
     audio: Record<string, string>;
     thumbnails: Record<string, string>;
     metadata: Record<string, unknown>;

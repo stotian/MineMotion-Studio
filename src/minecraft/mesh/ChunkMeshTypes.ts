@@ -1,6 +1,7 @@
 import type * as THREE from "three";
 import type { ImportedChunkData } from "../import/MinecraftChunkTypes";
 import type { BlockId } from "../MinecraftWorldTypes";
+import type { MinecraftMaterialContext } from "../../renderer/MinecraftMaterialSystem";
 
 export type BlockFaceDirection = "east" | "west" | "up" | "down" | "south" | "north";
 
@@ -22,6 +23,7 @@ export interface ChunkMeshBuildResult {
 export interface ChunkMeshBuildOptions {
   showChunkBorders: boolean;
   showWorldOrigin: boolean;
+  materialContext?: MinecraftMaterialContext;
 }
 
 export type ImportedChunkSource = Pick<

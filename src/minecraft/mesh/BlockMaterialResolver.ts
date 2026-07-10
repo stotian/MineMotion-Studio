@@ -1,9 +1,15 @@
 import type * as THREE from "three";
-import { getMaterialForBlock } from "../../renderer/MinecraftMaterialSystem";
+import {
+  getMaterialForBlock,
+  type MinecraftMaterialContext
+} from "../../renderer/MinecraftMaterialSystem";
 import type { BlockId } from "../MinecraftWorldTypes";
 
 export class BlockMaterialResolver {
-  static resolve(blockId: BlockId): THREE.MeshStandardMaterial {
-    return getMaterialForBlock(blockId);
+  static resolve(
+    blockId: BlockId,
+    context?: MinecraftMaterialContext
+  ): THREE.MeshStandardMaterial {
+    return getMaterialForBlock(blockId, context);
   }
 }

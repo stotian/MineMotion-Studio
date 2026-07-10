@@ -13,6 +13,11 @@ import type {
 } from "../minecraft/import/MinecraftChunkTypes";
 import type { ProjectPackageMetadata } from "./package/PackageTypes";
 import type { PostProcessingSettings } from "../rendering/postprocessing/PostProcessingTypes";
+import type { LightingSettings } from "../lighting/LightingTypes";
+import type {
+  MinecraftResourceSettings,
+  ResourcePackAsset
+} from "../minecraft/resources/ResourcePackTypes";
 import type {
   BoneAnimationTrack,
   BlockbenchModelAsset,
@@ -160,6 +165,7 @@ export interface TimelineItem {
   boneId?: string;
   effectId?: string;
   audioClipId?: string;
+  environmentKeyframeId?: string;
 }
 
 export interface TimelineTrackLane {
@@ -203,7 +209,7 @@ export interface RenderSettings {
 }
 
 export interface MineMotionProject {
-  schemaVersion: 6;
+  schemaVersion: 7;
   projectName: string;
   projectSettings: ProjectSettings;
   packageMetadata: ProjectPackageMetadata;
@@ -223,7 +229,10 @@ export interface MineMotionProject {
     obj: ImportedObjAsset[];
     skins: MinecraftSkinAsset[];
     blockbench: BlockbenchModelAsset[];
+    resourcePacks: ResourcePackAsset[];
   };
+  minecraftResources: MinecraftResourceSettings;
+  lighting: LightingSettings;
   rigs: RigProjectData;
   assetLibrary: AssetLibraryData;
   effects: {

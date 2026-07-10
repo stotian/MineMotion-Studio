@@ -83,8 +83,11 @@ export class SceneRenderer {
       this.ambientLight,
       this.directionalLight,
       project.sky.preset,
-      project.sky.customColor
+      project.sky.customColor,
+      project.lighting,
+      project.animation.currentFrame
     );
+    this.renderer.shadowMap.enabled = project.lighting.shadowsEnabled;
 
     this.rebuildSceneRoot(project);
     this.updateSelectionBox();
@@ -113,14 +116,24 @@ export class SceneRenderer {
 
   private rebuildSceneRoot(project: MineMotionProject): void {
     this.sceneRoot.clear();
+    const activeResourcePack = project.assets.resourcePacks.find(
+      (pack) => pack.id === project.minecraftResources.activeResourcePackId
+    );
+    const materialContext = {
+      resourcePack: activeResourcePack,
+      settings: project.minecraftResources
+    };
 
     const importedChunks = project.world?.importedChunks ?? [];
     if (importedChunks.length > 0) {
       const imported = ImportedChunkMeshBuilder.buildImportedChunks(
         importedChunks,
-        project.world?.renderOptions ?? {
-          showChunkBorders: true,
-          showWorldOrigin: true
+        {
+          ...(project.world?.renderOptions ?? {
+            showChunkBorders: true,
+            showWorldOrigin: true
+          }),
+          materialContext
         }
       );
       imported.object.name = `Imported World: ${project.world?.sourceName ?? "Minecraft World"}`;
@@ -130,7 +143,10 @@ export class SceneRenderer {
         project.projectSettings.terrainPreset
       );
       if (terrainChunk) {
-        const terrain = PresetChunkMeshBuilder.buildInstancedChunk(terrainChunk);
+        const terrain = PresetChunkMeshBuilder.buildInstancedChunk(
+          terrainChunk,
+          materialContext
+        );
         terrain.name = project.world
           ? `Imported World Placeholder: ${project.world.sourceName}`
           : `${project.projectSettings.terrainPreset} terrain`;

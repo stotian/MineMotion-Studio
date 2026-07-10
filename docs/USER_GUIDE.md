@@ -1,6 +1,6 @@
 # User Guide
 
-This guide describes the Phase 5 editor workflow.
+This guide describes the editor workflow through Phase 8.
 
 ## Start The App
 
@@ -28,6 +28,31 @@ Use the **Post** section in the Effects panel to choose a preset such as
 **Noir**.
 
 Use the inspector's **Post** section for numeric tuning.
+
+## Use Lighting Studio
+
+1. Click **Lighting** in the top bar.
+2. Apply Clear Day, Golden Hour, Moonlit Night, Horror Fog, Nether Heat, End
+   Void, Storm Fight, or Anime Impact Lighting.
+3. Tune sun direction/intensity, ambient intensity, shadows, fog, and time of
+   day.
+4. Tune bloom, vignette, grain, chromatic aberration, exposure, and contrast.
+5. Move the playhead and click **Keyframe at <frame>** to animate the current
+   environment and post values.
+
+Environment keyframes appear on the **Lighting & Sky** timeline lane.
+
+## Import A Resource Pack
+
+1. Open **Lighting**.
+2. Click **Import ZIP** or **Import Folder**.
+3. Select a Java Edition resource pack containing `pack.mcmeta` and
+   `assets/minecraft/textures/block/`.
+4. Review the imported `pack_format`, description, texture count, and warnings.
+5. Click **Apply** on a stored pack, or **Reset Textures** for generated colors.
+
+MineMotion embeds selected block textures in schema v7 projects. It does not
+bundle Minecraft textures.
 
 ## Use Render Preview
 
@@ -107,7 +132,7 @@ Click **Export** in the top bar.
 Available output:
 
 - **Save .minemotion**: saves the full package payload.
-- **Export .mmsproj**: exports legacy schema v6 project JSON.
+- **Export .mmsproj**: exports legacy-compatible schema v7 project JSON.
 - **PNG Frame**: captures the current viewport frame.
 - **PNG ZIP**: captures the selected frame range as numbered PNG files inside a
   ZIP archive.
@@ -169,11 +194,13 @@ chase, over-shoulder, and dramatic zoom setups.
 
 Use the top toolbar or `Ctrl+S` to download a `.minemotion` package. Legacy
 `.mmsproj` and JSON project files can still be opened. Phase 1, Phase 1.5, and
-Phase 2/3/4 projects are migrated to schema v6 when opened.
+Phase 2/3/4/5 and schema v6 projects are migrated to schema v7 when opened.
 
 ## Current Limits
 
-- Resource packs are not loaded yet.
+- Animated resource-pack textures are detected but not played yet.
+- Per-face atlas meshing is prepared but the MVP uses one texture per block
+  material.
 - Blockbench rig mapping is not automatic yet.
 - IK solver math is not implemented yet.
 - Older non-palette chunk formats are not fully decoded.

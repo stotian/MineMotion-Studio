@@ -3,8 +3,8 @@ import type { PluginManifest } from "../PluginManifest";
 export const BuiltinTemplatePlugin: PluginManifest = {
   id: "minemotion.builtin.templates",
   name: "Built-in Templates",
-  version: "0.5.0",
-  minMineMotionVersion: "0.5.0",
+  version: "0.8.0",
+  minMineMotionVersion: "0.8.0",
   description: "Registers starter scene templates bundled with MineMotion Studio.",
   author: "MineMotion Studio",
   permissions: ["registerTemplates"],

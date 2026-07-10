@@ -54,6 +54,32 @@ export function collectProjectAssets(project: MineMotionProject): AssetLibraryDa
     });
   }
 
+  for (const pack of project.assets.resourcePacks ?? []) {
+    const payload = JSON.stringify({
+      metadata: pack.metadata,
+      textures: pack.textures.map((texture) => ({
+        path: texture.path,
+        dataUrl: texture.dataUrl
+      }))
+    });
+    const missing = pack.textures.length === 0;
+    records.push({
+      id: pack.id,
+      name: pack.name,
+      type: "resourcePack",
+      sourcePath: pack.name,
+      packagePath: `assets/resource-packs/${pack.id}/pack.mcmeta`,
+      sizeBytes: pack.textures.reduce((sum, texture) => sum + texture.byteLength, 0),
+      mimeType: "application/vnd.minecraft.resource-pack",
+      importedAt: pack.importedAt,
+      hash: createSimpleHash(payload),
+      missing
+    });
+    if (missing) {
+      warnings.push(`Resource pack ${pack.name} contains no imported block textures.`);
+    }
+  }
+
   for (const clip of project.audio.clips) {
     const missing = clip.sourceKind === "imported" && !clip.dataUrl;
     if (missing) {

@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import type { LightingSettings, ResolvedLightingState } from "../lighting/LightingTypes";
+import { resolveLightingAtFrame } from "../lighting/LightingController";
 
 export type SkyPresetId =
   | "Day"
@@ -91,17 +93,35 @@ export class SkySystem {
     ambient: THREE.AmbientLight,
     directional: THREE.DirectionalLight,
     presetId: SkyPresetId,
-    customColor: string
-  ): void {
+    customColor: string,
+    lighting?: LightingSettings,
+    frame = 0
+  ): ResolvedLightingState | null {
     const preset = SKY_PRESETS[presetId];
-    const background = presetId === "Custom" ? customColor : preset.background;
-    const fog = presetId === "Custom" ? customColor : preset.fog;
+    const resolved = lighting ? resolveLightingAtFrame(lighting, frame) : null;
+    const background = resolved?.animateTimeOfDay
+      ? resolved.backgroundColor
+      : presetId === "Custom"
+        ? customColor
+        : preset.background;
+    const fog = resolved?.fogColor ?? (presetId === "Custom" ? customColor : preset.fog);
 
     scene.background = new THREE.Color(background);
-    scene.fog = new THREE.Fog(new THREE.Color(fog), 32, 86);
-    ambient.intensity = preset.ambientIntensity;
-    directional.intensity = preset.directionalIntensity;
-    directional.color = new THREE.Color(preset.directionalColor);
+    scene.fog = resolved
+      ? resolved.fogDensity > 0
+        ? new THREE.FogExp2(new THREE.Color(fog), resolved.fogDensity)
+        : null
+      : new THREE.Fog(new THREE.Color(fog), 32, 86);
+    ambient.intensity = resolved?.ambientIntensity ?? preset.ambientIntensity;
+    ambient.color = new THREE.Color(resolved?.ambientColor ?? "#ffffff");
+    directional.intensity = resolved?.sunIntensity ?? preset.directionalIntensity;
+    directional.color = new THREE.Color(
+      resolved?.sunColor ?? preset.directionalColor
+    );
+    if (resolved) {
+      directional.position.set(...resolved.sunDirection).normalize().multiplyScalar(48);
+      directional.castShadow = resolved.shadowsEnabled;
+    }
+    return resolved;
   }
 }
-

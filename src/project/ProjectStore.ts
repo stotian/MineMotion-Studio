@@ -18,6 +18,9 @@ import { DEFAULT_EXPORT_SETTINGS } from "../export/ExportSettings";
 import { getDefaultBoneRotations } from "../rigs/RigDefinition";
 import { getRigDefinition } from "../rigs/MinecraftRigPresets";
 import { createDefaultCharacterAttachments } from "../rigs/RigInstance";
+import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/LightingPresets";
+import { DEFAULT_BIOME_TINT } from "../minecraft/resources/BiomeTint";
+import { DEFAULT_MINECRAFT_MATERIAL_SETTINGS } from "../minecraft/materials/MinecraftMaterialPresets";
 
 export function createId(prefix: string): string {
   const random = Math.random().toString(36).slice(2, 8);
@@ -89,6 +92,12 @@ export function createDefaultTimelineTracks(): TimelineTrackLane[] {
       type: "postProcessing",
       name: "Post",
       items: []
+    },
+    {
+      id: "track_sky_main",
+      type: "sky",
+      name: "Lighting & Sky",
+      items: []
     }
   ];
 }
@@ -130,7 +139,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 6,
+    schemaVersion: 7,
     projectName: projectSettings.projectName,
     projectSettings,
     packageMetadata: {
@@ -154,7 +163,22 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     assets: {
       obj: [],
       skins: [],
-      blockbench: []
+      blockbench: [],
+      resourcePacks: []
+    },
+    minecraftResources: {
+      activeResourcePackId: null,
+      textureFiltering: "nearest",
+      biomeTint: { ...DEFAULT_BIOME_TINT },
+      materials: {
+        ...DEFAULT_MINECRAFT_MATERIAL_SETTINGS,
+        overrides: {}
+      }
+    },
+    lighting: {
+      ...DEFAULT_LIGHTING_SETTINGS,
+      sunDirection: [...DEFAULT_LIGHTING_SETTINGS.sunDirection],
+      keyframes: []
     },
     rigs: {
       savedPoses: [],
@@ -195,7 +219,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     metadata: {
       createdAt: now,
       updatedAt: now,
-      appVersion: "0.5.0"
+      appVersion: "0.8.0"
     }
   };
 }

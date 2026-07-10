@@ -67,6 +67,18 @@
 - IK-ready architecture.
 - Rig timeline tracks.
 
+## Phase 8: Minecraft Materials And Lighting Studio
+
+- Resource pack ZIP/folder import MVP.
+- Block texture resolver and generated-color fallback.
+- Texture atlas layout and browser canvas builder.
+- Minecraft material presets and emissive placeholders.
+- Lighting Studio and atmosphere editor.
+- Eight cinematic lighting/post moods.
+- Animated time of day.
+- Biome color tint placeholder controls.
+- Environment keyframes and schema v7 migration.
+
 ## Phase 6: Advanced Timeline
 
 - Dopesheet.
@@ -77,15 +89,13 @@
 - Animation layers.
 - Camera cuts.
 
-## Future: Render, Materials, And Resource Packs
+## Phase 7: Production Rendering (Pending Completion)
 
 - MP4 export through FFmpeg or native pipeline.
 - Real EffectComposer/shader export stack.
 - Camera render queue.
 - Native save/open dialogs.
 - Offline Three.js render target.
-- Resource-pack import.
-- Lighting/material studio.
 
 ## Future: External Plugin System
 
