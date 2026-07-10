@@ -2,6 +2,7 @@ import { createAudioTimelineItems } from "../audio/AudioTrack";
 import { createEffectTimelineItems } from "../effects/EffectTimelineTrack";
 import type { MineMotionProject, TimelineItem } from "./ProjectFile";
 import { createDefaultTimelineTracks } from "./ProjectStore";
+import { getRigTimelineItems } from "../rigs/RigSerializer";
 
 export function syncCinematicTimeline(
   project: MineMotionProject
@@ -39,11 +40,15 @@ export function syncCinematicTimeline(
       durationFrames: item.durationFrames
     };
   });
+  const rigItems = getRigTimelineItems(project);
 
   const existingTracks = project.animation.timelineTracks;
   const defaults = createDefaultTimelineTracks();
   const timelineTracks = defaults.map((defaultTrack) => {
     const existing = existingTracks.find((track) => track.id === defaultTrack.id);
+    if (defaultTrack.type === "rig") {
+      return { ...(existing ?? defaultTrack), items: rigItems };
+    }
     if (defaultTrack.type === "effect") {
       return { ...(existing ?? defaultTrack), items: effectItems };
     }

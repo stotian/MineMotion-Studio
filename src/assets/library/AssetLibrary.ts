@@ -21,6 +21,39 @@ export function collectProjectAssets(project: MineMotionProject): AssetLibraryDa
     });
   }
 
+  for (const skin of project.assets.skins ?? []) {
+    records.push({
+      id: skin.id,
+      name: skin.name,
+      type: "minecraftSkin",
+      sourcePath: skin.name,
+      packagePath: `assets/skins/${skin.id}.png`,
+      sizeBytes: skin.dataUrl.length,
+      mimeType: "image/png",
+      importedAt: skin.importedAt,
+      hash: createSimpleHash(skin.dataUrl),
+      missing: !skin.metadata.valid
+    });
+    if (!skin.metadata.valid) {
+      warnings.push(`Skin ${skin.name} is not a valid 64x64 or 64x32 Minecraft skin.`);
+    }
+  }
+
+  for (const model of project.assets.blockbench ?? []) {
+    records.push({
+      id: model.id,
+      name: model.name,
+      type: "blockbenchModel",
+      sourcePath: model.name,
+      packagePath: `assets/blockbench/${model.id}.bbmodel.json`,
+      sizeBytes: model.rawJson.length,
+      mimeType: "application/json",
+      importedAt: model.importedAt,
+      hash: createSimpleHash(model.rawJson),
+      missing: false
+    });
+  }
+
   for (const clip of project.audio.clips) {
     const missing = clip.sourceKind === "imported" && !clip.dataUrl;
     if (missing) {

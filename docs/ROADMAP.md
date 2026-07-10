@@ -56,15 +56,7 @@
 - Add chunk cache and bounded loading.
 - Add basic greedy meshing.
 
-## Phase 5: Professional Native Render And Export
-
-- MP4 export through FFmpeg or native pipeline.
-- Real EffectComposer/shader export stack.
-- Camera render queue.
-- Native save/open dialogs.
-- Offline Three.js render target.
-
-## Phase 6: Advanced Rigs And Assets
+## Phase 5: Professional Minecraft Characters, Skins, Rigs
 
 - Steve and Alex presets.
 - Custom skins.
@@ -72,9 +64,10 @@
 - Pose library.
 - Walk-cycle generator.
 - Blockbench `.bbmodel` import.
-- Resource-pack import.
+- IK-ready architecture.
+- Rig timeline tracks.
 
-## Phase 7: Advanced Timeline
+## Phase 6: Advanced Timeline
 
 - Dopesheet.
 - Simplified graph editor.
@@ -84,7 +77,17 @@
 - Animation layers.
 - Camera cuts.
 
-## Phase 8: External Plugin System
+## Future: Render, Materials, And Resource Packs
+
+- MP4 export through FFmpeg or native pipeline.
+- Real EffectComposer/shader export stack.
+- Camera render queue.
+- Native save/open dialogs.
+- Offline Three.js render target.
+- Resource-pack import.
+- Lighting/material studio.
+
+## Future: External Plugin System
 
 - Plugin package format.
 - Safe execution model.

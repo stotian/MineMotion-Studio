@@ -54,6 +54,23 @@ export class Animator {
       }
 
       const entity = project.scene[collection][index];
+
+      if (collection === "characters" && property.startsWith("bone.rotation.")) {
+        const boneId = property.replace("bone.rotation.", "");
+        project.scene.characters[index] = {
+          ...project.scene.characters[index],
+          boneRotations: {
+            ...project.scene.characters[index].boneRotations,
+            [boneId]: [...value]
+          }
+        };
+        return project;
+      }
+
+      if (property.startsWith("bone.rotation.")) {
+        return project;
+      }
+
       const transform: TransformData = {
         position: [...entity.transform.position],
         rotation: [...entity.transform.rotation],
@@ -78,4 +95,3 @@ export class Animator {
     return project;
   }
 }
-

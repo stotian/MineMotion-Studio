@@ -3,6 +3,8 @@ export type AssetType =
   | "audio"
   | "texture"
   | "image"
+  | "minecraftSkin"
+  | "blockbenchModel"
   | "worldReference"
   | "worldCache"
   | "preset"

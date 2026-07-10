@@ -10,7 +10,7 @@ describe("MineMotion package", () => {
     const validation = validatePackageData(data);
 
     expect(data.packageFormat).toBe("minemotion-package-json");
-    expect(data.project.schemaVersion).toBe(5);
+    expect(data.project.schemaVersion).toBe(6);
     expect(data.manifest.formatName).toBe("MineMotion Studio Package");
     expect(validation.valid).toBe(true);
   });

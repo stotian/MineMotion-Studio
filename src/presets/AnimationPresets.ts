@@ -1,5 +1,9 @@
 import type { AnimationTrack, MineMotionProject, Vector3Tuple } from "../project/ProjectFile";
 import { findObject } from "../project/ProjectStore";
+import {
+  applyRigAnimationPreset,
+  RIG_ANIMATION_PRESETS
+} from "../rigs/AnimationPresetLibrary";
 
 export interface AnimationPreset {
   id: string;
@@ -25,11 +29,22 @@ function vectorTrack(
   };
 }
 
+const RIG_PRESETS: AnimationPreset[] = RIG_ANIMATION_PRESETS.map((preset) => ({
+  id: preset.id,
+  name: preset.name,
+  description: preset.description,
+  targetTypes: ["character"],
+  apply(project, targetId) {
+    return applyRigAnimationPreset(project, targetId, preset.id);
+  }
+}));
+
 export const ANIMATION_PRESETS: AnimationPreset[] = [
+  ...RIG_PRESETS,
   {
     id: "simple-walk-cycle",
-    name: "Simple walk cycle",
-    description: "Placeholder character travel over 48 frames.",
+    name: "Simple Walk Travel",
+    description: "Moves a character forward while the rig walk preset handles limbs.",
     targetTypes: ["character"],
     apply(project, targetId) {
       const lookup = findObject(project, targetId);
@@ -43,9 +58,9 @@ export const ANIMATION_PRESETS: AnimationPreset[] = [
           tracks: [
             ...project.animation.tracks,
             vectorTrack(targetId, "transform.position", [
-              [0, start],
-              [24, [start[0] + 1.5, start[1], start[2]]],
-              [48, [start[0] + 3, start[1], start[2]]]
+              [project.animation.currentFrame, start],
+              [project.animation.currentFrame + 24, [start[0] + 1.5, start[1], start[2]]],
+              [project.animation.currentFrame + 48, [start[0] + 3, start[1], start[2]]]
             ])
           ]
         }
@@ -54,23 +69,24 @@ export const ANIMATION_PRESETS: AnimationPreset[] = [
   },
   {
     id: "camera-push-in",
-    name: "Camera push-in",
+    name: "Camera Push-In",
     description: "Moves a camera forward over 96 frames.",
     targetTypes: ["camera"],
     apply(project, targetId) {
       const lookup = findObject(project, targetId);
       if (!lookup || lookup.entity.type !== "camera") return project;
       const start = lookup.entity.transform.position;
+      const frame = project.animation.currentFrame;
       return {
         ...project,
         animation: {
           ...project.animation,
-          durationFrames: Math.max(project.animation.durationFrames, 96),
+          durationFrames: Math.max(project.animation.durationFrames, frame + 96),
           tracks: [
             ...project.animation.tracks,
             vectorTrack(targetId, "transform.position", [
-              [0, start],
-              [96, [start[0] * 0.55, start[1] * 0.85, start[2] * 0.55]]
+              [frame, start],
+              [frame + 96, [start[0] * 0.55, start[1] * 0.85, start[2] * 0.55]]
             ])
           ]
         }
@@ -79,52 +95,27 @@ export const ANIMATION_PRESETS: AnimationPreset[] = [
   },
   {
     id: "camera-orbit",
-    name: "Camera orbit",
+    name: "Camera Orbit",
     description: "Simple camera orbit placeholder around the origin.",
     targetTypes: ["camera"],
     apply(project, targetId) {
+      const frame = project.animation.currentFrame;
       return {
         ...project,
         animation: {
           ...project.animation,
-          durationFrames: Math.max(project.animation.durationFrames, 120),
+          durationFrames: Math.max(project.animation.durationFrames, frame + 120),
           tracks: [
             ...project.animation.tracks,
             vectorTrack(targetId, "transform.position", [
-              [0, [9, 5, 0]],
-              [60, [0, 5, 9]],
-              [120, [-9, 5, 0]]
+              [frame, [9, 5, 0]],
+              [frame + 60, [0, 5, 9]],
+              [frame + 120, [-9, 5, 0]]
             ]),
             vectorTrack(targetId, "transform.rotation", [
-              [0, [-18, 90, 0]],
-              [60, [-18, 180, 0]],
-              [120, [-18, 270, 0]]
-            ])
-          ]
-        }
-      };
-    }
-  },
-  {
-    id: "head-look-around",
-    name: "Head look around",
-    description: "Global rotation placeholder until per-bone tracks are wired.",
-    targetTypes: ["character"],
-    apply(project, targetId) {
-      const lookup = findObject(project, targetId);
-      if (!lookup || lookup.entity.type !== "character") return project;
-      const rotation = lookup.entity.transform.rotation;
-      return {
-        ...project,
-        animation: {
-          ...project.animation,
-          durationFrames: Math.max(project.animation.durationFrames, 72),
-          tracks: [
-            ...project.animation.tracks,
-            vectorTrack(targetId, "transform.rotation", [
-              [0, rotation],
-              [36, [rotation[0], rotation[1] + 30, rotation[2]]],
-              [72, [rotation[0], rotation[1] - 30, rotation[2]]]
+              [frame, [-18, 90, 0]],
+              [frame + 60, [-18, 180, 0]],
+              [frame + 120, [-18, 270, 0]]
             ])
           ]
         }
@@ -132,4 +123,3 @@ export const ANIMATION_PRESETS: AnimationPreset[] = [
     }
   }
 ];
-

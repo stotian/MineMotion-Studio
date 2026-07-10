@@ -74,6 +74,21 @@ import { createRenderStateSnapshot } from "./rendering/export/RenderStateSnapsho
 import { restoreRenderState } from "./rendering/export/RenderStateRestore";
 import { type SkyPresetId } from "./renderer/SkySystem";
 import { Viewport } from "./renderer/Viewport";
+import { BlockbenchImporter } from "./rigs/blockbench/BlockbenchImporter";
+import { getDefaultBoneRotations } from "./rigs/RigDefinition";
+import { getRigDefinition } from "./rigs/MinecraftRigPresets";
+import { MinecraftSkinImporter } from "./rigs/MinecraftSkinImporter";
+import {
+  addBoneRotationKeyframe,
+  updateProjectBoneRotation
+} from "./rigs/RigController";
+import {
+  mirrorCurrentPose,
+  resetRigPose,
+  savePoseFromCharacter
+} from "./rigs/RigInstance";
+import { getSelectedCharacterId, parseRigBoneSelection } from "./rigs/RigSelection";
+import type { RigPresetId } from "./rigs/RigTypes";
 import { SettingsStore, type AppSettings } from "./settings/AppSettings";
 import { templateRegistry } from "./templates/TemplateRegistry";
 import { TopBar } from "./ui/TopBar";
@@ -83,6 +98,7 @@ import { HelpPanel } from "./ui/help/HelpPanel";
 import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
 import { PluginManagerPanel } from "./ui/plugins/PluginManagerPanel";
+import { RigStudioPanel } from "./ui/rig/RigStudioPanel";
 import { SettingsModal } from "./ui/settings/SettingsModal";
 import { TemplatePicker } from "./ui/templates/TemplatePicker";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
@@ -102,7 +118,7 @@ export function App() {
   );
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [status, setStatus] = useState(
-    "Ready. Phase 3 export and package systems loaded."
+    "Ready. Phase 5 rig, skin, pose, and Blockbench systems loaded."
   );
   const [isDirty, setIsDirty] = useState(false);
   const [lookThroughCameraRequest, setLookThroughCameraRequest] = useState(0);
@@ -114,6 +130,7 @@ export function App() {
   const [commandsOpen, setCommandsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [rigStudioOpen, setRigStudioOpen] = useState(false);
   const [worldImportOpen, setWorldImportOpen] = useState(false);
   const [worldScan, setWorldScan] = useState<MinecraftWorldScan | null>(null);
   const [worldImportOptions, setWorldImportOptions] =
@@ -128,6 +145,9 @@ export function App() {
   const worldInputRef = useRef<HTMLInputElement | null>(null);
   const projectInputRef = useRef<HTMLInputElement | null>(null);
   const objInputRef = useRef<HTMLInputElement | null>(null);
+  const skinInputRef = useRef<HTMLInputElement | null>(null);
+  const skinTargetCharacterIdRef = useRef<string | null>(null);
+  const blockbenchInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const audioManagerRef = useRef<AudioManager | null>(null);
   const lastPlaybackTimeRef = useRef<number | null>(null);
@@ -136,6 +156,10 @@ export function App() {
   const worldImportCancelledRef = useRef(false);
 
   const presets = useMemo(() => presetRegistry.snapshot(), []);
+  const rigPosePresets = useMemo(
+    () => [...presets.rigPose, ...project.rigs.savedPoses],
+    [presets.rigPose, project.rigs.savedPoses]
+  );
   const templates = useMemo(() => templateRegistry.list(), []);
   const effectDefinitions = useMemo(() => effectRegistry.list(), []);
   const selectedObject = useMemo(
@@ -664,6 +688,131 @@ export function App() {
       );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not import OBJ.");
+    }
+  };
+
+  const handleImportSkin = useCallback((characterId: string) => {
+    skinTargetCharacterIdRef.current = characterId;
+    skinInputRef.current?.click();
+  }, []);
+
+  const handleSkinSelected = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const targetCharacterId =
+      skinTargetCharacterIdRef.current ?? getSelectedCharacterId(selectedObjectId);
+    skinTargetCharacterIdRef.current = null;
+    if (!targetCharacterId) {
+      setStatus("Select a character before importing a skin.");
+      return;
+    }
+
+    try {
+      const skin = await MinecraftSkinImporter.fromFile(file);
+      commitProject(
+        (currentProject) => {
+          const withSkinAsset = AssetManager.addSkinAsset(currentProject, skin);
+          return {
+            ...withSkinAsset,
+            scene: {
+              ...withSkinAsset.scene,
+              characters: withSkinAsset.scene.characters.map((character) =>
+                character.id === targetCharacterId
+                  ? {
+                      ...character,
+                      skin,
+                      modelType:
+                        skin.metadata.modelType === "unknown"
+                          ? character.modelType
+                          : skin.metadata.modelType
+                    }
+                  : character
+              )
+            }
+          };
+        },
+        "Import Minecraft skin"
+      );
+      setSelectedObjectId(targetCharacterId);
+      setStatus(
+        skin.metadata.valid
+          ? `Imported skin ${skin.name} (${skin.metadata.width}x${skin.metadata.height}, ${skin.metadata.modelType}).`
+          : `Skin ${skin.name} imported but invalid; fallback colors remain active.`
+      );
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Could not import skin.");
+    }
+  };
+
+  const handleResetSkin = useCallback(
+    (characterId: string) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          scene: {
+            ...currentProject.scene,
+            characters: currentProject.scene.characters.map((character) =>
+              character.id === characterId ? { ...character, skin: null } : character
+            )
+          }
+        }),
+        "Reset character skin"
+      );
+      setStatus("Skin reset to fallback Minecraft colors.");
+    },
+    [commitProject]
+  );
+
+  const handleImportBlockbench = useCallback(() => {
+    blockbenchInputRef.current?.click();
+  }, []);
+
+  const handleBlockbenchSelected = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const imported = await BlockbenchImporter.fromFile(file);
+      let createdObjectId = "";
+      commitProject(
+        (currentProject) => {
+          const withBlockbenchAsset = AssetManager.addBlockbenchAsset(
+            currentProject,
+            imported.asset
+          );
+          const { project: withObjAsset, asset } = AssetManager.addObjAsset(
+            withBlockbenchAsset,
+            imported.asset.name,
+            imported.rawObj
+          );
+          const entity = createObjEntity(asset.id, imported.asset.name);
+          createdObjectId = entity.id;
+          return {
+            ...withObjAsset,
+            scene: {
+              ...withObjAsset.scene,
+              importedObjects: [...withObjAsset.scene.importedObjects, entity]
+            }
+          };
+        },
+        "Import Blockbench model"
+      );
+      setSelectedObjectId(createdObjectId);
+      setRigStudioOpen(true);
+      setStatus(
+        `Imported Blockbench model ${imported.asset.name}: ${imported.asset.elementCount} cubes, ${imported.asset.groupCount} groups.`
+      );
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "Could not import Blockbench model."
+      );
     }
   };
 
@@ -1201,6 +1350,132 @@ export function App() {
     setStatus(`Duplicated ${lookup.entity.name}.`);
   }, [commitProject, project, selectedObjectId]);
 
+  const handleUpdateBoneRotation = useCallback(
+    (characterId: string, boneId: string, rotation: [number, number, number]) => {
+      const character = project.scene.characters.find((item) => item.id === characterId);
+      if (character?.locked) {
+        setStatus(`${character.name} is locked.`);
+        return;
+      }
+      commitProject(
+        (currentProject) =>
+          updateProjectBoneRotation(currentProject, characterId, boneId, rotation),
+        "Edit bone rotation"
+      );
+      setStatus(`Updated ${boneId} rotation.`);
+    },
+    [commitProject, project.scene.characters]
+  );
+
+  const handleAddBoneKeyframe = useCallback(
+    (characterId: string, boneId: string) => {
+      commitProject(
+        (currentProject) =>
+          syncCinematicTimeline(
+            addBoneRotationKeyframe(
+              currentProject,
+              characterId,
+              boneId,
+              currentProject.animation.currentFrame
+            )
+          ),
+        "Add bone keyframe"
+      );
+      setStatus(`Bone keyframe added for ${boneId} at frame ${project.animation.currentFrame}.`);
+    },
+    [commitProject, project.animation.currentFrame]
+  );
+
+  const handleResetPose = useCallback(
+    (characterId: string) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          scene: {
+            ...currentProject.scene,
+            characters: currentProject.scene.characters.map((character) =>
+              character.id === characterId ? resetRigPose(character) : character
+            )
+          }
+        }),
+        "Reset rig pose"
+      );
+      setStatus("Rig pose reset.");
+    },
+    [commitProject]
+  );
+
+  const handleMirrorPose = useCallback(
+    (characterId: string) => {
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          scene: {
+            ...currentProject.scene,
+            characters: currentProject.scene.characters.map((character) =>
+              character.id === characterId ? mirrorCurrentPose(character) : character
+            )
+          }
+        }),
+        "Mirror rig pose"
+      );
+      setStatus("Rig pose mirrored left/right.");
+    },
+    [commitProject]
+  );
+
+  const handleSaveCurrentPose = useCallback(
+    (characterId: string) => {
+      const character = project.scene.characters.find((item) => item.id === characterId);
+      if (!character) return;
+      const name = window.prompt("Pose name", `${character.name} Pose`);
+      if (!name) return;
+      const pose = savePoseFromCharacter(character, name);
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          rigs: {
+            ...currentProject.rigs,
+            savedPoses: [...currentProject.rigs.savedPoses, pose]
+          }
+        }),
+        "Save current pose"
+      );
+      setStatus(`Saved pose ${pose.name}.`);
+    },
+    [commitProject, project.scene.characters]
+  );
+
+  const handleChangeRigPreset = useCallback(
+    (characterId: string, presetId: RigPresetId) => {
+      const definition = getRigDefinition(presetId);
+      commitProject(
+        (currentProject) => ({
+          ...currentProject,
+          scene: {
+            ...currentProject.scene,
+            characters: currentProject.scene.characters.map((character) =>
+              character.id === characterId
+                ? {
+                    ...character,
+                    rigPreset: definition.id,
+                    modelType: definition.modelType,
+                    boneRotations: {
+                      ...getDefaultBoneRotations(definition),
+                      ...character.boneRotations
+                    }
+                  }
+                : character
+            )
+          }
+        }),
+        "Change rig preset"
+      );
+      setStatus(`Rig preset changed to ${definition.name}.`);
+    },
+    [commitProject]
+  );
+
   const handleDeleteSelectedObject = useCallback(() => {
     if (!selectedObjectId) return;
     const lookup = findObject(project, selectedObjectId);
@@ -1251,6 +1526,12 @@ export function App() {
   }, [commitProject, project, selectedObjectId]);
 
   const handleAddKeyframe = useCallback(() => {
+    const boneSelection = parseRigBoneSelection(selectedObjectId);
+    if (boneSelection) {
+      handleAddBoneKeyframe(boneSelection.characterId, boneSelection.boneId);
+      return;
+    }
+
     if (!selectedObjectId || selectedObjectId === "world") {
       setStatus("Select a character, camera, light, or OBJ before keyframing.");
       return;
@@ -1274,7 +1555,7 @@ export function App() {
     setStatus(
       `Transform keyframe added for ${lookup.entity.name} at frame ${project.animation.currentFrame}.`
     );
-  }, [commitProject, project, selectedObjectId]);
+  }, [commitProject, handleAddBoneKeyframe, project, selectedObjectId]);
 
   const handleSkyChange = useCallback(
     (preset: SkyPresetId, customColor: string) => {
@@ -1386,8 +1667,12 @@ export function App() {
 
   const handleApplyRigPosePreset = useCallback(
     (presetId: string) => {
-      if (!selectedObjectId) return;
-      const preset = presetRegistry.getRigPosePreset(presetId);
+      const characterId =
+        getSelectedCharacterId(selectedObjectId) ?? project.scene.characters[0]?.id;
+      if (!characterId) return;
+      const preset =
+        presetRegistry.getRigPosePreset(presetId) ??
+        project.rigs.savedPoses.find((candidate) => candidate.id === presetId);
       if (!preset) return;
       commitProject(
         (currentProject) => ({
@@ -1395,7 +1680,7 @@ export function App() {
           scene: {
             ...currentProject.scene,
             characters: currentProject.scene.characters.map((character) =>
-              character.id === selectedObjectId
+              character.id === characterId
                 ? applyRigPosePreset(character, preset)
                 : character
             )
@@ -1405,21 +1690,23 @@ export function App() {
       );
       setStatus(`Pose applied: ${preset.name}.`);
     },
-    [commitProject, selectedObjectId]
+    [commitProject, project.rigs.savedPoses, project.scene.characters, selectedObjectId]
   );
 
   const handleApplyAnimationPreset = useCallback(
     (presetId: string) => {
-      if (!selectedObjectId) return;
+      const targetId =
+        getSelectedCharacterId(selectedObjectId) ?? project.scene.characters[0]?.id;
+      if (!targetId) return;
       const preset = presetRegistry.getAnimationPreset(presetId);
       if (!preset) return;
       commitProject(
-        (currentProject) => preset.apply(currentProject, selectedObjectId),
+        (currentProject) => syncCinematicTimeline(preset.apply(currentProject, targetId)),
         "Apply animation preset"
       );
       setStatus(`Animation preset applied: ${preset.name}.`);
     },
-    [commitProject, selectedObjectId]
+    [commitProject, project.scene.characters, selectedObjectId]
   );
 
   const handleUndo = useCallback(() => {
@@ -1587,7 +1874,7 @@ export function App() {
   ]);
 
   const statusDetails = [
-    `Selected: ${selectedObject?.name ?? "none"}`,
+    `Selected: ${selectedObjectLabel(project, selectedObjectId, selectedObject?.name)}`,
     `Frame: ${project.animation.currentFrame}`,
     `FPS: ${project.animation.fps}`,
     isDirty ? "Unsaved" : "Saved",
@@ -1619,6 +1906,7 @@ export function App() {
         onOpenPlugins={() => setPluginsOpen(true)}
         onOpenCommands={() => setCommandsOpen(true)}
         onOpenExport={() => setExportOpen(true)}
+        onOpenRigStudio={() => setRigStudioOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
         onToggleRenderPreview={handleToggleRenderPreview}
       />
@@ -1669,11 +1957,18 @@ export function App() {
           onSkyChange={handleSkyChange}
           onLookThroughCamera={handleLookThroughCamera}
           cameraPresets={presets.camera}
-          rigPosePresets={presets.rigPose}
+          rigPosePresets={rigPosePresets}
           animationPresets={presets.animation}
           onApplyCameraPreset={handleApplyCameraPreset}
           onApplyRigPosePreset={handleApplyRigPosePreset}
           onApplyAnimationPreset={handleApplyAnimationPreset}
+          onUpdateBoneRotation={handleUpdateBoneRotation}
+          onAddBoneKeyframe={handleAddBoneKeyframe}
+          onResetPose={handleResetPose}
+          onMirrorPose={handleMirrorPose}
+          onImportSkin={handleImportSkin}
+          onResetSkin={handleResetSkin}
+          onChangeRigPreset={handleChangeRigPreset}
         />
       </div>
       <TimelinePanel
@@ -1734,6 +2029,22 @@ export function App() {
         onExportWav={handleExportWav}
         onCancelExport={handleCancelExport}
       />
+      <RigStudioPanel
+        open={rigStudioOpen}
+        project={project}
+        selectedObjectId={selectedObjectId}
+        posePresets={rigPosePresets}
+        animationPresets={presets.animation}
+        onClose={() => setRigStudioOpen(false)}
+        onImportSkin={handleImportSkin}
+        onResetSkin={handleResetSkin}
+        onApplyPose={handleApplyRigPosePreset}
+        onSavePose={handleSaveCurrentPose}
+        onMirrorPose={handleMirrorPose}
+        onResetPose={handleResetPose}
+        onApplyAnimation={handleApplyAnimationPreset}
+        onImportBlockbench={handleImportBlockbench}
+      />
       <WorldImportPanel
         open={worldImportOpen}
         scan={worldScan}
@@ -1783,6 +2094,20 @@ export function App() {
         onChange={handleObjSelected}
       />
       <input
+        ref={skinInputRef}
+        className="hidden-input"
+        type="file"
+        accept="image/png,.png"
+        onChange={handleSkinSelected}
+      />
+      <input
+        ref={blockbenchInputRef}
+        className="hidden-input"
+        type="file"
+        accept=".bbmodel,application/json,.json"
+        onChange={handleBlockbenchSelected}
+      />
+      <input
         ref={audioInputRef}
         className="hidden-input"
         type="file"
@@ -1811,6 +2136,21 @@ function downloadBlob(blob: Blob, filename: string): void {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+function selectedObjectLabel(
+  project: MineMotionProject,
+  selectedObjectId: string | null,
+  fallback?: string
+): string {
+  const boneSelection = parseRigBoneSelection(selectedObjectId);
+  if (boneSelection) {
+    const character = project.scene.characters.find(
+      (item) => item.id === boneSelection.characterId
+    );
+    return `${character?.name ?? "Character"} / ${boneSelection.boneId}`;
+  }
+  return fallback ?? "none";
 }
 
 function waitForNextPaint(): Promise<void> {

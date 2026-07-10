@@ -1,6 +1,6 @@
 # User Guide
 
-This guide describes the Phase 4 editor workflow.
+This guide describes the Phase 5 editor workflow.
 
 ## Start The App
 
@@ -49,6 +49,57 @@ and optional bars.
 The importer does not load the whole world by default. It imports a bounded
 chunk range around spawn or manual chunk coordinates.
 
+## Work With Minecraft Rigs
+
+1. Select a character in the outliner or viewport.
+2. Use the inspector's **Rig And Skin** section to choose Steve, Alex, or a
+   prepared placeholder rig.
+3. Expand the character in the outliner to select bones such as `head`,
+   `rightArm`, or `leftLeg`.
+4. Edit **Bone Rotation** in the inspector.
+5. Click **Add Bone Keyframe** to add a `bone.rotation.*` timeline track.
+
+The same controls are grouped in **Rig Studio** from the top bar.
+
+## Import A Skin
+
+1. Select a character.
+2. Click **Import Skin** in the inspector or Rig Studio.
+3. Choose a PNG skin.
+4. MineMotion validates 64x64 and legacy 64x32 skins and shows metadata.
+5. Use **Reset Skin** to return to generated fallback colors.
+
+MineMotion does not bundle Minecraft skins.
+
+## Apply Poses And Rig Animations
+
+Use the inspector or **Rig Studio** to apply:
+
+- Idle
+- Walk A / Walk B
+- Run A / Run B
+- Jump / Land
+- Attack Windup / Attack Swing
+- Block/Defend
+- Look Left / Look Right
+- Sitting
+- Crouch
+- Fear/Back Away
+- Hero Pose
+
+Animation presets create bone keyframes for idle breathing, walk, run, sword
+swing, hit reaction, camera-ready turn-around, head look around, and jump/land.
+
+## Import A Blockbench Model
+
+1. Open **Rig Studio**.
+2. Click **Import Blockbench Model**.
+3. Select a `.bbmodel` or JSON file.
+4. MineMotion parses cube elements/groups/textures and creates a static OBJ
+   preview object.
+
+Automatic rig mapping is prepared but not implemented yet.
+
 ## Export
 
 Click **Export** in the top bar.
@@ -56,7 +107,7 @@ Click **Export** in the top bar.
 Available output:
 
 - **Save .minemotion**: saves the full package payload.
-- **Export .mmsproj**: exports legacy schema v5 project JSON.
+- **Export .mmsproj**: exports legacy schema v6 project JSON.
 - **PNG Frame**: captures the current viewport frame.
 - **PNG ZIP**: captures the selected frame range as numbered PNG files inside a
   ZIP archive.
@@ -118,11 +169,13 @@ chase, over-shoulder, and dramatic zoom setups.
 
 Use the top toolbar or `Ctrl+S` to download a `.minemotion` package. Legacy
 `.mmsproj` and JSON project files can still be opened. Phase 1, Phase 1.5, and
-Phase 2/3 projects are migrated to schema v5 when opened.
+Phase 2/3/4 projects are migrated to schema v6 when opened.
 
 ## Current Limits
 
 - Resource packs are not loaded yet.
+- Blockbench rig mapping is not automatic yet.
+- IK solver math is not implemented yet.
 - Older non-palette chunk formats are not fully decoded.
 - Browser decompression support is required for real compressed `level.dat` and
   `.mca` payloads.

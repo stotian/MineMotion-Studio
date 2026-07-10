@@ -1,4 +1,5 @@
 import type { ImportedObjAsset, MineMotionProject } from "../project/ProjectFile";
+import type { BlockbenchModelAsset, MinecraftSkinAsset } from "../rigs/RigTypes";
 import { createId } from "../project/ProjectStore";
 
 export class AssetManager {
@@ -25,5 +26,43 @@ export class AssetManager {
       }
     };
   }
-}
 
+  static addSkinAsset(
+    project: MineMotionProject,
+    skin: MinecraftSkinAsset
+  ): MineMotionProject {
+    return {
+      ...project,
+      assets: {
+        ...project.assets,
+        skins: [
+          ...project.assets.skins.filter((candidate) => candidate.id !== skin.id),
+          skin
+        ]
+      }
+    };
+  }
+
+  static addBlockbenchAsset(
+    project: MineMotionProject,
+    asset: BlockbenchModelAsset
+  ): MineMotionProject {
+    return {
+      ...project,
+      assets: {
+        ...project.assets,
+        blockbench: [
+          ...project.assets.blockbench.filter((candidate) => candidate.id !== asset.id),
+          asset
+        ]
+      },
+      rigs: {
+        ...project.rigs,
+        blockbenchModels: [
+          ...project.rigs.blockbenchModels.filter((candidate) => candidate.id !== asset.id),
+          asset
+        ]
+      }
+    };
+  }
+}

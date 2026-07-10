@@ -1,9 +1,25 @@
-import { Camera, Eye, EyeOff, Film, KeyRound, Lock, Palette, Sparkles, Trash2, Unlock } from "lucide-react";
+import {
+  Bone,
+  Camera,
+  Eye,
+  EyeOff,
+  Film,
+  FlipHorizontal,
+  KeyRound,
+  Lock,
+  Palette,
+  RefreshCw,
+  Sparkles,
+  Trash2,
+  Unlock,
+  Upload
+} from "lucide-react";
 import type { EffectInstance } from "../../effects/EffectTypes";
 import type { AnimationPreset } from "../../presets/AnimationPresets";
 import type { CameraPreset } from "../../presets/CameraPresets";
 import type { RigPosePreset } from "../../presets/RigPosePresets";
 import type {
+  CharacterEntity,
   MineMotionProject,
   SceneEntity,
   TransformData,
@@ -12,6 +28,9 @@ import type {
 import { findObject } from "../../project/ProjectStore";
 import type { PostProcessingSettings } from "../../rendering/postprocessing/PostProcessingTypes";
 import { SKY_PRESETS, type SkyPresetId } from "../../renderer/SkySystem";
+import { getRigDefinition, MINECRAFT_RIG_PRESETS } from "../../rigs/MinecraftRigPresets";
+import { parseRigBoneSelection } from "../../rigs/RigSelection";
+import type { RigPresetId } from "../../rigs/RigTypes";
 
 interface InspectorPanelProps {
   project: MineMotionProject;
@@ -33,6 +52,13 @@ interface InspectorPanelProps {
   onApplyCameraPreset: (presetId: string) => void;
   onApplyRigPosePreset: (presetId: string) => void;
   onApplyAnimationPreset: (presetId: string) => void;
+  onUpdateBoneRotation: (characterId: string, boneId: string, rotation: Vector3Tuple) => void;
+  onAddBoneKeyframe: (characterId: string, boneId: string) => void;
+  onResetPose: (characterId: string) => void;
+  onMirrorPose: (characterId: string) => void;
+  onImportSkin: (characterId: string) => void;
+  onResetSkin: (characterId: string) => void;
+  onChangeRigPreset: (characterId: string, presetId: RigPresetId) => void;
 }
 
 export function InspectorPanel({
@@ -54,9 +80,21 @@ export function InspectorPanel({
   animationPresets,
   onApplyCameraPreset,
   onApplyRigPosePreset,
-  onApplyAnimationPreset
+  onApplyAnimationPreset,
+  onUpdateBoneRotation,
+  onAddBoneKeyframe,
+  onResetPose,
+  onMirrorPose,
+  onImportSkin,
+  onResetSkin,
+  onChangeRigPreset
 }: InspectorPanelProps) {
-  const lookup = findObject(project, selectedObjectId);
+  const boneSelection = parseRigBoneSelection(selectedObjectId);
+  const lookup = findObject(project, boneSelection?.characterId ?? selectedObjectId);
+  const selectedCharacter =
+    boneSelection
+      ? project.scene.characters.find((character) => character.id === boneSelection.characterId) ?? null
+      : null;
   const selectedEffect =
     project.effects.instances.find((effect) => effect.id === selectedEffectId) ??
     null;
@@ -110,6 +148,19 @@ export function InspectorPanel({
         />
       ) : selectedObjectId === "world" ? (
         <WorldInspector project={project} />
+      ) : boneSelection && selectedCharacter ? (
+        <BoneInspector
+          character={selectedCharacter}
+          boneId={boneSelection.boneId}
+          onUpdateBoneRotation={(rotation) =>
+            onUpdateBoneRotation(selectedCharacter.id, boneSelection.boneId, rotation)
+          }
+          onAddBoneKeyframe={() =>
+            onAddBoneKeyframe(selectedCharacter.id, boneSelection.boneId)
+          }
+          onResetPose={() => onResetPose(selectedCharacter.id)}
+          onMirrorPose={() => onMirrorPose(selectedCharacter.id)}
+        />
       ) : lookup ? (
         <EntityInspector
           entity={lookup.entity}
@@ -129,11 +180,67 @@ export function InspectorPanel({
           onApplyCameraPreset={onApplyCameraPreset}
           onApplyRigPosePreset={onApplyRigPosePreset}
           onApplyAnimationPreset={onApplyAnimationPreset}
+          onResetPose={onResetPose}
+          onMirrorPose={onMirrorPose}
+          onImportSkin={onImportSkin}
+          onResetSkin={onResetSkin}
+          onChangeRigPreset={onChangeRigPreset}
         />
       ) : (
         <p className="empty-note">Select an object to edit its transform.</p>
       )}
     </aside>
+  );
+}
+
+function BoneInspector({
+  character,
+  boneId,
+  onUpdateBoneRotation,
+  onAddBoneKeyframe,
+  onResetPose,
+  onMirrorPose
+}: {
+  character: CharacterEntity;
+  boneId: string;
+  onUpdateBoneRotation: (rotation: Vector3Tuple) => void;
+  onAddBoneKeyframe: () => void;
+  onResetPose: () => void;
+  onMirrorPose: () => void;
+}) {
+  const definition = getRigDefinition(character.rigPreset);
+  const bone = definition.bones.find((candidate) => candidate.id === boneId);
+  const rotation = character.boneRotations[boneId] ?? [0, 0, 0];
+
+  return (
+    <section className="inspector-section">
+      <h3>
+        <Bone size={15} />
+        {bone?.label ?? boneId}
+      </h3>
+      <InfoRow label="Character" value={character.name} />
+      <InfoRow label="Rig" value={definition.name} />
+      <InfoRow label="Bone ID" value={boneId} />
+      <VectorEditor
+        label="Bone Rotation"
+        value={rotation}
+        onChange={onUpdateBoneRotation}
+      />
+      <div className="inspector-actions">
+        <button type="button" onClick={onAddBoneKeyframe}>
+          <KeyRound size={15} />
+          Add Bone Keyframe
+        </button>
+        <button type="button" onClick={onMirrorPose}>
+          <FlipHorizontal size={15} />
+          Mirror Pose
+        </button>
+        <button type="button" onClick={onResetPose}>
+          <RefreshCw size={15} />
+          Reset Pose
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -419,7 +526,12 @@ function EntityInspector({
   onLookThroughCamera,
   onApplyCameraPreset,
   onApplyRigPosePreset,
-  onApplyAnimationPreset
+  onApplyAnimationPreset,
+  onResetPose,
+  onMirrorPose,
+  onImportSkin,
+  onResetSkin,
+  onChangeRigPreset
 }: {
   entity: SceneEntity;
   cameraPresets: CameraPreset[];
@@ -434,10 +546,16 @@ function EntityInspector({
   onApplyCameraPreset: (presetId: string) => void;
   onApplyRigPosePreset: (presetId: string) => void;
   onApplyAnimationPreset: (presetId: string) => void;
+  onResetPose: (characterId: string) => void;
+  onMirrorPose: (characterId: string) => void;
+  onImportSkin: (characterId: string) => void;
+  onResetSkin: (characterId: string) => void;
+  onChangeRigPreset: (characterId: string, presetId: RigPresetId) => void;
 }) {
   const relevantAnimationPresets = animationPresets.filter((preset) =>
     preset.targetTypes.includes(entity.type === "camera" ? "camera" : "character")
   );
+  const character = entity.type === "character" ? (entity as CharacterEntity) : null;
 
   return (
     <section className="inspector-section">
@@ -507,13 +625,23 @@ function EntityInspector({
           onApply={onApplyCameraPreset}
         />
       )}
-      {entity.type === "character" && (
-        <PresetButtonGroup
-          title="Pose Presets"
-          presets={rigPosePresets}
-          actionLabel="Apply Pose"
-          onApply={onApplyRigPosePreset}
-        />
+      {character && (
+        <>
+          <CharacterRigInspector
+            character={character}
+            onImportSkin={onImportSkin}
+            onResetSkin={onResetSkin}
+            onResetPose={onResetPose}
+            onMirrorPose={onMirrorPose}
+            onChangeRigPreset={onChangeRigPreset}
+          />
+          <PresetButtonGroup
+            title="Pose Library"
+            presets={rigPosePresets}
+            actionLabel="Apply Pose"
+            onApply={onApplyRigPosePreset}
+          />
+        </>
       )}
       {(entity.type === "character" || entity.type === "camera") && (
         <PresetButtonGroup
@@ -524,6 +652,80 @@ function EntityInspector({
         />
       )}
     </section>
+  );
+}
+
+function CharacterRigInspector({
+  character,
+  onImportSkin,
+  onResetSkin,
+  onResetPose,
+  onMirrorPose,
+  onChangeRigPreset
+}: {
+  character: CharacterEntity;
+  onImportSkin: (characterId: string) => void;
+  onResetSkin: (characterId: string) => void;
+  onResetPose: (characterId: string) => void;
+  onMirrorPose: (characterId: string) => void;
+  onChangeRigPreset: (characterId: string, presetId: RigPresetId) => void;
+}) {
+  const definition = getRigDefinition(character.rigPreset);
+  const skin = character.skin;
+
+  return (
+    <div className="preset-group">
+      <h4>Rig And Skin</h4>
+      <label>
+        Rig Preset
+        <select
+          value={definition.id}
+          onChange={(event) =>
+            onChangeRigPreset(character.id, event.target.value as RigPresetId)
+          }
+        >
+          {MINECRAFT_RIG_PRESETS.map((preset) => (
+            <option key={preset.id} value={preset.id}>
+              {preset.name}
+              {preset.status === "placeholder" ? " (placeholder)" : ""}
+            </option>
+          ))}
+        </select>
+      </label>
+      <InfoRow label="Bones" value={String(definition.bones.length)} />
+      <InfoRow label="Arms" value={`${definition.armWidthPixels}px`} />
+      {skin ? (
+        <>
+          <InfoRow label="Skin" value={skin.name} />
+          <InfoRow
+            label="Resolution"
+            value={`${skin.metadata.width}x${skin.metadata.height}`}
+          />
+          <InfoRow label="Model" value={skin.metadata.modelType} />
+          <InfoRow label="Valid" value={skin.metadata.valid ? "yes" : "no"} />
+        </>
+      ) : (
+        <InfoRow label="Skin" value="fallback colors" />
+      )}
+      <div className="inspector-actions">
+        <button type="button" onClick={() => onImportSkin(character.id)}>
+          <Upload size={15} />
+          Import Skin
+        </button>
+        <button type="button" onClick={() => onResetSkin(character.id)}>
+          <RefreshCw size={15} />
+          Reset Skin
+        </button>
+        <button type="button" onClick={() => onMirrorPose(character.id)}>
+          <FlipHorizontal size={15} />
+          Mirror Pose
+        </button>
+        <button type="button" onClick={() => onResetPose(character.id)}>
+          <RefreshCw size={15} />
+          Reset Pose
+        </button>
+      </div>
+    </div>
   );
 }
 

@@ -13,6 +13,14 @@ import type {
 } from "../minecraft/import/MinecraftChunkTypes";
 import type { ProjectPackageMetadata } from "./package/PackageTypes";
 import type { PostProcessingSettings } from "../rendering/postprocessing/PostProcessingTypes";
+import type {
+  BoneAnimationTrack,
+  BlockbenchModelAsset,
+  CharacterAttachment,
+  MinecraftSkinAsset,
+  RigPresetId,
+  RigProjectData
+} from "../rigs/RigTypes";
 
 export type Vector3Tuple = [number, number, number];
 export type TerrainPresetId = "none" | "demo" | "flat" | "nether";
@@ -46,8 +54,13 @@ export interface SceneEntity {
 
 export interface CharacterEntity extends SceneEntity {
   type: "character";
-  rigPreset: "default_steve";
+  rigPreset: RigPresetId;
+  modelType?: "steve" | "alex" | "mob" | "generic";
   boneRotations: Record<string, Vector3Tuple>;
+  selectedBoneId?: string;
+  skin?: MinecraftSkinAsset | null;
+  attachments?: CharacterAttachment[];
+  boneKeyframes?: BoneAnimationTrack[];
 }
 
 export interface CameraEntity extends SceneEntity {
@@ -118,7 +131,8 @@ export interface Keyframe<T = number | Vector3Tuple> {
 export type AnimatableProperty =
   | "transform.position"
   | "transform.rotation"
-  | "transform.scale";
+  | "transform.scale"
+  | `bone.rotation.${string}`;
 
 export interface AnimationTrack {
   id: string;
@@ -129,6 +143,7 @@ export interface AnimationTrack {
 
 export type TimelineTrackType =
   | "transform"
+  | "rig"
   | "camera"
   | "effect"
   | "audio"
@@ -142,6 +157,7 @@ export interface TimelineItem {
   startFrame: number;
   durationFrames: number;
   targetId: string;
+  boneId?: string;
   effectId?: string;
   audioClipId?: string;
 }
@@ -187,7 +203,7 @@ export interface RenderSettings {
 }
 
 export interface MineMotionProject {
-  schemaVersion: 5;
+  schemaVersion: 6;
   projectName: string;
   projectSettings: ProjectSettings;
   packageMetadata: ProjectPackageMetadata;
@@ -205,7 +221,10 @@ export interface MineMotionProject {
   };
   assets: {
     obj: ImportedObjAsset[];
+    skins: MinecraftSkinAsset[];
+    blockbench: BlockbenchModelAsset[];
   };
+  rigs: RigProjectData;
   assetLibrary: AssetLibraryData;
   effects: {
     instances: EffectInstance[];

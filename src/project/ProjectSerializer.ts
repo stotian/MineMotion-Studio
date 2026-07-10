@@ -7,6 +7,11 @@ import { withExportSettingsDefaults } from "../export/ExportSettings";
 import {
   withPostProcessingDefaults
 } from "../rendering/postprocessing/PostProcessingPresets";
+import {
+  getRigTimelineItems,
+  sanitizeCharacterRig,
+  sanitizeRigProjectData
+} from "../rigs/RigSerializer";
 import type {
   MineMotionProject,
   TimelineItem,
@@ -18,7 +23,7 @@ import {
   createDefaultTimelineTracks
 } from "./ProjectStore";
 
-const CURRENT_SCHEMA_VERSION = 5;
+const CURRENT_SCHEMA_VERSION = 6;
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -49,7 +54,7 @@ export class ProjectSerializer {
       return ProjectSerializer.migrate(parsed);
     }
 
-    const project = ProjectSerializer.withV5Defaults(parsed);
+    const project = ProjectSerializer.withV6Defaults(parsed);
     ProjectSerializer.assertValidProject(project);
     return project;
   }
@@ -58,19 +63,20 @@ export class ProjectSerializer {
     if (parsed.schemaVersion === 1) {
       ProjectSerializer.assertLegacyCoreData(parsed);
       const migratedV2 = ProjectSerializer.withV2CompatibilityDefaults(parsed);
-      const migratedV5 = ProjectSerializer.withV5Defaults(migratedV2);
-      ProjectSerializer.assertValidProject(migratedV5);
-      return migratedV5;
+      const migratedV6 = ProjectSerializer.withV6Defaults(migratedV2);
+      ProjectSerializer.assertValidProject(migratedV6);
+      return migratedV6;
     }
 
     if (
       parsed.schemaVersion === 2 ||
       parsed.schemaVersion === 3 ||
-      parsed.schemaVersion === 4
+      parsed.schemaVersion === 4 ||
+      parsed.schemaVersion === 5
     ) {
-      const migratedV5 = ProjectSerializer.withV5Defaults(parsed);
-      ProjectSerializer.assertValidProject(migratedV5);
-      return migratedV5;
+      const migratedV6 = ProjectSerializer.withV6Defaults(parsed);
+      ProjectSerializer.assertValidProject(migratedV6);
+      return migratedV6;
     }
 
     if (parsed.schemaVersion === undefined) {
@@ -101,10 +107,18 @@ export class ProjectSerializer {
     };
   }
 
-  private static withV5Defaults(project: UnknownProject): MineMotionProject {
+  private static withV6Defaults(project: UnknownProject): MineMotionProject {
     const settingsDefaults = createDefaultProjectSettings();
     const effects = sanitizeEffects(project.effects?.instances);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
+    const rigs = sanitizeRigProjectData(project.rigs);
+    const characters = (project.scene?.characters ?? []).map((entity) =>
+      sanitizeCharacterRig({
+        ...entity,
+        locked: entity.locked ?? false,
+        metadata: entity.metadata ?? {}
+      })
+    );
     const activeCameraId =
       project.activeCameraId ?? project.scene?.cameras?.[0]?.id ?? "";
     const projectSettings = {
@@ -126,7 +140,7 @@ export class ProjectSerializer {
 
     return {
       ...(project as MineMotionProject),
-      schemaVersion: 5,
+      schemaVersion: 6,
       projectName: projectSettings.projectName,
       projectSettings,
       packageMetadata: {
@@ -144,11 +158,7 @@ export class ProjectSerializer {
       },
       world: ProjectSerializer.withWorldDefaults(project.world),
       scene: {
-        characters: (project.scene?.characters ?? []).map((entity) => ({
-          ...entity,
-          locked: entity.locked ?? false,
-          metadata: entity.metadata ?? {}
-        })),
+        characters,
         cameras: (project.scene?.cameras ?? []).map((entity, index) => ({
           ...entity,
           locked: entity.locked ?? false,
@@ -174,8 +184,11 @@ export class ProjectSerializer {
         }))
       },
       assets: {
-        obj: project.assets?.obj ?? []
+        obj: project.assets?.obj ?? [],
+        skins: project.assets?.skins ?? [],
+        blockbench: project.assets?.blockbench ?? []
       },
+      rigs,
       assetLibrary: sanitizeAssetLibrary(project.assetLibrary),
       effects: {
         instances: effects
@@ -205,6 +218,18 @@ export class ProjectSerializer {
         isPlaying: project.animation?.isPlaying ?? false,
         tracks: project.animation?.tracks ?? [],
         timelineTracks: ProjectSerializer.withTimelineDefaults(
+          {
+            ...(project as MineMotionProject),
+            animation: {
+              ...(project.animation as MineMotionProject["animation"]),
+              tracks: project.animation?.tracks ?? []
+            },
+            scene: {
+              ...(project.scene as MineMotionProject["scene"]),
+              characters
+            },
+            rigs
+          },
           project.animation?.timelineTracks,
           effects,
           audioClips
@@ -213,7 +238,7 @@ export class ProjectSerializer {
       metadata: {
         createdAt: project.metadata?.createdAt ?? new Date().toISOString(),
         updatedAt: project.metadata?.updatedAt ?? new Date().toISOString(),
-        appVersion: "0.4.0"
+        appVersion: "0.5.0"
       }
     };
   }
@@ -270,6 +295,7 @@ export class ProjectSerializer {
   }
 
   private static withTimelineDefaults(
+    project: MineMotionProject,
     tracks: TimelineTrackLane[] | undefined,
     effects: MineMotionProject["effects"]["instances"],
     audioClips: MineMotionProject["audio"]["clips"]
@@ -297,8 +323,10 @@ export class ProjectSerializer {
         durationFrames: item.durationFrames
       })
     );
+    const rigItems: TimelineItem[] = getRigTimelineItems(project);
 
     const hydratedDefaults = defaultTracks.map((track) => {
+      if (track.type === "rig") return { ...track, items: rigItems };
       if (track.type === "effect") return { ...track, items: effectItems };
       if (track.type === "audio") return { ...track, items: audioItems };
       return track;
@@ -314,6 +342,8 @@ export class ProjectSerializer {
       items:
         defaultTrack.type === "effect"
           ? effectItems
+          : defaultTrack.type === "rig"
+            ? rigItems
           : defaultTrack.type === "audio"
             ? audioItems
             : (tracks.find((track) => track.id === defaultTrack.id)?.items ?? [])

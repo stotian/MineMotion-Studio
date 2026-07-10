@@ -348,8 +348,8 @@ export class SceneRenderer {
     object.userData.objectId = objectId;
     object.userData.objectType = objectType;
     object.traverse((child) => {
-      child.userData.objectId = objectId;
-      child.userData.objectType = objectType;
+      child.userData.objectId ??= objectId;
+      child.userData.objectType ??= objectType;
     });
   }
 

@@ -1,5 +1,6 @@
 import { Pause, Play, SkipBack } from "lucide-react";
 import type { MineMotionProject, TimelineItem } from "../../project/ProjectFile";
+import { getSelectedCharacterId } from "../../rigs/RigSelection";
 
 interface TimelinePanelProps {
   project: MineMotionProject;
@@ -23,8 +24,9 @@ export function TimelinePanel({
   onSelectEffect
 }: TimelinePanelProps) {
   const { animation } = project;
-  const selectedTracks = selectedObjectId
-    ? animation.tracks.filter((track) => track.targetId === selectedObjectId)
+  const selectedTargetId = getSelectedCharacterId(selectedObjectId);
+  const selectedTracks = selectedTargetId
+    ? animation.tracks.filter((track) => track.targetId === selectedTargetId)
     : [];
   const markerFrames = new Set(
     selectedTracks.flatMap((track) => track.keyframes.map((keyframe) => keyframe.frame))
@@ -35,6 +37,7 @@ export function TimelinePanel({
   const effectTrack = animation.timelineTracks.find(
     (track) => track.type === "effect"
   );
+  const rigTrack = animation.timelineTracks.find((track) => track.type === "rig");
   const audioTrack = animation.timelineTracks.find(
     (track) => track.type === "audio"
   );
@@ -74,7 +77,7 @@ export function TimelinePanel({
         </button>
         <span className="timeline-summary">
           {animation.tracks.length} transform tracks /{" "}
-          {project.effects.instances.length} effects / {project.audio.clips.length} audio
+          {rigTrack?.items.length ?? 0} rig clips / {project.effects.instances.length} effects / {project.audio.clips.length} audio
         </span>
       </div>
       <div className="timeline-track">
@@ -105,6 +108,14 @@ export function TimelinePanel({
             />
           ))}
         </div>
+        <TimelineBlockLane
+          label="Rigs"
+          durationFrames={animation.durationFrames}
+          items={rigTrack?.items ?? []}
+          selectedEffectId={null}
+          onSetFrame={onSetFrame}
+          onSelectEffect={onSelectEffect}
+        />
         <TimelineBlockLane
           label="Effects"
           durationFrames={animation.durationFrames}

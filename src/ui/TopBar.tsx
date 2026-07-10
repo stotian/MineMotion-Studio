@@ -35,6 +35,7 @@ interface TopBarProps {
   onOpenPlugins: () => void;
   onOpenCommands: () => void;
   onOpenExport: () => void;
+  onOpenRigStudio: () => void;
   onOpenHelp: () => void;
   onToggleRenderPreview: () => void;
 }
@@ -57,6 +58,7 @@ export function TopBar({
   onOpenPlugins,
   onOpenCommands,
   onOpenExport,
+  onOpenRigStudio,
   onOpenHelp,
   onToggleRenderPreview
 }: TopBarProps) {
@@ -124,6 +126,10 @@ export function TopBar({
         <button type="button" onClick={onOpenExport}>
           <Download size={16} />
           Export
+        </button>
+        <button type="button" onClick={onOpenRigStudio}>
+          <UserPlus size={16} />
+          Rig Studio
         </button>
         <button type="button" onClick={onOpenHelp}>
           <HelpCircle size={16} />

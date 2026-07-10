@@ -8,10 +8,20 @@ export function createMineMotionPackageData(
 ): MineMotionPackageData {
   const library = collectProjectAssets(project);
   const models: Record<string, string> = {};
+  const skins: Record<string, string> = {};
+  const blockbench: Record<string, string> = {};
   const audio: Record<string, string> = {};
 
   for (const asset of project.assets.obj) {
     models[`assets/models/${asset.id}.obj`] = asset.rawObj;
+  }
+
+  for (const skin of project.assets.skins ?? []) {
+    skins[`assets/skins/${skin.id}.png`] = skin.dataUrl;
+  }
+
+  for (const model of project.assets.blockbench ?? []) {
+    blockbench[`assets/blockbench/${model.id}.bbmodel.json`] = model.rawJson;
   }
 
   for (const clip of project.audio.clips) {
@@ -35,6 +45,8 @@ export function createMineMotionPackageData(
     },
     assets: {
       models,
+      skins,
+      blockbench,
       audio,
       thumbnails: {},
       metadata: {

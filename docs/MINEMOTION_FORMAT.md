@@ -12,6 +12,8 @@ a JSON payload with MIME type `application/vnd.minemotion.package+json`.
   "project": {},
   "assets": {
     "models": {},
+    "skins": {},
+    "blockbench": {},
     "audio": {},
     "thumbnails": {},
     "metadata": {}
@@ -38,11 +40,14 @@ The manifest stores:
 The package embeds:
 
 - OBJ raw strings under `assets.models`
+- skin data URLs under `assets.skins`
+- Blockbench raw JSON under `assets.blockbench`
 - audio data URLs under `assets.audio`
 - asset library metadata under `assets.metadata.assetLibrary`
 
-World data is currently stored as summary metadata only. Real chunk payload
-packaging is future work.
+World import metadata and optional chunk caches are stored in package metadata.
+Rig poses, skin references, bone tracks, and Blockbench model metadata are
+stored in the embedded project JSON.
 
 ## Compatibility
 

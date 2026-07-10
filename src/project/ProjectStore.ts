@@ -15,6 +15,9 @@ import { cloneTransform, createTransform } from "./ProjectFile";
 import type { AppSettings } from "../settings/AppSettings";
 import { DEFAULT_POST_PROCESSING } from "../rendering/postprocessing/PostProcessingPresets";
 import { DEFAULT_EXPORT_SETTINGS } from "../export/ExportSettings";
+import { getDefaultBoneRotations } from "../rigs/RigDefinition";
+import { getRigDefinition } from "../rigs/MinecraftRigPresets";
+import { createDefaultCharacterAttachments } from "../rigs/RigInstance";
 
 export function createId(prefix: string): string {
   const random = Math.random().toString(36).slice(2, 8);
@@ -61,6 +64,12 @@ export function createDefaultTimelineTracks(): TimelineTrackLane[] {
       id: "track_transform_main",
       type: "transform",
       name: "Transform",
+      items: []
+    },
+    {
+      id: "track_rig_main",
+      type: "rig",
+      name: "Rig Bones",
       items: []
     },
     {
@@ -121,7 +130,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     projectName: projectSettings.projectName,
     projectSettings,
     packageMetadata: {
@@ -143,7 +152,14 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
       lights: [sun]
     },
     assets: {
-      obj: []
+      obj: [],
+      skins: [],
+      blockbench: []
+    },
+    rigs: {
+      savedPoses: [],
+      animationClips: [],
+      blockbenchModels: []
     },
     assetLibrary: {
       records: [],
@@ -179,7 +195,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     metadata: {
       createdAt: now,
       updatedAt: now,
-      appVersion: "0.4.0"
+      appVersion: "0.5.0"
     }
   };
 }
@@ -188,6 +204,7 @@ export function createCharacter(
   name = "Minecraft Character",
   position: [number, number, number] = [0, 1.05, 0]
 ): CharacterEntity {
+  const rigDefinition = getRigDefinition("steve");
   return {
     id: createId("character"),
     type: "character",
@@ -196,16 +213,13 @@ export function createCharacter(
     locked: false,
     metadata: {},
     transform: createTransform({ position }),
-    rigPreset: "default_steve",
-    boneRotations: {
-      root: [0, 0, 0],
-      body: [0, 0, 0],
-      head: [0, 0, 0],
-      leftArm: [0, 0, -8],
-      rightArm: [0, 0, 8],
-      leftLeg: [0, 0, 0],
-      rightLeg: [0, 0, 0]
-    }
+    rigPreset: "steve",
+    modelType: "steve",
+    selectedBoneId: "body",
+    boneRotations: getDefaultBoneRotations(rigDefinition),
+    skin: null,
+    attachments: createDefaultCharacterAttachments(),
+    boneKeyframes: []
   };
 }
 

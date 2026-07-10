@@ -1,6 +1,6 @@
 # Cinematic Effects
 
-Effects are serializable timeline items stored in project schema v5.
+Effects are serializable timeline items stored in project schema v6.
 
 Each effect has:
 

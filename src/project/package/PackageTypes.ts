@@ -7,6 +7,8 @@ export interface MineMotionPackageData {
   project: MineMotionProject;
   assets: {
     models: Record<string, string>;
+    skins: Record<string, string>;
+    blockbench: Record<string, string>;
     audio: Record<string, string>;
     thumbnails: Record<string, string>;
     metadata: Record<string, unknown>;

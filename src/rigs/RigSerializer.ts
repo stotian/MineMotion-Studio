@@ -1,0 +1,66 @@
+import type { CharacterEntity, MineMotionProject } from "../project/ProjectFile";
+import { getDefaultBoneRotations } from "./RigDefinition";
+import { getRigDefinition, normalizeRigPresetId } from "./MinecraftRigPresets";
+import { createDefaultCharacterAttachments } from "./RigInstance";
+import type { RigProjectData, RigVector3Tuple } from "./RigTypes";
+
+export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntity {
+  const rigPreset = normalizeRigPresetId(character.rigPreset);
+  const definition = getRigDefinition(rigPreset);
+  const defaults = getDefaultBoneRotations(definition);
+  const boneRotations: Record<string, RigVector3Tuple> = { ...defaults };
+
+  for (const [boneId, rotation] of Object.entries(character.boneRotations ?? {})) {
+    boneRotations[boneId] = [
+      Number(rotation?.[0] ?? 0),
+      Number(rotation?.[1] ?? 0),
+      Number(rotation?.[2] ?? 0)
+    ];
+  }
+
+  return {
+    ...character,
+    rigPreset,
+    modelType: character.modelType ?? definition.modelType,
+    selectedBoneId:
+      character.selectedBoneId && definition.bones.some((bone) => bone.id === character.selectedBoneId)
+        ? character.selectedBoneId
+        : "body",
+    boneRotations,
+    skin: character.skin ?? null,
+    attachments: character.attachments ?? createDefaultCharacterAttachments(),
+    boneKeyframes: character.boneKeyframes ?? []
+  };
+}
+
+export function sanitizeRigProjectData(
+  rigs: Partial<RigProjectData> | undefined
+): RigProjectData {
+  return {
+    savedPoses: Array.isArray(rigs?.savedPoses) ? rigs.savedPoses : [],
+    animationClips: Array.isArray(rigs?.animationClips) ? rigs.animationClips : [],
+    blockbenchModels: Array.isArray(rigs?.blockbenchModels)
+      ? rigs.blockbenchModels
+      : []
+  };
+}
+
+export function getRigTimelineItems(project: MineMotionProject) {
+  return project.animation.tracks
+    .filter((track) => track.property.startsWith("bone.rotation."))
+    .map((track) => {
+      const boneId = track.property.replace("bone.rotation.", "");
+      const first = track.keyframes[0]?.frame ?? 0;
+      const last = track.keyframes.at(-1)?.frame ?? first;
+      const character = project.scene.characters.find((item) => item.id === track.targetId);
+      return {
+        id: `rig_${track.id}`,
+        type: "rig" as const,
+        label: `${character?.name ?? "Rig"}:${boneId}`,
+        targetId: track.targetId,
+        boneId,
+        startFrame: first,
+        durationFrames: Math.max(1, last - first)
+      };
+    });
+}

@@ -4,10 +4,13 @@ import {
   ChevronDown,
   Circle,
   Cuboid,
+  GitBranch,
   Lightbulb,
   User
 } from "lucide-react";
-import type { MineMotionProject, SceneEntity } from "../../project/ProjectFile";
+import type { CharacterEntity, MineMotionProject, SceneEntity } from "../../project/ProjectFile";
+import { getRigDefinition } from "../../rigs/MinecraftRigPresets";
+import { makeBoneObjectId } from "../../rigs/RigSelection";
 
 interface OutlinerPanelProps {
   project: MineMotionProject;
@@ -44,11 +47,10 @@ export function OutlinerPanel({
         </Section>
         <Section title="Characters">
           {project.scene.characters.map((entity) => (
-            <EntityItem
+            <CharacterItem
               key={entity.id}
               entity={entity}
-              selected={selectedObjectId === entity.id}
-              icon={<User size={15} />}
+              selectedObjectId={selectedObjectId}
               onSelect={onSelectObject}
             />
           ))}
@@ -92,6 +94,46 @@ export function OutlinerPanel({
         </Section>
       </div>
     </aside>
+  );
+}
+
+function CharacterItem({
+  entity,
+  selectedObjectId,
+  onSelect
+}: {
+  entity: CharacterEntity;
+  selectedObjectId: string | null;
+  onSelect: (objectId: string | null) => void;
+}) {
+  const definition = getRigDefinition(entity.rigPreset);
+  return (
+    <div className="outliner-character">
+      <EntityItem
+        entity={entity}
+        selected={selectedObjectId === entity.id}
+        icon={<User size={15} />}
+        onSelect={onSelect}
+      />
+      <div className="outliner-bones">
+        {definition.bones
+          .filter((bone) => bone.id !== "root")
+          .map((bone) => {
+            const objectId = makeBoneObjectId(entity.id, bone.id);
+            return (
+              <OutlinerItem
+                key={bone.id}
+                id={objectId}
+                name={bone.label}
+                icon={<GitBranch size={13} />}
+                selected={selectedObjectId === objectId}
+                meta="bone"
+                onSelect={onSelect}
+              />
+            );
+          })}
+      </div>
+    </div>
   );
 }
 

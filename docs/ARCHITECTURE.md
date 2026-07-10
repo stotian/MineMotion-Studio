@@ -26,7 +26,8 @@ flowchart LR
   Audio --> Timeline["Timeline"]
   Templates["Templates"] --> Project
   Presets["Presets"] --> Project
-  Importers["World / OBJ / SFX Importers"] --> Project
+  Importers["World / OBJ / SFX / Blockbench Importers"] --> Project
+  Rigs["Rig / Skin / Pose System"] --> Project
   Animation --> Renderer
   Tauri["Tauri Shell"] --> UI
 ```
@@ -51,8 +52,10 @@ flowchart LR
 - `src/assets/library`: package asset records and asset library serialization.
 - `src/minecraft`: block palette, terrain presets, world folder detection, NBT
   skeleton, and Anvil region helpers.
+- `src/rigs`: Minecraft rig definitions, Steve/Alex presets, skin import/UV
+  mapping, pose and animation presets, IK placeholders, and Blockbench import.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
-- `src/project`: schema v5, serializer, migrations, package helpers, timeline
+- `src/project`: schema v6, serializer, migrations, package helpers, timeline
   sync, initial state, and object helpers.
 - `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
@@ -61,7 +64,8 @@ flowchart LR
 
 ## Project System
 
-Project files use schema v5. The serializer migrates v1, v2, v3, and v4 projects by
+Project files use schema v6. The serializer migrates v1, v2, v3, v4, and v5
+projects by
 adding:
 
 - active camera
@@ -76,6 +80,7 @@ adding:
 - export settings
 - performance settings
 - imported world chunk metadata
+- rig presets, skin metadata, bone animation tracks, and Blockbench metadata
 
 ## Rendering
 

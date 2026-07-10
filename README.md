@@ -5,15 +5,14 @@ combines a Minecraft-like scene viewport, character/camera animation, timeline
 editing, cinematic VFX, SFX metadata, post-processing previews, and a Tauri
 desktop scaffold.
 
-Phase 4 adds the first real Minecraft world import engine: `level.dat` scanning,
-dimension detection, Anvil `.mca` headers, chunk NBT parsing, block state
-palette decoding, limited chunk import, face-culling mesh generation, and
-viewport display of imported chunks.
+Phase 5 adds professional Minecraft character tools: Steve/Alex rig presets,
+skin import and UV mapping, bone selection/editing, pose and animation
+libraries, rig timeline tracks, and a Blockbench `.bbmodel` import MVP.
 
 ## Current Version
 
-- App version: `0.4.0`
-- Project schema: `5`
+- App version: `0.5.0`
+- Project schema: `6`
 - Settings schema: `1`
 - Package format: `.minemotion` JSON package v1
 - License: MIT
@@ -28,7 +27,7 @@ viewport display of imported chunks.
   character rig, camera helpers, OBJ preview, sky presets, and selection outline.
 - Project save/load as `.minemotion` packages with legacy `.mmsproj` JSON import
   and export.
-- Migration from schema v1/v2/v3/v4 projects to schema v5.
+- Migration from schema v1/v2/v3/v4/v5 projects to schema v6.
 - App settings, autosave recovery, templates, presets, undo/redo, and plugin
   manager from earlier phases.
 - Cinematic effects library with lightning, impact frames, camera shake, flash,
@@ -59,6 +58,15 @@ viewport display of imported chunks.
   - modern block state palette decoding
   - face-culling instanced mesh preview
   - chunk borders and world origin viewport helpers
+- Professional character rig MVP:
+  - Steve Classic and Alex Slim rig presets
+  - bone-level selection from viewport and outliner
+  - bone rotation editing and keyframes
+  - pose library and rig animation presets
+  - skin PNG import with 64x64 and legacy 64x32 validation
+  - Minecraft skin UV mapping for core body parts
+  - Blockbench `.bbmodel` static geometry import MVP
+  - hand/head/back attachment point data
 - Blender-like shortcuts:
   - `Ctrl+P` command palette
   - `Ctrl+S` save `.minemotion`
@@ -71,6 +79,9 @@ viewport display of imported chunks.
 ## Current Limits
 
 - Real Minecraft texture/resource-pack loading is not implemented yet.
+- Blockbench rig mapping is not automatic yet; Phase 5 imports static cube
+  geometry as a preview object.
+- IK solver math is prepared but not implemented.
 - Import is intentionally bounded by max region files, max chunks, and max
   vertical sections.
 - Tested assumptions target modern Java Edition Anvil worlds using palette-based
@@ -124,14 +135,17 @@ installed and that command has completed successfully.
 
 ## Project And Package Format
 
-Current projects use `schemaVersion: 5`. The main save path downloads a
+Current projects use `schemaVersion: 6`. The main save path downloads a
 `.minemotion` file containing:
 
 - package manifest
-- schema v5 project JSON
+- schema v6 project JSON
 - embedded OBJ model data
+- embedded Minecraft skin data URLs
+- embedded Blockbench raw JSON
 - embedded audio data URLs
 - imported world metadata and optional imported chunk cache
+- rig poses and bone animation tracks
 - asset library metadata
 - package warnings
 
@@ -141,6 +155,11 @@ panel.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Phase 5 Rigs](docs/PHASE_5_RIGS.md)
+- [Skins](docs/SKINS.md)
+- [Rigging](docs/RIGGING.md)
+- [Blockbench Import](docs/BLOCKBENCH_IMPORT.md)
+- [Animation Presets](docs/ANIMATION_PRESETS.md)
 - [Phase 4 World Import](docs/PHASE_4_WORLD_IMPORT.md)
 - [Minecraft World Format](docs/MINECRAFT_WORLD_FORMAT.md)
 - [World Import Limitations](docs/WORLD_IMPORT_LIMITATIONS.md)
