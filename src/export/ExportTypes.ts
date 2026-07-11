@@ -3,7 +3,12 @@ export type ExportFormat =
   | "png_sequence"
   | "webm_video"
   | "mp4_video"
+  | "mp4_h264"
+  | "mp4_h265"
+  | "prores_video"
   | "wav_audio"
+  | "mp3_audio"
+  | "minemotion_package"
   | "audio_metadata";
 
 export type ExportQuality = "draft" | "medium" | "high";
@@ -29,6 +34,26 @@ export interface ExportValidationResult {
   valid: boolean;
   errors: string[];
   warnings: string[];
+  checklist?: ExportValidationChecklist;
+  estimates?: ExportEstimate;
+}
+
+export interface ExportValidationChecklist {
+  activeCamera: boolean;
+  frameRange: boolean;
+  outputFormat: boolean;
+  missingAssets: boolean;
+  audioSupport: boolean;
+  frameCount: boolean;
+  outputSize: boolean;
+  postProcessing: boolean;
+  effects: boolean;
+}
+
+export interface ExportEstimate {
+  frameCount: number;
+  durationSeconds: number;
+  estimatedSizeBytes: number;
 }
 
 export type ExportStatus =

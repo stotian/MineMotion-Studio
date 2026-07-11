@@ -4,6 +4,8 @@ import type { AudioClip } from "../audio/AudioTypes";
 import type { AssetLibraryData } from "../assets/library/AssetRecord";
 import type { EffectInstance } from "../effects/EffectTypes";
 import type { ExportSettings } from "../export/ExportTypes";
+import type { FfmpegSettings } from "../export/ffmpeg/FfmpegSettings";
+import type { RenderQueueState } from "../export/renderQueue/RenderJob";
 import type {
   ImportedChunkData,
   ImportedChunkRange,
@@ -262,7 +264,7 @@ export interface RenderSettings {
 }
 
 export interface MineMotionProject {
-  schemaVersion: 8;
+  schemaVersion: 9;
   projectName: string;
   projectSettings: ProjectSettings;
   packageMetadata: ProjectPackageMetadata;
@@ -297,6 +299,8 @@ export interface MineMotionProject {
   postProcessing: PostProcessingSettings;
   renderSettings: RenderSettings;
   exportSettings: ExportSettings;
+  ffmpegSettings: FfmpegSettings;
+  renderQueue: RenderQueueState;
   performanceSettings: {
     showDiagnostics: boolean;
     targetFps: number;

@@ -8,5 +8,5 @@ export function isWebMExportSupported(): boolean {
 }
 
 export function mp4ExportStatus(): string {
-  return "MP4 export requires a future FFmpeg/native pipeline. Browser mode exports PNG sequences and can support WebM where MediaRecorder is available.";
+  return "MP4 requires the Tauri desktop runtime and a user-installed FFmpeg executable detected in Production Export.";
 }

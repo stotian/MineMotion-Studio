@@ -10,9 +10,9 @@ export interface ExportPreset {
 export const EXPORT_PRESETS: ExportPreset[] = [
   {
     id: "draft-720p",
-    name: "Draft 720p",
+    name: "Draft Preview 720p",
     description: "Fast low-resolution preview export.",
-    settings: { width: 1280, height: 720, quality: "draft" }
+    settings: { width: 1280, height: 720, quality: "draft", format: "webm_video" }
   },
   {
     id: "youtube-1080p",
@@ -28,14 +28,14 @@ export const EXPORT_PRESETS: ExportPreset[] = [
   },
   {
     id: "vertical-1080x1920",
-    name: "TikTok/Reels 1080x1920",
+    name: "Vertical Shorts 1080x1920",
     description: "Vertical social export.",
     settings: { width: 1080, height: 1920, quality: "high" }
   },
   {
     id: "cinematic-235",
-    name: "Cinematic 2.35:1",
-    description: "1920x817 cinematic frame.",
+    name: "Cinematic 2.35:1 1080p",
+    description: "1920x817 cinematic output with letterbox composition.",
     settings: {
       width: 1920,
       height: 817,
@@ -51,7 +51,7 @@ export const EXPORT_PRESETS: ExportPreset[] = [
   },
   {
     id: "png-sequence-hq",
-    name: "PNG Sequence HQ",
+    name: "High Quality PNG Sequence",
     description: "High quality PNG sequence ZIP.",
     settings: { format: "png_sequence", quality: "high" }
   },
@@ -63,6 +63,18 @@ export const EXPORT_PRESETS: ExportPreset[] = [
       format: "png_sequence",
       transparentBackground: true,
       quality: "high"
+    }
+  },
+  {
+    id: "low-file-size-webm",
+    name: "Low File Size WebM",
+    description: "Browser-compatible 720p WebM preview with draft quality.",
+    settings: {
+      format: "webm_video",
+      width: 1280,
+      height: 720,
+      quality: "draft",
+      includeAudio: false
     }
   }
 ];

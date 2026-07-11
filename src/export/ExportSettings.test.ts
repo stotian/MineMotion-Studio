@@ -24,7 +24,7 @@ describe("export settings", () => {
     expect(settings.outputName).toBe("my-render");
   });
 
-  it("rejects unsupported MP4 exports", () => {
+  it("rejects MP4 in browser mode and accepts detected native FFmpeg", () => {
     const project = createInitialProject();
     const validation = validateExportSettings(
       {
@@ -36,5 +36,20 @@ describe("export settings", () => {
 
     expect(validation.valid).toBe(false);
     expect(validation.errors.join(" ")).toMatch(/MP4/i);
+
+    const nativeValidation = validateExportSettings(
+      {
+        ...project.exportSettings,
+        format: "mp4_h264",
+        includeAudio: false
+      },
+      project,
+      {
+        ffmpegAvailable: true,
+        ffmpegOutputDirectory: "C:\\Renders"
+      }
+    );
+
+    expect(nativeValidation.valid).toBe(true);
   });
 });

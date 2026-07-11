@@ -35,4 +35,4 @@ full weighted NLA evaluation/blending is intentionally deferred.
 ## Serialization
 
 Clips, NLA tracks, markers, keyframe IDs, and interpolation modes are included
-in schema v8 project and `.minemotion` package data.
+in schema v9 project and `.minemotion` package data.

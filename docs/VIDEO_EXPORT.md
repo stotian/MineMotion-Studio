@@ -1,7 +1,7 @@
 # Video Export
 
-Phase 3 includes browser WebM recording where available and explicitly marks MP4
-as future work.
+Browser WebM and desktop FFmpeg video exports have different capability
+boundaries and are presented separately in the UI.
 
 ## WebM
 
@@ -15,7 +15,11 @@ WebM export uses:
 Because it records the live viewport, the output resolution is the viewport
 canvas resolution rather than the requested export width and height.
 
-## MP4
+WebM is currently video-only. Export WAV separately or use native MP4 when a
+muxed audio result is required.
 
-MP4 is not implemented. It requires a future FFmpeg/native pipeline through
-Tauri or another native renderer.
+## Native Video
+
+The Tauri build detects a user-installed FFmpeg executable, stages deterministic
+PNG frames and optional WAV audio, then supports H.264 MP4, H.265 MP4, and
+ProRes MOV. FFmpeg is not bundled and browser mode never claims those formats.

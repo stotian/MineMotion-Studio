@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import type { CameraEntity } from "../project/ProjectFile";
 
 export class CameraController {
   readonly camera: THREE.PerspectiveCamera;
@@ -32,9 +33,20 @@ export class CameraController {
     this.camera.updateProjectionMatrix();
   }
 
-  lookThrough(position: [number, number, number]): void {
-    this.camera.position.set(position[0], position[1], position[2]);
-    this.controls.target.set(0, 2, 0);
+  lookThrough(camera: CameraEntity): void {
+    this.camera.position.set(...camera.transform.position);
+    this.camera.fov = camera.fov;
+    this.camera.near = camera.near;
+    this.camera.far = camera.far;
+    const rotation = new THREE.Euler(
+      THREE.MathUtils.degToRad(camera.transform.rotation[0]),
+      THREE.MathUtils.degToRad(camera.transform.rotation[1]),
+      THREE.MathUtils.degToRad(camera.transform.rotation[2]),
+      "YXZ"
+    );
+    const forward = new THREE.Vector3(0, 0, -1).applyEuler(rotation);
+    this.controls.target.copy(this.camera.position).add(forward);
+    this.camera.updateProjectionMatrix();
     this.controls.update();
   }
 

@@ -4,21 +4,32 @@ import type { AudioExportSettings } from "./AudioExportSettings";
 import { DEFAULT_AUDIO_EXPORT_SETTINGS } from "./AudioExportSettings";
 import { encodeWav } from "./WavEncoder";
 
+export interface ProjectAudioMixdownOptions extends Partial<AudioExportSettings> {
+  startFrame?: number;
+  endFrame?: number;
+}
+
 export async function exportProjectWav(
   project: MineMotionProject,
-  settings: Partial<AudioExportSettings> = {}
+  settings: ProjectAudioMixdownOptions = {}
 ): Promise<Blob> {
   if (typeof OfflineAudioContext === "undefined") {
     throw new Error("WAV mixdown is not supported in this browser.");
   }
 
   const audioSettings = { ...DEFAULT_AUDIO_EXPORT_SETTINGS, ...settings };
+  const rangeStart = Math.max(0, Math.round(settings.startFrame ?? 0));
+  const defaultEnd = Math.max(
+    project.animation.durationFrames,
+    ...project.audio.clips.map((clip) => clip.startFrame + clip.durationFrames)
+  );
+  const rangeEnd = Math.max(
+    rangeStart,
+    Math.round(settings.endFrame ?? defaultEnd)
+  );
   const durationSeconds = Math.max(
-    project.animation.durationFrames / project.animation.fps,
-    ...project.audio.clips.map(
-      (clip) => (clip.startFrame + clip.durationFrames) / project.animation.fps
-    ),
-    1
+    (rangeEnd - rangeStart + 1) / project.animation.fps,
+    1 / project.animation.fps
   );
   const frameCount = Math.ceil(durationSeconds * audioSettings.sampleRate);
   const context = new OfflineAudioContext(
@@ -28,8 +39,13 @@ export async function exportProjectWav(
   );
 
   for (const clip of project.audio.clips) {
-    const startTime = clip.startFrame / project.animation.fps;
-    const duration = clip.durationFrames / project.animation.fps;
+    const clipEnd = clip.startFrame + clip.durationFrames;
+    const overlapStart = Math.max(rangeStart, clip.startFrame);
+    const overlapEnd = Math.min(rangeEnd + 1, clipEnd);
+    if (overlapEnd <= overlapStart) continue;
+    const startTime = (overlapStart - rangeStart) / project.animation.fps;
+    const sourceOffset = (overlapStart - clip.startFrame) / project.animation.fps;
+    const duration = (overlapEnd - overlapStart) / project.animation.fps;
     if (clip.sourceKind === "builtin-placeholder") {
       const sfx = getBuiltinSfx(clip.sourceName);
       const oscillator = context.createOscillator();
@@ -51,7 +67,7 @@ export async function exportProjectWav(
     source.loop = clip.loop;
     gain.gain.value = clip.volume;
     source.connect(gain).connect(context.destination);
-    source.start(startTime, 0, duration);
+    source.start(startTime, sourceOffset, duration);
   }
 
   const rendered = await context.startRendering();

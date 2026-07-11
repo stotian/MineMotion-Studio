@@ -4,6 +4,8 @@ import { sanitizeAssetLibrary } from "../assets/library/AssetSerializer";
 import { sanitizeEffects } from "../effects/EffectSerializer";
 import { createEffectTimelineItems } from "../effects/EffectTimelineTrack";
 import { withExportSettingsDefaults } from "../export/ExportSettings";
+import { withFfmpegSettingsDefaults } from "../export/ffmpeg/FfmpegSettings";
+import { sanitizeRenderQueue } from "../export/renderQueue/RenderQueueStore";
 import {
   withPostProcessingDefaults
 } from "../rendering/postprocessing/PostProcessingPresets";
@@ -30,7 +32,7 @@ import {
   createDefaultTimelineTracks
 } from "./ProjectStore";
 
-const CURRENT_SCHEMA_VERSION = 8;
+const CURRENT_SCHEMA_VERSION = 9;
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -61,7 +63,7 @@ export class ProjectSerializer {
       return ProjectSerializer.migrate(parsed);
     }
 
-    const project = ProjectSerializer.withV8Defaults(parsed);
+    const project = ProjectSerializer.withV9Defaults(parsed);
     ProjectSerializer.assertValidProject(project);
     return project;
   }
@@ -70,9 +72,9 @@ export class ProjectSerializer {
     if (parsed.schemaVersion === 1) {
       ProjectSerializer.assertLegacyCoreData(parsed);
       const migratedV2 = ProjectSerializer.withV2CompatibilityDefaults(parsed);
-      const migratedV8 = ProjectSerializer.withV8Defaults(migratedV2);
-      ProjectSerializer.assertValidProject(migratedV8);
-      return migratedV8;
+      const migratedV9 = ProjectSerializer.withV9Defaults(migratedV2);
+      ProjectSerializer.assertValidProject(migratedV9);
+      return migratedV9;
     }
 
     if (
@@ -81,11 +83,12 @@ export class ProjectSerializer {
       parsed.schemaVersion === 4 ||
       parsed.schemaVersion === 5 ||
       parsed.schemaVersion === 6 ||
-      parsed.schemaVersion === 7
+      parsed.schemaVersion === 7 ||
+      parsed.schemaVersion === 8
     ) {
-      const migratedV8 = ProjectSerializer.withV8Defaults(parsed);
-      ProjectSerializer.assertValidProject(migratedV8);
-      return migratedV8;
+      const migratedV9 = ProjectSerializer.withV9Defaults(parsed);
+      ProjectSerializer.assertValidProject(migratedV9);
+      return migratedV9;
     }
 
     if (parsed.schemaVersion === undefined) {
@@ -116,7 +119,7 @@ export class ProjectSerializer {
     };
   }
 
-  private static withV8Defaults(project: UnknownProject): MineMotionProject {
+  private static withV9Defaults(project: UnknownProject): MineMotionProject {
     const settingsDefaults = createDefaultProjectSettings();
     const effects = sanitizeEffects(project.effects?.instances);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
@@ -151,7 +154,7 @@ export class ProjectSerializer {
 
     return {
       ...(project as MineMotionProject),
-      schemaVersion: 8,
+      schemaVersion: 9,
       projectName: projectSettings.projectName,
       projectSettings,
       packageMetadata: {
@@ -228,6 +231,8 @@ export class ProjectSerializer {
         ...project.renderSettings
       },
       exportSettings: withExportSettingsDefaults(project.exportSettings),
+      ffmpegSettings: withFfmpegSettingsDefaults(project.ffmpegSettings),
+      renderQueue: sanitizeRenderQueue(project.renderQueue),
       performanceSettings: {
         showDiagnostics: project.performanceSettings?.showDiagnostics ?? true,
         targetFps: project.performanceSettings?.targetFps ?? 60,
@@ -268,7 +273,7 @@ export class ProjectSerializer {
       metadata: {
         createdAt: project.metadata?.createdAt ?? new Date().toISOString(),
         updatedAt: project.metadata?.updatedAt ?? new Date().toISOString(),
-        appVersion: "0.8.1"
+        appVersion: "0.8.2"
       }
     };
   }
@@ -471,6 +476,10 @@ export class ProjectSerializer {
 
     if (!project.exportSettings || !project.assetLibrary) {
       throw new Error("Project file is missing Phase 3 export/package data.");
+    }
+
+    if (!project.ffmpegSettings || !project.renderQueue) {
+      throw new Error("Project file is missing Phase 7 production export data.");
     }
 
     if (!project.minecraftResources || !project.lighting) {

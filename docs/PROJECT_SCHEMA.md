@@ -1,6 +1,12 @@
 # Project Schema
 
-Current project files use `schemaVersion: 8`.
+Current project files use `schemaVersion: 9`.
+
+## Added In Schema 9
+
+- persistent render queue jobs, status, progress, logs, and output paths
+- FFmpeg executable, output directory, overwrite, and quality settings
+- recovery of interrupted running jobs back to queued state
 
 ## Added In Schema 8
 
@@ -63,14 +69,15 @@ Current project files use `schemaVersion: 8`.
 
 The serializer supports:
 
-- v1 -> v8
-- v2 -> v8
-- v3 -> v8
-- v4 -> v8
-- v5 -> v8
-- v6 -> v8
-- v7 -> v8
-- v8 round-trip
+- v1 -> v9
+- v2 -> v9
+- v3 -> v9
+- v4 -> v9
+- v5 -> v9
+- v6 -> v9
+- v7 -> v9
+- v8 -> v9
+- v9 round-trip
 
 Missing Phase 2, Phase 3, Phase 4, Phase 5, Phase 6, and Phase 8 fields are filled with safe
 defaults.
@@ -107,4 +114,4 @@ JSON payload. Schema v5 adds imported world metadata and optional imported
 chunk cache data. Schema v6 adds rig, skin, pose, and Blockbench data. Schema
 v7 adds resource packs, materials, lighting, atmosphere, and environment keys.
 Schema v8 adds professional animation-editor metadata, markers, reusable clips,
-and NLA tracks.
+and NLA tracks. Schema v9 adds production render queue and FFmpeg settings.

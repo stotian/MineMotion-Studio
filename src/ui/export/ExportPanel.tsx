@@ -1,23 +1,36 @@
 import {
   Archive,
+  CheckCircle2,
   Download,
   FileJson,
   Film,
+  HardDrive,
   Image,
   Package,
+  Plus,
+  RefreshCw,
   Square,
-  Volume2
+  Volume2,
+  XCircle
 } from "lucide-react";
 import { collectProjectAssets } from "../../assets/library/AssetLibrary";
-import { audioExportStatus, isAudioMixdownSupported } from "../../audio/export/AudioExportSupport";
+import {
+  audioExportStatus,
+  isAudioMixdownSupported
+} from "../../audio/export/AudioExportSupport";
 import { EXPORT_PRESETS } from "../../export/ExportPresets";
 import { validateExportSettings } from "../../export/ExportSettings";
 import type {
+  ExportEstimate,
   ExportFormat,
   ExportProgressState,
-  ExportSettings
+  ExportSettings,
+  ExportValidationChecklist
 } from "../../export/ExportTypes";
-import { isWebMExportSupported, mp4ExportStatus } from "../../export/VideoExporter";
+import type { FfmpegDetectionResult } from "../../export/ffmpeg/FfmpegDetector";
+import type { FfmpegSettings } from "../../export/ffmpeg/FfmpegSettings";
+import { RenderQueuePanel } from "../../export/renderQueue/RenderQueuePanel";
+import { isWebMExportSupported } from "../../export/VideoExporter";
 import type { MineMotionProject } from "../../project/ProjectFile";
 
 interface ExportPanelProps {
@@ -25,8 +38,15 @@ interface ExportPanelProps {
   project: MineMotionProject;
   progress: ExportProgressState;
   isExporting: boolean;
+  ffmpegDetection: FfmpegDetectionResult;
   onClose: () => void;
   onSettingsChange: (settings: ExportSettings) => void;
+  onFfmpegSettingsChange: (settings: FfmpegSettings) => void;
+  onDetectFfmpeg: () => void;
+  onAddRenderJob: () => void;
+  onRunRenderJob: (jobId: string) => void;
+  onRemoveRenderJob: (jobId: string) => void;
+  onClearFinishedRenderJobs: () => void;
   onSavePackage: () => void;
   onExportLegacyProject: () => void;
   onExportCurrentFrame: () => void;
@@ -41,8 +61,15 @@ export function ExportPanel({
   project,
   progress,
   isExporting,
+  ffmpegDetection,
   onClose,
   onSettingsChange,
+  onFfmpegSettingsChange,
+  onDetectFfmpeg,
+  onAddRenderJob,
+  onRunRenderJob,
+  onRemoveRenderJob,
+  onClearFinishedRenderJobs,
   onSavePackage,
   onExportLegacyProject,
   onExportCurrentFrame,
@@ -54,17 +81,20 @@ export function ExportPanel({
   if (!open) return null;
 
   const settings = project.exportSettings;
-  const validation = validateExportSettings(settings, project);
+  const validation = validateExportSettings(settings, project, {
+    ffmpegAvailable: ffmpegDetection.available,
+    ffmpegOutputDirectory: project.ffmpegSettings.outputDirectory
+  });
   const assetLibrary = collectProjectAssets(project);
   const canRunVisualExport = validation.valid && !isExporting;
   const webmSupported = isWebMExportSupported();
   const audioSupported = isAudioMixdownSupported();
 
   const updateSettings = (patch: Partial<ExportSettings>) => {
-    onSettingsChange({
-      ...settings,
-      ...patch
-    });
+    onSettingsChange({ ...settings, ...patch });
+  };
+  const updateFfmpegSettings = (patch: Partial<FfmpegSettings>) => {
+    onFfmpegSettingsChange({ ...project.ffmpegSettings, ...patch });
   };
 
   return (
@@ -73,17 +103,15 @@ export function ExportPanel({
         className="modal-panel export-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Export"
+        aria-label="Production export"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
           <h2>
             <Download size={18} />
-            Export
+            Production Export
           </h2>
-          <button type="button" onClick={onClose}>
-            Close
-          </button>
+          <button type="button" onClick={onClose}>Close</button>
         </div>
 
         <div className="export-layout">
@@ -93,25 +121,29 @@ export function ExportPanel({
               Output name
               <input
                 value={settings.outputName}
-                onChange={(event) =>
-                  updateSettings({ outputName: event.target.value })
-                }
+                onChange={(event) => updateSettings({ outputName: event.target.value })}
               />
             </label>
             <label>
               Format
               <select
                 value={settings.format}
-                onChange={(event) =>
-                  updateSettings({ format: event.target.value as ExportFormat })
-                }
+                onChange={(event) => updateSettings({ format: event.target.value as ExportFormat })}
               >
-                <option value="png_frame">Current frame PNG</option>
-                <option value="png_sequence">PNG sequence ZIP</option>
-                <option value="webm_video">WebM video</option>
-                <option value="wav_audio">WAV audio</option>
-                <option value="audio_metadata">Audio metadata</option>
-                <option value="mp4_video">MP4 video placeholder</option>
+                <optgroup label="Browser and desktop">
+                  <option value="png_frame">PNG current frame</option>
+                  <option value="png_sequence">PNG sequence ZIP</option>
+                  <option value="webm_video">WebM video (video only)</option>
+                  <option value="wav_audio">WAV audio mixdown</option>
+                  <option value="minemotion_package">.minemotion package</option>
+                  <option value="audio_metadata">Audio metadata JSON</option>
+                </optgroup>
+                <optgroup label="Desktop + user-installed FFmpeg">
+                  <option value="mp4_h264">MP4 H.264</option>
+                  <option value="mp4_h265">MP4 H.265</option>
+                  <option value="prores_video">ProRes MOV</option>
+                  <option value="mp3_audio">MP3 audio</option>
+                </optgroup>
               </select>
             </label>
             <div className="export-grid-2">
@@ -139,11 +171,7 @@ export function ExportPanel({
                 Quality
                 <select
                   value={settings.quality}
-                  onChange={(event) =>
-                    updateSettings({
-                      quality: event.target.value as ExportSettings["quality"]
-                    })
-                  }
+                  onChange={(event) => updateSettings({ quality: event.target.value as ExportSettings["quality"] })}
                 >
                   <option value="draft">Draft</option>
                   <option value="medium">Medium</option>
@@ -172,9 +200,7 @@ export function ExportPanel({
                 <option value="active">Active camera</option>
                 <option value="viewport">Viewport camera</option>
                 {project.scene.cameras.map((camera) => (
-                  <option key={camera.id} value={camera.id}>
-                    {camera.name}
-                  </option>
+                  <option key={camera.id} value={camera.id}>{camera.name}</option>
                 ))}
               </select>
             </label>
@@ -185,9 +211,7 @@ export function ExportPanel({
             <CheckboxField
               label="Include post-processing"
               checked={settings.includePostProcessing}
-              onChange={(value) =>
-                updateSettings({ includePostProcessing: value })
-              }
+              onChange={(value) => updateSettings({ includePostProcessing: value })}
             />
             <CheckboxField
               label="Include cinematic VFX overlays"
@@ -197,29 +221,21 @@ export function ExportPanel({
             <CheckboxField
               label="Include cinematic bars"
               checked={settings.includeCinematicBars}
-              onChange={(value) =>
-                updateSettings({ includeCinematicBars: value })
-              }
+              onChange={(value) => updateSettings({ includeCinematicBars: value })}
             />
             <CheckboxField
               label="Transparent PNG background"
               checked={settings.transparentBackground}
-              onChange={(value) =>
-                updateSettings({ transparentBackground: value })
-              }
+              onChange={(value) => updateSettings({ transparentBackground: value })}
             />
             <CheckboxField
-              label="Include audio when video pipeline supports it"
+              label="Include audio where the selected format supports it"
               checked={settings.includeAudio}
               onChange={(value) => updateSettings({ includeAudio: value })}
             />
             <div className="export-presets">
               {EXPORT_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => updateSettings(preset.settings)}
-                >
+                <button key={preset.id} type="button" onClick={() => updateSettings(preset.settings)}>
                   {preset.name}
                 </button>
               ))}
@@ -227,82 +243,159 @@ export function ExportPanel({
           </section>
 
           <section>
-            <h3>Package</h3>
-            <div className="export-actions">
-              <button type="button" className="primary-action" onClick={onSavePackage}>
-                <Package size={16} />
-                Save .minemotion
-              </button>
-              <button type="button" onClick={onExportLegacyProject}>
-                <FileJson size={16} />
-                Export .mmsproj
-              </button>
+            <h3><HardDrive size={16} /> FFmpeg Desktop</h3>
+            <label>
+              FFmpeg executable or path
+              <input
+                value={project.ffmpegSettings.executablePath}
+                onChange={(event) => updateFfmpegSettings({ executablePath: event.target.value })}
+                placeholder="ffmpeg or C:\\ffmpeg\\bin\\ffmpeg.exe"
+              />
+            </label>
+            <label>
+              Native output directory
+              <input
+                value={project.ffmpegSettings.outputDirectory}
+                onChange={(event) => updateFfmpegSettings({ outputDirectory: event.target.value })}
+                placeholder="C:\\Users\\you\\Videos"
+              />
+            </label>
+            <label>
+              Encoding target
+              <select
+                value={project.ffmpegSettings.videoQuality}
+                onChange={(event) => updateFfmpegSettings({
+                  videoQuality: event.target.value as FfmpegSettings["videoQuality"]
+                })}
+              >
+                <option value="small">Smaller file</option>
+                <option value="balanced">Balanced</option>
+                <option value="high">High quality</option>
+              </select>
+            </label>
+            <CheckboxField
+              label="Overwrite existing output"
+              checked={project.ffmpegSettings.overwriteExisting}
+              onChange={(value) => updateFfmpegSettings({ overwriteExisting: value })}
+            />
+            <div className="ffmpeg-status">
+              {ffmpegDetection.available ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+              <span>{ffmpegDetection.message}</span>
             </div>
-            <div className="export-library">
-              <strong>{assetLibrary.records.length} tracked assets</strong>
-              <span>
-                {assetLibrary.records.filter((asset) => asset.missing).length} missing
-              </span>
-              <span>{assetLibrary.warnings.length} package warnings</span>
-            </div>
-            <p className="empty-note">
-              The .minemotion package embeds project JSON, OBJ assets, audio data
-              URLs, manifest metadata, and an asset library index.
-            </p>
+            <button type="button" onClick={onDetectFfmpeg} disabled={isExporting}>
+              <RefreshCw size={15} />
+              Detect FFmpeg
+            </button>
           </section>
 
           <section>
-            <h3>Run Export</h3>
+            <h3>Validation</h3>
+            <ValidationChecklist checklist={validation.checklist} />
+            {validation.estimates && <EstimateBlock estimate={validation.estimates} />}
+            <StatusBlock
+              validationErrors={validation.errors}
+              validationWarnings={[
+                ...validation.warnings,
+                ...(webmSupported ? [] : ["WebM is unavailable in this runtime."]),
+                ...(audioSupported ? [] : [audioExportStatus()])
+              ]}
+              progress={progress}
+            />
+          </section>
+
+          <section>
+            <h3>Run or Package</h3>
             <div className="export-actions">
               <button
                 type="button"
-                disabled={!canRunVisualExport}
-                onClick={onExportCurrentFrame}
+                className="primary-action"
+                disabled={!validation.valid || isExporting}
+                onClick={onAddRenderJob}
               >
-                <Image size={16} />
-                PNG Frame
+                <Plus size={16} />
+                Add to Queue
               </button>
-              <button
-                type="button"
-                disabled={!canRunVisualExport}
-                onClick={onExportSequence}
-              >
-                <Archive size={16} />
-                PNG ZIP
+              <button type="button" disabled={!canRunVisualExport} onClick={onExportCurrentFrame}>
+                <Image size={16} /> PNG Frame
+              </button>
+              <button type="button" disabled={!canRunVisualExport} onClick={onExportSequence}>
+                <Archive size={16} /> PNG ZIP
               </button>
               <button
                 type="button"
                 disabled={!canRunVisualExport || !webmSupported}
                 onClick={onExportWebM}
               >
-                <Film size={16} />
-                WebM
+                <Film size={16} /> WebM
               </button>
-              <button
-                type="button"
-                disabled={isExporting || !audioSupported}
-                onClick={onExportWav}
-              >
-                <Volume2 size={16} />
-                WAV
+              <button type="button" disabled={isExporting || !audioSupported} onClick={onExportWav}>
+                <Volume2 size={16} /> WAV
               </button>
               <button type="button" disabled={!isExporting} onClick={onCancelExport}>
-                <Square size={16} />
-                Cancel
+                <Square size={16} /> Cancel
               </button>
             </div>
-            <StatusBlock
-              validationErrors={validation.errors}
-              validationWarnings={[
-                ...validation.warnings,
-                ...(webmSupported ? [] : [mp4ExportStatus()]),
-                audioExportStatus()
-              ]}
-              progress={progress}
+            <div className="export-actions export-package-actions">
+              <button type="button" onClick={onSavePackage}>
+                <Package size={16} /> Save .minemotion
+              </button>
+              <button type="button" onClick={onExportLegacyProject}>
+                <FileJson size={16} /> Export .mmsproj
+              </button>
+            </div>
+            <div className="export-library">
+              <strong>{assetLibrary.records.length} tracked assets</strong>
+              <span>{assetLibrary.records.filter((asset) => asset.missing).length} missing</span>
+              <span>{assetLibrary.warnings.length} package warnings</span>
+            </div>
+          </section>
+
+          <section className="export-wide-section">
+            <h3>Render Queue</h3>
+            <RenderQueuePanel
+              queue={project.renderQueue}
+              onRun={onRunRenderJob}
+              onRemove={onRemoveRenderJob}
+              onClearFinished={onClearFinishedRenderJobs}
             />
           </section>
         </div>
       </section>
+    </div>
+  );
+}
+
+function ValidationChecklist({ checklist }: { checklist?: ExportValidationChecklist }) {
+  if (!checklist) return null;
+  const items: Array<[keyof ExportValidationChecklist, string]> = [
+    ["activeCamera", "Export camera"],
+    ["frameRange", "Frame range"],
+    ["outputFormat", "Format support"],
+    ["missingAssets", "Asset availability"],
+    ["audioSupport", "Audio compatibility"],
+    ["frameCount", "Frame count"],
+    ["outputSize", "Estimated size"],
+    ["postProcessing", "Post-processing state"],
+    ["effects", "VFX state"]
+  ];
+  return (
+    <div className="export-checklist">
+      {items.map(([key, label]) => (
+        <span className={checklist[key] ? "valid" : "warning"} key={key}>
+          {checklist[key] ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function EstimateBlock({ estimate }: { estimate: ExportEstimate }) {
+  return (
+    <div className="export-estimate">
+      <span>{estimate.frameCount.toLocaleString()} frames</span>
+      <span>{estimate.durationSeconds.toFixed(2)} seconds</span>
+      <span>Approx. {formatBytes(estimate.estimatedSizeBytes)}</span>
     </div>
   );
 }
@@ -345,11 +438,7 @@ function CheckboxField({
 }) {
   return (
     <label className="checkbox-label">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
       {label}
     </label>
   );
@@ -368,16 +457,12 @@ function StatusBlock({
     <div className="export-status">
       {validationErrors.length > 0 && (
         <ul className="export-errors">
-          {validationErrors.map((error) => (
-            <li key={error}>{error}</li>
-          ))}
+          {validationErrors.map((error) => <li key={error}>{error}</li>)}
         </ul>
       )}
       {validationWarnings.length > 0 && (
         <ul className="export-warnings">
-          {validationWarnings.map((warning) => (
-            <li key={warning}>{warning}</li>
-          ))}
+          {validationWarnings.map((warning) => <li key={warning}>{warning}</li>)}
         </ul>
       )}
       <div className="export-progress">
@@ -390,4 +475,16 @@ function StatusBlock({
       </div>
     </div>
   );
+}
+
+function formatBytes(value: number): string {
+  if (value < 1024) return `${Math.round(value)} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let size = value / 1024;
+  let index = 0;
+  while (size >= 1024 && index < units.length - 1) {
+    size /= 1024;
+    index += 1;
+  }
+  return `${size.toFixed(size >= 100 ? 0 : 1)} ${units[index]}`;
 }

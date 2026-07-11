@@ -1,6 +1,7 @@
 # User Guide
 
-This guide describes the editor workflow through Phase 8.
+This guide describes the editor workflow through Phase 8, including the Phase 7
+production export system.
 
 ## Start The App
 
@@ -150,14 +151,29 @@ Click **Export** in the top bar.
 Available output:
 
 - **Save .minemotion**: saves the full package payload.
-- **Export .mmsproj**: exports legacy-compatible schema v8 project JSON.
+- **Export .mmsproj**: exports legacy-compatible schema v9 project JSON.
 - **PNG Frame**: captures the current viewport frame.
 - **PNG ZIP**: captures the selected frame range as numbered PNG files inside a
   ZIP archive.
 - **WebM**: records the live viewport canvas when browser `MediaRecorder`
-  support is available.
+  support is available. It is video-only.
 - **WAV**: mixes imported audio and generated placeholder SFX when
   `OfflineAudioContext` support is available.
+- **MP4 H.264/H.265, ProRes, MP3**: available only in the desktop app after a
+  user-installed FFmpeg executable is detected.
+
+For production output:
+
+1. Configure format, frame range, resolution, FPS, camera, and render options.
+2. Review the validation checklist and frame/duration/size estimate.
+3. For a native format, enter the FFmpeg executable and an existing output
+   directory, then click **Detect FFmpeg**.
+4. Click **Add to Queue**.
+5. Run the job with the play button and inspect progress, logs, errors, or the
+   resulting native path.
+
+Only one job runs at a time. Jobs can be retried, removed, or cleared after
+completion. Cancellation is checked between rendered frames.
 
 Export settings include output name, format, frame range, FPS, width, height,
 quality, camera target, transparency, post-processing, VFX overlays, cinematic
@@ -212,7 +228,7 @@ chase, over-shoulder, and dramatic zoom setups.
 
 Use the top toolbar or `Ctrl+S` to download a `.minemotion` package. Legacy
 `.mmsproj` and JSON project files can still be opened. Phase 1, Phase 1.5, and
-Projects using schemas v1 through v7 are migrated to schema v8 when opened.
+Projects using schemas v1 through v8 are migrated to schema v9 when opened.
 
 ## Current Limits
 
@@ -226,4 +242,6 @@ Projects using schemas v1 through v7 are migrated to schema v8 when opened.
   `.mca` payloads.
 - External plugin scripts are not executed yet.
 - Native Tauri file dialogs are not wired yet.
-- MP4 export is planned for a future FFmpeg/native pipeline.
+- Browser mode does not encode MP4, H.265, ProRes, or MP3.
+- WebM records live viewport resolution and does not mux project audio.
+- Desktop native formats require a separately installed FFmpeg build.

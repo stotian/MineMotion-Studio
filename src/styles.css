@@ -1192,6 +1192,151 @@ select {
   gap: 0.6rem;
 }
 
+.export-modal {
+  width: min(1180px, 97vw);
+  max-height: min(92vh, 920px);
+}
+
+.export-wide-section {
+  grid-column: 1 / -1;
+}
+
+.ffmpeg-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0.7rem 0;
+  color: #aeb8c8;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.ffmpeg-status svg {
+  flex: 0 0 auto;
+  margin-top: 0.08rem;
+}
+
+.export-checklist {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.export-checklist span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.75rem;
+}
+
+.export-checklist .valid {
+  color: #8ed7a3;
+}
+
+.export-checklist .warning {
+  color: #e3bd76;
+}
+
+.export-estimate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.export-estimate span {
+  padding: 0.3rem 0.45rem;
+  border: 1px solid #303a49;
+  border-radius: 5px;
+  color: #aeb8c8;
+  font-size: 0.72rem;
+}
+
+.export-package-actions {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #293241;
+}
+
+.render-queue {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.render-queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.render-job-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.render-job {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.65rem;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid #303a49;
+  border-radius: 6px;
+  background: #101620;
+}
+
+.render-job-running {
+  border-color: #6082e8;
+}
+
+.render-job-complete {
+  border-color: #3f7651;
+}
+
+.render-job-error {
+  border-color: #8d4c55;
+}
+
+.render-job > div:first-child {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.render-job span,
+.render-job small {
+  min-width: 0;
+  overflow: hidden;
+  color: #8996aa;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.render-job progress,
+.render-job > small {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.render-job-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.render-job-actions button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.render-job .render-job-error {
+  color: #ffadad;
+}
+
 .export-actions,
 .export-presets {
   display: flex;
@@ -1443,7 +1588,13 @@ select {
 @media (max-width: 900px) {
   .settings-grid,
   .template-grid,
-  .plugin-row {
+  .plugin-row,
+  .export-layout,
+  .render-job-list {
     grid-template-columns: 1fr;
+  }
+
+  .export-wide-section {
+    grid-column: auto;
   }
 }

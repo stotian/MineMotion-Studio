@@ -1,5 +1,9 @@
 import type { MineMotionProject } from "../project/ProjectFile";
 import type { ExportSettings, ExportValidationResult } from "./ExportTypes";
+import {
+  validateProductionExport,
+  type ExportCapabilities
+} from "./ExportValidation";
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   format: "png_frame",
@@ -49,35 +53,10 @@ export function withExportSettingsDefaults(
 
 export function validateExportSettings(
   settings: ExportSettings,
-  project: MineMotionProject
+  project: MineMotionProject,
+  capabilities: ExportCapabilities = {}
 ): ExportValidationResult {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-
-  if (settings.startFrame > settings.endFrame) {
-    errors.push("Start frame must be before or equal to end frame.");
-  }
-  if (settings.endFrame > project.animation.durationFrames) {
-    warnings.push("End frame is beyond the project duration and will render empty hold frames.");
-  }
-  if (settings.width * settings.height > 3840 * 2160) {
-    warnings.push("Resolution is above 4K and may be slow in browser export.");
-  }
-  if (settings.format === "mp4_video") {
-    errors.push("MP4 export requires the future FFmpeg/native pipeline.");
-  }
-  if (settings.cameraId === "active" && !project.activeCameraId) {
-    errors.push("No active camera is set.");
-  }
-  if (!settings.outputName) {
-    errors.push("Output name is required.");
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-    warnings
-  };
+  return validateProductionExport(settings, project, capabilities);
 }
 
 export function sanitizeOutputName(name: string): string {

@@ -7,6 +7,18 @@ export function restoreRenderState(
 ): MineMotionProject {
   return {
     ...project,
+    activeCameraId: snapshot.activeCameraId,
+    scene: {
+      ...project.scene,
+      cameras: project.scene.cameras.map((camera) => ({
+        ...camera,
+        active: snapshot.activeCameraFlags[camera.id] ?? false
+      }))
+    },
+    renderSettings: {
+      ...project.renderSettings,
+      renderPreviewEnabled: snapshot.renderPreviewEnabled
+    },
     animation: {
       ...project.animation,
       currentFrame: snapshot.currentFrame,

@@ -5,14 +5,15 @@ combines a Minecraft-like scene viewport, character/camera animation, timeline
 editing, cinematic VFX, SFX metadata, post-processing previews, and a Tauri
 desktop scaffold.
 
-Phase 8 adds user-supplied Minecraft resource packs, texture-aware block
-materials, biome tint controls, animated time of day, environment keyframes,
-and a unified Lighting Studio with cinematic mood/post presets.
+Phase 7 adds a production render queue, deterministic final-camera capture,
+export preflight, browser PNG/WebM/WAV workflows, and a restricted desktop
+bridge for user-installed FFmpeg. Phase 8 adds user-supplied resource packs,
+Minecraft materials, biome tint, animated time of day, and Lighting Studio.
 
 ## Current Version
 
-- App version: `0.8.1`
-- Project schema: `8`
+- App version: `0.8.2`
+- Project schema: `9`
 - Settings schema: `1`
 - Package format: `.minemotion` JSON package v1
 - License: MIT
@@ -27,7 +28,7 @@ and a unified Lighting Studio with cinematic mood/post presets.
   character rig, camera helpers, OBJ preview, sky presets, and selection outline.
 - Project save/load as `.minemotion` packages with legacy `.mmsproj` JSON import
   and export.
-- Migration from schema v1/v2/v3/v4/v5/v6/v7 projects to schema v8.
+- Migration from schema v1 through v8 projects to schema v9.
 - App settings, autosave recovery, templates, presets, undo/redo, and plugin
   manager from earlier phases.
 - Cinematic effects library with lightning, impact frames, camera shake, flash,
@@ -44,10 +45,15 @@ and a unified Lighting Studio with cinematic mood/post presets.
 - Export pipeline:
   - current viewport frame as PNG
   - frame range as PNG sequence ZIP
-  - WebM recording through browser `MediaRecorder` where available
-  - legacy `.mmsproj` export for compatibility
-- Export presets for 720p, 1080p, 1440p, vertical, square, cinematic 2.35:1,
-  high-quality PNG sequences, and transparent PNG sequences.
+  - video-only WebM through browser `MediaRecorder` where available
+  - selected-range WAV audio mixdown
+  - persistent render queue with logs, cancellation, retry, and recovery
+  - final camera position, rotation, FOV, and clipping settings
+  - validation checklist and rough frame/duration/size estimates
+  - H.264, H.265, ProRes, and MP3 through detected user-installed FFmpeg in Tauri
+  - legacy `.mmsproj`, audio metadata, and `.minemotion` package jobs
+- Export presets for draft 720p, YouTube 1080p/1440p, Vertical Shorts,
+  cinematic 2.35:1, WebM, and PNG sequences.
 - Asset library index for OBJ assets, audio clips, and world summary metadata.
 - Real world import MVP:
   - folder scan through browser directory selection
@@ -110,7 +116,11 @@ and a unified Lighting Studio with cinematic mood/post presets.
 - `.minemotion` is currently a JSON package payload, not a binary ZIP archive.
 - WebM export depends on browser `MediaRecorder` and records the live viewport
   canvas resolution.
-- MP4 export requires a future FFmpeg/native pipeline.
+- Browser mode does not support MP4, H.265, ProRes, or MP3. Desktop export
+  requires a user-installed FFmpeg executable and an existing output directory.
+- WebM is video-only and uses live viewport resolution.
+- Native cancellation is checked before FFmpeg starts; an active FFmpeg process
+  runs to completion in the current MVP.
 - The final EffectComposer shader stack is represented by safe preview/export
   overlays, not a full offline compositor.
 - External plugin JavaScript execution is still disabled.
@@ -154,11 +164,11 @@ installed and that command has completed successfully.
 
 ## Project And Package Format
 
-Current projects use `schemaVersion: 8`. The main save path downloads a
+Current projects use `schemaVersion: 9`. The main save path downloads a
 `.minemotion` file containing:
 
 - package manifest
-- schema v8 project JSON
+- schema v9 project JSON
 - embedded OBJ model data
 - embedded Minecraft skin data URLs
 - embedded Blockbench raw JSON
@@ -166,6 +176,7 @@ Current projects use `schemaVersion: 8`. The main save path downloads a
 - embedded audio data URLs
 - imported world metadata and optional imported chunk cache
 - rig poses and bone animation tracks
+- render queue history and FFmpeg settings
 - asset library metadata
 - package warnings
 
@@ -182,6 +193,10 @@ panel.
 - [Animation Presets](docs/ANIMATION_PRESETS.md)
 - [Phase 8 Materials And Lighting](docs/PHASE_8_MATERIALS_LIGHTING.md)
 - [Phase 6 Animation Editor](docs/PHASE_6_ANIMATION_EDITOR.md)
+- [Phase 7 Render And Export](docs/PHASE_7_RENDER_EXPORT.md)
+- [Render Queue](docs/RENDER_QUEUE.md)
+- [FFmpeg Export](docs/FFMPEG_EXPORT.md)
+- [Export Formats](docs/EXPORT_FORMATS.md)
 - [Dopesheet](docs/DOPESHEET.md)
 - [Graph Editor](docs/GRAPH_EDITOR.md)
 - [Animation Clips](docs/ANIMATION_CLIPS.md)

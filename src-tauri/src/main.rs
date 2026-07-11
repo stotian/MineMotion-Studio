@@ -1,11 +1,5 @@
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .run(tauri::generate_context!())
-        .expect("error while running MineMotion Studio");
-}
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    run();
+    minemotion_studio_lib::run();
 }
-

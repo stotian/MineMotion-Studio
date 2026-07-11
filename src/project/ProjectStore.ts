@@ -15,6 +15,8 @@ import { cloneTransform, createTransform } from "./ProjectFile";
 import type { AppSettings } from "../settings/AppSettings";
 import { DEFAULT_POST_PROCESSING } from "../rendering/postprocessing/PostProcessingPresets";
 import { DEFAULT_EXPORT_SETTINGS } from "../export/ExportSettings";
+import { DEFAULT_FFMPEG_SETTINGS } from "../export/ffmpeg/FfmpegSettings";
+import { DEFAULT_RENDER_QUEUE } from "../export/renderQueue/RenderQueueStore";
 import { getDefaultBoneRotations } from "../rigs/RigDefinition";
 import { getRigDefinition } from "../rigs/MinecraftRigPresets";
 import { createDefaultCharacterAttachments } from "../rigs/RigInstance";
@@ -139,7 +141,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 8,
+    schemaVersion: 9,
     projectName: projectSettings.projectName,
     projectSettings,
     packageMetadata: {
@@ -202,6 +204,11 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
       endFrame: projectSettings.durationFrames,
       fps: projectSettings.fps
     },
+    ffmpegSettings: { ...DEFAULT_FFMPEG_SETTINGS },
+    renderQueue: {
+      ...DEFAULT_RENDER_QUEUE,
+      jobs: []
+    },
     performanceSettings: {
       showDiagnostics: true,
       targetFps: 60,
@@ -222,7 +229,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     metadata: {
       createdAt: now,
       updatedAt: now,
-      appVersion: "0.8.1"
+      appVersion: "0.8.2"
     }
   };
 }

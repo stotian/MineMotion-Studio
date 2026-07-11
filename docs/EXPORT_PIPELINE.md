@@ -1,6 +1,6 @@
 # Export Pipeline
 
-The Phase 3 export pipeline is browser-first and uses the live viewport canvas.
+The production pipeline supports browser downloads and a desktop FFmpeg bridge.
 
 ## Supported Outputs
 
@@ -11,7 +11,10 @@ The Phase 3 export pipeline is browser-first and uses the live viewport canvas.
   `MediaRecorder` where supported.
 - `wav_audio`: renders project audio through `OfflineAudioContext` where
   supported.
-- `mp4_video`: validated as unsupported until a future FFmpeg/native pipeline.
+- `minemotion_package`: writes a portable MineMotion project package.
+- `audio_metadata`: writes clip/timing metadata as JSON.
+- `mp4_h264`, `mp4_h265`, `prores_video`, and `mp3_audio`: desktop-only,
+  enabled after FFmpeg detection.
 
 ## Settings
 
@@ -42,3 +45,6 @@ PNG sequence export:
 6. restores the original timeline state
 
 Cancellation is checked between frames.
+
+Production jobs are persisted in schema v9 with status, progress, logs, and
+errors. See `RENDER_QUEUE.md` and `FFMPEG_EXPORT.md`.

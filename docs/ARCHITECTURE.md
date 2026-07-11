@@ -42,8 +42,12 @@ flowchart LR
   overlay style pipeline.
 - `src/rendering/export`: render state snapshot/restore and viewport frame
   export helpers.
-- `src/export`: export settings, progress, PNG frame export, PNG sequence ZIP,
-  and browser video support checks.
+- `src/export`: export settings, validation, PNG/ZIP/WebM/WAV outputs, FFmpeg
+  command planning, and the persistent production render queue.
+- `src/export/ffmpeg`: native detection, settings, restricted Tauri sessions,
+  and codec command construction.
+- `src/export/renderQueue`: jobs, transitions, serialization, runner, UI, and
+  production format dispatch.
 - `src/effects`: effect definitions, instances, registry, serializer, spawner,
   and timeline helpers.
 - `src/audio`: audio clip types, import helpers, placeholder SFX registry,
@@ -55,16 +59,16 @@ flowchart LR
 - `src/rigs`: Minecraft rig definitions, Steve/Alex presets, skin import/UV
   mapping, pose and animation presets, IK placeholders, and Blockbench import.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
-- `src/project`: schema v8, serializer, migrations, package helpers, timeline
+- `src/project`: schema v9, serializer, migrations, package helpers, timeline
   sync, initial state, and object helpers.
 - `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
   built-in plugin metadata.
-- `src-tauri`: Tauri v2 desktop shell scaffold.
+- `src-tauri`: Tauri v2 desktop shell and restricted FFmpeg staging commands.
 
 ## Project System
 
-Project files use schema v8. The serializer migrates v1 through v7
+Project files use schema v9. The serializer migrates v1 through v8
 projects by
 adding:
 
@@ -81,6 +85,7 @@ adding:
 - performance settings
 - imported world chunk metadata
 - rig presets, skin metadata, bone animation tracks, and Blockbench metadata
+- render queue history and FFmpeg settings
 
 ## Rendering
 

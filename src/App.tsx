@@ -14,6 +14,15 @@ import { effectRegistry } from "./effects/EffectRegistry";
 import type { EffectInstance, EffectType } from "./effects/EffectTypes";
 import { spawnEffectAtFrame } from "./effects/EffectSpawner";
 import { exportCurrentFramePng } from "./export/FrameExporter";
+import {
+  detectFfmpeg,
+  WEB_FFMPEG_STATUS,
+  type FfmpegDetectionResult
+} from "./export/ffmpeg/FfmpegDetector";
+import {
+  withFfmpegSettingsDefaults,
+  type FfmpegSettings
+} from "./export/ffmpeg/FfmpegSettings";
 import { createExportProgress, IDLE_EXPORT_PROGRESS } from "./export/ExportProgress";
 import {
   sanitizeOutputName,
@@ -23,6 +32,15 @@ import {
 import type { ExportResult, ExportSettings } from "./export/ExportTypes";
 import { exportPngSequenceZip } from "./export/SequenceExporter";
 import { recordCanvasWebM } from "./export/video/WebMRecorder";
+import { createRenderJob } from "./export/renderQueue/RenderJob";
+import {
+  clearFinishedRenderJobs,
+  enqueueRenderJob,
+  removeRenderJob,
+  replaceRenderJob
+} from "./export/renderQueue/RenderQueue";
+import { RenderJobRunner } from "./export/renderQueue/RenderJobRunner";
+import { executeProductionRenderJob } from "./export/renderQueue/ProductionRenderExecutor";
 import { HistoryStack } from "./history/HistoryStack";
 import type { MinecraftWorldScan } from "./minecraft/import/MinecraftChunkTypes";
 import {
@@ -82,6 +100,7 @@ import type {
   PostProcessingSettings
 } from "./rendering/postprocessing/PostProcessingTypes";
 import { renderViewportFrameToPng } from "./rendering/export/OfflineFrameRenderer";
+import { createFinalCameraFrame } from "./rendering/export/FinalCameraRenderer";
 import { createRenderStateSnapshot } from "./rendering/export/RenderStateSnapshot";
 import { restoreRenderState } from "./rendering/export/RenderStateRestore";
 import { type SkyPresetId } from "./renderer/SkySystem";
@@ -153,6 +172,8 @@ export function App() {
     IDLE_WORLD_IMPORT_PROGRESS
   );
   const [exportProgress, setExportProgress] = useState(IDLE_EXPORT_PROGRESS);
+  const [ffmpegDetection, setFfmpegDetection] =
+    useState<FfmpegDetectionResult>(WEB_FFMPEG_STATUS);
   const [plugins, setPlugins] = useState(() => pluginRegistry.list());
 
   const historyRef = useRef(new HistoryStack<MineMotionProject>());
@@ -169,6 +190,7 @@ export function App() {
   const lastPlaybackTimeRef = useRef<number | null>(null);
   const previousAudioFrameRef = useRef(0);
   const exportCancelledRef = useRef(false);
+  const renderJobRunnerRef = useRef(new RenderJobRunner());
   const worldImportCancelledRef = useRef(false);
 
   const presets = useMemo(() => presetRegistry.snapshot(), []);
@@ -993,6 +1015,173 @@ export function App() {
     setIsDirty(true);
   }, []);
 
+  const handleFfmpegSettingsChange = useCallback(
+    (ffmpegSettings: FfmpegSettings) => {
+      const nextSettings = withFfmpegSettingsDefaults(ffmpegSettings);
+      if (
+        nextSettings.executablePath !== project.ffmpegSettings.executablePath
+      ) {
+        setFfmpegDetection({
+          available: false,
+          nativeRuntime: ffmpegDetection.nativeRuntime,
+          executable: nextSettings.executablePath,
+          version: "",
+          message: "FFmpeg executable changed. Run detection again."
+        });
+      }
+      setProject((currentProject) => ({
+        ...currentProject,
+        ffmpegSettings: nextSettings
+      }));
+      setIsDirty(true);
+    },
+    [ffmpegDetection.nativeRuntime, project.ffmpegSettings.executablePath]
+  );
+
+  const handleDetectFfmpeg = useCallback(async () => {
+    setStatus("Detecting FFmpeg...");
+    const result = await detectFfmpeg(project.ffmpegSettings);
+    setFfmpegDetection(result);
+    setStatus(result.message);
+  }, [project.ffmpegSettings]);
+
+  const handleAddRenderJob = useCallback(() => {
+    const validation = validateExportSettings(project.exportSettings, project, {
+      ffmpegAvailable: ffmpegDetection.available,
+      ffmpegOutputDirectory: project.ffmpegSettings.outputDirectory
+    });
+    if (!validation.valid) {
+      setStatus(validation.errors.join(" "));
+      return;
+    }
+    const job = createRenderJob(project.exportSettings);
+    setProject((currentProject) => ({
+      ...currentProject,
+      renderQueue: enqueueRenderJob(currentProject.renderQueue, job)
+    }));
+    setIsDirty(true);
+    setStatus(`Added ${job.name} to the render queue.`);
+  }, [ffmpegDetection.available, project]);
+
+  const handleRemoveRenderJob = useCallback((jobId: string) => {
+    setProject((currentProject) => ({
+      ...currentProject,
+      renderQueue: removeRenderJob(currentProject.renderQueue, jobId)
+    }));
+    setIsDirty(true);
+  }, []);
+
+  const handleClearFinishedRenderJobs = useCallback(() => {
+    setProject((currentProject) => ({
+      ...currentProject,
+      renderQueue: clearFinishedRenderJobs(currentProject.renderQueue)
+    }));
+    setIsDirty(true);
+  }, []);
+
+  const handleRunRenderJob = useCallback(
+    async (jobId: string) => {
+      const job = project.renderQueue.jobs.find((item) => item.id === jobId);
+      if (!job || project.renderQueue.activeJobId) return;
+
+      const validation = validateExportSettings(job.settings, project, {
+        ffmpegAvailable: ffmpegDetection.available,
+        ffmpegOutputDirectory: project.ffmpegSettings.outputDirectory
+      });
+      if (!validation.valid) {
+        setStatus(validation.errors.join(" "));
+        return;
+      }
+
+      exportCancelledRef.current = false;
+      const snapshot = createRenderStateSnapshot(project);
+      const viewportShell = getViewportShell();
+      const totalFrames = Math.max(
+        1,
+        job.settings.endFrame - job.settings.startFrame + 1
+      );
+      const renderProject = {
+        ...project,
+        exportSettings: job.settings
+      };
+      const presentFrame = async (frame: number) => {
+        setProject((currentProject) =>
+          createFinalCameraFrame(currentProject, job.settings, frame)
+        );
+        await waitForNextPaint();
+      };
+      const captureFrame = async (frame: number) => {
+        await presentFrame(frame);
+        return await renderViewportFrameToPng(
+          viewportShell,
+          createFinalCameraFrame(renderProject, job.settings, frame),
+          job.settings
+        );
+      };
+
+      const runner = renderJobRunnerRef.current;
+      try {
+        const finalJob = await runner.run(
+          job,
+          async (context) =>
+            await executeProductionRenderJob({
+              job,
+              project: renderProject,
+              ffmpegSettings: project.ffmpegSettings,
+              context,
+              adapters: {
+                captureFrame,
+                presentFrame,
+                getViewportCanvas: () => {
+                  const canvas = viewportShell.querySelector("canvas");
+                  if (!canvas) {
+                    throw new Error("No viewport canvas is available for video export.");
+                  }
+                  return canvas;
+                },
+                download: downloadBlob
+              }
+            }),
+          (updatedJob) => {
+            setProject((currentProject) => ({
+              ...currentProject,
+              renderQueue: replaceRenderJob(
+                currentProject.renderQueue,
+                updatedJob
+              )
+            }));
+            const progressStatus =
+              updatedJob.status === "complete"
+                ? "complete"
+                : updatedJob.status === "cancelled"
+                  ? "cancelled"
+                  : updatedJob.status === "error"
+                    ? "error"
+                    : updatedJob.progress >= 0.85
+                      ? "encoding"
+                      : "rendering";
+            setExportProgress(
+              createExportProgress({
+                status: progressStatus,
+                currentFrame: Math.round(updatedJob.progress * totalFrames),
+                totalFrames,
+                message: updatedJob.message,
+                error: updatedJob.error
+              })
+            );
+          }
+        );
+        setStatus(finalJob.message);
+      } finally {
+        setProject((currentProject) =>
+          restoreRenderState(currentProject, snapshot)
+        );
+        setIsDirty(true);
+      }
+    },
+    [ffmpegDetection.available, project]
+  );
+
   const validateCurrentExport = useCallback(() => {
     const validation = validateExportSettings(project.exportSettings, project);
     if (!validation.valid) {
@@ -1143,7 +1332,8 @@ export function App() {
       const recorder = recordCanvasWebM(
         canvas,
         totalFrames * frameDurationMs,
-        settings.fps
+        settings.fps,
+        settings.quality
       );
       for (
         let frame = settings.startFrame, index = 0;
@@ -1205,7 +1395,10 @@ export function App() {
     );
 
     try {
-      const blob = await exportProjectWav(project);
+      const blob = await exportProjectWav(project, {
+        startFrame: project.exportSettings.startFrame,
+        endFrame: project.exportSettings.endFrame
+      });
       const filename = `${sanitizeOutputName(project.exportSettings.outputName)}.wav`;
       downloadBlob(blob, filename);
       setExportProgress(
@@ -1232,6 +1425,7 @@ export function App() {
 
   const handleCancelExport = useCallback(() => {
     exportCancelledRef.current = true;
+    renderJobRunnerRef.current.cancel();
     setExportProgress(
       createExportProgress({
         status: "cancelled",
@@ -2257,8 +2451,15 @@ export function App() {
           exportProgress.status === "rendering" ||
           exportProgress.status === "encoding"
         }
+        ffmpegDetection={ffmpegDetection}
         onClose={() => setExportOpen(false)}
         onSettingsChange={handleExportSettingsChange}
+        onFfmpegSettingsChange={handleFfmpegSettingsChange}
+        onDetectFfmpeg={handleDetectFfmpeg}
+        onAddRenderJob={handleAddRenderJob}
+        onRunRenderJob={handleRunRenderJob}
+        onRemoveRenderJob={handleRemoveRenderJob}
+        onClearFinishedRenderJobs={handleClearFinishedRenderJobs}
         onSavePackage={handleSaveProject}
         onExportLegacyProject={handleExportLegacyProject}
         onExportCurrentFrame={handleExportCurrentFrame}

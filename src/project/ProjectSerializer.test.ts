@@ -3,18 +3,20 @@ import { createInitialProject } from "./ProjectStore";
 import { ProjectSerializer } from "./ProjectSerializer";
 
 describe("ProjectSerializer", () => {
-  it("round-trips a schema v8 project", () => {
+  it("round-trips a schema v9 project", () => {
     const project = createInitialProject();
     const raw = ProjectSerializer.serialize(project);
     const parsed = ProjectSerializer.parse(raw);
 
-    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.schemaVersion).toBe(9);
     expect(parsed.projectSettings.schemaVersion).toBe(1);
     expect(parsed.postProcessing.presetId).toBe("clean-preview");
     expect(parsed.renderSettings.resolutionPreset).toBe("1080p");
     expect(parsed.effects.instances).toEqual([]);
     expect(parsed.audio.clips).toEqual([]);
     expect(parsed.exportSettings.width).toBe(1920);
+    expect(parsed.renderQueue.jobs).toEqual([]);
+    expect(parsed.ffmpegSettings.executablePath).toBe("ffmpeg");
     expect(parsed.assetLibrary.records).toEqual([]);
     expect(parsed.performanceSettings.cacheStaticTerrain).toBe(true);
     expect(parsed.rigs.savedPoses).toEqual([]);
@@ -43,7 +45,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacy));
 
-    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.schemaVersion).toBe(9);
     expect(parsed.projectSettings.projectName).toBe(project.projectName);
     expect(parsed.projectSettings.fps).toBe(project.animation.fps);
     expect(parsed.renderSettings.renderPreviewEnabled).toBe(false);
@@ -73,7 +75,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV2));
 
-    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.schemaVersion).toBe(9);
     expect(parsed.activeCameraId).toBe(parsed.scene.cameras[0].id);
     expect(parsed.scene.cameras[0].active).toBe(true);
     expect(parsed.postProcessing.enabled).toBe(true);
@@ -105,7 +107,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV4));
 
-    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.schemaVersion).toBe(9);
     expect(parsed.world?.selectedDimension).toBe("overworld");
     expect(parsed.world?.importedChunks).toEqual([]);
     expect(parsed.world?.renderOptions?.showChunkBorders).toBe(true);
@@ -134,7 +136,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV5));
 
-    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.schemaVersion).toBe(9);
     expect(parsed.scene.characters[0].rigPreset).toBe("steve");
     expect(parsed.scene.characters[0].skin).toBeNull();
     expect(parsed.scene.characters[0].attachments?.length).toBeGreaterThan(0);
@@ -157,7 +159,7 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV6));
 
-    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.schemaVersion).toBe(9);
     expect(parsed.lighting.presetId).toBe("clear-day");
     expect(parsed.minecraftResources.textureFiltering).toBe("nearest");
     expect(parsed.minecraftResources.activeResourcePackId).toBeNull();
@@ -185,12 +187,36 @@ describe("ProjectSerializer", () => {
 
     const parsed = ProjectSerializer.parse(JSON.stringify(legacyV7));
 
-    expect(parsed.schemaVersion).toBe(8);
+    expect(parsed.schemaVersion).toBe(9);
     expect(parsed.animation.markers).toEqual([]);
     expect(parsed.animation.clips).toEqual([]);
     expect(parsed.animation.nlaTracks).toEqual([]);
     expect(parsed.animation.tracks[0].keyframes[0].id).toBeTruthy();
     expect(parsed.animation.tracks[0].keyframes[0].interpolation).toBe("linear");
+  });
+
+  it("migrates a schema v8 project to production render defaults", () => {
+    const project = createInitialProject();
+    const legacyV8 = {
+      ...project,
+      schemaVersion: 8,
+      ffmpegSettings: undefined,
+      renderQueue: undefined
+    };
+
+    const parsed = ProjectSerializer.parse(JSON.stringify(legacyV8));
+
+    expect(parsed.schemaVersion).toBe(9);
+    expect(parsed.ffmpegSettings).toMatchObject({
+      executablePath: "ffmpeg",
+      outputDirectory: "",
+      overwriteExisting: false
+    });
+    expect(parsed.renderQueue).toEqual({
+      jobs: [],
+      activeJobId: null,
+      historyLimit: 30
+    });
   });
 
   it("rejects invalid project JSON", () => {

@@ -56,6 +56,11 @@ export function Viewport({
     return null;
   }, [project, selectedObjectId]);
 
+  const activeCamera = useMemo(
+    () => project.scene.cameras.find((camera) => camera.id === project.activeCameraId) ?? null,
+    [project.activeCameraId, project.scene.cameras]
+  );
+
   const activeEffects = useMemo(
     () =>
       project.effects.instances.filter((effect) =>
@@ -136,6 +141,12 @@ export function Viewport({
       rendererRef.current?.lookThroughCamera(selectedCamera);
     }
   }, [lookThroughCameraRequest, selectedCamera]);
+
+  useEffect(() => {
+    if (project.renderSettings.renderPreviewEnabled && activeCamera) {
+      rendererRef.current?.lookThroughCamera(activeCamera);
+    }
+  }, [activeCamera, project.renderSettings.renderPreviewEnabled]);
 
   useEffect(() => {
     if (resetCameraRequest > 0 && project.scene.cameras[0]) {

@@ -94,7 +94,7 @@ export class SceneRenderer {
   }
 
   lookThroughCamera(camera: CameraEntity): void {
-    this.controller.lookThrough(camera.transform.position);
+    this.controller.lookThrough(camera);
   }
 
   focusImportedWorld(): void {

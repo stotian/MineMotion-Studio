@@ -3,6 +3,7 @@ dist/
 dist-ssr/
 target/
 src-tauri/target/
+src-tauri/gen/schemas/
 .DS_Store
 *.local
 *.log
@@ -13,4 +14,3 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
-

@@ -89,13 +89,19 @@
 - Reusable animation clips.
 - NLA-style clip stacking skeleton.
 
-## Phase 7: Production Rendering (Pending Completion)
+## Phase 7: Production Rendering
 
-- MP4 export through FFmpeg or native pipeline.
-- Real EffectComposer/shader export stack.
-- Camera render queue.
-- Native save/open dialogs.
-- Offline Three.js render target.
+- Persistent render queue, logs, progress, retry, cancellation, and recovery.
+- Deterministic frame stepping and final-camera capture.
+- PNG frame, PNG sequence ZIP, video-only WebM, selected-range WAV, package,
+  and audio metadata outputs.
+- Restricted Tauri bridge for user-installed FFmpeg.
+- H.264, H.265, ProRes, and MP3 native output targets.
+- Export presets, validation checklist, and rough output estimates.
+
+Future rendering work includes a true offscreen Three.js render target, a full
+EffectComposer stack, native file dialogs, and cancellation of an FFmpeg process
+after encoding has already started.
 
 ## Future: External Plugin System
 

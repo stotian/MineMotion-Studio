@@ -1,6 +1,7 @@
 export const FFMPEG_EXPORT_PLAN = [
   "Export deterministic PNG sequence.",
-  "Export WAV mixdown or audio metadata.",
-  "Invoke FFmpeg in a future Tauri/native layer.",
-  "Mux frames and audio to MP4/WebM with user-selected codec settings."
+  "Export the selected frame range as a WAV mixdown.",
+  "Stage generated files through the restricted Tauri FFmpeg bridge.",
+  "Mux frames and audio to H.264, H.265, or ProRes without bundling FFmpeg.",
+  "Clean the temporary render directory after completion or cancellation."
 ];
