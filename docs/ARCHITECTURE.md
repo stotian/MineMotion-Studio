@@ -9,6 +9,9 @@ rewrite.
 ```mermaid
 flowchart LR
   UI["React UI"] --> AppState["App State"]
+  Core["Core Contracts"] --> AppState
+  Capabilities["Capability Registry"] --> UI
+  Capabilities --> Export
   AppState --> Project["Project Store"]
   AppState --> Settings["Settings Store"]
   AppState --> History["History Stack"]
@@ -34,6 +37,8 @@ flowchart LR
 
 ## Modules
 
+- `src/core`: stable IDs, frame time, scene contracts, schema/version helpers,
+  typed errors, runtime capabilities, and lightweight service boundaries.
 - `src/ui`: editor panels, modals, command palette, effects panel, settings,
   plugin manager, and help UI.
 - `src/renderer`: Three.js viewport, camera controls, sky, grid, materials,
@@ -89,29 +94,45 @@ adding:
 
 ## Rendering
 
-The renderer still uses a simple full scene rebuild strategy. Phase 2 adds
-world-space VFX into the scene root:
+The renderer still uses a simple full scene rebuild strategy. Current
+world-space effects are created in the scene root:
 
 - lightning bolt lines
 - shockwave rings
 - glow burst cube particles
 
 Screen-space effects and post-processing are handled by React overlays around
-the canvas. Phase 3 export captures those overlays through a canvas capture
-path for PNG output and records the live viewport canvas for WebM where browser
-support allows it.
+the canvas. Export captures those overlays through a canvas capture path for
+PNG output and records the live viewport canvas for WebM where browser support
+allows it. Final-camera offline capture samples explicit frames, while large
+PNG sequences still remain memory-bound in browser mode.
 
 ## Timeline
 
-The original transform tracks remain unchanged. Phase 2 adds `timelineTracks`
-for typed lanes:
+Transform animation tracks remain compatible with the professional animation
+editor. `timelineTracks` provide typed lanes for:
 
 - transform
+- rig
+- camera
 - effect
 - audio
 - postProcessing
+- sky
 
 Effect/audio lanes are synchronized from `effects.instances` and `audio.clips`.
+
+## Stable Boundaries
+
+`src/core/scene` now owns generic vector, transform, and scene-entity contracts.
+`ProjectFile.ts` re-exports them so current modules remain source compatible.
+The project schema version is centralized in `src/core/serialization`, and
+existing WebM, audio, and Tauri support helpers delegate to the central
+capability registry.
+
+Service interfaces identify scene, timeline, render, VFX, audio, asset,
+project, export, and plugin boundaries. They document future extraction from
+`App.tsx`; they are deliberately not a new runtime container.
 
 ## Audio
 

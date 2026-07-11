@@ -1,5 +1,7 @@
+import { isOfflineAudioAvailable } from "../../core/capabilities/CapabilityRegistry";
+
 export function isAudioMixdownSupported(): boolean {
-  return typeof OfflineAudioContext !== "undefined";
+  return isOfflineAudioAvailable();
 }
 
 export function audioExportStatus(): string {

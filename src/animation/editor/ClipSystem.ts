@@ -1,4 +1,5 @@
 import { createKeyframeId } from "../Keyframe";
+import { createId } from "../../core/ids/Id";
 import type {
   AnimationTrack,
   ReusableAnimationClip,
@@ -32,7 +33,7 @@ export function createAnimationClip(
     ...included.flatMap((track) => track.keyframes.map((keyframe) => keyframe.frame))
   );
   return {
-    id: `clip_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+    id: createId("clip"),
     name: name.trim() || "Animation Clip",
     description: "Reusable keyframe clip",
     targetType,

@@ -1,8 +1,9 @@
 import type { AudioClip } from "./AudioTypes";
+import { createId } from "../core/ids/Id";
 
 export function withAudioClipDefaults(clip: Partial<AudioClip>): AudioClip {
   return {
-    id: clip.id ?? `audio_${Math.random().toString(36).slice(2, 8)}`,
+    id: clip.id ?? createId("audio"),
     name: clip.name ?? "Audio Clip",
     sourceKind: clip.sourceKind ?? "builtin-placeholder",
     sourceName: clip.sourceName ?? clip.name ?? "unknown",

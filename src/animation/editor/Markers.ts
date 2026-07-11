@@ -1,4 +1,5 @@
 import type { TimelineMarker } from "../../project/ProjectFile";
+import { createId } from "../../core/ids/Id";
 
 export function createTimelineMarker(
   name: string,
@@ -6,7 +7,7 @@ export function createTimelineMarker(
   color = "#f7d56b"
 ): TimelineMarker {
   return {
-    id: `marker_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+    id: createId("marker"),
     name: name.trim() || "Marker",
     frame: Math.max(0, Math.round(frame)),
     color: /^#[0-9a-f]{6}$/i.test(color) ? color : "#f7d56b"

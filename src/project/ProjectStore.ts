@@ -23,11 +23,10 @@ import { createDefaultCharacterAttachments } from "../rigs/RigInstance";
 import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/LightingPresets";
 import { DEFAULT_BIOME_TINT } from "../minecraft/resources/BiomeTint";
 import { DEFAULT_MINECRAFT_MATERIAL_SETTINGS } from "../minecraft/materials/MinecraftMaterialPresets";
+import { CURRENT_PROJECT_SCHEMA_VERSION } from "../core/serialization/SchemaVersion";
+import { createId } from "../core/ids/Id";
 
-export function createId(prefix: string): string {
-  const random = Math.random().toString(36).slice(2, 8);
-  return `${prefix}_${Date.now().toString(36)}_${random}`;
-}
+export { createId };
 
 export function createDefaultProjectSettings(
   appSettings?: AppSettings
@@ -141,7 +140,7 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
   };
 
   return {
-    schemaVersion: 9,
+    schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
     projectName: projectSettings.projectName,
     projectSettings,
     packageMetadata: {

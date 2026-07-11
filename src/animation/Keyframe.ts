@@ -1,4 +1,5 @@
 import type { Keyframe, Vector3Tuple } from "../project/ProjectFile";
+import { createId } from "../core/ids/Id";
 
 export function createVectorKeyframe(
   frame: number,
@@ -13,6 +14,5 @@ export function createVectorKeyframe(
 }
 
 export function createKeyframeId(frame: number): string {
-  const random = Math.random().toString(36).slice(2, 8);
-  return `key_${Math.max(0, Math.round(frame)).toString(36)}_${random}`;
+  return createId(`key_${Math.max(0, Math.round(frame)).toString(36)}`);
 }

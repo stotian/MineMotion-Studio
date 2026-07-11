@@ -28,36 +28,26 @@ import type {
   RigPresetId,
   RigProjectData
 } from "../rigs/RigTypes";
+import type { ProjectSchemaVersion } from "../core/serialization/SchemaVersion";
+import type {
+  SceneEntity,
+  TransformData,
+  Vector3Tuple
+} from "../core/scene/SceneTypes";
 
-export type Vector3Tuple = [number, number, number];
+export type {
+  SceneEntity,
+  SceneObjectType,
+  TransformData,
+  Vector3Tuple
+} from "../core/scene/SceneTypes";
+export {
+  DEFAULT_TRANSFORM,
+  cloneTransform,
+  createTransform
+} from "../core/scene/SceneTypes";
+
 export type TerrainPresetId = "none" | "demo" | "flat" | "nether";
-
-export interface TransformData {
-  position: Vector3Tuple;
-  rotation: Vector3Tuple;
-  scale: Vector3Tuple;
-}
-
-export type SceneObjectType =
-  | "world"
-  | "chunkMesh"
-  | "character"
-  | "rigBone"
-  | "camera"
-  | "obj"
-  | "light"
-  | "empty"
-  | "helper";
-
-export interface SceneEntity {
-  id: string;
-  type: SceneObjectType;
-  name: string;
-  transform: TransformData;
-  visible: boolean;
-  locked: boolean;
-  metadata: Record<string, unknown>;
-}
 
 export interface CharacterEntity extends SceneEntity {
   type: "character";
@@ -264,7 +254,7 @@ export interface RenderSettings {
 }
 
 export interface MineMotionProject {
-  schemaVersion: 9;
+  schemaVersion: ProjectSchemaVersion;
   projectName: string;
   projectSettings: ProjectSettings;
   packageMetadata: ProjectPackageMetadata;
@@ -325,27 +315,3 @@ export type MutableSceneCollection =
   | "cameras"
   | "importedObjects"
   | "lights";
-
-export const DEFAULT_TRANSFORM: TransformData = {
-  position: [0, 0, 0],
-  rotation: [0, 0, 0],
-  scale: [1, 1, 1]
-};
-
-export function cloneTransform(transform: TransformData): TransformData {
-  return {
-    position: [...transform.position],
-    rotation: [...transform.rotation],
-    scale: [...transform.scale]
-  };
-}
-
-export function createTransform(
-  partial: Partial<TransformData> = {}
-): TransformData {
-  return {
-    position: partial.position ? [...partial.position] : [0, 0, 0],
-    rotation: partial.rotation ? [...partial.rotation] : [0, 0, 0],
-    scale: partial.scale ? [...partial.scale] : [1, 1, 1]
-  };
-}

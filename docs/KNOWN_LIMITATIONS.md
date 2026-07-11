@@ -1,0 +1,21 @@
+# Known Limitations
+
+- `App.tsx` is 2636 lines and owns too much orchestration.
+- Several editor panels exceed 490 lines and should be decomposed only when touched.
+- `Animator.sampleProject` clones the full project when tracks exist.
+- `SceneRenderer` rebuilds the scene root on project updates and reparses OBJ data.
+- Capability support helpers are centralized, but no dedicated capability UI is exposed yet.
+- Generated IDs are centralized, but current effects do not yet use seeded frame evaluation.
+- Existing effects are not deterministic primitive-based VFX.
+- Service interfaces are contracts only; concrete application controllers have not yet been extracted from `App.tsx`.
+- Typed engine errors exist but most legacy boundaries still throw plain errors.
+- IK and Blockbench rig mapping remain incomplete.
+- Resource pack animated textures are not played.
+- WebM is video-only at live viewport size.
+- FFmpeg encoding has not been tested locally because FFmpeg is absent.
+- FFmpeg cannot be cancelled after the native process starts.
+- Native dialogs, plugin sandbox/SDK, localization, shot management, AI, and collaboration are absent.
+- The capability registry correctly reports the plugin sandbox as disabled; no secure executable plugin sandbox exists yet.
+- Main Vite chunk is about 1 MB and emits a chunk-size warning.
+- Tauri release profile is blocked on this machine by Smart App Control; debug MSI/NSIS pass.
+- Non-Windows platforms are untested.

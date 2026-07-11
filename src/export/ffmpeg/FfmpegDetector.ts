@@ -1,5 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { FfmpegSettings } from "./FfmpegSettings";
+import {
+  isTauriRuntimeAvailable,
+  updateRuntimeFfmpegCapability
+} from "../../core/capabilities/CapabilityRegistry";
 
 export interface FfmpegDetectionResult {
   available: boolean;
@@ -18,30 +22,34 @@ export const WEB_FFMPEG_STATUS: FfmpegDetectionResult = {
 };
 
 export function isTauriRuntime(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    "__TAURI_INTERNALS__" in window
-  );
+  return isTauriRuntimeAvailable();
 }
 
 export async function detectFfmpeg(
   settings: Pick<FfmpegSettings, "executablePath">
 ): Promise<FfmpegDetectionResult> {
-  if (!isTauriRuntime()) return WEB_FFMPEG_STATUS;
+  if (!isTauriRuntime()) {
+    updateRuntimeFfmpegCapability(WEB_FFMPEG_STATUS);
+    return WEB_FFMPEG_STATUS;
+  }
 
   try {
-    return await invoke<FfmpegDetectionResult>("detect_ffmpeg", {
+    const result = await invoke<FfmpegDetectionResult>("detect_ffmpeg", {
       executable: settings.executablePath || "ffmpeg"
     });
+    updateRuntimeFfmpegCapability(result);
+    return result;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : String(error || "FFmpeg detection failed.");
-    return {
+    const result: FfmpegDetectionResult = {
       available: false,
       nativeRuntime: true,
       executable: settings.executablePath || "ffmpeg",
       version: "",
       message
     };
+    updateRuntimeFfmpegCapability(result);
+    return result;
   }
 }

@@ -1,8 +1,9 @@
 import type { EffectInstance } from "./EffectTypes";
+import { createId } from "../core/ids/Id";
 
 export function withEffectDefaults(effect: Partial<EffectInstance>): EffectInstance {
   return {
-    id: effect.id ?? `effect_${Math.random().toString(36).slice(2, 8)}`,
+    id: effect.id ?? createId("effect"),
     type: effect.type ?? "flash",
     name: effect.name ?? "Effect",
     startFrame: Math.max(0, Math.round(effect.startFrame ?? 0)),

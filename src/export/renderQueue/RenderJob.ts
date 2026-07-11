@@ -1,4 +1,5 @@
 import type { ExportSettings } from "../ExportTypes";
+import { createId } from "../../core/ids/Id";
 
 export type RenderJobStatus =
   | "queued"
@@ -57,7 +58,5 @@ export function createRenderJob(
 }
 
 export function createRenderId(prefix: string): string {
-  const randomUuid = globalThis.crypto?.randomUUID?.();
-  if (randomUuid) return `${prefix}_${randomUuid}`;
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  return createId(prefix);
 }

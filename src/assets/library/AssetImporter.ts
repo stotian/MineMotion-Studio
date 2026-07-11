@@ -1,4 +1,5 @@
 import type { AssetRecord } from "./AssetRecord";
+import { createId } from "../../core/ids/Id";
 
 export function createExternalAssetRecord(
   file: File,
@@ -6,7 +7,7 @@ export function createExternalAssetRecord(
   packagePath: string
 ): AssetRecord {
   return {
-    id: `asset_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+    id: createId("asset"),
     name: file.name,
     type,
     sourcePath: file.name,

@@ -31,8 +31,7 @@ import {
   createDefaultRenderSettings,
   createDefaultTimelineTracks
 } from "./ProjectStore";
-
-const CURRENT_SCHEMA_VERSION = 9;
+import { CURRENT_PROJECT_SCHEMA_VERSION } from "../core/serialization/SchemaVersion";
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -59,7 +58,7 @@ export class ProjectSerializer {
       throw new Error("Project file is not a JSON object.");
     }
 
-    if (parsed.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+    if (parsed.schemaVersion !== CURRENT_PROJECT_SCHEMA_VERSION) {
       return ProjectSerializer.migrate(parsed);
     }
 
@@ -154,7 +153,7 @@ export class ProjectSerializer {
 
     return {
       ...(project as MineMotionProject),
-      schemaVersion: 9,
+      schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
       projectName: projectSettings.projectName,
       projectSettings,
       packageMetadata: {
@@ -450,7 +449,7 @@ export class ProjectSerializer {
   private static assertValidProject(
     project: Partial<MineMotionProject>
   ): asserts project is MineMotionProject {
-    if (project.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+    if (project.schemaVersion !== CURRENT_PROJECT_SCHEMA_VERSION) {
       throw new Error("Project file did not migrate to current schema.");
     }
 

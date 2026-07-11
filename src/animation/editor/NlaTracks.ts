@@ -3,6 +3,7 @@ import type {
   NlaTrackData,
   ReusableAnimationClip
 } from "../../project/ProjectFile";
+import { createId } from "../../core/ids/Id";
 
 export function addClipToNla(
   tracks: NlaTrackData[],
@@ -11,7 +12,7 @@ export function addClipToNla(
   startFrame: number
 ): NlaTrackData[] {
   const instance: NlaClipInstance = {
-    id: `nla_clip_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+    id: createId("nla_clip"),
     clipId: clip.id,
     targetId,
     startFrame: Math.max(0, Math.round(startFrame)),

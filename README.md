@@ -9,6 +9,8 @@ Phase 7 adds a production render queue, deterministic final-camera capture,
 export preflight, browser PNG/WebM/WAV workflows, and a restricted desktop
 bridge for user-installed FFmpeg. Phase 8 adds user-supplied resource packs,
 Minecraft materials, biome tint, animated time of day, and Lighting Studio.
+Phase 14 establishes the long-term engine foundation with stable scene/time/ID
+contracts and evidence-based runtime capability reporting.
 
 ## Current Version
 
@@ -186,6 +188,10 @@ panel.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Phase 14 Architecture Audit](docs/PHASE_14_ARCHITECTURE_AUDIT.md)
+- [Engine Contracts](docs/ENGINE_CONTRACTS.md)
+- [Phases 14-25 Roadmap](docs/MASTER_ROADMAP_PHASES_14_25.md)
+- [Phase Progress](docs/PHASE_PROGRESS.md)
 - [Phase 5 Rigs](docs/PHASE_5_RIGS.md)
 - [Skins](docs/SKINS.md)
 - [Rigging](docs/RIGGING.md)
