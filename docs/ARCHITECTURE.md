@@ -62,6 +62,8 @@ flowchart LR
   guarded reverse conversion. It does not own project state or a timeline lane.
 - `src/vfx/runtime`: stateless validated VFX frame evaluation. Outputs are
   finite plain data for future primitives, never renderer/GPU resources.
+- `src/vfx/primitives`: versioned renderer-neutral descriptors, validation,
+  bounded/nested sampling, and pure particle/beam/trail/ring/light evaluation.
 - `src/audio`: audio clip types, import helpers, placeholder SFX registry,
   playback manager, serializer, and timeline helpers.
 - `src/audio/export`: browser WAV mixdown and WAV encoding.
@@ -146,6 +148,12 @@ typed seed composition produces root and local-frame seeds; sample indices can
 be requested in any order. The evaluator does not read a registry, clock,
 renderer, timeline, or project singleton, so backward seeks and offline frame
 orders need no reset step.
+
+Primitive evaluation consumes only an active validated frame plus one plain
+descriptor. Per-kind caps apply before loops. Particles use stable sample
+prefixes; beam, trail, and ring add nested canonical sample IDs as quality rises.
+Outputs retain cloned placement metadata but never allocate Three.js, Canvas,
+CSS, DOM, texture, material, cache, or runtime-class objects.
 
 ## Audio
 

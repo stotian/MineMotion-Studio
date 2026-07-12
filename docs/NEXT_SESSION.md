@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 15 milestone 15.3: reusable native VFX primitives. Milestones
-15.1 and 15.2 are implemented and validated.
+Start Phase 15 milestone 15.4: integrate editing through the existing schema 9
+effects timeline lane. Milestones 15.1 through 15.3 are implemented/validated.
 
 ## Phase Ordering Evidence
 
@@ -16,13 +16,13 @@ Start Phase 15 milestone 15.3: reusable native VFX primitives. Milestones
 
 ## Files To Inspect First
 
-- `src/vfx/runtime/VfxFrameEvaluator.ts`
-- `src/core/random/DeterministicRandom.ts`
-- `src/vfx/core/VfxDefinition.ts`
-- `src/vfx/core/VfxParameterSchema.ts`
+- `src/effects/EffectTimelineTrack.ts`
+- `src/project/CinematicTimeline.ts`
+- `src/ui/timeline/TimelinePanel.tsx`
+- `src/ui/effects/EffectsLibraryPanel.tsx`
+- `src/project/ProjectStore.ts`
+- `src/history/HistoryStack.ts`
 - `src/vfx/compat/LegacyEffectAdapter.ts`
-- `src/renderer/SceneRenderer.ts`
-- `src/export/RenderCapture.ts`
 
 ## Completed Work
 
@@ -43,12 +43,21 @@ Start Phase 15 milestone 15.3: reusable native VFX primitives. Milestones
   deterministic quality scales.
 - Proved repeat/step/scrub/order/clone/JSON/schema 9 reload equivalence and
   blocked ambient random, UUID, crypto, and clock sources in focused tests.
-- Current validation: 56 files and 160 tests; typecheck/build/audit green.
+- Milestone 15.2 validation: 56 files and 160 tests; typecheck/build/audit green.
+- Added V1 renderer-neutral descriptor/output unions for particle emitter, beam,
+  trail, expanding ring, and light pulse.
+- Added safe plain-descriptor validation, hard allocation caps/warnings, finite
+  output rejection, cloned placement, per-channel seeds, particle prefixes, and
+  nested geometric quality sampling.
+- Added adversarial tests for prototype-key qualities, inherited/class/accessor/
+  non-enumerable descriptors, sparse/array-subclass tuples, cap/overflow/order/
+  clone/JSON/no-entropy behavior, and the inclusive 15.2 integration path.
+- Current validation: 58 files and 188 tests; typecheck/build/audit green.
 
 ## Unfinished Work
 
-- No native particle, mesh/sprite, trail, beam/lightning, ring, overlay, camera,
-  or light-pulse primitive descriptors/evaluators.
+- No timeline editing path consumes typed VFX evaluation/primitive data yet.
+- No advanced mesh/sprite/lightning/overlay/camera/modifier primitive kinds.
 - No renderer, timeline, UI, project schema, or export consumer uses the typed
   VFX model yet.
 - Preview/PNG/WebM parity and renderer resource leaks are tracked for 15.7/15.8.
@@ -56,7 +65,7 @@ Start Phase 15 milestone 15.3: reusable native VFX primitives. Milestones
 ## Known Error
 
 Release Tauri build is blocked by Windows Smart App Control error 4551. Debug
-MSI/NSIS succeeds. This does not block Phase 15.3 TypeScript work.
+MSI/NSIS succeeds. This does not block Phase 15.4 TypeScript work.
 
 ## Next Command
 
@@ -66,11 +75,10 @@ git status --short --branch; git log -3 --oneline
 
 ## Next Implementation Step
 
-Define a discriminated primitive descriptor union and hard caps first. Implement
-at least five reusable pure primitives from the master prompt, driven only by
-the 15.2 active frame descriptor and semantic sample indices. Do not create
-Three.js objects or connect preview/export until the primitive data is bounded,
-deterministic, cloneable, and tested.
+Inventory real move/trim/duplicate/copy/paste/enable/order/select operations on
+`track_effects_main`. Design one controller that mutates schema 9
+`effects.instances`, synchronizes the existing lane, and commits through project
+history. Do not introduce `project.vfx`, a second lane, or schema 10 yet.
 
 ## Tests To Run
 

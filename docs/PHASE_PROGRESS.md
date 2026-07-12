@@ -6,11 +6,11 @@ Phase 15 - Native Deterministic VFX Foundation
 
 ## Current Milestone
 
-15.3 - Native VFX primitives
+15.4 - Existing effects-lane timeline integration
 
 ## Status
 
-IN_PROGRESS - milestones 15.1 and 15.2 completed and validated; 15.3 is next.
+IN_PROGRESS - milestones 15.1 through 15.3 completed and validated; 15.4 is next.
 
 ## Completed
 
@@ -35,15 +35,20 @@ IN_PROGRESS - milestones 15.1 and 15.2 completed and validated; 15.3 is next.
   primitive inputs.
 - Repeated, stepped, scrubbed, reordered, structured-cloned, JSON-reloaded, and
   real schema 9 save/reopen evaluations match byte-for-byte.
+- Phase 15.3 versioned primitive descriptor/output unions and pure dispatcher
+  for particle emitter, beam, trail, expanding ring, and light pulse.
+- Allocation caps, clamp warnings, finite-output checks, stable per-channel
+  seeds, literal particle quality prefixes, and nested beam/trail/ring samples.
+- Renderer-neutral placement/points/scalars remain cloneable and cannot alias
+  frame or descriptor input data.
 
 ## In Progress
 
-- Phase 15 foundation. The next unit is milestone 15.3 primitive contracts and
-  bounded pure primitive evaluators; no Three.js integration is planned yet.
+- Phase 15 foundation. The next unit is milestone 15.4 integration with the
+  existing effects timeline lane; no second lane/store or schema change.
 
 ## Not Started
 
-- Phase 15.3 native primitives.
 - Phase 15.4 timeline integration.
 - Phase 15.5 schema-generated Inspector.
 - Phase 15.6 schema 10 migration and serialization.
@@ -54,28 +59,29 @@ IN_PROGRESS - milestones 15.1 and 15.2 completed and validated; 15.3 is next.
 
 ## Blockers
 
-- None for Phase 15.3 TypeScript work.
+- None for Phase 15.4 TypeScript work.
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
   desktop bundles passed at `1e911af`.
 
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.2 is the validated checkpoint containing this document; Git history
+- Phase 15.3 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities (baseline)
 - `npm run typecheck`: PASS
-- Focused Phase 15.2 tests: PASS - 5 files, 46 tests
-- `npm test`: PASS - 56 files, 160 tests
+- Focused Phase 15.3 tests: PASS - 2 files, 28 tests
+- `npm test`: PASS - 58 files, 188 tests
 - `npm run build`: PASS - 1,760 modules; existing 1,013.14 kB chunk warning
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 15.1 changes TypeScript/docs only.
+- Native checks: not rerun because milestone 15.3 changes TypeScript/docs only.
 
 ## Next Exact Action
 
-Design milestone 15.3 around reusable, bounded, structured-cloneable primitive
-descriptors. Start with pure particle, beam, trail, expanding-ring, and light-
-pulse evaluators that consume the 15.2 frame contract without renderer state.
+Audit the current `track_effects_main` block operations and selected-effect
+editing flow. Add real trim, move, duplicate, copy/paste, enable/disable, and
+ordering behavior through schema 9 `effects.instances` and project history,
+without creating a native VFX collection or second timeline lane.

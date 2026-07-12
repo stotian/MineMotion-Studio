@@ -2,7 +2,7 @@
 
 MineMotion Studio `0.8.2` uses project schema 9.
 
-Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.2 are complete.
+Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.3 are complete.
 The working product remains unchanged at the UI level; low-level contracts have
 stable ownership under `src/core`, and a typed VFX compatibility projection now
 exists without changing project schema 9.
@@ -31,24 +31,27 @@ exists without changing project schema 9.
 - A pure deterministic VFX frame evaluator with fixed hash/PRNG vectors,
   explicit frame/FPS/context-seed/quality inputs, inclusive timing, resolved
   defaults, stable local-frame randomness, and JSON-safe primitive inputs.
+- Versioned renderer-neutral primitive contracts and pure evaluators for burst
+  particles, jittered beams, explicit-point trails, expanding rings, and light
+  pulses, with hard allocation caps and deterministic quality refinement.
 
 ## Partial Systems
 
 - Effects are still rendered by the preset-based legacy runtime. The typed VFX
-  model and deterministic evaluator exist, but native primitives and renderer
-  consumers do not yet exist.
+  model, evaluator, and primitive data exist, but timeline/editor/renderer
+  consumers do not yet use them.
 - Blockbench auto-rigging, production IK, animated resource textures, secure plugin execution, native dialogs, and full NLA blending are not implemented.
 
 ## Absent Systems
 
-- Phase 15.3+ native VFX primitives, editor, serialization migration, and
+- Phase 15.4+ timeline/editor integration, serialization migration, and
   preview/export integration.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 56 frontend test files and 160 passing tests.
+- 58 frontend test files and 188 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -67,3 +70,6 @@ exists without changing project schema 9.
 - Phase 15.2 evaluates frames without hidden state. Seed composition is
   versioned and typed; FPS and quality do not reshuffle the random stream, and
   a local frame can be evaluated in any order without reset or replay.
+- Phase 15.3 caps every generated record family before allocation. Geometry is
+  local to cloned placement data; quality adds stable indexed detail rather than
+  rebuilding a different random stream.

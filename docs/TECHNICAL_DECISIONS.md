@@ -76,3 +76,19 @@ reload, preview evaluation, and offline evaluation order-independent without a
 reset API. Quality profiles may change deterministic budgets but must not change
 the underlying random stream. Stateful native primitives must later preserve
 this contract through semantic sample coordinates or an explicit replay layer.
+
+## TD-010 - Native VFX primitives are bounded renderer-neutral data
+
+Status: Accepted
+
+Represent primitive configuration and evaluated output as versioned
+discriminated unions. Validate every descriptor, clamp safe integer work budgets
+before allocation, and dispatch to focused pure evaluators. V1 covers particle
+emitter, beam, trail, expanding ring, and light pulse with caps of 1,024
+particles and 256 beam/trail/ring subdivisions or segments.
+
+Particle quality consumes a literal stable prefix. Beam, trail, and ring select
+nested canonical sample indices so shared details and endpoints do not move as
+quality rises. Seeds never include quality or evaluation order. Three.js,
+Canvas, CSS, target resolution, mutable registries, and GPU ownership remain
+outside the primitive contract and are deferred to later integration milestones.

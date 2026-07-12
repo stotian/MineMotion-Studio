@@ -31,6 +31,8 @@ still required before changing code.
 | LIM-022 | Service interfaces exist, but concrete domain controllers remain largely inside `App.tsx` | Yes | P3/P4 | Incremental | OPEN |
 | LIM-023 | Main JavaScript bundle is about 1 MB and triggers a Vite chunk warning | Yes | P3 | 20 | OPEN |
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
+| LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
+| LIM-026 | Primitive limits are per descriptor; a combined per-frame stack budget awaits real stack integration and measurement | Yes | P3 | 15.8/20 | OPEN |
 
 ## Phase 15.1 Outcome
 
@@ -45,3 +47,12 @@ Deterministic typed frame evaluation now exists and is proven across repeated,
 stepped, reordered, cloned, JSON-reloaded, and schema 9 save/reopen paths. It
 does not change the visible legacy renderer. Native primitives begin in 15.3;
 real viewport/offline integration and parity remain assigned to 15.7.
+
+## Phase 15.3 Outcome
+
+Five deterministic renderer-neutral primitives now work with per-descriptor
+caps, semantic seed channels, stable quality refinement, finite-output checks,
+and adversarial plain-data validation. They are not yet mapped from legacy
+effects or consumed by timeline, viewport, Canvas capture, or export paths.
+Advanced emitter/modifier kinds and a measured combined stack budget remain
+explicitly open.

@@ -52,3 +52,9 @@ validated, structured-cloneable frame data without hidden state. Future service
 and renderer adapters must reuse `effects.instances`, the effects timeline lane,
 project serialization, viewport preview, offline export, and plugin extension
 metadata described in `PHASE_14_ARCHITECTURE_AUDIT.md`.
+
+Native primitive evaluators consume only a validated active frame and a V1
+plain descriptor. They enforce local hard caps before allocation, use semantic
+seed channels, and return a discriminated plain-data union. Renderer adapters
+must treat these outputs as immutable input and own all host/GPU resources and
+disposal outside project/history data.

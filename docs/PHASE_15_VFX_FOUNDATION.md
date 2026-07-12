@@ -1,8 +1,8 @@
 # Phase 15 - Native Deterministic VFX Foundation
 
 Phase status: IN_PROGRESS
-Milestone 15.2 status: COMPLETED - deterministic seeded frame evaluation
-Next milestone after checkpoint: 15.3 - native VFX primitives
+Milestone 15.3 status: COMPLETED - five bounded renderer-neutral primitives
+Next milestone after checkpoint: 15.4 - existing effects-lane timeline integration
 
 ## Requirements And Boundaries
 
@@ -11,11 +11,11 @@ working project, timeline, renderer, history, or export paths. Schema 9
 `effects.instances` and `track_effects_main` remain authoritative until a
 schema 10 migration is designed and tested.
 
-The first two milestones add pure typed contracts, definition/instance
+The first three milestones add pure typed contracts, definition/instance
 validation, a derived registry view, a reversible legacy adapter, stable seed
-derivation, counter-addressed randomness, and pure frame evaluation. They do
-not claim native primitives, inspector generation, or preview/export parity
-yet.
+derivation, counter-addressed randomness, pure frame evaluation, and five
+bounded renderer-neutral primitive kinds. They do not claim timeline editing,
+inspector generation, serialization migration, or preview/export parity yet.
 
 Non-functional requirements:
 
@@ -123,6 +123,71 @@ Milestone 15.2 deliberately returns only finite plain data. It does not resolve
 scene targets, instantiate Three.js objects, mutate instances, read registries,
 use wall-clock entropy, or migrate preview/export callers.
 
+## Milestone 15.3 Primitive Options
+
+### A. One evaluator per legacy effect (about 6-12 hours)
+
+```text
+legacy definition ---> effect-specific geometry data
+```
+
+Pros: quickest visual mapping for the 12 existing presets.
+Cons: repeats particle/beam/ring behavior, preserves ignored-parameter drift,
+and would become the parallel effect architecture Phase 15 must avoid.
+
+### B. Renderer-owned primitive classes (about 2-4 days)
+
+```text
+VFX data ---> mutable Three.js/Canvas primitive objects ---> renderer
+```
+
+Pros: direct path to visible output and resource pooling.
+Cons: couples evaluation to a host, introduces disposal/reset state before the
+data contract is proven, and cannot be shared honestly by preview and export.
+
+### C. Versioned renderer-neutral data union (selected, about 10-16 hours)
+
+```text
+validated active frame + primitive descriptor V1
+                         |
+                         v
+              validate + cap budgets
+                         |
+                         v
+              pure primitive output union
+                         |
+        +----------------+----------------+
+        v                v                v
+ future Three.js    future Canvas    future offline
+```
+
+Pros: one typed contract for every future consumer, deterministic tests without
+a GPU, explicit allocation limits, and focused per-kind evaluators.
+Cons: no visible product change in 15.3 and later renderer adapters must convert
+plain points/scalars into host resources.
+
+Selected V1 kinds are `particle-emitter`, `beam`, `trail`, `expanding-ring`,
+and `light-pulse`. Screen overlays and camera modifiers remain the next useful
+primitive additions, but are not required to prove this milestone.
+
+Hard limits are runtime safety boundaries, not schema defaults:
+
+| Budget/value | V1 hard limit |
+| --- | ---: |
+| particles per primitive | 1,024 |
+| beam subdivisions | 256 |
+| trail control points | 64 |
+| trail segments | 256 |
+| ring segments | 256 |
+
+Safe integer work budgets above their cap produce a warning and are clamped
+before allocation. Non-finite, fractional, negative, malformed, or physically
+invalid configuration is rejected. Finite extreme coordinates are allowed, but
+an evaluation that would produce a non-finite result fails before returning
+data. Particle quality uses a literal prefix of stable sample indices. Beam,
+trail, and ring use nested canonical indices so higher quality adds detail
+without moving shared samples or endpoints.
+
 ## Milestones
 
 1. **15.1 Model and compatibility** - typed definitions/instances/parameters,
@@ -182,6 +247,28 @@ use wall-clock entropy, or migrate preview/export callers.
   never reshuffles the seeded frame sample;
 - no renderer, timeline, project schema, UI, or GPU integration is introduced.
 
+## Milestone 15.3 Acceptance
+
+- a versioned discriminated descriptor/output union covers the five selected
+  renderer-neutral primitive kinds;
+- every descriptor is validated before a loop or output allocation;
+- particle, subdivision, and segment budgets obey documented hard caps and
+  emit deterministic clamp warnings;
+- particle output is a literal quality prefix and nested geometric sampling
+  keeps shared beam/trail/ring sample IDs and values stable across qualities;
+- all seed channels derive from the 15.2 root seed plus primitive ID/kind and
+  never include quality, evaluation order, or wall-clock state;
+- active frame placement is cloned; mutating an output cannot mutate its frame
+  or descriptor input;
+- repeated, reordered, cloned, and JSON-reloaded inputs are byte-equivalent;
+- all successful outputs contain only finite plain data and survive both
+  `structuredClone` and JSON round-trip;
+- malformed/non-finite descriptors return typed validation failures without
+  throwing;
+- no Three.js, Canvas, CSS, renderer, timeline, project schema, UI, or export
+  integration is introduced;
+- focused tests, full tests, typecheck, build, audit, and diff checks pass.
+
 ## Risks And Deferred Repairs
 
 - `SceneRenderer.sceneRoot.clear()` detaches recreated effect geometry and
@@ -192,7 +279,7 @@ use wall-clock entropy, or migrate preview/export callers.
 - target IDs are retained in pure primitive inputs but are not resolved against
   scene objects or bones. Target: 15.4/15.7.
 - several legacy parameters are defined but ignored by render paths. Target:
-  15.3/15.5/15.7.
+  15.5/15.7.
 - schema 10, independent persisted seeds, target bones, transform, quality,
   blend mode, and render layer remain deliberately unsaved in 15.1.
 
@@ -221,6 +308,18 @@ Consequences: no runtime reset is necessary and callers can evaluate frames in
 any order. Stateful primitive behavior must later use semantic sample indices
 or an explicit replay design; it cannot introduce a shared mutable PRNG.
 
+Title: Represent native VFX primitives as a bounded renderer-neutral data union
+Status: Accepted for milestone 15.3
+Context: Existing effects duplicate a few shapes across Three.js, CSS, and
+Canvas, while Phase 15 needs one deterministic path that future preview and
+offline consumers can share.
+Decision: Validate versioned primitive descriptors, clamp work budgets to hard
+caps, and dispatch to focused pure evaluators that emit only plain finite data.
+Use stable particle prefixes and nested canonical geometric sample indices.
+Consequences: 15.3 creates no visible renderer change, but later adapters gain a
+single safe input. Additional primitive kinds extend the union deliberately;
+they do not register executable code or own GPU resources.
+
 ## Milestone 15.1 Validation Record
 
 - Schema impact: none; `CURRENT_PROJECT_SCHEMA_VERSION` remains 9.
@@ -247,3 +346,24 @@ or an explicit replay design; it cannot introduce a shared mutable PRNG.
 - Native/Tauri validation: not run; no Rust or native configuration changed.
 - Manual visual validation: not applicable; renderer/UI integration is
   deliberately deferred to milestone 15.7.
+
+## Milestone 15.3 Validation Record
+
+- Schema impact: none; `CURRENT_PROJECT_SCHEMA_VERSION` remains 9.
+- Primitive kinds: PASS - particle emitter, beam, trail, expanding ring, and
+  light pulse.
+- Hard limits: PASS - 1,024 particles; 256 beam/trail/ring samples; 64 trail
+  control points; over-budget safe integers clamp with warnings before loops.
+- Quality invariants: PASS - particle prefixes and nested canonical beam/trail/
+  ring sample identities remain stable across all four qualities.
+- Adversarial validation: PASS - forged quality prototype keys, inherited/class/
+  accessor/non-enumerable descriptors, sparse tuples, array subclasses, unsafe
+  budgets, malformed frames, and non-finite output are rejected or normalized.
+- Focused tests: PASS - 2 files, 28 tests.
+- Typecheck: PASS.
+- Full tests: PASS - 58 files, 188 tests.
+- Build: PASS - 1,760 modules; existing large-chunk warning remains.
+- Audit: PASS - 0 vulnerabilities.
+- Native/Tauri validation: not run; no Rust or native configuration changed.
+- Manual visual validation: not applicable; outputs are deliberately plain
+  renderer-neutral data and visible integration remains milestone 15.7.
