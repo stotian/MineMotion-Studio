@@ -60,3 +60,19 @@ Status: Accepted
 Probe browser/native capabilities once per runtime snapshot and expose explicit
 refresh when the host changes. FFmpeg codecs require supplied detection evidence;
 the registry does not claim codecs merely because the application is in Tauri.
+
+## TD-009 - VFX frame evaluation is stateless and counter-addressed
+
+Status: Accepted
+
+Evaluate a VFX frame only from its validated instance, definition, and explicit
+frame/FPS/context-seed/quality inputs. Combine versioned, typed seed parts with
+the existing stable 32-bit content hash, then address every pseudo-random sample
+by a semantic stream and numeric index. Never share mutable PRNG state between
+instances or calls.
+
+This makes playback, scrubbing, frame stepping, backward seeks, undo, schema 9
+reload, preview evaluation, and offline evaluation order-independent without a
+reset API. Quality profiles may change deterministic budgets but must not change
+the underlying random stream. Stateful native primitives must later preserve
+this contract through semantic sample coordinates or an explicit replay layer.

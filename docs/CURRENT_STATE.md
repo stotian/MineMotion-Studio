@@ -2,7 +2,7 @@
 
 MineMotion Studio `0.8.2` uses project schema 9.
 
-Phase 14 architecture consolidation and Phase 15 milestone 15.1 are complete.
+Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.2 are complete.
 The working product remains unchanged at the UI level; low-level contracts have
 stable ownership under `src/core`, and a typed VFX compatibility projection now
 exists without changing project schema 9.
@@ -28,24 +28,27 @@ exists without changing project schema 9.
 - A schema 9 compatibility adapter derived from the existing effect registry.
   It preserves every legacy field, inclusive timing, targets, parameters, and
   deterministic fallback seeds, and rejects lossy reverse conversion.
+- A pure deterministic VFX frame evaluator with fixed hash/PRNG vectors,
+  explicit frame/FPS/context-seed/quality inputs, inclusive timing, resolved
+  defaults, stable local-frame randomness, and JSON-safe primitive inputs.
 
 ## Partial Systems
 
 - Effects are still rendered by the preset-based legacy runtime. The typed VFX
-  model exists, but deterministic evaluation, runtime state, and primitives do
-  not yet exist.
+  model and deterministic evaluator exist, but native primitives and renderer
+  consumers do not yet exist.
 - Blockbench auto-rigging, production IK, animated resource textures, secure plugin execution, native dialogs, and full NLA blending are not implemented.
 
 ## Absent Systems
 
-- Phase 15.2+ deterministic VFX runtime, primitives, editor, serialization
-  migration, and preview/export integration.
+- Phase 15.3+ native VFX primitives, editor, serialization migration, and
+  preview/export integration.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 54 frontend test files and 141 passing tests.
+- 56 frontend test files and 160 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -61,3 +64,6 @@ exists without changing project schema 9.
   and the existing effects timeline lane instead of adding parallel project data.
 - Phase 15.1 keeps those legacy paths authoritative and exposes a derived,
   structured-cloneable VFX view. Project schema remains 9.
+- Phase 15.2 evaluates frames without hidden state. Seed composition is
+  versioned and typed; FPS and quality do not reshuffle the random stream, and
+  a local frame can be evaluated in any order without reset or replay.

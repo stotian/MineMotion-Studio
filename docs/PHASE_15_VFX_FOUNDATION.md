@@ -1,8 +1,8 @@
 # Phase 15 - Native Deterministic VFX Foundation
 
 Phase status: IN_PROGRESS
-Milestone 15.1 status: COMPLETED - typed model and schema 9 compatibility projection
-Next milestone after checkpoint: 15.2 - deterministic runtime
+Milestone 15.2 status: COMPLETED - deterministic seeded frame evaluation
+Next milestone after checkpoint: 15.3 - native VFX primitives
 
 ## Requirements And Boundaries
 
@@ -11,10 +11,11 @@ working project, timeline, renderer, history, or export paths. Schema 9
 `effects.instances` and `track_effects_main` remain authoritative until a
 schema 10 migration is designed and tested.
 
-The current milestone adds pure typed contracts, definition/instance
-validation, a derived registry view, and a reversible legacy adapter. It does
-not claim a deterministic runtime, native primitives, inspector generation, or
-preview/export parity yet.
+The first two milestones add pure typed contracts, definition/instance
+validation, a derived registry view, a reversible legacy adapter, stable seed
+derivation, counter-addressed randomness, and pure frame evaluation. They do
+not claim native primitives, inspector generation, or preview/export parity
+yet.
 
 Non-functional requirements:
 
@@ -74,6 +75,54 @@ history stable while allowing the target model to be expressed and tested.
 Cons: two type vocabularies coexist temporarily, and new-only fields cannot be
 saved until schema 10.
 
+## Milestone 15.2 Runtime Options
+
+### A. Shared stateful simulation (about 4-8 hours)
+
+```text
+previous frame + mutable PRNG ---> next frame output
+```
+
+Pros: familiar particle-simulation model.
+Cons: scrubbing, backward seeks, caller order, undo, and project reload can
+change the result unless every hidden state transition is perfectly replayed.
+
+### B. Replay from frame zero with caches (about 1-3 days)
+
+```text
+frame zero ---> replay all prior frames ---> requested frame
+                    |
+                    +-- optional mutable cache
+```
+
+Pros: can support stateful simulations deterministically.
+Cons: expensive random seeks, complex cache invalidation, and unnecessary
+runtime ownership before native primitives exist.
+
+### C. Counter-addressed stateless evaluation (selected, about 6-10 hours)
+
+```text
+instance + definition + explicit frame/FPS/seed/quality
+                            |
+                            v
+                 pure frame evaluation data
+```
+
+Pros: playback, scrubbing, stepping, preview, export, undo, and reload are
+order-independent by construction; no reset API or hidden cache is required.
+Cons: future stateful primitives must derive samples from semantic coordinates
+or add an explicit, separately tested replay layer.
+
+The seed contract is versioned and domain-separated. A project/context seed,
+instance seed, definition ID, semantic stream, frame, and sample index are
+combined unambiguously. Quality never changes the root random stream: higher
+quality may consume a longer deterministic prefix without reshuffling samples
+already visible at lower quality.
+
+Milestone 15.2 deliberately returns only finite plain data. It does not resolve
+scene targets, instantiate Three.js objects, mutate instances, read registries,
+use wall-clock entropy, or migrate preview/export callers.
+
 ## Milestones
 
 1. **15.1 Model and compatibility** - typed definitions/instances/parameters,
@@ -112,6 +161,27 @@ saved until schema 10.
   are unchanged;
 - focused tests, full tests, typecheck, build, audit, and diff checks pass.
 
+## Milestone 15.2 Acceptance
+
+- the existing deterministic ID hash remains byte-compatible after its hash
+  helper is shared with VFX randomness;
+- hashing, sub-seed derivation, and counter-addressed random sampling have fixed
+  regression vectors and reject invalid numeric coordinates;
+- frame, FPS, context seed, quality, definition, and instance inputs are
+  validated before evaluation;
+- disabled, before-start, and after-inclusive-end states are explicit results;
+- active output exposes absolute/local timing, progress, seconds, resolved
+  parameters, root/frame seeds, a stable frame sample, and an explicit quality
+  profile;
+- timing remains inclusive through `startFrame + durationFrames`;
+- output and validation data are structured-cloneable, JSON-safe, finite, and
+  deterministically ordered;
+- repeated, out-of-order, backward, cloned, undo-style, and schema 9 reload
+  evaluations are byte-equivalent for identical explicit inputs;
+- quality changes only the explicit `quality` and `qualityScale` fields and
+  never reshuffles the seeded frame sample;
+- no renderer, timeline, project schema, UI, or GPU integration is introduced.
+
 ## Risks And Deferred Repairs
 
 - `SceneRenderer.sceneRoot.clear()` detaches recreated effect geometry and
@@ -119,7 +189,8 @@ saved until schema 10.
 - preview, PNG, and WebM currently render different subsets of effects and
   `includeVfx` cannot remove world VFX already present in the canvas. Target:
   15.7.
-- `targetObjectId` is serialized but not evaluated. Target: 15.2/15.4.
+- target IDs are retained in pure primitive inputs but are not resolved against
+  scene objects or bones. Target: 15.4/15.7.
 - several legacy parameters are defined but ignored by render paths. Target:
   15.3/15.5/15.7.
 - schema 10, independent persisted seeds, target bones, transform, quality,
@@ -139,6 +210,17 @@ Consequences: current projects remain safe and no competing store/lane is
 introduced; runtime consumers migrate incrementally, while new-only VFX fields
 must wait for a tested schema 10 migration.
 
+Title: Evaluate VFX frames through counter-addressed stateless randomness
+Status: Accepted for milestone 15.2
+Context: Timeline playback, arbitrary scrubbing, offline rendering, undo, and
+project reload must agree without relying on evaluation history.
+Decision: Hash versioned typed seed parts with the existing stable 32-bit hash,
+then sample a counter-addressed Mulberry32 mixer. Evaluate each frame as a pure
+function of the instance, definition, and explicit context.
+Consequences: no runtime reset is necessary and callers can evaluate frames in
+any order. Stateful primitive behavior must later use semantic sample indices
+or an explicit replay design; it cannot introduce a shared mutable PRNG.
+
 ## Milestone 15.1 Validation Record
 
 - Schema impact: none; `CURRENT_PROJECT_SCHEMA_VERSION` remains 9.
@@ -150,3 +232,18 @@ must wait for a tested schema 10 migration.
 - Audit: PASS - 0 vulnerabilities.
 - Native/Tauri validation: not run; no Rust or native configuration changed.
 - Manual visual validation: not required for this data-contract-only milestone.
+
+## Milestone 15.2 Validation Record
+
+- Schema impact: none; `CURRENT_PROJECT_SCHEMA_VERSION` remains 9.
+- Hash compatibility: PASS; existing deterministic IDs retain fixed output.
+- Random vectors: PASS for hash, typed seed derivation, uint32, and `[0, 1)`
+  samples.
+- Focused tests: PASS - 5 files, 46 tests.
+- Typecheck: PASS.
+- Full tests: PASS - 56 files, 160 tests.
+- Build: PASS - 1,760 modules; existing large-chunk warning remains.
+- Audit: PASS - 0 vulnerabilities.
+- Native/Tauri validation: not run; no Rust or native configuration changed.
+- Manual visual validation: not applicable; renderer/UI integration is
+  deliberately deferred to milestone 15.7.

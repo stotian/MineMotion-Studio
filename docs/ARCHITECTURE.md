@@ -37,8 +37,9 @@ flowchart LR
 
 ## Modules
 
-- `src/core`: stable IDs, frame time, scene contracts, schema/version helpers,
-  typed errors, runtime capabilities, and lightweight service boundaries.
+- `src/core`: stable IDs, deterministic hash/random helpers, frame time, scene
+  contracts, schema/version helpers, typed errors, runtime capabilities, and
+  lightweight service boundaries.
 - `src/ui`: editor panels, modals, command palette, effects panel, settings,
   plugin manager, and help UI.
 - `src/renderer`: Three.js viewport, camera controls, sky, grid, materials,
@@ -59,6 +60,8 @@ flowchart LR
   validation, registry, and the Phase 14 evaluation-context re-export.
 - `src/vfx/compat`: pure schema 9 effect-definition/instance projection and
   guarded reverse conversion. It does not own project state or a timeline lane.
+- `src/vfx/runtime`: stateless validated VFX frame evaluation. Outputs are
+  finite plain data for future primitives, never renderer/GPU resources.
 - `src/audio`: audio clip types, import helpers, placeholder SFX registry,
   playback manager, serializer, and timeline helpers.
 - `src/audio/export`: browser WAV mixdown and WAV encoding.
@@ -137,6 +140,12 @@ capability registry.
 Service interfaces identify scene, timeline, render, VFX, audio, asset,
 project, export, and plugin boundaries. They document future extraction from
 `App.tsx`; they are deliberately not a new runtime container.
+
+VFX frame evaluation is counter-addressed rather than stateful. A versioned
+typed seed composition produces root and local-frame seeds; sample indices can
+be requested in any order. The evaluator does not read a registry, clock,
+renderer, timeline, or project singleton, so backward seeks and offline frame
+orders need no reset step.
 
 ## Audio
 

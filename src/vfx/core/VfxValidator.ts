@@ -282,11 +282,11 @@ export function validateVfxDefinition(
   if (!VFX_SPACES.has(definition.space)) {
     errors.push(issue("VFX_SPACE_INVALID", "VFX definition space is invalid.", "space"));
   }
-  if (!Number.isInteger(definition.defaultDurationFrames) || definition.defaultDurationFrames < 1) {
+  if (!Number.isSafeInteger(definition.defaultDurationFrames) || definition.defaultDurationFrames < 1) {
     errors.push(
       issue(
         "VFX_DURATION_INVALID",
-        "Default duration must be a positive integer.",
+        "Default duration must be a positive safe integer.",
         "defaultDurationFrames"
       )
     );
@@ -414,11 +414,24 @@ export function validateVfxInstance(
       issue("VFX_INSTANCE_NAME_REQUIRED", "VFX instance display name is required.", "displayName")
     );
   }
-  if (!Number.isInteger(instance.startFrame) || instance.startFrame < 0) {
-    errors.push(issue("VFX_START_FRAME_INVALID", "Start frame must be a non-negative integer.", "startFrame"));
+  if (!Number.isSafeInteger(instance.startFrame) || instance.startFrame < 0) {
+    errors.push(issue("VFX_START_FRAME_INVALID", "Start frame must be a non-negative safe integer.", "startFrame"));
   }
-  if (!Number.isInteger(instance.durationFrames) || instance.durationFrames < 1) {
-    errors.push(issue("VFX_DURATION_INVALID", "Duration must be a positive integer.", "durationFrames"));
+  if (!Number.isSafeInteger(instance.durationFrames) || instance.durationFrames < 1) {
+    errors.push(issue("VFX_DURATION_INVALID", "Duration must be a positive safe integer.", "durationFrames"));
+  }
+  if (
+    Number.isSafeInteger(instance.startFrame) &&
+    Number.isSafeInteger(instance.durationFrames) &&
+    !Number.isSafeInteger(instance.startFrame + instance.durationFrames)
+  ) {
+    errors.push(
+      issue(
+        "VFX_FRAME_RANGE_INVALID",
+        "The inclusive VFX end frame must be a safe integer.",
+        "durationFrames"
+      )
+    );
   }
   if (typeof instance.enabled !== "boolean") {
     errors.push(issue("VFX_ENABLED_INVALID", "Enabled must be a boolean.", "enabled"));

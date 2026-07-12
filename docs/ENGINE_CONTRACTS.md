@@ -46,7 +46,9 @@ share the same probes.
 
 ## Phase 15 Integration
 
-The future deterministic VFX service should accept an explicit frame, FPS,
-quality level, and seed. It must reuse `effects.instances`, the effects timeline
-lane, project serialization, viewport preview, offline export, and plugin
-extension metadata described in `PHASE_14_ARCHITECTURE_AUDIT.md`.
+The pure deterministic VFX evaluator accepts an explicit frame, FPS, quality
+level, and context seed alongside a typed instance and definition. It returns
+validated, structured-cloneable frame data without hidden state. Future service
+and renderer adapters must reuse `effects.instances`, the effects timeline lane,
+project serialization, viewport preview, offline export, and plugin extension
+metadata described in `PHASE_14_ARCHITECTURE_AUDIT.md`.

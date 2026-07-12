@@ -17,8 +17,8 @@ still required before changing code.
 | LIM-008 | Real FFmpeg codec execution is untested because FFmpeg is absent locally | Yes | P4 | 24 | BLOCKED_BY_ENVIRONMENT |
 | LIM-009 | Preview, PNG, and WebM render different subsets of effects; `includeVfx=false` cannot remove world effects already in the canvas | Yes | P2 | 15.7 | OPEN |
 | LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | OPEN |
-| LIM-011 | Existing legacy effects do not yet evaluate through explicit frame/FPS/seed/quality inputs | Yes | P2 | 15.2 | IN_PROGRESS |
-| LIM-012 | `targetObjectId` is stored but not evaluated, and several registered effect parameters are visually ignored | Yes | P2/P4 | 15.2-15.7 | OPEN |
+| LIM-011 | A pure explicit frame/FPS/seed/quality evaluator exists, but legacy preview/export consumers do not use it yet | Yes | P2 | 15.7 | OPEN |
+| LIM-012 | Target IDs reach primitive inputs but are not scene/bone-resolved, and several registered effect parameters are visually ignored | Yes | P2/P4 | 15.4-15.7 | OPEN |
 | LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | OPEN |
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
 | LIM-015 | Static scene data and imported OBJ resources are rebuilt/reparsed on project updates | Yes | P3 | 20 | OPEN |
@@ -38,3 +38,10 @@ The typed VFX compatibility layer fixes no renderer/runtime limitation by
 itself. It prevents new schema 9 data loss by rejecting non-representable
 rotation, scale, bone target, custom seed, quality, blend, layer, or definition
 changes during reverse conversion. Schema 9 remains unchanged.
+
+## Phase 15.2 Outcome
+
+Deterministic typed frame evaluation now exists and is proven across repeated,
+stepped, reordered, cloned, JSON-reloaded, and schema 9 save/reopen paths. It
+does not change the visible legacy renderer. Native primitives begin in 15.3;
+real viewport/offline integration and parity remain assigned to 15.7.

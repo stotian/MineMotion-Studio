@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 15 milestone 15.2: deterministic runtime and seeded frame
-evaluation. Milestone 15.1 is implemented and validated.
+Start Phase 15 milestone 15.3: reusable native VFX primitives. Milestones
+15.1 and 15.2 are implemented and validated.
 
 ## Phase Ordering Evidence
 
@@ -16,14 +16,11 @@ evaluation. Milestone 15.1 is implemented and validated.
 
 ## Files To Inspect First
 
-- `src/vfx/core/VfxInstance.ts`
-- `src/vfx/core/VfxEvaluationContext.ts`
-- `src/vfx/core/VfxValidator.ts`
+- `src/vfx/runtime/VfxFrameEvaluator.ts`
+- `src/core/random/DeterministicRandom.ts`
+- `src/vfx/core/VfxDefinition.ts`
+- `src/vfx/core/VfxParameterSchema.ts`
 - `src/vfx/compat/LegacyEffectAdapter.ts`
-- `src/core/ids/Id.ts`
-- `src/core/time/FrameTime.ts`
-- `src/core/services/EngineServices.ts`
-- `src/effects/EffectTypes.ts`
 - `src/renderer/SceneRenderer.ts`
 - `src/export/RenderCapture.ts`
 
@@ -38,11 +35,20 @@ evaluation. Milestone 15.1 is implemented and validated.
 - Guarded reverse conversion against schema 9 data loss.
 - Added focused registry, validator, adapter, timing, structured-clone, and
   project round-trip tests.
-- Full frontend validation: 54 files and 141 tests; typecheck/build/audit green.
+- Milestone 15.1 validation: 54 files and 141 tests; typecheck/build/audit green.
+- Added fixed compatible hash vectors, versioned typed seed derivation, and a
+  counter-addressed random sampler with no mutable generator state.
+- Added pure frame evaluation with full validation, explicit inactivity,
+  inclusive timing, resolved defaults, cloned primitive inputs, and four
+  deterministic quality scales.
+- Proved repeat/step/scrub/order/clone/JSON/schema 9 reload equivalence and
+  blocked ambient random, UUID, crypto, and clock sources in focused tests.
+- Current validation: 56 files and 160 tests; typecheck/build/audit green.
 
 ## Unfinished Work
 
-- No seeded PRNG, evaluator, resettable runtime state, or primitive output.
+- No native particle, mesh/sprite, trail, beam/lightning, ring, overlay, camera,
+  or light-pulse primitive descriptors/evaluators.
 - No renderer, timeline, UI, project schema, or export consumer uses the typed
   VFX model yet.
 - Preview/PNG/WebM parity and renderer resource leaks are tracked for 15.7/15.8.
@@ -50,7 +56,7 @@ evaluation. Milestone 15.1 is implemented and validated.
 ## Known Error
 
 Release Tauri build is blocked by Windows Smart App Control error 4551. Debug
-MSI/NSIS succeeds. This does not block Phase 15.2 TypeScript work.
+MSI/NSIS succeeds. This does not block Phase 15.3 TypeScript work.
 
 ## Next Command
 
@@ -60,10 +66,11 @@ git status --short --branch; git log -3 --oneline
 
 ## Next Implementation Step
 
-Write deterministic PRNG test vectors and a pure evaluator contract first.
-Evaluation must depend only on the instance plus explicit frame/FPS/seed/quality
-inputs, reproduce identical output after scrub/reload/export, and avoid storing
-GPU objects or mutable runtime state in project/history data.
+Define a discriminated primitive descriptor union and hard caps first. Implement
+at least five reusable pure primitives from the master prompt, driven only by
+the 15.2 active frame descriptor and semantic sample indices. Do not create
+Three.js objects or connect preview/export until the primitive data is bounded,
+deterministic, cloneable, and tested.
 
 ## Tests To Run
 

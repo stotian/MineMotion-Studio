@@ -1,3 +1,5 @@
+import { hashStringToUint32 } from "../random/DeterministicRandom";
+
 export interface IdEntropy {
   now(): number;
   randomToken(): string;
@@ -40,11 +42,5 @@ export function createId(
 
 /** Produces stable content IDs. It is not suitable for secrets or random effects. */
 export function createDeterministicId(prefix: string, seed: string): string {
-  let hash = 0x811c9dc5;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash ^= seed.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193);
-  }
-
-  return `${normalizeIdPrefix(prefix)}_${(hash >>> 0).toString(36)}`;
+  return `${normalizeIdPrefix(prefix)}_${hashStringToUint32(seed).toString(36)}`;
 }
