@@ -2,9 +2,10 @@
 
 MineMotion Studio `0.8.2` uses project schema 9.
 
-Phase 14 architecture consolidation is complete. The working product remains
-unchanged at the UI level; low-level contracts now have stable ownership under
-`src/core` with compatibility exports for existing modules.
+Phase 14 architecture consolidation and Phase 15 milestone 15.1 are complete.
+The working product remains unchanged at the UI level; low-level contracts have
+stable ownership under `src/core`, and a typed VFX compatibility projection now
+exists without changing project schema 9.
 
 ## Working Systems
 
@@ -22,21 +23,29 @@ unchanged at the UI level; low-level contracts now have stable ownership under
 - Central evidence-based capability registry. Existing WebM, WAV, and Tauri
   support helpers delegate to it.
 - Documented service boundaries for future extraction from `App.tsx`.
+- Typed `src/vfx/core` definitions, pure instances, parameter schemas,
+  validation, and registry behavior.
+- A schema 9 compatibility adapter derived from the existing effect registry.
+  It preserves every legacy field, inclusive timing, targets, parameters, and
+  deterministic fallback seeds, and rejects lossy reverse conversion.
 
 ## Partial Systems
 
-- Effects are preset-based, not the future deterministic primitive VFX engine.
+- Effects are still rendered by the preset-based legacy runtime. The typed VFX
+  model exists, but deterministic evaluation, runtime state, and primitives do
+  not yet exist.
 - Blockbench auto-rigging, production IK, animated resource textures, secure plugin execution, native dialogs, and full NLA blending are not implemented.
 
 ## Absent Systems
 
-- Phase 15+ native VFX architecture and library.
+- Phase 15.2+ deterministic VFX runtime, primitives, editor, serialization
+  migration, and preview/export integration.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 51 frontend test files and 110 passing tests.
+- 54 frontend test files and 141 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -50,3 +59,5 @@ unchanged at the UI level; low-level contracts now have stable ownership under
 - Generated IDs are centralized; deterministic seeded IDs are a separate API.
 - Existing effects remain preset-based. Phase 15 must adapt `effects.instances`
   and the existing effects timeline lane instead of adding parallel project data.
+- Phase 15.1 keeps those legacy paths authoritative and exposes a derived,
+  structured-cloneable VFX view. Project schema remains 9.

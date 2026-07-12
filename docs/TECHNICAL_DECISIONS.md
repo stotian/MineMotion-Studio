@@ -32,9 +32,18 @@ Define simple generic interfaces for scene, timeline, render, VFX, audio, assets
 
 ## TD-006 - Existing effects will be adapted into Phase 15
 
-Status: Proposed
+Status: Accepted
 
-Do not create a second unrelated effect lane. Future VFX definitions should migrate or adapt `EffectInstance`, retain IDs/timing, and keep old project data loadable.
+Keep schema 9 `effects.instances`, `EffectRegistry`, and `track_effects_main`
+authoritative while Phase 15 is introduced. A pure compatibility projection
+adapts legacy definitions and instances into typed VFX contracts without
+changing project serialization. Reverse conversion rejects rotation, scale,
+bone target, seed, quality, blend, layer, or definition changes that schema 9
+cannot represent instead of silently losing them.
+
+This temporary dual type vocabulary is preferred over a parallel store/lane or
+a premature schema 10 migration. Runtime consumers migrate incrementally; a
+schema change requires its own tested migration milestone.
 
 ## TD-007 - Generated identity and render randomness are separate
 

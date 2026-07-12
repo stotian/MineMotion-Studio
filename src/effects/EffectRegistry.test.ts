@@ -22,4 +22,16 @@ describe("EffectRegistry", () => {
     expect(isEffectActive(effect, 12)).toBe(true);
     expect(getEffectProgress(effect, 12)).toBe(0);
   });
+
+  it("keeps the legacy terminal frame inclusive", () => {
+    const effect = createEffectInstance("flash", {
+      id: "effect_timing",
+      startFrame: 12
+    });
+    const endFrame = effect.startFrame + effect.durationFrames;
+
+    expect(isEffectActive(effect, endFrame)).toBe(true);
+    expect(getEffectProgress(effect, endFrame)).toBe(1);
+    expect(isEffectActive(effect, endFrame + 1)).toBe(false);
+  });
 });

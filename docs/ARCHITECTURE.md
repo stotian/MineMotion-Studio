@@ -55,6 +55,10 @@ flowchart LR
   production format dispatch.
 - `src/effects`: effect definitions, instances, registry, serializer, spawner,
   and timeline helpers.
+- `src/vfx/core`: typed VFX definitions, pure instances, parameter schemas,
+  validation, registry, and the Phase 14 evaluation-context re-export.
+- `src/vfx/compat`: pure schema 9 effect-definition/instance projection and
+  guarded reverse conversion. It does not own project state or a timeline lane.
 - `src/audio`: audio clip types, import helpers, placeholder SFX registry,
   playback manager, serializer, and timeline helpers.
 - `src/audio/export`: browser WAV mixdown and WAV encoding.

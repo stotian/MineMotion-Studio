@@ -1,4 +1,5 @@
-import type { Vector3Tuple } from "../project/ProjectFile";
+import type { Vector3Tuple } from "../core/scene/SceneTypes";
+import type { VfxSpace } from "../vfx/core/VfxDefinition";
 
 export type EffectType =
   | "lightningStrike"
@@ -14,7 +15,7 @@ export type EffectType =
   | "cinematicBars"
   | "explosionFlash";
 
-export type EffectSpace = "screen" | "world" | "camera";
+export type EffectSpace = VfxSpace;
 
 export interface EffectParameters {
   color?: string;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { EffectInstance } from "../effects/EffectTypes";
 import { createInitialProject } from "./ProjectStore";
 import { ProjectSerializer } from "./ProjectSerializer";
 
@@ -27,6 +28,44 @@ describe("ProjectSerializer", () => {
     expect(parsed.projectName).toBe(project.projectName);
     expect(parsed.scene.characters).toHaveLength(1);
     expect(parsed.animation.fps).toBe(24);
+  });
+
+  it("round-trips every schema 9 effect field without changing the schema", () => {
+    const effect: EffectInstance = {
+      id: "effect_schema_9",
+      type: "shockwave",
+      name: "Saved Shockwave",
+      startFrame: 18,
+      durationFrames: 20,
+      position: [1, 2, 3],
+      targetObjectId: "character_steve",
+      parameters: {
+        color: "#abcdef",
+        alpha: 0.7,
+        radius: 6,
+        flash: false
+      },
+      enabled: true
+    };
+    const initial = createInitialProject();
+    const parsed = ProjectSerializer.parse(
+      ProjectSerializer.serialize({
+        ...initial,
+        effects: { instances: [effect] }
+      })
+    );
+
+    expect(parsed.schemaVersion).toBe(9);
+    expect(parsed.effects.instances[0]).toEqual(effect);
+    expect(
+      parsed.animation.timelineTracks
+        .find((track) => track.id === "track_effects_main")
+        ?.items[0]
+    ).toMatchObject({
+      effectId: effect.id,
+      startFrame: effect.startFrame,
+      durationFrames: effect.durationFrames
+    });
   });
 
   it("migrates a schema v1 project with fallback project settings", () => {
