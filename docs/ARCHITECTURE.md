@@ -55,7 +55,7 @@ flowchart LR
 - `src/export/renderQueue`: jobs, transitions, serialization, runner, UI, and
   production format dispatch.
 - `src/effects`: effect definitions, instances, registry, serializer, spawner,
-  and timeline helpers.
+  pure timeline command controller, and canonical lane projection helpers.
 - `src/vfx/core`: typed VFX definitions, pure instances, parameter schemas,
   validation, registry, and the Phase 14 evaluation-context re-export.
 - `src/vfx/compat`: pure schema 9 effect-definition/instance projection and
@@ -73,8 +73,8 @@ flowchart LR
 - `src/rigs`: Minecraft rig definitions, Steve/Alex presets, skin import/UV
   mapping, pose and animation presets, IK placeholders, and Blockbench import.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
-- `src/project`: schema v9, serializer, migrations, package helpers, timeline
-  sync, initial state, and object helpers.
+- `src/project`: schema v9, serializer, migrations, package helpers, bounded
+  plain-data timeline sanitization/sync, initial state, and object helpers.
 - `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
   built-in plugin metadata.
@@ -110,6 +110,11 @@ world-space effects are created in the scene root:
 - shockwave rings
 - glow burst cube particles
 
+The legacy world-effect bridge now evaluates at most 64 active effects and
+4,096 burst particles per frame, caps each burst at 1,024 particles, and emits
+each glow burst through one `THREE.InstancedMesh`. Full object-tree disposal and
+pooling remain assigned to Phase 15.8.
+
 Screen-space effects and post-processing are handled by React overlays around
 the canvas. Export captures those overlays through a canvas capture path for
 PNG output and records the live viewport canvas for WebM where browser support
@@ -130,6 +135,10 @@ editor. `timelineTracks` provide typed lanes for:
 - sky
 
 Effect/audio lanes are synchronized from `effects.instances` and `audio.clips`.
+Effects are edited only through `EffectTimelineController`; successful commands
+mutate schema 9 instances, sanitize foreign lanes, rebuild exactly one
+`track_effects_main`, and create one whole-project history checkpoint. Timeline
+items never become a second source of effect truth.
 
 ## Stable Boundaries
 
@@ -154,6 +163,12 @@ descriptor. Per-kind caps apply before loops. Particles use stable sample
 prefixes; beam, trail, and ring add nested canonical sample IDs as quality rises.
 Outputs retain cloned placement metadata but never allocate Three.js, Canvas,
 CSS, DOM, texture, material, cache, or runtime-class objects.
+
+Timeline commands are a separate integration layer over that pure runtime. They
+validate discriminated plain inputs, inject caller-owned IDs for duplicate and
+paste, preserve deterministic array priority, and reject invalid/no-op edits
+without history. Parameter keyframes are absent from schema 9 and deliberately
+remain outside this layer until the schema 10 migration.
 
 ## Audio
 

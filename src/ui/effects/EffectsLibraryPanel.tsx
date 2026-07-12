@@ -8,14 +8,18 @@ import {
 } from "lucide-react";
 import type { BuiltinSfxDefinition } from "../../audio/AudioTypes";
 import type { AudioClip } from "../../audio/AudioTypes";
-import type { EffectDefinition, EffectType } from "../../effects/EffectTypes";
+import type {
+  EffectDefinition,
+  EffectInstance,
+  EffectType
+} from "../../effects/EffectTypes";
 import type { PostProcessingPreset, PostProcessingPresetId } from "../../rendering/postprocessing/PostProcessingTypes";
 import type { RenderSettings } from "../../project/ProjectFile";
 
 interface EffectsLibraryPanelProps {
   effects: EffectDefinition[];
   selectedEffectId: string | null;
-  effectCount: number;
+  effectInstances: readonly EffectInstance[];
   audioClips: AudioClip[];
   builtinSfx: BuiltinSfxDefinition[];
   postPresets: PostProcessingPreset[];
@@ -33,7 +37,7 @@ interface EffectsLibraryPanelProps {
 export function EffectsLibraryPanel({
   effects,
   selectedEffectId,
-  effectCount,
+  effectInstances,
   audioClips,
   builtinSfx,
   postPresets,
@@ -82,17 +86,28 @@ export function EffectsLibraryPanel({
           Scene Effects
         </h3>
         <p className="empty-note">
-          {effectCount} effect{effectCount === 1 ? "" : "s"} in this project.
+          {effectInstances.length} effect{effectInstances.length === 1 ? "" : "s"} in this project.
         </p>
-        {selectedEffectId && (
-          <button
-            type="button"
-            className="compact-action"
-            onClick={() => onSelectEffect(selectedEffectId)}
-          >
-            Edit selected effect
-          </button>
-        )}
+        <div className="scene-effect-list" aria-label="Scene effects">
+          {effectInstances.map((effect) => (
+            <button
+              key={effect.id}
+              type="button"
+              className={`${effect.id === selectedEffectId ? "selected" : ""} ${effect.enabled ? "" : "disabled-effect"}`}
+              aria-pressed={effect.id === selectedEffectId}
+              onClick={() => onSelectEffect(effect.id)}
+            >
+              <strong>{effect.name}</strong>
+              <span>
+                {effect.startFrame}–{effect.startFrame + effect.durationFrames}f
+              </span>
+              <small>{effect.enabled ? "Enabled" : "Disabled"}</small>
+            </button>
+          ))}
+          {effectInstances.length === 0 && (
+            <span className="empty-note">Add an effect from the library.</span>
+          )}
+        </div>
       </section>
 
       <section className="effects-section">

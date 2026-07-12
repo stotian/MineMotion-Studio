@@ -58,3 +58,17 @@ plain descriptor. They enforce local hard caps before allocation, use semantic
 seed channels, and return a discriminated plain-data union. Renderer adapters
 must treat these outputs as immutable input and own all host/GPU resources and
 disposal outside project/history data.
+
+Effects timeline editing is a command boundary rather than a second state
+model. `EffectTimelineController` validates plain command/project data, mutates
+schema 9 `effects.instances`, and asks the canonical lane projection to rebuild
+`track_effects_main`. Foreign lanes pass through `TimelineTrackSanitizer`, so a
+history snapshot cannot retain accessors, classes, sparse arrays, or unrelated
+runtime values. IDs for duplicate and paste are injected by the caller; the
+controller never consults time, UUID, crypto, or random entropy.
+
+Renderer safety currently adds a legacy integration guard of 64 active world
+effects and 4,096 burst particles per frame, with 1,024 particles per effect.
+These are runtime budgets, not schema defaults: oversized schema 9 projects can
+still load and be repaired, while editor commands refuse further growth past
+4,096 effect instances.

@@ -18,7 +18,7 @@ still required before changing code.
 | LIM-009 | Preview, PNG, and WebM render different subsets of effects; `includeVfx=false` cannot remove world effects already in the canvas | Yes | P2 | 15.7 | OPEN |
 | LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | OPEN |
 | LIM-011 | A pure explicit frame/FPS/seed/quality evaluator exists, but legacy preview/export consumers do not use it yet | Yes | P2 | 15.7 | OPEN |
-| LIM-012 | Target IDs reach primitive inputs but are not scene/bone-resolved, and several registered effect parameters are visually ignored | Yes | P2/P4 | 15.4-15.7 | OPEN |
+| LIM-012 | Target IDs reach primitive inputs but are not scene/bone-resolved, and several registered effect parameters are visually ignored | Yes | P2/P4 | 15.5-15.7 | OPEN |
 | LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | OPEN |
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
 | LIM-015 | Static scene data and imported OBJ resources are rebuilt/reparsed on project updates | Yes | P3 | 20 | OPEN |
@@ -33,6 +33,7 @@ still required before changing code.
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
 | LIM-026 | Primitive limits are per descriptor; a combined per-frame stack budget awaits real stack integration and measurement | Yes | P3 | 15.8/20 | OPEN |
+| LIM-027 | Schema 9 cannot persist VFX parameter keyframes or native seed/quality/layer/blend/transform fields | Yes | P4 | 15.6 | OPEN |
 
 ## Phase 15.1 Outcome
 
@@ -56,3 +57,13 @@ and adversarial plain-data validation. They are not yet mapped from legacy
 effects or consumed by timeline, viewport, Canvas capture, or export paths.
 Advanced emitter/modifier kinds and a measured combined stack budget remain
 explicitly open.
+
+## Phase 15.4 Outcome
+
+Effects-lane blocks now support real move, trim, duplicate, copy/paste,
+enable/disable, priority, selection, deletion, and committed Inspector edits
+through schema 9 project history. Save, package, undo, and reload preserve the
+authoritative instances and regenerate one canonical lane. Runtime particle
+budgets protect the legacy preview, but typed primitive preview/export parity,
+target resolution, complete disposal, schema-generated controls, and parameter
+keyframes remain assigned to 15.5-15.8.

@@ -92,3 +92,20 @@ nested canonical sample indices so shared details and endpoints do not move as
 quality rises. Seeds never include quality or evaluation order. Three.js,
 Canvas, CSS, target resolution, mutable registries, and GPU ownership remain
 outside the primitive contract and are deferred to later integration milestones.
+
+## TD-011 - Effects timeline editing keeps schema 9 as the sole authority
+
+Status: Accepted
+
+Route every effects-lane edit through a pure validated command controller that
+mutates `effects.instances`, then regenerate exactly one `track_effects_main`
+lane. Sanitize and preserve foreign timeline lanes, but never treat effect-lane
+items as independent persisted state. The React bridge creates one whole-project
+history checkpoint only for a successful non-no-op mutation.
+
+This preserves schema 9, save/package compatibility, deterministic ordering,
+undo/redo, and the current renderer while providing real move, trim, duplicate,
+copy/paste, enable, priority, delete, and Inspector editing. New growth above
+4,096 instances is blocked, but oversized legacy projects remain repairable.
+Parameter keyframes and other native-only VFX fields wait for the tested schema
+10 migration instead of being encoded in an unofficial parallel contract.

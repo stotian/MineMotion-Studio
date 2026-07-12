@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChartSpline,
   Clipboard,
@@ -22,7 +22,16 @@ import type {
   TimelineData,
   TimelineItem
 } from "../../project/ProjectFile";
-import { findObject } from "../../project/ProjectStore";
+import { createId, findObject } from "../../project/ProjectStore";
+import {
+  copyEffectTimelineBlock,
+  type EffectTimelineClipboardV1,
+  type EffectTimelineCommand
+} from "../../effects/EffectTimelineController";
+import {
+  getTimelineFrameAtPosition,
+  getTimelineMoveStartFrame
+} from "../../effects/EffectTimelineTrack";
 import { getSelectedCharacterId } from "../../rigs/RigSelection";
 import { createAnimationEditorState } from "../../animation/editor/AnimationEditorStore";
 import { copyKeyframes, pasteKeyframes } from "../../animation/editor/KeyframeClipboard";
@@ -46,6 +55,23 @@ import { addClipToNla, updateNlaClip } from "../../animation/editor/NlaTracks";
 import { Dopesheet } from "../../animation/editor/Dopesheet";
 import { GraphEditor } from "../../animation/editor/GraphEditor";
 
+const EFFECT_TIMELINE_DRAG_TYPE = "application/x-minemotion-effect-timeline";
+
+interface EffectTimelineDragPayload {
+  mode: "move" | "trim-start" | "trim-end";
+  effectId: string;
+  durationFrames: number;
+  grabOffsetFrames: number;
+}
+
+function setEffectTimelineDragData(
+  event: React.DragEvent<HTMLElement>,
+  payload: EffectTimelineDragPayload
+) {
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData(EFFECT_TIMELINE_DRAG_TYPE, JSON.stringify(payload));
+}
+
 interface TimelinePanelProps {
   project: MineMotionProject;
   selectedObjectId: string | null;
@@ -55,6 +81,7 @@ interface TimelinePanelProps {
   onTogglePlayback: () => void;
   onAddKeyframe: () => void;
   onSelectEffect: (effectId: string) => void;
+  onEditEffectTimeline: (command: EffectTimelineCommand) => void;
   onUpdateAnimation: (animation: TimelineData, label: string) => void;
 }
 
@@ -67,11 +94,15 @@ export function TimelinePanel({
   onTogglePlayback,
   onAddKeyframe,
   onSelectEffect,
+  onEditEffectTimeline,
   onUpdateAnimation
 }: TimelinePanelProps) {
   const { animation } = project;
   const [editor, setEditor] = useState(createAnimationEditorState);
   const [selectedClipId, setSelectedClipId] = useState("");
+  const [effectClipboard, setEffectClipboard] =
+    useState<EffectTimelineClipboardV1 | null>(null);
+  const projectIdentity = project.metadata.createdAt;
   const selectedTargetId = getSelectedCharacterId(selectedObjectId) ?? selectedObjectId;
   const selectedTracks = selectedTargetId
     ? animation.tracks.filter((track) => track.targetId === selectedTargetId)
@@ -84,6 +115,13 @@ export function TimelinePanel({
     [animation.tracks]
   );
   const clip = animation.clips.find((candidate) => candidate.id === selectedClipId) ?? null;
+  const selectedEffectIndex = project.effects.instances.findIndex(
+    (effect) => effect.id === selectedEffectId
+  );
+  const selectedEffect =
+    selectedEffectIndex >= 0
+      ? project.effects.instances[selectedEffectIndex]
+      : null;
   const selectedEntity = selectedTargetId ? findObject(project, selectedTargetId)?.entity : null;
   const selectedTargetType: ReusableAnimationClip["targetType"] =
     selectedEntity?.type === "character"
@@ -94,6 +132,10 @@ export function TimelinePanel({
   const clipCompatible = Boolean(
     clip && selectedTargetId && isAnimationClipCompatible(clip, selectedTargetType)
   );
+
+  useEffect(() => {
+    setEffectClipboard(null);
+  }, [projectIdentity]);
 
   const commitTracks = (
     tracks: TimelineData["tracks"],
@@ -198,6 +240,12 @@ export function TimelinePanel({
     );
     const next = direction < 0 ? candidates.at(-1) : candidates[0];
     onSetFrame(next ?? (direction < 0 ? 0 : animation.durationFrames));
+  };
+
+  const copySelectedEffect = () => {
+    if (!selectedEffect) return;
+    const result = copyEffectTimelineBlock(project, selectedEffect.id);
+    if (result.ok) setEffectClipboard(result.value);
   };
 
   return (
@@ -451,6 +499,207 @@ export function TimelinePanel({
         <button type="button" disabled={!clipCompatible} onClick={addNlaClip}>
           Add To NLA
         </button>
+        <span className="effect-command-label">
+          FX: {selectedEffect?.name ?? "none"}
+        </span>
+        <button
+          type="button"
+          disabled={!selectedEffect || selectedEffect.startFrame < editor.snapInterval}
+          title="Move selected effect earlier"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "move",
+              effectId: selectedEffect.id,
+              startFrame: selectedEffect.startFrame - editor.snapInterval
+            })
+          }
+        >
+          FX -{editor.snapInterval}f
+        </button>
+        <button
+          type="button"
+          disabled={
+            !selectedEffect ||
+            selectedEffect.startFrame +
+              editor.snapInterval +
+              selectedEffect.durationFrames >
+              animation.durationFrames
+          }
+          title="Move selected effect later"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "move",
+              effectId: selectedEffect.id,
+              startFrame: selectedEffect.startFrame + editor.snapInterval
+            })
+          }
+        >
+          FX +{editor.snapInterval}f
+        </button>
+        <button
+          type="button"
+          disabled={
+            !selectedEffect ||
+            selectedEffect.startFrame === animation.currentFrame ||
+            animation.currentFrame + selectedEffect.durationFrames >
+              animation.durationFrames
+          }
+          title="Move selected effect to the playhead"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "move",
+              effectId: selectedEffect.id,
+              startFrame: animation.currentFrame
+            })
+          }
+        >
+          Move @
+        </button>
+        <button
+          type="button"
+          disabled={
+            !selectedEffect ||
+            animation.currentFrame >=
+              selectedEffect.startFrame + selectedEffect.durationFrames ||
+            animation.currentFrame === selectedEffect.startFrame
+          }
+          title="Trim the selected effect start to the playhead"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "trim-start",
+              effectId: selectedEffect.id,
+              startFrame: animation.currentFrame
+            })
+          }
+        >
+          Trim L
+        </button>
+        <button
+          type="button"
+          disabled={
+            !selectedEffect ||
+            animation.currentFrame <= selectedEffect.startFrame ||
+            animation.currentFrame ===
+              selectedEffect.startFrame + selectedEffect.durationFrames
+          }
+          title="Trim the selected effect end to the playhead"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "trim-end",
+              effectId: selectedEffect.id,
+              endFrame: animation.currentFrame
+            })
+          }
+        >
+          Trim R
+        </button>
+        <button
+          type="button"
+          disabled={
+            !selectedEffect ||
+            selectedEffect.startFrame + 1 + selectedEffect.durationFrames >
+              animation.durationFrames
+          }
+          title="Duplicate selected effect"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "duplicate",
+              effectId: selectedEffect.id,
+              newEffectId: createId("effect"),
+              startFrame: selectedEffect.startFrame + 1
+            })
+          }
+        >
+          <Scissors size={14} /> FX
+        </button>
+        <button
+          type="button"
+          disabled={!selectedEffect}
+          title="Copy selected effect"
+          onClick={copySelectedEffect}
+        >
+          <Copy size={14} /> FX
+        </button>
+        <button
+          type="button"
+          disabled={
+            !effectClipboard ||
+            animation.currentFrame +
+              (effectClipboard?.effect.durationFrames ?? 0) >
+              animation.durationFrames
+          }
+          title="Paste copied effect at the playhead"
+          onClick={() =>
+            effectClipboard &&
+            onEditEffectTimeline({
+              type: "paste",
+              clipboard: effectClipboard,
+              newEffectId: createId("effect"),
+              startFrame: animation.currentFrame
+            })
+          }
+        >
+          <Clipboard size={14} /> FX
+        </button>
+        <button
+          type="button"
+          disabled={!selectedEffect}
+          title={selectedEffect?.enabled ? "Disable selected effect" : "Enable selected effect"}
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "set-enabled",
+              effectId: selectedEffect.id,
+              enabled: !selectedEffect.enabled
+            })
+          }
+        >
+          {selectedEffect?.enabled ? "Disable FX" : "Enable FX"}
+        </button>
+        <button
+          type="button"
+          disabled={!selectedEffect || selectedEffectIndex <= 0}
+          title="Move selected effect earlier in persisted priority order"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "reorder",
+              effectId: selectedEffect.id,
+              toIndex: selectedEffectIndex - 1
+            })
+          }
+        >
+          Priority -
+        </button>
+        <button
+          type="button"
+          disabled={
+            !selectedEffect ||
+            selectedEffectIndex >= project.effects.instances.length - 1
+          }
+          title="Move selected effect later in persisted priority order"
+          onClick={() =>
+            selectedEffect &&
+            onEditEffectTimeline({
+              type: "reorder",
+              effectId: selectedEffect.id,
+              toIndex: selectedEffectIndex + 1
+            })
+          }
+        >
+          Priority +
+        </button>
+        {effectClipboard && (
+          <span className="effect-clipboard-note">
+            Copied: {effectClipboard.effect.name}
+          </span>
+        )}
         <span className="timeline-summary">
           {editor.selection.selected.length} selected / {animation.markers.length} markers / {animation.clips.length} clips
         </span>
@@ -464,6 +713,7 @@ export function TimelinePanel({
             selectedEffectId={selectedEffectId}
             onSetFrame={onSetFrame}
             onSelectEffect={onSelectEffect}
+            onEditEffectTimeline={onEditEffectTimeline}
           />
         )}
         {editor.view === "dopesheet" && (
@@ -538,13 +788,15 @@ function TimelineView({
   selectedTracks,
   selectedEffectId,
   onSetFrame,
-  onSelectEffect
+  onSelectEffect,
+  onEditEffectTimeline
 }: {
   project: MineMotionProject;
   selectedTracks: MineMotionProject["animation"]["tracks"];
   selectedEffectId: string | null;
   onSetFrame: (frame: number) => void;
   onSelectEffect: (effectId: string) => void;
+  onEditEffectTimeline: (command: EffectTimelineCommand) => void;
 }) {
   const { animation } = project;
   const duration = Math.max(1, animation.durationFrames);
@@ -553,6 +805,11 @@ function TimelineView({
   );
   const ticks = Array.from({ length: 21 }, (_, index) =>
     Math.round((duration / 20) * index)
+  );
+  const disabledEffectIds = new Set(
+    project.effects.instances
+      .filter((effect) => !effect.enabled)
+      .map((effect) => effect.id)
   );
   return (
     <div className="timeline-track professional-timeline">
@@ -600,8 +857,11 @@ function TimelineView({
             durationFrames={duration}
             items={track.items}
             selectedEffectId={selectedEffectId}
+            disabledEffectIds={disabledEffectIds}
+            acceptsEffectDrop={track.type === "effect"}
             onSetFrame={onSetFrame}
             onSelectEffect={onSelectEffect}
+            onEditEffectTimeline={onEditEffectTimeline}
           />
         ))}
     </div>
@@ -658,38 +918,184 @@ function TimelineBlockLane({
   durationFrames,
   items,
   selectedEffectId,
+  disabledEffectIds,
+  acceptsEffectDrop,
   onSetFrame,
-  onSelectEffect
+  onSelectEffect,
+  onEditEffectTimeline
 }: {
   label: string;
   durationFrames: number;
   items: TimelineItem[];
   selectedEffectId: string | null;
+  disabledEffectIds: ReadonlySet<string>;
+  acceptsEffectDrop: boolean;
   onSetFrame: (frame: number) => void;
   onSelectEffect: (effectId: string) => void;
+  onEditEffectTimeline: (command: EffectTimelineCommand) => void;
 }) {
+  const laneRef = useRef<HTMLDivElement>(null);
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!acceptsEffectDrop) return;
+    const raw = event.dataTransfer.getData(EFFECT_TIMELINE_DRAG_TYPE);
+    if (!raw) return;
+    event.preventDefault();
+    try {
+      const payload = JSON.parse(raw) as EffectTimelineDragPayload;
+      if (
+        !payload ||
+        typeof payload.effectId !== "string" ||
+        !["move", "trim-start", "trim-end"].includes(payload.mode)
+      ) {
+        return;
+      }
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const frame = getTimelineFrameAtPosition(
+        event.clientX,
+        bounds.left,
+        bounds.width,
+        durationFrames
+      );
+      if (payload.mode === "move") {
+        onEditEffectTimeline({
+          type: "move",
+          effectId: payload.effectId,
+          startFrame: getTimelineMoveStartFrame(
+            frame,
+            payload.grabOffsetFrames,
+            payload.durationFrames,
+            durationFrames
+          )
+        });
+      } else if (payload.mode === "trim-start") {
+        onEditEffectTimeline({
+          type: "trim-start",
+          effectId: payload.effectId,
+          startFrame: frame
+        });
+      } else {
+        onEditEffectTimeline({
+          type: "trim-end",
+          effectId: payload.effectId,
+          endFrame: frame
+        });
+      }
+    } catch {
+      // Ignore foreign or malformed drag payloads.
+    }
+  };
+
   return (
     <div className="timeline-block-lane" aria-label={`${label} lane`}>
       <span>{label}</span>
-      <div>
-        {items.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`timeline-block ${item.effectId === selectedEffectId ? "selected" : ""} ${item.type}`}
-            style={{
-              left: `${(item.startFrame / durationFrames) * 100}%`,
-              width: `${Math.max(1, (item.durationFrames / durationFrames) * 100)}%`
-            }}
-            title={`${item.label} @ ${item.startFrame}`}
-            onClick={() => {
-              onSetFrame(item.startFrame);
-              if (item.effectId) onSelectEffect(item.effectId);
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div
+        ref={laneRef}
+        onDragOver={(event) => {
+          if (
+            acceptsEffectDrop &&
+            event.dataTransfer.types.includes(EFFECT_TIMELINE_DRAG_TYPE)
+          ) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+          }
+        }}
+        onDrop={acceptsEffectDrop ? handleDrop : undefined}
+      >
+        {items.map((item) => {
+          const effectId = acceptsEffectDrop ? item.effectId : undefined;
+          const className = `timeline-block ${effectId === selectedEffectId ? "selected" : ""} ${effectId && disabledEffectIds.has(effectId) ? "disabled-effect" : ""} ${item.type}`;
+          const title = `${item.label} @ ${item.startFrame}${effectId && disabledEffectIds.has(effectId) ? " (disabled)" : ""}`;
+          const style = {
+            left: `${(item.startFrame / durationFrames) * 100}%`,
+            width: `${Math.max(1, (item.durationFrames / durationFrames) * 100)}%`
+          };
+          const selectItem = () => {
+            onSetFrame(item.startFrame);
+            if (effectId) onSelectEffect(effectId);
+          };
+
+          if (!effectId) {
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={className}
+                style={style}
+                title={title}
+                onClick={selectItem}
+              >
+                {item.label}
+              </button>
+            );
+          }
+
+          const dragPayload = {
+            effectId,
+            durationFrames: item.durationFrames,
+            grabOffsetFrames: 0
+          };
+          return (
+            <div key={item.id} className="timeline-block-shell" style={style}>
+              <button
+                type="button"
+                className={className}
+                title={`${title}. Drag to move.`}
+                draggable
+                onDragStart={(event) => {
+                  const bounds = laneRef.current?.getBoundingClientRect();
+                  if (!bounds) {
+                    event.preventDefault();
+                    return;
+                  }
+                  const pointerFrame = getTimelineFrameAtPosition(
+                    event.clientX,
+                    bounds.left,
+                    bounds.width,
+                    durationFrames
+                  );
+                  setEffectTimelineDragData(event, {
+                    ...dragPayload,
+                    grabOffsetFrames: pointerFrame - item.startFrame,
+                    mode: "move"
+                  });
+                }}
+                onClick={selectItem}
+              >
+                {item.label}
+              </button>
+              <button
+                type="button"
+                className="timeline-trim-handle start"
+                aria-label={`Trim ${item.label} start`}
+                title="Drag to trim effect start"
+                draggable
+                onClick={(event) => event.stopPropagation()}
+                onDragStart={(event) => {
+                  event.stopPropagation();
+                  setEffectTimelineDragData(event, {
+                    ...dragPayload,
+                    mode: "trim-start"
+                  });
+                }}
+              />
+              <button
+                type="button"
+                className="timeline-trim-handle end"
+                aria-label={`Trim ${item.label} end`}
+                title="Drag to trim effect end"
+                draggable
+                onClick={(event) => event.stopPropagation()}
+                onDragStart={(event) => {
+                  event.stopPropagation();
+                  setEffectTimelineDragData(event, {
+                    ...dragPayload,
+                    mode: "trim-end"
+                  });
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { sanitizeAudioClips } from "../audio/AudioSerializer";
 import { createAudioTimelineItems } from "../audio/AudioTrack";
 import { sanitizeAssetLibrary } from "../assets/library/AssetSerializer";
 import { sanitizeEffects } from "../effects/EffectSerializer";
-import { createEffectTimelineItems } from "../effects/EffectTimelineTrack";
+import { createEffectTimelineLaneItems } from "../effects/EffectTimelineTrack";
 import { withExportSettingsDefaults } from "../export/ExportSettings";
 import { withFfmpegSettingsDefaults } from "../export/ffmpeg/FfmpegSettings";
 import { sanitizeRenderQueue } from "../export/renderQueue/RenderQueueStore";
@@ -32,6 +32,10 @@ import {
   createDefaultTimelineTracks
 } from "./ProjectStore";
 import { CURRENT_PROJECT_SCHEMA_VERSION } from "../core/serialization/SchemaVersion";
+import {
+  mergeCanonicalTimelineTracks,
+  sanitizeTimelineTracks
+} from "./TimelineTrackSanitizer";
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -125,6 +129,9 @@ export class ProjectSerializer {
     const rigs = sanitizeRigProjectData(project.rigs);
     const resourcePacks = sanitizeResourcePackAssets(project.assets?.resourcePacks);
     const lighting = withLightingDefaults(project.lighting);
+    const timelineTracks = sanitizeTimelineTracks(
+      project.animation?.timelineTracks
+    );
     const characters = (project.scene?.characters ?? []).map((entity) =>
       sanitizeCharacterRig({
         ...entity,
@@ -261,7 +268,7 @@ export class ProjectSerializer {
             rigs,
             lighting
           },
-          project.animation?.timelineTracks,
+          timelineTracks,
           effects,
           audioClips
         ),
@@ -335,17 +342,7 @@ export class ProjectSerializer {
     audioClips: MineMotionProject["audio"]["clips"]
   ): TimelineTrackLane[] {
     const defaultTracks = createDefaultTimelineTracks();
-    const effectItems: TimelineItem[] = createEffectTimelineItems(effects).map(
-      (item) => ({
-        id: `item_${item.effectId}`,
-        type: "effect",
-        label: item.effectId,
-        targetId: item.effectId,
-        effectId: item.effectId,
-        startFrame: item.startFrame,
-        durationFrames: item.durationFrames
-      })
-    );
+    const effectItems: TimelineItem[] = createEffectTimelineLaneItems(effects);
     const audioItems: TimelineItem[] = createAudioTimelineItems(audioClips).map(
       (item) => ({
         id: `item_${item.clipId}`,
@@ -382,20 +379,26 @@ export class ProjectSerializer {
       return hydratedDefaults;
     }
 
-    return hydratedDefaults.map((defaultTrack) => ({
-      ...defaultTrack,
-      ...(tracks.find((track) => track.id === defaultTrack.id) ?? {}),
-      items:
-        defaultTrack.type === "effect"
-          ? effectItems
-          : defaultTrack.type === "rig"
-            ? rigItems
-          : defaultTrack.type === "audio"
-            ? audioItems
-          : defaultTrack.type === "sky"
-            ? environmentItems
-            : (tracks.find((track) => track.id === defaultTrack.id)?.items ?? [])
-    }));
+    const canonicalTracks = hydratedDefaults.map((defaultTrack) => {
+      const existing = tracks.find((track) => track.id === defaultTrack.id);
+      return {
+        ...defaultTrack,
+        ...(existing ?? {}),
+        id: defaultTrack.id,
+        type: defaultTrack.type,
+        items:
+          defaultTrack.type === "effect"
+            ? effectItems
+            : defaultTrack.type === "rig"
+              ? rigItems
+            : defaultTrack.type === "audio"
+              ? audioItems
+            : defaultTrack.type === "sky"
+              ? environmentItems
+              : (existing?.items ?? [])
+      };
+    });
+    return mergeCanonicalTimelineTracks(tracks, canonicalTracks);
   }
 
   private static withClipDefaults(

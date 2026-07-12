@@ -1,8 +1,8 @@
 # Phase 15 - Native Deterministic VFX Foundation
 
 Phase status: IN_PROGRESS
-Milestone 15.3 status: COMPLETED - five bounded renderer-neutral primitives
-Next milestone after checkpoint: 15.4 - existing effects-lane timeline integration
+Milestone 15.4 status: COMPLETED - validated schema 9 effects-lane editing
+Next milestone after checkpoint: 15.5 - schema-generated Inspector controls
 
 ## Requirements And Boundaries
 
@@ -11,11 +11,12 @@ working project, timeline, renderer, history, or export paths. Schema 9
 `effects.instances` and `track_effects_main` remain authoritative until a
 schema 10 migration is designed and tested.
 
-The first three milestones add pure typed contracts, definition/instance
+The first four milestones add pure typed contracts, definition/instance
 validation, a derived registry view, a reversible legacy adapter, stable seed
-derivation, counter-addressed randomness, pure frame evaluation, and five
-bounded renderer-neutral primitive kinds. They do not claim timeline editing,
-inspector generation, serialization migration, or preview/export parity yet.
+derivation, counter-addressed randomness, pure frame evaluation, five bounded
+renderer-neutral primitive kinds, and real effects-lane editing. They do not
+claim schema-generated controls, parameter keyframes, serialization migration,
+or preview/export parity yet.
 
 Non-functional requirements:
 
@@ -188,6 +189,39 @@ data. Particle quality uses a literal prefix of stable sample indices. Beam,
 trail, and ring use nested canonical indices so higher quality adds detail
 without moving shared samples or endpoints.
 
+## Milestone 15.4 Timeline Options
+
+### A. Add a native VFX store and lane (about 2-4 days)
+
+Pros: exposes the Phase 15 model directly.
+Cons: creates two effect authorities, requires schema 10 prematurely, and risks
+divergent history, preview, package, and export behavior.
+
+### B. Edit timeline items independently (about 1-2 days)
+
+Pros: small UI patch.
+Cons: the lane becomes stale serialized state that can disagree with
+`effects.instances`, especially after undo, reload, or package round-trip.
+
+### C. Pure commands over schema 9 effects with a derived lane (selected,
+about 2-4 days)
+
+```text
+UI intent ---> validated effect command ---> effects.instances
+                                           |
+                                           v
+                              canonical track_effects_main
+                                           |
+                                           v
+                              one HistoryStack checkpoint
+```
+
+Pros: one authority, deterministic mutations, backward-compatible files, real
+undo/redo, and no second store/lane. Foreign timeline lanes are sanitized and
+preserved around the canonical projection.
+Cons: fields absent from schema 9, including parameter keyframes, cannot be
+represented honestly and remain deferred to the tested schema 10 milestone.
+
 ## Milestones
 
 1. **15.1 Model and compatibility** - typed definitions/instances/parameters,
@@ -196,8 +230,10 @@ without moving shared samples or endpoints.
    runtime state and deterministic tests.
 3. **15.3 Native primitives** - at least five reusable primitives with hard
    limits and explicit ownership.
-4. **15.4 Timeline integration** - reuse the effects lane; blocks, trim,
-   duplicate, parameter animation, and scrubbing.
+4. **15.4 Timeline integration** - reuse the effects lane; selectable blocks,
+   drag/move, trim, duplicate, copy/paste, enable, priority, Inspector edits,
+   scrubbing, save/reload, and history. Parameter keyframes require schema 10
+   and are explicitly deferred to 15.6.
 5. **15.5 Inspector and schemas** - generate real controls from parameter
    schemas and connect edits through project history.
 6. **15.6 Serialization and migration** - schema 10 design, migration,
@@ -269,6 +305,33 @@ without moving shared samples or endpoints.
   integration is introduced;
 - focused tests, full tests, typecheck, build, audit, and diff checks pass.
 
+## Milestone 15.4 Acceptance
+
+- schema 9 `effects.instances` remains the sole effect authority and
+  `track_effects_main` remains a derived lane;
+- insert, edit, move, both trims, duplicate, copy/paste, enable/disable,
+  priority reorder, selection, delete, and scrubbing perform real actions;
+- drag/drop uses lane coordinates and preserves the grab offset even when CSS
+  minimum width inflates a one-frame block;
+- every successful edit creates exactly one history checkpoint; invalid and
+  no-op commands create none, and undo/redo restores both source effects and
+  their lane projection;
+- committed numeric, vector, and color Inspector drafts preserve precision and
+  are flushed before save/export;
+- save/reload and `.minemotion` package round-trips preserve effect timing,
+  order, names, enabled state, payloads, labels, and foreign lanes;
+- controller, clipboard, effect, vector, parameter, and foreign-lane inputs are
+  bounded plain data; sparse arrays, accessors, classes, non-finite values,
+  duplicate IDs, and unsafe ranges fail deterministically;
+- new growth beyond 4,096 effects is rejected, while oversized legacy schema 9
+  projects remain editable and can be repaired without data loss;
+- the legacy renderer clamps each burst to 1,024 particles, the active world
+  stack to 64 effects and 4,096 particles per frame, and uses one instanced mesh
+  for each glow burst;
+- parameter keyframes are not faked in schema 9 and remain assigned to the
+  schema 10 design in milestone 15.6;
+- focused tests, full tests, typecheck, build, audit, and diff checks pass.
+
 ## Risks And Deferred Repairs
 
 - `SceneRenderer.sceneRoot.clear()` detaches recreated effect geometry and
@@ -277,7 +340,7 @@ without moving shared samples or endpoints.
   `includeVfx` cannot remove world VFX already present in the canvas. Target:
   15.7.
 - target IDs are retained in pure primitive inputs but are not resolved against
-  scene objects or bones. Target: 15.4/15.7.
+  scene objects or bones. Target: 15.7.
 - several legacy parameters are defined but ignored by render paths. Target:
   15.5/15.7.
 - schema 10, independent persisted seeds, target bones, transform, quality,
@@ -319,6 +382,19 @@ Use stable particle prefixes and nested canonical geometric sample indices.
 Consequences: 15.3 creates no visible renderer change, but later adapters gain a
 single safe input. Additional primitive kinds extend the union deliberately;
 they do not register executable code or own GPU resources.
+
+Title: Edit schema 9 effects through pure commands and a derived timeline lane
+Status: Accepted for milestone 15.4
+Context: The existing lane, project history, serializer, package format, UI,
+and legacy renderer already depend on `effects.instances`. A separate native
+collection or independently editable lane would create conflicting authority.
+Decision: Validate a discriminated command union in a focused controller,
+mutate only schema 9 effect instances, canonicalize foreign timeline data, then
+regenerate exactly one `track_effects_main` lane. The UI submits one command and
+creates one history checkpoint only when the command reports a real change.
+Consequences: move/trim/duplicate/copy/paste/enable/priority/Inspector editing
+now survive undo and reload without schema change. Native-only fields and
+parameter keyframes remain impossible to persist until schema 10.
 
 ## Milestone 15.1 Validation Record
 
@@ -367,3 +443,21 @@ they do not register executable code or own GPU resources.
 - Native/Tauri validation: not run; no Rust or native configuration changed.
 - Manual visual validation: not applicable; outputs are deliberately plain
   renderer-neutral data and visible integration remains milestone 15.7.
+
+## Milestone 15.4 Validation Record
+
+- Schema impact: none; `CURRENT_PROJECT_SCHEMA_VERSION` remains 9.
+- Timeline/history/package round-trip: PASS, including disabled effects,
+  canonical labels, foreign lanes, undo/redo, and oversized legacy repair.
+- Adversarial validation: PASS for sparse arrays, inherited/class/accessor
+  records, unsafe numeric ranges, unknown fields, duplicate IDs, malformed
+  clipboard data, capacity boundaries, and ambient entropy guards.
+- Focused tests: PASS - 8 files, 96 tests.
+- Typecheck: PASS.
+- Full tests: PASS - 62 files, 256 tests.
+- Build: PASS - 1,769 modules; existing 1,050.38 kB large-chunk warning remains.
+- Audit: PASS - 0 vulnerabilities.
+- Native/Tauri validation: not run; no Rust or native configuration changed.
+- Manual visual validation: BLOCKED_BY_ENVIRONMENT - the in-app browser could
+  not attach to the local webview in two attempts. Drag coordinate and
+  minimum-width behavior are covered by deterministic regression tests.

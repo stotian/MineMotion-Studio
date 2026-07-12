@@ -10,8 +10,13 @@ import { Animator } from "./animation/Animator";
 import { addTransformKeyframes, setCurrentFrame } from "./animation/Timeline";
 import { CommandPalette } from "./commands/CommandPalette";
 import { createBuiltinCommands } from "./commands/BuiltinCommands";
+import {
+  applyEffectTimelineCommand,
+  type EffectTimelineCommand,
+  type EffectTimelineEditablePatch
+} from "./effects/EffectTimelineController";
 import { effectRegistry } from "./effects/EffectRegistry";
-import type { EffectInstance, EffectType } from "./effects/EffectTypes";
+import type { EffectType } from "./effects/EffectTypes";
 import { spawnEffectAtFrame } from "./effects/EffectSpawner";
 import { exportCurrentFramePng } from "./export/FrameExporter";
 import {
@@ -142,7 +147,7 @@ export function App() {
   const [settings, setSettings] = useState<AppSettings>(() =>
     SettingsStore.load()
   );
-  const [project, setProject] = useState<MineMotionProject>(() =>
+  const [project, setProjectState] = useState<MineMotionProject>(() =>
     createInitialProject(settings)
   );
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(
@@ -177,6 +182,21 @@ export function App() {
   const [plugins, setPlugins] = useState(() => pluginRegistry.list());
 
   const historyRef = useRef(new HistoryStack<MineMotionProject>());
+  const projectRef = useRef(project);
+  const setProject = useCallback(
+    (
+      updater:
+        | MineMotionProject
+        | ((currentProject: MineMotionProject) => MineMotionProject)
+    ) => {
+      const currentProject = projectRef.current;
+      const nextProject =
+        typeof updater === "function" ? updater(currentProject) : updater;
+      projectRef.current = nextProject;
+      setProjectState(nextProject);
+    },
+    []
+  );
   const worldInputRef = useRef<HTMLInputElement | null>(null);
   const projectInputRef = useRef<HTMLInputElement | null>(null);
   const objInputRef = useRef<HTMLInputElement | null>(null);
@@ -204,6 +224,15 @@ export function App() {
     () => findObject(project, selectedObjectId)?.entity ?? null,
     [project, selectedObjectId]
   );
+
+  useEffect(() => {
+    if (
+      selectedEffectId &&
+      !project.effects.instances.some((effect) => effect.id === selectedEffectId)
+    ) {
+      setSelectedEffectId(null);
+    }
+  }, [project.effects.instances, selectedEffectId]);
 
   const displayProject = useMemo(
     () =>
@@ -322,15 +351,17 @@ export function App() {
       updater: MineMotionProject | ((currentProject: MineMotionProject) => MineMotionProject),
       label: string
     ) => {
-      setProject((currentProject) => {
-        const nextProject =
-          typeof updater === "function" ? updater(currentProject) : updater;
-        historyRef.current.push(currentProject, label);
-        setIsDirty(true);
-        return nextProject;
-      });
+      const currentProject = projectRef.current;
+      const nextProject =
+        typeof updater === "function" ? updater(currentProject) : updater;
+      if (nextProject === currentProject) return false;
+
+      historyRef.current.push(currentProject, label);
+      setProject(nextProject);
+      setIsDirty(true);
+      return true;
     },
-    []
+    [setProject]
   );
 
   const replaceProject = useCallback((nextProject: MineMotionProject, label: string) => {
@@ -340,7 +371,7 @@ export function App() {
     setSelectedEffectId(null);
     setIsDirty(true);
     setStatus(label);
-  }, []);
+  }, [setProject]);
 
   const confirmDiscardChanges = useCallback(() => {
     if (!isDirty) return true;
@@ -373,28 +404,36 @@ export function App() {
   );
 
   const handleSaveProject = useCallback(() => {
-    const filename = `${sanitizeOutputName(project.projectName)}.minemotion`;
-    downloadBlob(PackageWriter.write(project), filename);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    const currentProject = projectRef.current;
+    const filename = `${sanitizeOutputName(currentProject.projectName)}.minemotion`;
+    downloadBlob(PackageWriter.write(currentProject), filename);
 
     setSettings((currentSettings) =>
       SettingsStore.addRecentProject(currentSettings, {
         id: filename,
-        name: project.projectName,
+        name: currentProject.projectName,
         savedAt: new Date().toISOString(),
         storageHint: "download"
       })
     );
     setIsDirty(false);
     setStatus(`Project saved as ${filename}.`);
-  }, [project]);
+  }, []);
 
   const handleExportLegacyProject = useCallback(() => {
-    const raw = ProjectSerializer.serialize(project);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    const currentProject = projectRef.current;
+    const raw = ProjectSerializer.serialize(currentProject);
     const blob = new Blob([raw], { type: "application/json" });
-    const filename = `${sanitizeOutputName(project.projectName)}.mmsproj`;
+    const filename = `${sanitizeOutputName(currentProject.projectName)}.mmsproj`;
     downloadBlob(blob, filename);
     setStatus(`Legacy project exported as ${filename}.`);
-  }, [project]);
+  }, []);
 
   const handleLoadProject = useCallback(() => {
     projectInputRef.current?.click();
@@ -876,73 +915,76 @@ export function App() {
 
   const handleAddEffect = useCallback(
     (type: EffectType) => {
-      const effect = spawnEffectAtFrame(
+      const currentProject = projectRef.current;
+      const startFrame = currentProject.animation.currentFrame;
+      const remainingFrames =
+        currentProject.animation.durationFrames - startFrame;
+      if (remainingFrames < 1) {
+        setStatus("Move before the final project frame to add an effect.");
+        return;
+      }
+      const spawnedEffect = spawnEffectAtFrame(
         type,
-        project.animation.currentFrame,
+        startFrame,
         selectedObjectId ?? ""
       );
-      commitProject(
-        (currentProject) =>
-          syncCinematicTimeline({
-            ...currentProject,
-            effects: {
-              instances: [...currentProject.effects.instances, effect]
-            }
-          }),
-        "Add cinematic effect"
-      );
-      setSelectedEffectId(effect.id);
+      const effect = {
+        ...spawnedEffect,
+        durationFrames: Math.min(
+          spawnedEffect.durationFrames,
+          remainingFrames
+        )
+      };
+      const result = applyEffectTimelineCommand(projectRef.current, {
+        type: "insert",
+        effect
+      });
+      if (!result.ok) {
+        setStatus(result.errors[0]?.message ?? "Could not add cinematic effect.");
+        return;
+      }
+      if (result.value.changed) {
+        commitProject(result.value.project, result.value.historyLabel);
+      }
+      setSelectedEffectId(result.value.selectedEffectId);
       setSelectedObjectId(null);
       setStatus(`Added effect ${effect.name} at frame ${effect.startFrame}.`);
     },
-    [commitProject, project.animation.currentFrame, selectedObjectId]
+    [commitProject, selectedObjectId]
+  );
+
+  const handleEffectTimelineCommand = useCallback(
+    (command: EffectTimelineCommand) => {
+      const result = applyEffectTimelineCommand(projectRef.current, command);
+      if (!result.ok) {
+        setStatus(result.errors[0]?.message ?? "Effect timeline edit failed.");
+        return;
+      }
+      if (!result.value.changed) {
+        setStatus("Effect timeline already has that value.");
+        return;
+      }
+
+      commitProject(result.value.project, result.value.historyLabel);
+      setSelectedEffectId(result.value.selectedEffectId);
+      if (result.value.selectedEffectId) setSelectedObjectId(null);
+      setStatus(`${result.value.historyLabel}.`);
+    },
+    [commitProject]
   );
 
   const handleUpdateEffect = useCallback(
-    (effectId: string, patch: Partial<EffectInstance>) => {
-      commitProject(
-        (currentProject) =>
-          syncCinematicTimeline({
-            ...currentProject,
-            effects: {
-              instances: currentProject.effects.instances.map((effect) =>
-                effect.id === effectId
-                  ? {
-                      ...effect,
-                      ...patch,
-                      parameters: patch.parameters
-                        ? { ...effect.parameters, ...patch.parameters }
-                        : effect.parameters
-                    }
-                  : effect
-              )
-            }
-          }),
-        "Edit cinematic effect"
-      );
-      setStatus("Effect updated.");
+    (effectId: string, patch: EffectTimelineEditablePatch) => {
+      handleEffectTimelineCommand({ type: "update", effectId, patch });
     },
-    [commitProject]
+    [handleEffectTimelineCommand]
   );
 
   const handleDeleteEffect = useCallback(
     (effectId: string) => {
-      commitProject(
-        (currentProject) =>
-          syncCinematicTimeline({
-            ...currentProject,
-            effects: {
-              instances: currentProject.effects.instances.filter(
-                (effect) => effect.id !== effectId
-              )
-            }
-          }),
-        "Delete cinematic effect"
-      );
-      setSelectedEffectId(null);
-      setStatus("Effect deleted.");
+      handleEffectTimelineCommand({ type: "delete", effectId });
     },
-    [commitProject]
+    [handleEffectTimelineCommand]
   );
 
   const handleApplyPostPreset = useCallback(
@@ -2139,30 +2181,26 @@ export function App() {
   );
 
   const handleUndo = useCallback(() => {
-    setProject((currentProject) => {
-      const previousProject = historyRef.current.undo(currentProject);
-      if (!previousProject) {
-        setStatus("Nothing to undo.");
-        return currentProject;
-      }
-      setIsDirty(true);
-      setStatus("Undo.");
-      return previousProject;
-    });
-  }, []);
+    const previousProject = historyRef.current.undo(projectRef.current);
+    if (!previousProject) {
+      setStatus("Nothing to undo.");
+      return;
+    }
+    setProject(previousProject);
+    setIsDirty(true);
+    setStatus("Undo.");
+  }, [setProject]);
 
   const handleRedo = useCallback(() => {
-    setProject((currentProject) => {
-      const nextProject = historyRef.current.redo(currentProject);
-      if (!nextProject) {
-        setStatus("Nothing to redo.");
-        return currentProject;
-      }
-      setIsDirty(true);
-      setStatus("Redo.");
-      return nextProject;
-    });
-  }, []);
+    const nextProject = historyRef.current.redo(projectRef.current);
+    if (!nextProject) {
+      setStatus("Nothing to redo.");
+      return;
+    }
+    setProject(nextProject);
+    setIsDirty(true);
+    setStatus("Redo.");
+  }, [setProject]);
 
   const handleTogglePlugin = useCallback(
     (pluginId: string, enabled: boolean) => {
@@ -2251,7 +2289,8 @@ export function App() {
       const isTextInput =
         target?.tagName === "INPUT" ||
         target?.tagName === "TEXTAREA" ||
-        target?.tagName === "SELECT";
+        target?.tagName === "SELECT" ||
+        target?.isContentEditable === true;
       if ((event.ctrlKey || event.metaKey) && key === "p") {
         event.preventDefault();
         setCommandsOpen(true);
@@ -2260,20 +2299,40 @@ export function App() {
         event.preventDefault();
         handleSaveProject();
       }
-      if ((event.ctrlKey || event.metaKey) && key === "z" && !event.shiftKey) {
+      if (
+        !isTextInput &&
+        (event.ctrlKey || event.metaKey) &&
+        key === "z" &&
+        !event.shiftKey
+      ) {
         event.preventDefault();
         handleUndo();
       }
       if (
-        ((event.ctrlKey || event.metaKey) && key === "y") ||
-        ((event.ctrlKey || event.metaKey) && event.shiftKey && key === "z")
+        !isTextInput &&
+        (((event.ctrlKey || event.metaKey) && key === "y") ||
+          ((event.ctrlKey || event.metaKey) && event.shiftKey && key === "z"))
       ) {
         event.preventDefault();
         handleRedo();
       }
-      if ((event.ctrlKey || event.metaKey) && key === "d") {
+      if (!isTextInput && (event.ctrlKey || event.metaKey) && key === "d") {
         event.preventDefault();
-        handleDuplicateSelectedObject();
+        if (selectedEffectId) {
+          const effect = projectRef.current.effects.instances.find(
+            (candidate) => candidate.id === selectedEffectId
+          );
+          if (effect) {
+            handleEffectTimelineCommand({
+              type: "duplicate",
+              effectId: effect.id,
+              newEffectId: createId("effect"),
+              startFrame: effect.startFrame + 1
+            });
+          }
+        } else {
+          handleDuplicateSelectedObject();
+        }
       }
       if (!isTextInput && event.key === "Delete") {
         event.preventDefault();
@@ -2295,6 +2354,7 @@ export function App() {
     handleDeleteEffect,
     handleDeleteSelectedObject,
     handleDuplicateSelectedObject,
+    handleEffectTimelineCommand,
     handleRedo,
     handleSaveProject,
     handleTogglePlayback,
@@ -2350,7 +2410,7 @@ export function App() {
         <EffectsLibraryPanel
           effects={effectDefinitions}
           selectedEffectId={selectedEffectId}
-          effectCount={project.effects.instances.length}
+          effectInstances={project.effects.instances}
           audioClips={project.audio.clips}
           builtinSfx={BUILTIN_SFX}
           postPresets={POST_PROCESSING_PRESETS}
@@ -2411,6 +2471,7 @@ export function App() {
         onTogglePlayback={handleTogglePlayback}
         onAddKeyframe={handleAddKeyframe}
         onSelectEffect={handleSelectEffect}
+        onEditEffectTimeline={handleEffectTimelineCommand}
         onUpdateAnimation={handleUpdateAnimation}
       />
       <div className="status-bar">

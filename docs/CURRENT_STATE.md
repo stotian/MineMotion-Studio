@@ -2,10 +2,10 @@
 
 MineMotion Studio `0.8.2` uses project schema 9.
 
-Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.3 are complete.
-The working product remains unchanged at the UI level; low-level contracts have
-stable ownership under `src/core`, and a typed VFX compatibility projection now
-exists without changing project schema 9.
+Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.4 are
+complete. Low-level contracts have stable ownership under `src/core`, and a
+typed VFX compatibility projection plus real schema 9 effects-lane editing now
+exist without changing project schema 9.
 
 ## Working Systems
 
@@ -34,24 +34,33 @@ exists without changing project schema 9.
 - Versioned renderer-neutral primitive contracts and pure evaluators for burst
   particles, jittered beams, explicit-point trails, expanding rings, and light
   pulses, with hard allocation caps and deterministic quality refinement.
+- A pure validated effects timeline controller for insert/edit/move/trim,
+  duplicate, copy/paste, enable, priority, delete, and deterministic lane sync.
+- Effects Library, timeline blocks/handles, and committed Inspector controls
+  perform real edits through whole-project history, including undo/redo and
+  save/package round-trip.
+- Foreign timeline lanes are canonicalized as bounded plain data, while schema 9
+  effects remain the only authority and disabled effects remain selectable.
+- Legacy world-effect rendering is bounded to 64 active effects and 4,096 burst
+  particles per frame; glow bursts use instancing instead of one mesh per cube.
 
 ## Partial Systems
 
-- Effects are still rendered by the preset-based legacy runtime. The typed VFX
-  model, evaluator, and primitive data exist, but timeline/editor/renderer
-  consumers do not yet use them.
+- Effects are still rendered by the preset-based legacy runtime. Timeline and
+  Inspector edits use schema 9 instances, but the typed evaluator/primitive
+  data are not yet the shared preview/export render path.
 - Blockbench auto-rigging, production IK, animated resource textures, secure plugin execution, native dialogs, and full NLA blending are not implemented.
 
 ## Absent Systems
 
-- Phase 15.4+ timeline/editor integration, serialization migration, and
+- Phase 15.5+ schema-generated controls, serialization migration, and
   preview/export integration.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 58 frontend test files and 188 passing tests.
+- 62 frontend test files and 256 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -73,3 +82,6 @@ exists without changing project schema 9.
 - Phase 15.3 caps every generated record family before allocation. Geometry is
   local to cloned placement data; quality adds stable indexed detail rather than
   rebuilding a different random stream.
+- Phase 15.4 keeps `effects.instances` authoritative. Pure commands regenerate
+  one effects lane and create one history checkpoint only for a real edit.
+  Parameter keyframes remain deferred because schema 9 cannot represent them.

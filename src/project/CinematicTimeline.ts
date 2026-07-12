@@ -1,28 +1,16 @@
 import { createAudioTimelineItems } from "../audio/AudioTrack";
-import { createEffectTimelineItems } from "../effects/EffectTimelineTrack";
+import { createEffectTimelineLaneItems } from "../effects/EffectTimelineTrack";
 import type { MineMotionProject, TimelineItem } from "./ProjectFile";
 import { createDefaultTimelineTracks } from "./ProjectStore";
 import { getRigTimelineItems } from "../rigs/RigSerializer";
+import { mergeCanonicalTimelineTracks } from "./TimelineTrackSanitizer";
 
 export function syncCinematicTimeline(
   project: MineMotionProject
 ): MineMotionProject {
-  const effectItems: TimelineItem[] = createEffectTimelineItems(
+  const effectItems: TimelineItem[] = createEffectTimelineLaneItems(
     project.effects.instances
-  ).map((item) => {
-    const effect = project.effects.instances.find(
-      (candidate) => candidate.id === item.effectId
-    );
-    return {
-      id: `item_${item.effectId}`,
-      type: "effect",
-      label: effect?.name ?? item.effectId,
-      targetId: item.effectId,
-      effectId: item.effectId,
-      startFrame: item.startFrame,
-      durationFrames: item.durationFrames
-    };
-  });
+  );
 
   const audioItems: TimelineItem[] = createAudioTimelineItems(
     project.audio.clips
@@ -58,25 +46,51 @@ export function syncCinematicTimeline(
   const timelineTracks = defaults.map((defaultTrack) => {
     const existing = existingTracks.find((track) => track.id === defaultTrack.id);
     if (defaultTrack.type === "rig") {
-      return { ...(existing ?? defaultTrack), items: rigItems };
+      return {
+        ...(existing ?? defaultTrack),
+        id: defaultTrack.id,
+        type: defaultTrack.type,
+        items: rigItems
+      };
     }
     if (defaultTrack.type === "effect") {
-      return { ...(existing ?? defaultTrack), items: effectItems };
+      return {
+        ...(existing ?? defaultTrack),
+        id: defaultTrack.id,
+        type: defaultTrack.type,
+        items: effectItems
+      };
     }
     if (defaultTrack.type === "audio") {
-      return { ...(existing ?? defaultTrack), items: audioItems };
+      return {
+        ...(existing ?? defaultTrack),
+        id: defaultTrack.id,
+        type: defaultTrack.type,
+        items: audioItems
+      };
     }
     if (defaultTrack.type === "sky") {
-      return { ...(existing ?? defaultTrack), items: environmentItems };
+      return {
+        ...(existing ?? defaultTrack),
+        id: defaultTrack.id,
+        type: defaultTrack.type,
+        items: environmentItems
+      };
     }
-    return existing ?? defaultTrack;
+    return existing
+      ? { ...existing, id: defaultTrack.id, type: defaultTrack.type }
+      : defaultTrack;
   });
+  const mergedTimelineTracks = mergeCanonicalTimelineTracks(
+    existingTracks,
+    timelineTracks
+  );
 
   return {
     ...project,
     animation: {
       ...project.animation,
-      timelineTracks
+      timelineTracks: mergedTimelineTracks
     }
   };
 }

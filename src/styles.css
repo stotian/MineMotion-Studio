@@ -396,6 +396,47 @@ select {
   line-height: 1.35;
 }
 
+.scene-effect-list {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.scene-effect-list button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.1rem 0.45rem;
+  padding: 0.45rem 0.5rem;
+  text-align: left;
+}
+
+.scene-effect-list button strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-effect-list button span {
+  color: #8ba1ff;
+  font-size: 0.68rem;
+}
+
+.scene-effect-list button small {
+  grid-column: 1 / -1;
+  color: #7f8ba0;
+}
+
+.scene-effect-list button.selected {
+  border-color: #f6d36b;
+  background: #312d22;
+}
+
+.scene-effect-list button.disabled-effect {
+  opacity: 0.62;
+}
+
 .compact-action {
   width: 100%;
   justify-content: flex-start;
@@ -578,6 +619,21 @@ select {
   white-space: nowrap;
 }
 
+.effect-command-label {
+  padding-left: 0.5rem;
+  border-left: 1px solid #3a4353;
+  color: #b9a9ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.effect-clipboard-note {
+  color: #8290a6;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
 .compact-control input[type="number"] {
   width: 52px;
 }
@@ -668,9 +724,57 @@ select {
   text-overflow: ellipsis;
 }
 
+.timeline-block-shell {
+  position: absolute;
+  top: 3px;
+  height: 16px;
+  min-width: 18px;
+}
+
+.timeline-block-shell .timeline-block {
+  position: relative;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding-inline: 0.45rem;
+}
+
+.timeline-trim-handle {
+  position: absolute;
+  z-index: 2;
+  top: 1px;
+  width: 5px;
+  min-width: 5px;
+  height: 14px;
+  padding: 0;
+  border-color: transparent;
+  background: #f6d36b;
+  opacity: 0.18;
+  cursor: ew-resize;
+}
+
+.timeline-block-shell:hover .timeline-trim-handle,
+.timeline-trim-handle:focus-visible {
+  opacity: 0.9;
+}
+
+.timeline-trim-handle.start {
+  left: 1px;
+}
+
+.timeline-trim-handle.end {
+  right: 1px;
+}
+
 .timeline-block.effect {
   border-color: #7b61ff;
   background: #35266f;
+}
+
+.timeline-block.effect.disabled-effect {
+  opacity: 0.42;
+  filter: saturate(0.35);
+  text-decoration: line-through;
 }
 
 .timeline-block.audio {

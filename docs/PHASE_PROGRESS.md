@@ -6,11 +6,11 @@ Phase 15 - Native Deterministic VFX Foundation
 
 ## Current Milestone
 
-15.4 - Existing effects-lane timeline integration
+15.5 - Schema-generated VFX Inspector controls
 
 ## Status
 
-IN_PROGRESS - milestones 15.1 through 15.3 completed and validated; 15.4 is next.
+IN_PROGRESS - milestones 15.1 through 15.4 completed and validated; 15.5 is next.
 
 ## Completed
 
@@ -41,15 +41,22 @@ IN_PROGRESS - milestones 15.1 through 15.3 completed and validated; 15.4 is next
   seeds, literal particle quality prefixes, and nested beam/trail/ring samples.
 - Renderer-neutral placement/points/scalars remain cloneable and cannot alias
   frame or descriptor input data.
+- Phase 15.4 pure effects timeline commands for insert/edit/move/trim,
+  duplicate, copy/paste, enable, priority, delete, and canonical lane sync.
+- Real timeline drag/trim handles and Effects Library/Inspector edits, with one
+  HistoryStack checkpoint per successful non-no-op command.
+- Save/reload/package/undo/redo preservation for effect timing, order, names,
+  enabled state, payloads, canonical labels, and foreign lanes.
+- Bounded plain-data validation, 4,096-instance editor growth ceiling with
+  oversized legacy repair, and legacy renderer stack/particle budgets.
 
 ## In Progress
 
-- Phase 15 foundation. The next unit is milestone 15.4 integration with the
-  existing effects timeline lane; no second lane/store or schema change.
+- Phase 15 foundation. The next unit is milestone 15.5 schema-generated
+  Inspector controls over the same schema 9 command/history path.
 
 ## Not Started
 
-- Phase 15.4 timeline integration.
 - Phase 15.5 schema-generated Inspector.
 - Phase 15.6 schema 10 migration and serialization.
 - Phase 15.7 preview/export integration.
@@ -66,22 +73,22 @@ IN_PROGRESS - milestones 15.1 through 15.3 completed and validated; 15.4 is next
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.3 is the validated checkpoint containing this document; Git history
+- Phase 15.4 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities (baseline)
 - `npm run typecheck`: PASS
-- Focused Phase 15.3 tests: PASS - 2 files, 28 tests
-- `npm test`: PASS - 58 files, 188 tests
-- `npm run build`: PASS - 1,760 modules; existing 1,013.14 kB chunk warning
+- Focused Phase 15.4 tests: PASS - 8 files, 96 tests
+- `npm test`: PASS - 62 files, 256 tests
+- `npm run build`: PASS - 1,769 modules; existing 1,050.38 kB chunk warning
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 15.3 changes TypeScript/docs only.
+- Native checks: not rerun because milestone 15.4 changes TypeScript/docs only.
 
 ## Next Exact Action
 
-Audit the current `track_effects_main` block operations and selected-effect
-editing flow. Add real trim, move, duplicate, copy/paste, enable/disable, and
-ordering behavior through schema 9 `effects.instances` and project history,
-without creating a native VFX collection or second timeline lane.
+Audit `VfxParameterSchema`, the legacy `EffectRegistry`, current effect
+Inspector controls, and the 15.4 command controller. Generate honest controls
+for every supported schema parameter and route committed edits through the same
+validated history path. Do not invent parameter keyframes or schema 10 fields.

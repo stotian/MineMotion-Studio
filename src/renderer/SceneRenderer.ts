@@ -16,7 +16,13 @@ import { createGridFloor } from "./GridFloor";
 import { CameraController } from "./CameraController";
 import type { ViewportSettings } from "../settings/AppSettings";
 import type { EffectInstance } from "../effects/EffectTypes";
-import { getEffectProgress, isEffectActive } from "../effects/EffectTypes";
+import {
+  getBoundedLegacyParticleCount,
+  getEffectProgress,
+  isEffectActive,
+  MAX_LEGACY_ACTIVE_WORLD_EFFECTS,
+  MAX_LEGACY_PARTICLES_PER_FRAME
+} from "../effects/EffectTypes";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -170,11 +176,32 @@ export class SceneRenderer {
       this.sceneRoot.add(this.createObjObject(project, obj));
     }
 
+    let renderedWorldEffects = 0;
+    let remainingParticleBudget = MAX_LEGACY_PARTICLES_PER_FRAME;
     for (const effect of project.effects.instances) {
       if (!isEffectActive(effect, project.animation.currentFrame)) continue;
-      const object = this.createWorldEffectObject(effect, project.animation.currentFrame);
+      if (
+        effect.type !== "lightningStrike" &&
+        effect.type !== "shockwave" &&
+        effect.type !== "glowBurst"
+      ) {
+        continue;
+      }
+      if (renderedWorldEffects >= MAX_LEGACY_ACTIVE_WORLD_EFFECTS) break;
+      const particleCount = getBoundedLegacyParticleCount(
+        effect,
+        remainingParticleBudget
+      );
+      if (effect.type === "glowBurst" && particleCount === 0) continue;
+      const object = this.createWorldEffectObject(
+        effect,
+        project.animation.currentFrame,
+        particleCount
+      );
       if (object) {
         this.sceneRoot.add(object);
+        renderedWorldEffects += 1;
+        remainingParticleBudget -= particleCount;
       }
     }
   }
@@ -245,7 +272,8 @@ export class SceneRenderer {
 
   private createWorldEffectObject(
     effect: EffectInstance,
-    frame: number
+    frame: number,
+    particleCount: number
   ): THREE.Object3D | null {
     const progress = getEffectProgress(effect, frame);
     const color = effect.parameters.color ?? "#ffffff";
@@ -298,31 +326,33 @@ export class SceneRenderer {
     }
 
     if (effect.type === "glowBurst") {
-      const group = new THREE.Group();
-      const count = Math.max(4, Math.round(effect.parameters.count ?? 18));
       const radius = (effect.parameters.radius ?? 2) * Math.max(0.15, progress);
       const size = effect.parameters.size ?? 0.16;
+      const geometry = new THREE.BoxGeometry(size, size, size);
       const material = new THREE.MeshBasicMaterial({
         color,
         transparent: true,
         opacity: alpha * (1 - progress * 0.8)
       });
-      for (let index = 0; index < count; index += 1) {
-        const angle = (index / count) * Math.PI * 2;
+      const particles = new THREE.InstancedMesh(
+        geometry,
+        material,
+        particleCount
+      );
+      const matrix = new THREE.Matrix4();
+      for (let index = 0; index < particleCount; index += 1) {
+        const angle = (index / particleCount) * Math.PI * 2;
         const vertical = Math.sin(index * 1.618) * radius * 0.45;
-        const particle = new THREE.Mesh(
-          new THREE.BoxGeometry(size, size, size),
-          material
-        );
-        particle.position.set(
+        matrix.makeTranslation(
           effect.position[0] + Math.cos(angle) * radius,
           effect.position[1] + vertical + 1,
           effect.position[2] + Math.sin(angle) * radius
         );
-        group.add(particle);
+        particles.setMatrixAt(index, matrix);
       }
-      group.name = effect.name;
-      return group;
+      particles.instanceMatrix.needsUpdate = true;
+      particles.name = effect.name;
+      return particles;
     }
 
     return null;

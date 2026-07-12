@@ -17,6 +17,11 @@ export type EffectType =
 
 export type EffectSpace = VfxSpace;
 
+export const MAX_LEGACY_EFFECT_PARTICLE_COUNT = 1_024;
+export const MAX_LEGACY_ACTIVE_WORLD_EFFECTS = 64;
+export const MAX_LEGACY_PARTICLES_PER_FRAME = 4_096;
+export const MAX_EFFECT_INSTANCES = 4_096;
+
 export interface EffectParameters {
   color?: string;
   secondaryColor?: string;
@@ -56,6 +61,26 @@ export interface EffectInstance {
   targetObjectId: string;
   parameters: EffectParameters;
   enabled: boolean;
+}
+
+export function getBoundedLegacyParticleCount(
+  effect: Pick<EffectInstance, "type" | "parameters">,
+  remainingBudget = MAX_LEGACY_PARTICLES_PER_FRAME
+): number {
+  if (effect.type !== "glowBurst") return 0;
+  const rawCount = effect.parameters.count ?? 18;
+  const requested =
+    typeof rawCount === "number" && Number.isFinite(rawCount)
+      ? Math.max(4, Math.round(rawCount))
+      : 18;
+  const safeRemaining = Number.isFinite(remainingBudget)
+    ? Math.max(0, Math.floor(remainingBudget))
+    : 0;
+  return Math.min(
+    MAX_LEGACY_EFFECT_PARTICLE_COUNT,
+    safeRemaining,
+    requested
+  );
 }
 
 export interface TimelineEffectItem {

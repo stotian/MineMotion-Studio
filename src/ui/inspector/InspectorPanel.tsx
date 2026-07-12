@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Bone,
   Camera,
@@ -14,6 +15,7 @@ import {
   Unlock,
   Upload
 } from "lucide-react";
+import type { EffectTimelineEditablePatch } from "../../effects/EffectTimelineController";
 import type { EffectInstance } from "../../effects/EffectTypes";
 import type { AnimationPreset } from "../../presets/AnimationPresets";
 import type { CameraPreset } from "../../presets/CameraPresets";
@@ -40,7 +42,10 @@ interface InspectorPanelProps {
   onRenameObject: (objectId: string, name: string) => void;
   onToggleVisibility: (objectId: string, visible: boolean) => void;
   onToggleLocked: (objectId: string, locked: boolean) => void;
-  onUpdateEffect: (effectId: string, patch: Partial<EffectInstance>) => void;
+  onUpdateEffect: (
+    effectId: string,
+    patch: EffectTimelineEditablePatch
+  ) => void;
   onDeleteEffect: (effectId: string) => void;
   onUpdatePostProcessing: (settings: Partial<PostProcessingSettings>) => void;
   onAddKeyframe: () => void;
@@ -143,6 +148,7 @@ export function InspectorPanel({
       {selectedEffect ? (
         <EffectInspector
           effect={selectedEffect}
+          timelineDurationFrames={project.animation.durationFrames}
           onUpdate={(patch) => onUpdateEffect(selectedEffect.id, patch)}
           onDelete={() => onDeleteEffect(selectedEffect.id)}
         />
@@ -319,11 +325,13 @@ function PostProcessingInspector({
 
 function EffectInspector({
   effect,
+  timelineDurationFrames,
   onUpdate,
   onDelete
 }: {
   effect: EffectInstance;
-  onUpdate: (patch: Partial<EffectInstance>) => void;
+  timelineDurationFrames: number;
+  onUpdate: (patch: EffectTimelineEditablePatch) => void;
   onDelete: () => void;
 }) {
   const updateParameter = (
@@ -353,96 +361,93 @@ function EffectInspector({
         />
         Enabled
       </label>
-      <NumberField
+      <CommittedNumberField
         label="Start"
         value={effect.startFrame}
         min={0}
+        max={Math.max(0, timelineDurationFrames - effect.durationFrames)}
         step={1}
-        onChange={(startFrame) => onUpdate({ startFrame: Math.round(startFrame) })}
+        onCommit={(startFrame) => onUpdate({ startFrame })}
       />
-      <NumberField
+      <CommittedNumberField
         label="Duration"
         value={effect.durationFrames}
         min={1}
+        max={Math.max(1, timelineDurationFrames - effect.startFrame)}
         step={1}
-        onChange={(durationFrames) =>
-          onUpdate({ durationFrames: Math.round(durationFrames) })
-        }
+        onCommit={(durationFrames) => onUpdate({ durationFrames })}
       />
-      <VectorEditor
+      <CommittedVectorEditor
         label="Position"
         value={effect.position}
         step={0.1}
-        onChange={(position) => onUpdate({ position })}
+        onCommit={(position) => onUpdate({ position })}
       />
       {typeof effect.parameters.color === "string" && (
-        <label>
-          Color
-          <input
-            type="color"
-            value={effect.parameters.color}
-            onChange={(event) => updateParameter("color", event.target.value)}
-          />
-        </label>
+        <CommittedColorField
+          label="Color"
+          value={effect.parameters.color}
+          onCommit={(color) => updateParameter("color", color)}
+        />
       )}
       {typeof effect.parameters.alpha === "number" && (
-        <NumberField
+        <CommittedNumberField
           label="Alpha"
           value={effect.parameters.alpha}
           min={0}
           max={1}
           step={0.01}
-          onChange={(alpha) => updateParameter("alpha", alpha)}
+          onCommit={(alpha) => updateParameter("alpha", alpha)}
         />
       )}
       {typeof effect.parameters.intensity === "number" && (
-        <NumberField
+        <CommittedNumberField
           label="Intensity"
           value={effect.parameters.intensity}
           min={0}
           max={3}
           step={0.05}
-          onChange={(intensity) => updateParameter("intensity", intensity)}
+          onCommit={(intensity) => updateParameter("intensity", intensity)}
         />
       )}
       {typeof effect.parameters.radius === "number" && (
-        <NumberField
+        <CommittedNumberField
           label="Radius"
           value={effect.parameters.radius}
           min={0.1}
           max={12}
           step={0.1}
-          onChange={(radius) => updateParameter("radius", radius)}
+          onCommit={(radius) => updateParameter("radius", radius)}
         />
       )}
       {typeof effect.parameters.strength === "number" && (
-        <NumberField
+        <CommittedNumberField
           label="Strength"
           value={effect.parameters.strength}
           min={0}
           max={3}
           step={0.05}
-          onChange={(strength) => updateParameter("strength", strength)}
+          onCommit={(strength) => updateParameter("strength", strength)}
         />
       )}
       {typeof effect.parameters.frequency === "number" && (
-        <NumberField
+        <CommittedNumberField
           label="Frequency"
           value={effect.parameters.frequency}
           min={1}
           max={60}
           step={1}
-          onChange={(frequency) => updateParameter("frequency", frequency)}
+          onCommit={(frequency) => updateParameter("frequency", frequency)}
         />
       )}
       {typeof effect.parameters.count === "number" && (
-        <NumberField
+        <CommittedNumberField
           label="Count"
           value={effect.parameters.count}
           min={1}
           max={80}
           step={1}
-          onChange={(count) => updateParameter("count", Math.round(count))}
+          onCommit={(count) => updateParameter("count", count)}
         />
       )}
       <div className="inspector-actions">
@@ -766,6 +771,147 @@ function VectorEditor({
         </label>
       ))}
     </fieldset>
+  );
+}
+
+function CommittedVectorEditor({
+  label,
+  value,
+  step,
+  onCommit
+}: {
+  label: string;
+  value: Vector3Tuple;
+  step: number;
+  onCommit: (value: Vector3Tuple) => void;
+}) {
+  const toDraft = (vector: Vector3Tuple) =>
+    vector.map((component) => String(component)) as [
+      string,
+      string,
+      string
+    ];
+  const [draft, setDraft] = useState(() => toDraft(value));
+
+  useEffect(() => {
+    setDraft(toDraft(value));
+  }, [value]);
+
+  const commit = () => {
+    if (draft.some((component) => component.trim() === "")) {
+      setDraft(toDraft(value));
+      return;
+    }
+    const next = draft.map(Number) as Vector3Tuple;
+    setDraft(toDraft(value));
+    if (next.every(Number.isFinite)) onCommit(next);
+  };
+
+  return (
+    <fieldset className="vector-editor">
+      <legend>{label}</legend>
+      {(["X", "Y", "Z"] as const).map((axis, index) => (
+        <label key={axis}>
+          {axis}
+          <input
+            type="number"
+            step={step}
+            value={draft[index]}
+            onChange={(event) => {
+              const next = [...draft] as [string, string, string];
+              next[index] = event.target.value;
+              setDraft(next);
+            }}
+            onBlur={commit}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+              if (event.key === "Escape") setDraft(toDraft(value));
+            }}
+          />
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+function CommittedNumberField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onCommit
+}: {
+  label: string;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onCommit: (value: number) => void;
+}) {
+  const [draft, setDraft] = useState(() => String(value));
+
+  useEffect(() => {
+    setDraft(String(value));
+  }, [value]);
+
+  const commit = () => {
+    if (draft.trim() === "") {
+      setDraft(String(value));
+      return;
+    }
+    const next = Number(draft);
+    setDraft(String(value));
+    if (Number.isFinite(next)) onCommit(next);
+  };
+
+  return (
+    <label>
+      {label}
+      <input
+        type="number"
+        value={draft}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+          if (event.key === "Escape") setDraft(String(value));
+        }}
+      />
+    </label>
+  );
+}
+
+function CommittedColorField({
+  label,
+  value,
+  onCommit
+}: {
+  label: string;
+  value: string;
+  onCommit: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  return (
+    <label>
+      {label}
+      <input
+        type="color"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => {
+          if (draft !== value) onCommit(draft);
+        }}
+      />
+    </label>
   );
 }
 

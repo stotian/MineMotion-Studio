@@ -12,6 +12,7 @@ import type {
   EffectParameters,
   EffectType
 } from "../../effects/EffectTypes";
+import { MAX_LEGACY_EFFECT_PARTICLE_COUNT } from "../../effects/EffectTypes";
 import {
   VFX_DEFINITION_VERSION,
   type VfxBlendMode,
@@ -122,7 +123,7 @@ const LEGACY_PARAMETER_FACTORIES: Record<
     kind: "integer",
     defaultValue: requireNumber("count", value),
     min: 0,
-    max: 10_000,
+    max: MAX_LEGACY_EFFECT_PARTICLE_COUNT,
     step: 1
   }),
   frequency: (value) => ({
