@@ -6,11 +6,11 @@ Phase 16 - Production Built-in VFX Library
 
 ## Current Milestone
 
-16.9 - VFX library navigation and personal state
+16.10 - Generated preview cache and stable-preset verification
 
 ## Status
 
-IN_PROGRESS - Phase 16.8 is complete; library navigation is next.
+IN_PROGRESS - Phase 16.9 is complete; preview generation/cache is next.
 
 ## Completed
 
@@ -120,15 +120,17 @@ IN_PROGRESS - Phase 16.8 is complete; library navigation is next.
 - Every movement parameter has an output-influence regression. The 4,097-effect
   repair scenario now takes 0.95 s in focused measurement without validation
   caching or weakened legacy repair behavior.
+- Phase 16.9 adds deterministic search, category/tag/source/favorite filters,
+  bounded local favorites/recents, and honest Built-in 72 / Custom 0 views.
 
 ## In Progress
 
-- Phase 16.9 will implement search, tags, categories, favorites, recents, and
-  built-in/custom distinction.
+- Phase 16.10 will generate/cache previews without blocking the editor and use
+  verified preview/regression state for honest stable promotion.
 
 ## Not Started
 
-- Phase 16.9 and later Phase 16 navigation/preview/benchmark milestones.
+- Phase 16.10 and later Phase 16 preview/verification/benchmark milestones.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
@@ -149,9 +151,9 @@ IN_PROGRESS - Phase 16.8 is complete; library navigation is next.
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.8 tests: PASS - 19 files, 194 tests
-- `npm test`: PASS - 73 files, 340 tests
-- `npm run build`: PASS - 1,798 modules; existing large-chunk warning only
+- Focused Phase 16.9 tests: PASS - 20 files, 199 tests
+- `npm test`: PASS - 74 files, 345 tests
+- `npm run build`: PASS - 1,799 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
 - Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -159,5 +161,5 @@ IN_PROGRESS - Phase 16.8 is complete; library navigation is next.
 
 ## Next Exact Action
 
-Implement fast VFX library search, tag/category filters, favorites, recents,
-and explicit built-in/custom distinction without adding a second preset store.
+Generate and cache non-blocking built-in previews, then connect readiness to
+the stable-preset verification contract without weakening experimental labels.

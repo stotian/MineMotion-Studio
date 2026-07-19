@@ -1,11 +1,15 @@
 import {
   AudioWaveform,
   Clapperboard,
+  Clock3,
   Film,
   Layers,
   Plus,
+  Search,
+  Star,
   Sparkles
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import type { BuiltinSfxDefinition } from "../../audio/AudioTypes";
 import type { AudioClip } from "../../audio/AudioTypes";
 import type {
@@ -15,6 +19,17 @@ import type {
 import type { BuiltinVfxPreset } from "../../vfx/library/BuiltinVfxPresetTypes";
 import type { PostProcessingPreset, PostProcessingPresetId } from "../../rendering/postprocessing/PostProcessingTypes";
 import type { RenderSettings } from "../../project/ProjectFile";
+import {
+  DEFAULT_VFX_LIBRARY_FILTERS,
+  filterBuiltinVfxPresets,
+  listVfxLibraryTags,
+  loadVfxLibraryPreferences,
+  recordRecentVfxPreset,
+  resolveRecentBuiltinVfxPresets,
+  saveVfxLibraryPreferences,
+  toggleVfxLibraryFavorite,
+  type VfxLibrarySourceFilter
+} from "../../vfx/library/VfxLibraryNavigation";
 
 interface EffectsLibraryPanelProps {
   presets: readonly BuiltinVfxPreset[];
@@ -51,6 +66,45 @@ export function EffectsLibraryPanel({
   onImportAudio,
   onAddBuiltinSfx
 }: EffectsLibraryPanelProps) {
+  const [search, setSearch] = useState(DEFAULT_VFX_LIBRARY_FILTERS.search);
+  const [category, setCategory] = useState(DEFAULT_VFX_LIBRARY_FILTERS.category);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [source, setSource] = useState<VfxLibrarySourceFilter>("all");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [preferences, setPreferences] = useState(() =>
+    typeof window === "undefined"
+      ? { version: 1 as const, favoriteIds: [], recentIds: [] }
+      : loadVfxLibraryPreferences(window.localStorage)
+  );
+  const categories = useMemo(
+    () => [...new Set(presets.map((preset) => preset.metadata.category))].sort(),
+    [presets]
+  );
+  const tags = useMemo(() => listVfxLibraryTags(presets), [presets]);
+  const filteredPresets = useMemo(
+    () => filterBuiltinVfxPresets(
+      presets,
+      { search, category, selectedTags, source, favoritesOnly },
+      preferences.favoriteIds
+    ),
+    [category, favoritesOnly, preferences.favoriteIds, presets, search, selectedTags, source]
+  );
+  const recentPresets = useMemo(
+    () => resolveRecentBuiltinVfxPresets(presets, preferences.recentIds),
+    [preferences.recentIds, presets]
+  );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      saveVfxLibraryPreferences(window.localStorage, preferences);
+    }
+  }, [preferences]);
+
+  const addPreset = (preset: BuiltinVfxPreset) => {
+    setPreferences((current) => recordRecentVfxPreset(current, preset.metadata.id));
+    onAddEffect(preset.metadata.effectType);
+  };
+
   return (
     <aside className="panel effects-panel">
       <div className="panel-header">
@@ -62,33 +116,130 @@ export function EffectsLibraryPanel({
           <Sparkles size={15} />
           Library
         </h3>
+        <div className="effect-library-tools">
+          <label className="effect-search">
+            <Search size={14} />
+            <input
+              type="search"
+              value={search}
+              placeholder="Search VFX"
+              aria-label="Search VFX presets"
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+          <div className="effect-source-tabs" aria-label="VFX preset source">
+            {(["all", "builtin", "custom"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={source === value ? "selected" : ""}
+                aria-pressed={source === value}
+                onClick={() => setSource(value)}
+              >
+                {value === "all" ? `All ${presets.length}` : value === "builtin" ? `Built-in ${presets.length}` : "Custom 0"}
+              </button>
+            ))}
+          </div>
+          <div className="effect-filter-row">
+            <select
+              value={category}
+              aria-label="Filter VFX category"
+              onChange={(event) => setCategory(event.target.value as typeof category)}
+            >
+              <option value="all">All categories</option>
+              {categories.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+            <select
+              value=""
+              aria-label="Add VFX tag filter"
+              onChange={(event) => {
+                const tag = event.target.value;
+                if (tag && !selectedTags.includes(tag)) {
+                  setSelectedTags((current) => [...current, tag]);
+                }
+              }}
+            >
+              <option value="">Add tag</option>
+              {tags.filter((tag) => !selectedTags.includes(tag)).map((tag) => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className={favoritesOnly ? "selected" : ""}
+              aria-pressed={favoritesOnly}
+              onClick={() => setFavoritesOnly((value) => !value)}
+            >
+              <Star size={13} fill={favoritesOnly ? "currentColor" : "none"} /> Favorites
+            </button>
+          </div>
+          {selectedTags.length > 0 && (
+            <div className="effect-tag-filters" aria-label="Active VFX tag filters">
+              {selectedTags.map((tag) => (
+                <button key={tag} type="button" onClick={() => setSelectedTags((current) => current.filter((value) => value !== tag))}>
+                  {tag} ×
+                </button>
+              ))}
+            </div>
+          )}
+          {recentPresets.length > 0 && source !== "custom" && (
+            <div className="effect-recents">
+              <span><Clock3 size={12} /> Recent</span>
+              {recentPresets.slice(0, 5).map((preset) => (
+                <button key={preset.metadata.id} type="button" onClick={() => addPreset(preset)}>
+                  {preset.localizedName}
+                </button>
+              ))}
+            </div>
+          )}
+          <small className="effect-result-count">
+            {filteredPresets.length} result{filteredPresets.length === 1 ? "" : "s"}
+          </small>
+        </div>
         <div className="effect-library-list">
-          {presets.map((preset) => {
+          {filteredPresets.map((preset) => {
             const unavailable =
               !preset.metadata.compatibility.capabilities.preview &&
               !preset.metadata.compatibility.capabilities.export;
+            const favorite = preferences.favoriteIds.includes(preset.metadata.id);
             return (
-              <button
+              <div
                 key={preset.metadata.id}
-                type="button"
                 className="effect-card"
                 title={[
                   preset.definition.description,
                   ...preset.metadata.compatibility.limitations
                 ].join(" ")}
-                disabled={unavailable}
-                onClick={() => onAddEffect(preset.metadata.effectType)}
               >
-                <strong>{preset.localizedName}</strong>
-                <span>
-                  {preset.metadata.category} / {preset.definition.space}
-                </span>
-                <small>{preset.definition.description}</small>
-                <small>{preset.metadata.compatibility.maturity}</small>
-                <Plus size={14} />
-              </button>
+                <button
+                  type="button"
+                  className="effect-card-main"
+                  disabled={unavailable}
+                  onClick={() => addPreset(preset)}
+                >
+                  <strong>{preset.localizedName}</strong>
+                  <span>{preset.metadata.category} / {preset.definition.space}</span>
+                  <small>{preset.definition.description}</small>
+                  <small>Built-in / {preset.metadata.compatibility.maturity}</small>
+                  <Plus size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="effect-favorite"
+                  aria-label={`${favorite ? "Remove" : "Add"} ${preset.localizedName} ${favorite ? "from" : "to"} favorites`}
+                  aria-pressed={favorite}
+                  onClick={() => setPreferences((current) => toggleVfxLibraryFavorite(current, preset.metadata.id))}
+                >
+                  <Star size={14} fill={favorite ? "currentColor" : "none"} />
+                </button>
+              </div>
             );
           })}
+          {filteredPresets.length === 0 && (
+            <span className="empty-note">
+              {source === "custom" ? "No custom VFX packages are installed." : "No VFX presets match these filters."}
+            </span>
+          )}
         </div>
       </section>
 

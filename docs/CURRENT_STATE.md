@@ -107,6 +107,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Ten native movement/trail presets cover dash, weapon, projectile, footsteps,
   running, falling, flying, Elytra, Ender pearl, and swimming. The catalog now
   contains 60 native recipes and 72 entries total; stable status remains gated.
+- The Effects Library provides text search, category and cumulative tag filters,
+  favorites, recents, and All/Built-in/Custom source views. Personal state is
+  versioned and bounded in local storage, outside project serialization.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -120,14 +123,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Remaining Phase 16 navigation, preview cache, stable-preset
+- Remaining Phase 16 preview cache, stable-preset
   regression gate, benchmarks, and later phases.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 73 frontend test files and 340 passing tests.
+- 74 frontend test files and 345 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

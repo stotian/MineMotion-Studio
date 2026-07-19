@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.9: implement library navigation and personal state.
-Phase 16.8 movement/trail VFX is complete.
+Start Phase 16 milestone 16.10: generate/cache previews and begin stable-preset
+verification. Phase 16.9 library navigation is complete.
 
 ## Completed Work
 
@@ -12,18 +12,19 @@ Phase 16.8 movement/trail VFX is complete.
   Phase 16 content families.
 - The catalog contains 72 total entries and every movement parameter has an
   output-influence regression.
+- Search, category/tags/source filters, 128 favorites, and 20 recents are live.
 - Native presets remain experimental until generated thumbnails and stable
   regression coverage are complete; stable count remains zero.
 
 ## Unfinished Work
 
-- Search/favorites/recents, preview caching, 60 stable total,
-  and benchmark/regression scenes remain Phase 16 work.
+- Preview caching, 60 stable total, full stable-preset verification, and
+  benchmark/regression scenes remain Phase 16 work.
 
 ## Next Implementation Step
 
-Add search, tag/category filters, favorites, recents, and explicit built-in vs
-custom distinction using the existing catalog and project/local UI ownership.
+Build non-blocking generated preview caching, expose ready/pending state, and
+prepare the automatic stable verification/promotion gate.
 
 ## Tests To Run
 
