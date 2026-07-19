@@ -174,3 +174,17 @@ Renderer object trees own their geometries and non-cached materials/textures.
 Recursive disposal deduplicates shared references and handles render targets and
 skeletons. Module caches explicitly mark borrowed materials/textures as shared,
 so reconstruction cannot dispose a resource that a later frame will reuse.
+
+## TD-016 - Effects command execution and validation have separate ownership
+
+Status: Accepted in Phase 15.9.
+
+Keep `copyEffectTimelineBlock`, `applyEffectTimelineCommand`, command types, and
+result contracts stable. Move plain-data/accessor/vector/patch validation into
+an input validator and schema/timing/parameter/native-project checks into a
+project validator. The controller remains the single command mutation and lane
+synchronization boundary; no parallel effect architecture is introduced.
+
+The existing characterization suite is the behavior contract. This extraction
+does not change errors, paths, no-op semantics, history labels, cloning, order,
+schema synchronization, or public imports.

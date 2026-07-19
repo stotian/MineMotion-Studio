@@ -106,3 +106,12 @@ shared material/skin caches are not invalidated by a renderer refresh. Repeated
 add/remove/reopen and WebM success/retry/cancel/error tests cover the resource
 lifecycle. Static scene rebuilding remains a Phase 20 optimization, but it no
 longer leaks detached object trees.
+
+## Phase 15.9 Outcome
+
+The effects command boundary remains behavior-compatible while hostile input
+and project/native validation live in focused modules. All command/history/
+package/schema characterization tests pass, and the complete Phase 15 gate is
+green. A real browser smoke was retried but remains environment-blocked before
+page attachment by `Cannot redefine property: process`; no visual pass is
+claimed from that attempt.

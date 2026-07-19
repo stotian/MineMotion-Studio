@@ -2,10 +2,10 @@
 
 MineMotion Studio `0.8.2` uses project schema 10.
 
-Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.7 are
-complete. Low-level contracts have stable ownership under `src/core`, and a
-typed VFX compatibility projection plus real effects-lane editing now coexist
-with the schema 10 native persistence bridge.
+Phase 14 architecture consolidation and the complete Phase 15 native VFX
+foundation are finished. Low-level contracts have stable ownership under
+`src/core`, and typed deterministic VFX, editing, schema 10 persistence,
+preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Working Systems
 
@@ -70,6 +70,9 @@ with the schema 10 native persistence bridge.
   Explicitly shared Minecraft materials and skin textures remain cache-owned.
 - WebM capture releases image bitmaps, MediaStream tracks, and recorder listeners
   across normal export, repeated retry, cancellation, startup failure, and error.
+- Effects command execution retains its public API but hostile input validation
+  and project/native-VFX validation now have focused modules. All 41 command
+  characterization tests pass unchanged after the extraction.
 
 ## Partial Systems
 
@@ -80,7 +83,7 @@ with the schema 10 native persistence bridge.
 
 ## Absent Systems
 
-- Phase 15.9 final Phase 15 stabilization gate.
+- Phase 16 production built-in preset catalog/content and later phases.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
@@ -126,3 +129,5 @@ with the schema 10 native persistence bridge.
 - Phase 15.8 budgets the shared prepared stack before any visual allocation and
   makes GPU ownership explicit. Rebuilds dispose owned resources once, while
   cache resources are marked shared and released only by their cache owner.
+- Phase 15.9 preserves the effects controller API while separating validation
+  ownership, and closes the phase with the complete configured gate green.

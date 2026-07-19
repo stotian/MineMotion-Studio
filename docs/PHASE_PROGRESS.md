@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-Phase 15 - Native Deterministic VFX Foundation
+Phase 16 - Production Built-in VFX Library
 
 ## Current Milestone
 
-15.9 - Phase 15 stabilization gate
+16.1 - Preset metadata and automated validation
 
 ## Status
 
-IN_PROGRESS - milestones 15.1 through 15.8 completed and validated; final stabilization is next.
+IN_PROGRESS - Phase 15 is complete; Phase 16.1 is the next READY milestone.
 
 ## Completed
 
@@ -78,21 +78,27 @@ IN_PROGRESS - milestones 15.1 through 15.8 completed and validated; final stabil
   tracks, and listeners on success, retry, cancellation, and recorder error.
 - Repeated add/remove/reopen cycles retain schema 10 native identity and leave
   no effects behind; imported-chunk temporary border geometry is also released.
+- Phase 15.9 extracted hostile input and project/VFX validation from the
+  effects command executor without changing its public API. The 1,173-line
+  controller is now a 619-line executor plus focused 236/359-line validators.
+- Final Phase 15 gate passes 29 focused files/225 tests and 70 files/317 tests,
+  typecheck, build, and audit. The real browser smoke was retried and remains
+  environment-blocked at bootstrap with `Cannot redefine property: process`.
 
 ## In Progress
 
-- Phase 15 foundation. The next unit is milestone 15.9: final controller audit,
-  visual-smoke retry, complete stabilization gate, and phase handoff.
+- Phase 16.1 will define built-in preset metadata/versioning/categories/tags/
+  quality/compatibility and validate IDs, schemas, assets, duration, and budgets.
 
 ## Not Started
 
-- Phase 15.9 full phase validation.
-- Later defined roadmap phases 16-25.
+- Phase 16.1 preset catalog contracts and validation.
+- Later defined roadmap phases 17-35.
 
 ## Blockers
 
-- None for Phase 15.9 TypeScript work.
-- Manual Phase 15.5 browser smoke is environment-blocked because the in-app
+- None for Phase 16.1 TypeScript work.
+- Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
   desktop bundles passed at `1e911af`.
@@ -100,23 +106,23 @@ IN_PROGRESS - milestones 15.1 through 15.8 completed and validated; final stabil
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.8 is the validated checkpoint containing this document; Git history
+- Phase 15.9 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 15.8 tests: PASS - 21 files, 115 tests
+- Focused Phase 15.9 tests: PASS - 29 files, 225 tests
 - `npm test`: PASS - 70 files, 317 tests
 - `npm run build`: PASS - existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 15.8 changes TypeScript/docs only.
-- Manual visual smoke: not rerun in 15.8; the documented browser bootstrap
-  environment failure remains and automated lifecycle/presentation tests pass.
+- Native checks: not rerun because milestone 15.9 changes TypeScript/docs only.
+- Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
+  `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Start Phase 15.9 by auditing oversized VFX controllers against existing
-characterization coverage. Split only if ownership materially improves without
-behavior change, retry the real visual smoke, then run the complete Phase 15 gate.
+Start Phase 16.1 by inventorying current effect definitions, native VFX schema,
+primitive descriptors, and library UI. Define one reusable built-in preset
+catalog contract and fail-closed validator before adding content families.
