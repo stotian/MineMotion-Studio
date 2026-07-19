@@ -396,6 +396,22 @@ select {
   min-width: 0;
 }
 
+.effect-preview {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 3px;
+  object-fit: cover;
+  background: #10141c;
+}
+
+.effect-preview-pending {
+  display: grid;
+  place-items: center;
+  color: #69758a;
+}
+
 .effect-card-main span {
   color: #8ba1ff;
   font-size: 0.66rem;

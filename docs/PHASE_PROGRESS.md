@@ -6,11 +6,11 @@ Phase 16 - Production Built-in VFX Library
 
 ## Current Milestone
 
-16.10 - Generated preview cache and stable-preset verification
+16.11 - VFX benchmark/regression scenes and Phase 16 closure
 
 ## Status
 
-IN_PROGRESS - Phase 16.9 is complete; preview generation/cache is next.
+IN_PROGRESS - Phase 16.10 is complete; benchmark/regression scenes are next.
 
 ## Completed
 
@@ -122,15 +122,19 @@ IN_PROGRESS - Phase 16.9 is complete; preview generation/cache is next.
   caching or weakened legacy repair behavior.
 - Phase 16.9 adds deterministic search, category/tag/source/favorite filters,
   bounded local favorites/recents, and honest Built-in 72 / Custom 0 views.
+- Phase 16.10 generates deterministic primitive-based SVG previews one idle task
+  at a time, caches them locally, and promotes exactly 60 native presets stable.
+- Every stable preset passes timeline, JSON/package persistence, preview/export,
+  missing-target, all-quality, thumbnail, and cache-recovery verification.
 
 ## In Progress
 
-- Phase 16.10 will generate/cache previews without blocking the editor and use
-  verified preview/regression state for honest stable promotion.
+- Phase 16.11 will add benchmark/regression scene fixtures, enforce dense
+  measured budgets, run the final gate, and close Phase 16.
 
 ## Not Started
 
-- Phase 16.10 and later Phase 16 preview/verification/benchmark milestones.
+- Phase 16.11 benchmark/regression scene and final closure milestone.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
@@ -151,9 +155,9 @@ IN_PROGRESS - Phase 16.9 is complete; preview generation/cache is next.
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.9 tests: PASS - 20 files, 199 tests
-- `npm test`: PASS - 74 files, 345 tests
-- `npm run build`: PASS - 1,799 modules; existing large-chunk warning only
+- Focused Phase 16.10 tests: PASS - 22 files, 204 tests
+- `npm test`: PASS - 76 files, 350 tests
+- `npm run build`: PASS - 1,800 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
 - Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -161,5 +165,5 @@ IN_PROGRESS - Phase 16.9 is complete; preview generation/cache is next.
 
 ## Next Exact Action
 
-Generate and cache non-blocking built-in previews, then connect readiness to
-the stable-preset verification contract without weakening experimental labels.
+Create deterministic VFX benchmark/regression scene fixtures for representative
+families and dense combinations, enforce budgets, then run the final Phase 16 gate.

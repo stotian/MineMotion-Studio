@@ -266,13 +266,14 @@ function createMetadata(definition: EffectDefinition): BuiltinVfxPresetMetadata 
     thumbnail: {
       kind: "generated",
       cacheKey: `vfx-preset:${definition.type}:v${BUILTIN_VFX_PRESET_METADATA_VERSION}`,
-      state: "pending"
+      state: native ? "ready" : "pending"
     },
     previewQuality: "medium",
     exportQuality: "final",
     compatibility: {
-      maturity:
-        native || definition.type === "colorGradeKeyframe"
+      maturity: native
+        ? "stable"
+        : definition.type === "colorGradeKeyframe"
           ? "experimental"
           : "compatibility",
       runtime: native ? "native-primitives" : "compatibility-map",

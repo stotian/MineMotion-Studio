@@ -30,6 +30,7 @@ import {
   toggleVfxLibraryFavorite,
   type VfxLibrarySourceFilter
 } from "../../vfx/library/VfxLibraryNavigation";
+import { scheduleBuiltinVfxPresetPreviews } from "../../vfx/library/VfxPresetPreviewCache";
 
 interface EffectsLibraryPanelProps {
   presets: readonly BuiltinVfxPreset[];
@@ -76,6 +77,7 @@ export function EffectsLibraryPanel({
       ? { version: 1 as const, favoriteIds: [], recentIds: [] }
       : loadVfxLibraryPreferences(window.localStorage)
   );
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const categories = useMemo(
     () => [...new Set(presets.map((preset) => preset.metadata.category))].sort(),
     [presets]
@@ -99,6 +101,19 @@ export function EffectsLibraryPanel({
       saveVfxLibraryPreferences(window.localStorage, preferences);
     }
   }, [preferences]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    return scheduleBuiltinVfxPresetPreviews(
+      presets,
+      window.localStorage,
+      (presetId, dataUrl) => setPreviewUrls((current) =>
+        current[presetId] === dataUrl
+          ? current
+          : { ...current, [presetId]: dataUrl }
+      )
+    );
+  }, [presets]);
 
   const addPreset = (preset: BuiltinVfxPreset) => {
     setPreferences((current) => recordRecentVfxPreset(current, preset.metadata.id));
@@ -202,6 +217,7 @@ export function EffectsLibraryPanel({
               !preset.metadata.compatibility.capabilities.preview &&
               !preset.metadata.compatibility.capabilities.export;
             const favorite = preferences.favoriteIds.includes(preset.metadata.id);
+            const previewUrl = previewUrls[preset.metadata.id];
             return (
               <div
                 key={preset.metadata.id}
@@ -217,6 +233,13 @@ export function EffectsLibraryPanel({
                   disabled={unavailable}
                   onClick={() => addPreset(preset)}
                 >
+                  {previewUrl ? (
+                    <img className="effect-preview" src={previewUrl} alt="" />
+                  ) : (
+                    <span className="effect-preview effect-preview-pending" aria-label="Preview pending">
+                      <Sparkles size={18} />
+                    </span>
+                  )}
                   <strong>{preset.localizedName}</strong>
                   <span>{preset.metadata.category} / {preset.definition.space}</span>
                   <small>{preset.definition.description}</small>

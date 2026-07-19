@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.10: generate/cache previews and begin stable-preset
-verification. Phase 16.9 library navigation is complete.
+Start Phase 16 milestone 16.11: create benchmark/regression scenes and close
+Phase 16. Phase 16.10 previews/stable verification is complete.
 
 ## Completed Work
 
@@ -13,18 +13,19 @@ verification. Phase 16.9 library navigation is complete.
 - The catalog contains 72 total entries and every movement parameter has an
   output-influence regression.
 - Search, category/tags/source filters, 128 favorites, and 20 recents are live.
+- Exactly 60 native presets are stable with deterministic cached previews and
+  full integration verification; 12 compatibility entries remain non-stable.
 - Native presets remain experimental until generated thumbnails and stable
   regression coverage are complete; stable count remains zero.
 
 ## Unfinished Work
 
-- Preview caching, 60 stable total, full stable-preset verification, and
-  benchmark/regression scenes remain Phase 16 work.
+- Benchmark/regression scenes and the final Phase 16 closure gate remain.
 
 ## Next Implementation Step
 
-Build non-blocking generated preview caching, expose ready/pending state, and
-prepare the automatic stable verification/promotion gate.
+Add representative and dense benchmark scene fixtures with deterministic budget
+expectations, then run the full gate and close Phase 16.
 
 ## Tests To Run
 

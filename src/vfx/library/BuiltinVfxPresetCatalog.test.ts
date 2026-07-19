@@ -14,11 +14,11 @@ function clonePreset(id = "lightningStrike"): BuiltinVfxPreset {
 }
 
 describe("BuiltinVfxPresetCatalog", () => {
-  it("joins every existing effect to native metadata without claiming stability", () => {
+  it("joins every existing effect and claims stability only for verified native recipes", () => {
     const presets = builtinVfxPresetCatalog.list();
 
     expect(presets).toHaveLength(72);
-    expect(builtinVfxPresetCatalog.countStable()).toBe(0);
+    expect(builtinVfxPresetCatalog.countStable()).toBe(60);
     expect(presets.every((preset) => preset.metadata.id === preset.definition.id)).toBe(true);
     expect(
       presets.every(
@@ -38,7 +38,7 @@ describe("BuiltinVfxPresetCatalog", () => {
     ).toMatchObject({
       recipeId: "criticalHit",
       compatibility: {
-        maturity: "experimental",
+        maturity: "stable",
         runtime: "native-primitives",
         capabilities: { preview: true, export: true }
       }
@@ -58,6 +58,13 @@ describe("BuiltinVfxPresetCatalog", () => {
       category: "movement-trails",
       frameBudget: { particles: 32, segments: 192 }
     });
+    expect(
+      presets.filter((preset) => preset.metadata.compatibility.maturity === "stable")
+        .every((preset) =>
+          preset.metadata.thumbnail.kind === "generated" &&
+          preset.metadata.thumbnail.state === "ready"
+        )
+    ).toBe(true);
   });
 
   it("freezes catalog metadata and filters experimental entries honestly", () => {
