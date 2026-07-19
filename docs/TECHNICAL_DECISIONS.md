@@ -281,3 +281,17 @@ dependencies are inconsistent. Preserve corrupt stored text for recovery.
 Bound browser-local storage separately from the portable archive format. Local
 lifecycle operations must prevent built-in ID collisions and cannot disable,
 remove, or incompatibly update a package required by an enabled dependent.
+
+## TD-024 - Package assets use closed schemas and restricted templates fallback
+
+Status: Accepted in Phase 17.6.
+
+Resolve each declared asset kind through a closed bounded schema. JSON assets
+share structural limits and reject unknown/prototype fields; binary assets must
+match declared MIME signatures. Parsed results are immutable and data URLs are
+created only on explicit resolution.
+
+Restricted shader assets contain a built-in template ID and exact parameters,
+never source. When a valid template is unavailable, use the existing Primitive
+V1 default material and report the fallback instead of failing rendering or
+claiming unsupported shader behavior.

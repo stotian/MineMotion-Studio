@@ -52,7 +52,12 @@ describe("deterministic VFX package round trips and inspection", () => {
   it("canonicalizes manifest and archive asset order", async () => {
     const document = createBlankVfxAuthoringDocument("custom.assets", "Asset VFX");
     const png = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="), (character) => character.charCodeAt(0));
-    const curve = new TextEncoder().encode("{\"points\":[0,1]}");
+    const curve = new TextEncoder().encode(JSON.stringify({
+      format: "minemotion-curve",
+      version: 1,
+      interpolation: "linear",
+      points: [{ x: 0, y: 0 }, { x: 1, y: 1 }]
+    }));
     const assets = [
       { id: "z-spark", path: "assets/z-spark.png", kind: "texture" as const, mimeType: "image/png", byteLength: png.byteLength, width: 1, height: 1, license: "CC0-1.0" },
       { id: "a-curve", path: "assets/a-curve.json", kind: "curve" as const, mimeType: "application/json", byteLength: curve.byteLength, license: "MIT" }

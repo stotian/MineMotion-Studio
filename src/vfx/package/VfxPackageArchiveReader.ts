@@ -1,5 +1,6 @@
 import packageMetadata from "../../../package.json";
 import { compileVfxAuthoringDocument } from "../authoring/VfxAuthoringCompiler";
+import { validateVfxPackageAssets } from "./VfxPackageAssetResolver";
 import { validateVfxAuthoringDocument } from "../authoring/VfxAuthoringDocument";
 import {
   VFX_PACKAGE_EFFECT_PATH,
@@ -247,5 +248,11 @@ export async function readVfxPackageArchive(buffer: ArrayBuffer): Promise<VfxPac
     declared.add(asset.path);
   }
   for (const entry of entries) if (!declared.has(entry.path)) fail(`VFX package contains an undeclared file: ${entry.path}.`);
-  return Object.freeze({ manifest, document: documentValidation.value, entries: Object.freeze(entries) });
+  const archive = Object.freeze({ manifest, document: documentValidation.value, entries: Object.freeze(entries) });
+  try {
+    validateVfxPackageAssets(archive);
+  } catch (error) {
+    fail(error instanceof Error ? error.message : "VFX package asset validation failed.");
+  }
+  return archive;
 }

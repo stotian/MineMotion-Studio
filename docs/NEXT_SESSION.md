@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.6: safe package asset handlers and restricted shader
-template validation/fallback. Phase 17.5 is complete.
+Start Phase 17 milestone 17.7: integrate enabled installed custom presets into
+library, timeline, runtime, export, and projects. Phase 17.6 is complete.
 
 ## Completed Work
 
@@ -28,16 +28,18 @@ template validation/fallback. Phase 17.5 is complete.
   dependency/permission/license/asset/budget reports are live in VFX Studio.
 - A bounded versioned local registry now installs, updates, enables, disables,
   inspects, and uninstalls canonical packages with dependency protection.
+- Every declared asset kind now has a closed bounded resolver; restricted shader
+  templates contain parameters only and fallback to Primitive V1 material.
 
 ## Unfinished Work
 
-- Safe typed asset consumption, restricted templates, installed custom effect
-  integration, examples, and author documentation remain.
+- Installed custom effect integration, safe examples, node-graph research note,
+  and author documentation remain.
 
 ## Next Implementation Step
 
-Validate/resolve all supported asset kinds from package entries, then define a
-closed restricted shader template schema with safe fallback and no source code.
+Extend the existing effect/native VFX persistence minimally so enabled custom
+documents can be added from the library and survive timeline/export/projects.
 
 ## Tests To Run
 

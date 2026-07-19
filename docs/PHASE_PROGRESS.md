@@ -6,11 +6,11 @@ Phase 17 - VFX Authoring and Portable Packages
 
 ## Current Milestone
 
-17.6 - Safe asset handlers and restricted shader templates
+17.7 - Installed custom presets in library, timeline, runtime, and projects
 
 ## Status
 
-IN_PROGRESS - Phase 17.5 is complete; safe package asset semantics are next.
+IN_PROGRESS - Phase 17.6 is complete; installed preset integration is next.
 
 ## Completed
 
@@ -151,15 +151,19 @@ IN_PROGRESS - Phase 17.5 is complete; safe package asset semantics are next.
   archive bytes on load. Install/update/enable/disable/inspect/uninstall protect
   built-ins, require compatible enabled dependencies, prevent breaking active
   dependents, persist immutably, and fail soft on corrupt/unavailable storage.
+- Phase 17.6 validates/resolves every declared asset kind through closed bounded
+  schemas: PNG texture/sprite/thumbnail, signed audio, box models, gradients,
+  curves, localization, and three parameter-only shader templates. JSON shape
+  limits and Primitive V1 material fallback keep executable source impossible.
 
 ## In Progress
 
-- Phase 17.6 will validate and resolve supported texture/sprite/audio/model/
-  gradient/curve/thumbnail/localization assets and restricted shader templates.
+- Phase 17.7 will expose enabled installed documents as custom library presets
+  and persist their runtime descriptors through the existing effect collection.
 
 ## Not Started
 
-- Phase 17.6 and later integration/example milestones, plus phases 18-35.
+- Phase 17.7 and later example/documentation milestones, plus phases 18-35.
 
 ## Blockers
 
@@ -172,22 +176,22 @@ IN_PROGRESS - Phase 17.5 is complete; safe package asset semantics are next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 17.5 is the validated checkpoint containing this document; Git history
+- Phase 17.6 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 17.5 tests: PASS - 5 files, 24 tests
-- `npm test`: PASS - 82 files, 377 tests
-- `npm run build`: PASS - 1,812 modules; existing large-chunk warning only
+- Focused Phase 17.6 tests: PASS - 6 files, 29 tests
+- `npm test`: PASS - 83 files, 382 tests
+- `npm run build`: PASS - 1,813 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 17.5 changes TypeScript/CSS/docs only.
+- Native checks: not rerun because Phase 17.6 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Implement safe typed handlers for every declared Phase 17 asset kind and a
-closed restricted-shader-template parameter schema with fallback behavior.
+Integrate enabled installed custom presets into the Effects Library and existing
+timeline/project/preview/export paths without a parallel effect collection.

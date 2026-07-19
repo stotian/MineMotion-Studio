@@ -133,6 +133,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
   supports install, compatible update, enable, disable, inspect, and uninstall.
   Built-in IDs and enabled dependency graphs are protected; corrupt storage
   fails soft without deleting recoverable payloads.
+- Closed asset handlers resolve bounded PNG, signed audio, box model, gradient,
+  curve, localization, and parameter-only restricted shader data. JSON structure
+  is bounded and unavailable templates explicitly use Primitive V1 material.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -146,14 +149,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 safe asset/restricted-template handling, installed custom effect
-  integration, examples, and author documentation remain.
+- Phase 17 installed custom effect integration, examples, node-graph research,
+  and author documentation remain.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 82 frontend test files and 377 passing tests.
+- 83 frontend test files and 382 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -206,3 +209,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
   boundary before any local registry mutation.
 - Phase 17.5 stores canonical archives rather than partial reconstructed package
   state and revalidates all enabled dependency relationships on load.
+- Phase 17.6 keeps package assets declarative and uses a real default-material
+  fallback when a restricted built-in shader template is unavailable.
