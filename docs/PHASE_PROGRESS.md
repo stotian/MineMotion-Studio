@@ -6,11 +6,11 @@ Phase 17 - VFX Authoring and Portable Packages
 
 ## Current Milestone
 
-17.2 - Stack editing, compilation, and custom derived presets
+17.3 - Versioned package manifest and bounded safe extraction
 
 ## Status
 
-IN_PROGRESS - Phase 17.1 is complete; stack editing and compilation are next.
+IN_PROGRESS - Phase 17.2 is complete; portable package safety is next.
 
 ## Completed
 
@@ -134,15 +134,20 @@ IN_PROGRESS - Phase 17.1 is complete; stack editing and compilation are next.
   authoring documents with bounded primitive, emitter, and restricted modifier
   stack unions. All 60 stable built-ins derive to clone-safe custom drafts
   without mutating catalog records or accepting executable content.
+- Phase 17.2 adds pure validated commands for add, reorder, duplicate,
+  enable/disable, replace, remove, target, duration, and quality edits. Ordered
+  tint/opacity/scale modifiers compile to deeply frozen Primitive V1 data,
+  enforce existing budgets, evaluate in the existing runtime, and feed a live
+  deterministic SVG preview.
 
 ## In Progress
 
-- Phase 17.2 will implement immutable add/reorder/duplicate/enable/edit commands,
-  safe modifier compilation, duration/target/quality edits, and real preview.
+- Phase 17.3 will define the versioned `.minemotion-vfx` ZIP manifest/schema and
+  bounded traversal/count/size/dimension-safe package reader.
 
 ## Not Started
 
-- Phase 17.2 and later VFX authoring/package milestones, plus phases 18-35.
+- Phase 17.3 and later VFX package milestones, plus phases 18-35.
 
 ## Blockers
 
@@ -155,22 +160,22 @@ IN_PROGRESS - Phase 17.1 is complete; stack editing and compilation are next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 17.1 is the validated checkpoint containing this document; Git history
+- Phase 17.2 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 17.1 tests: PASS - 3 files, 16 tests
-- `npm test`: PASS - 78 files, 356 tests
-- `npm run build`: PASS - 1,803 modules; existing large-chunk warning only
+- Focused Phase 17.2 tests: PASS - 4 files, 29 tests
+- `npm test`: PASS - 79 files, 360 tests
+- `npm run build`: PASS - 1,805 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 17.1 changes TypeScript/CSS/docs only.
+- Native checks: not rerun because Phase 17.2 changes TypeScript/CSS/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Implement the Phase 17.2 immutable stack command controller and compile enabled
-primitive/emitter/modifier items through the existing Primitive V1 runtime.
+Define and validate the Phase 17.3 `.minemotion-vfx` manifest and archive schema,
+then reject traversal, excessive files/bytes/dimensions, code, and bad versions.

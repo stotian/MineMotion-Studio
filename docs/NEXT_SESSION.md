@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.2: implement immutable stack editing, safe modifier
-compilation, custom derived presets, and live preview. Phase 17.1 is complete.
+Start Phase 17 milestone 17.3: define the versioned `.minemotion-vfx` manifest,
+archive schema, and bounded safe extraction. Phase 17.2 is complete.
 
 ## Completed Work
 
@@ -20,16 +20,18 @@ compilation, custom derived presets, and live preview. Phase 17.1 is complete.
   immutable drafts over existing Primitive V1 descriptors.
 - The versioned authoring contract accepts only bounded primitive, emitter, and
   restricted modifier items; all 60 stable built-ins derive without mutation.
+- Pure commands now add/reorder/duplicate/enable/edit/remove items and update
+  target/duration/quality; restricted modifiers compile and preview for real.
 
 ## Unfinished Work
 
-- Stack edits/compiler, persisted custom presets, portable package safety,
-  installation, restricted templates, examples, and documentation remain.
+- Portable package schema/safety, deterministic import/export, installation,
+  assets, restricted templates, examples, and documentation remain.
 
 ## Next Implementation Step
 
-Add pure stack commands for add/reorder/duplicate/enable/edit and document
-settings, then compile restricted modifiers into validated Primitive V1 data.
+Define manifest and archive entry contracts, then implement strict validation
+for paths, counts, compressed/uncompressed sizes, asset dimensions, and code.
 
 ## Tests To Run
 

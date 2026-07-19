@@ -83,6 +83,7 @@ function validateStackItem(
   item: unknown,
   index: number,
   ids: Set<string>,
+  descriptorIds: Set<string>,
   errors: ValidationIssue[],
   warnings: ValidationIssue[]
 ): void {
@@ -115,7 +116,15 @@ function validateStackItem(
     errors.push(...validation.errors.map((entry) => ({ ...entry, path: `${path}.descriptor.${entry.path ?? ""}`.replace(/\.$/, "") })));
     return;
   }
+  if (descriptorIds.has(validation.value.id)) {
+    errors.push(issue("VFX_AUTHORING_DESCRIPTOR_ID_DUPLICATE", `Duplicate descriptor ID: ${validation.value.id}.`, `${path}.descriptor.id`));
+  } else {
+    descriptorIds.add(validation.value.id);
+  }
   const expectedKind = validation.value.kind === "particle-emitter" ? "emitter" : "primitive";
+  if (!isSafeVfxColor(validation.value.color)) {
+    errors.push(issue("VFX_AUTHORING_DESCRIPTOR_COLOR_INVALID", "Descriptor color must use a safe VFX color token.", `${path}.descriptor.color`));
+  }
   if (item.kind !== expectedKind) {
     errors.push(issue("VFX_AUTHORING_STACK_DESCRIPTOR_MISMATCH", `${validation.value.kind} must use an ${expectedKind} stack item.`, `${path}.kind`));
   }
@@ -149,7 +158,8 @@ export function validateVfxAuthoringDocument(
     errors.push(issue("VFX_AUTHORING_STACK_LIMIT_EXCEEDED", `VFX authoring supports at most ${MAX_VFX_AUTHORING_STACK_ITEMS} stack items.`, "stack"));
   } else {
     const ids = new Set<string>();
-    document.stack.forEach((item, index) => validateStackItem(item, index, ids, errors, warnings));
+    const descriptorIds = new Set<string>();
+    document.stack.forEach((item, index) => validateStackItem(item, index, ids, descriptorIds, errors, warnings));
   }
   if (errors.length > 0) return invalidResult(errors, warnings);
   try {

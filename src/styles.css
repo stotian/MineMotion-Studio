@@ -1435,6 +1435,32 @@ p.parameter-control-error {
   gap: 0.45rem;
 }
 
+.vfx-workspace-stack {
+  grid-column: 1 / -1;
+}
+
+.vfx-workspace-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0.35rem 0 0.55rem;
+  object-fit: cover;
+  border: 1px solid #35435a;
+  border-radius: 6px;
+}
+
+.vfx-compile-ok {
+  color: #7fd6a4;
+  font-size: 0.7rem;
+}
+
+.vfx-stack-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  margin-bottom: 0.6rem;
+}
+
 .vfx-stack-item {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -1444,6 +1470,34 @@ p.parameter-control-error {
   border: 1px solid #303b4d;
   border-radius: 6px;
   background: #171e29;
+}
+
+.vfx-stack-item.selected {
+  border-color: #6d8cff;
+  background: #202c43;
+}
+
+.vfx-stack-select {
+  min-width: 0;
+  display: block;
+  padding: 0;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+
+.vfx-stack-select:hover:not(:disabled) {
+  border-color: transparent;
+  background: transparent;
+}
+
+.vfx-stack-actions {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.vfx-stack-actions button {
+  padding: 0.28rem;
 }
 
 .vfx-stack-item span,

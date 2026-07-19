@@ -118,6 +118,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - A dedicated VFX Studio creates blank drafts or immutable derived copies of all
   60 stable built-ins. Versioned authoring documents contain only bounded,
   structured-cloneable primitive, emitter, and restricted modifier stack data.
+- Pure authoring commands edit stack order/content and duration/target/quality.
+  Ordered tint/opacity/scale modifiers compile to deeply frozen, budgeted
+  Primitive V1 descriptors and deterministic live SVG previews.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -131,14 +134,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 stack editing/compiler, custom preset persistence, and portable
-  package installation remain incomplete.
+- Phase 17 portable package schema/import/export, custom preset persistence,
+  installation, asset support, restricted templates, and examples remain.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 78 frontend test files and 356 passing tests.
+- 79 frontend test files and 360 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -183,3 +186,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 17.1 layers a declarative authoring document over Primitive V1. Built-in
   callbacks are evaluated then cloned; functions and unrestricted shaders are
   absent, and no parallel effect collection or node graph is introduced.
+- Phase 17.2 applies restricted modifiers as ordered transformations of earlier
+  descriptors, then reuses Primitive V1 validation, evaluation, and budgets.

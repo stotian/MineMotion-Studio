@@ -228,3 +228,16 @@ cloned into derived drafts; their catalog records are never mutated.
 Recipe callbacks, arbitrary JavaScript, unrestricted shaders, and a node graph
 are excluded. Stack commands compile back to the existing primitive/runtime
 path rather than establishing a parallel effect or project architecture.
+
+## TD-020 - Restricted VFX modifiers are ordered descriptor transforms
+
+Status: Accepted in Phase 17.2.
+
+Enabled tint, opacity, and scale modifiers transform all enabled primitive
+descriptors earlier in the authoring stack. Each transformation returns plain
+data, then reuses Primitive V1 validation and global single-effect budgets.
+Disabled items are excluded and no modifier may contain callbacks or shader code.
+
+This ordered model is deterministic, explainable in the UI, and portable. It is
+intentionally less expressive than a graph until stack behavior and package
+security are proven stable.

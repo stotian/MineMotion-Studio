@@ -84,6 +84,26 @@ function renderDescriptor(descriptor: VfxPrimitiveDescriptor, index: number): st
   return `<circle cx="80" cy="45" r="${18 + offset % 18}" fill="${color}" opacity="${Math.min(0.72, Math.max(0.18, descriptor.peakIntensity * 0.22))}"/>`;
 }
 
+export function generateVfxDescriptorPreviewDataUrl(
+  descriptors: readonly VfxPrimitiveDescriptor[],
+  label: string,
+  themeKey = "custom"
+): string {
+  const categoryHue = [...themeKey].reduce(
+    (value, character) => (value * 31 + character.charCodeAt(0)) % 360,
+    210
+  );
+  const primitives = descriptors
+    .map((descriptor, index) => renderDescriptor(descriptor, index))
+    .join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90" viewBox="0 0 160 90"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${categoryHue} 32% 12%)"/><stop offset="1" stop-color="hsl(${categoryHue} 42% 22%)"/></linearGradient></defs><rect width="160" height="90" rx="6" fill="url(#bg)"/>${primitives}<rect x="0" y="70" width="160" height="20" fill="#080a10" opacity=".78"/><text x="8" y="83" fill="#f1f4ff" font-family="system-ui,sans-serif" font-size="9">${escapeXml(label)}</text></svg>`;
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  if (dataUrl.length > MAX_VFX_PRESET_PREVIEW_DATA_URL_LENGTH) {
+    throw new Error("Generated VFX descriptor preview is too large.");
+  }
+  return dataUrl;
+}
+
 export function generateVfxPresetPreviewDataUrl(preset: BuiltinVfxPreset): string {
   const recipe = getBuiltinVfxRecipe(preset.metadata.recipeId ?? "");
   if (!recipe) throw new Error(`Native preview recipe is missing: ${preset.metadata.id}`);
@@ -91,19 +111,11 @@ export function generateVfxPresetPreviewDataUrl(preset: BuiltinVfxPreset): strin
   if (!prepared.ok) {
     throw new Error(prepared.errors.map((error) => error.message).join(" "));
   }
-  const categoryHue = [...preset.metadata.category].reduce(
-    (value, character) => (value * 31 + character.charCodeAt(0)) % 360,
-    210
+  return generateVfxDescriptorPreviewDataUrl(
+    prepared.value.descriptors,
+    preset.localizedName,
+    preset.metadata.category
   );
-  const primitives = prepared.value.descriptors
-    .map((descriptor, index) => renderDescriptor(descriptor, index))
-    .join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90" viewBox="0 0 160 90"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(${categoryHue} 32% 12%)"/><stop offset="1" stop-color="hsl(${categoryHue} 42% 22%)"/></linearGradient></defs><rect width="160" height="90" rx="6" fill="url(#bg)"/>${primitives}<rect x="0" y="70" width="160" height="20" fill="#080a10" opacity=".78"/><text x="8" y="83" fill="#f1f4ff" font-family="system-ui,sans-serif" font-size="9">${escapeXml(preset.localizedName)}</text></svg>`;
-  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  if (dataUrl.length > MAX_VFX_PRESET_PREVIEW_DATA_URL_LENGTH) {
-    throw new Error(`Generated VFX preview is too large: ${preset.metadata.id}`);
-  }
-  return dataUrl;
 }
 
 function storageKey(cacheKey: string): string {
