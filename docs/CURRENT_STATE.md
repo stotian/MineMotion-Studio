@@ -121,6 +121,10 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Pure authoring commands edit stack order/content and duration/target/quality.
   Ordered tint/opacity/scale modifiers compile to deeply frozen, budgeted
   Primitive V1 descriptors and deterministic live SVG previews.
+- Closed `.minemotion-vfx` manifest V1 and bounded in-memory ZIP32 extraction
+  validate versions, IDs, licenses, dependencies, permissions, declared assets,
+  PNG dimensions, authoring data, and compiled budgets while rejecting code,
+  traversal, archive bombs, malformed ZIP metadata, and undeclared files.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -134,14 +138,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 portable package schema/import/export, custom preset persistence,
-  installation, asset support, restricted templates, and examples remain.
+- Phase 17 deterministic package writing/inspection, custom preset persistence,
+  installation, richer asset support, restricted templates, and examples remain.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 79 frontend test files and 360 passing tests.
+- 80 frontend test files and 367 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -188,3 +192,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
   absent, and no parallel effect collection or node graph is introduced.
 - Phase 17.2 applies restricted modifiers as ordered transformations of earlier
   descriptors, then reuses Primitive V1 validation, evaluation, and budgets.
+- Phase 17.3 uses a closed ZIP32 profile and keeps extraction as validated
+  in-memory data; reading never implies installation or filesystem writes.

@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.3: define the versioned `.minemotion-vfx` manifest,
-archive schema, and bounded safe extraction. Phase 17.2 is complete.
+Start Phase 17 milestone 17.4: deterministic `.minemotion-vfx` export/import,
+preview, and dependency/permission report. Phase 17.3 is complete.
 
 ## Completed Work
 
@@ -22,16 +22,18 @@ archive schema, and bounded safe extraction. Phase 17.2 is complete.
   restricted modifier items; all 60 stable built-ins derive without mutation.
 - Pure commands now add/reorder/duplicate/enable/edit/remove items and update
   target/duration/quality; restricted modifiers compile and preview for real.
+- Closed manifest V1 and bounded ZIP32 extraction now reject unsafe paths,
+  code, archive bombs, undeclared assets, invalid metadata, and bad budgets.
 
 ## Unfinished Work
 
-- Portable package schema/safety, deterministic import/export, installation,
-  assets, restricted templates, examples, and documentation remain.
+- Deterministic import/export, inspection, installation, richer asset handling,
+  restricted templates, examples, and documentation remain.
 
 ## Next Implementation Step
 
-Define manifest and archive entry contracts, then implement strict validation
-for paths, counts, compressed/uncompressed sizes, asset dimensions, and code.
+Add deterministic stored-ZIP writing with canonical JSON/order/timestamps and
+round-trip tests, then generate a pre-install package/dependency report.
 
 ## Tests To Run
 

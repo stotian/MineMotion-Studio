@@ -241,3 +241,17 @@ Disabled items are excluded and no modifier may contain callbacks or shader code
 This ordered model is deterministic, explainable in the UI, and portable. It is
 intentionally less expressive than a graph until stack behavior and package
 security are proven stable.
+
+## TD-021 - Portable VFX packages use a closed bounded ZIP32 profile
+
+Status: Accepted in Phase 17.3.
+
+Use `.minemotion-vfx` ZIP archives with root `manifest.json` and `effect.json`
+plus only declared assets. Parse central/local records directly with strict
+ZIP32 bounds, CRC and metadata agreement, bounded streaming decompression, safe
+normalized paths, case-insensitive uniqueness, and no symlinks or directories.
+
+Reject code, WASM, executable files, unrestricted shader source, undeclared
+files, unknown manifest fields/permissions, incompatible versions, and authoring
+documents that fail existing Primitive V1 compilation or budgets. Reading is an
+in-memory validation step and never implies installation.
