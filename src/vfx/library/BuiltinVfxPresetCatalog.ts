@@ -41,7 +41,15 @@ const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
   electricCharge: "lightning-electric",
   electricSparks: "lightning-electric",
   chainLightning: "lightning-electric",
-  electricWeaponTrail: "lightning-electric"
+  electricWeaponTrail: "lightning-electric",
+  nativeFire: "fire-explosion",
+  smokePlume: "fire-explosion",
+  nativeExplosion: "fire-explosion",
+  emberBurst: "fire-explosion",
+  debrisBurst: "fire-explosion",
+  dustCloud: "fire-explosion",
+  netherFire: "fire-explosion",
+  soulFire: "fire-explosion"
 };
 
 const CAPABILITIES_BY_EFFECT: Record<
@@ -75,7 +83,15 @@ const CAPABILITIES_BY_EFFECT: Record<
   electricCharge: { preview: true, export: true, limitations: [] },
   electricSparks: { preview: true, export: true, limitations: [] },
   chainLightning: { preview: true, export: true, limitations: [] },
-  electricWeaponTrail: { preview: true, export: true, limitations: [] }
+  electricWeaponTrail: { preview: true, export: true, limitations: [] },
+  nativeFire: { preview: true, export: true, limitations: [] },
+  smokePlume: { preview: true, export: true, limitations: [] },
+  nativeExplosion: { preview: true, export: true, limitations: [] },
+  emberBurst: { preview: true, export: true, limitations: [] },
+  debrisBurst: { preview: true, export: true, limitations: [] },
+  dustCloud: { preview: true, export: true, limitations: [] },
+  netherFire: { preview: true, export: true, limitations: [] },
+  soulFire: { preview: true, export: true, limitations: [] }
 };
 
 const BUILTIN_RECIPE_ID_SET = new Set<string>(
@@ -97,7 +113,15 @@ const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segm
   electricCharge: { particles: 42, segments: 72 },
   electricSparks: { particles: 32, segments: 0 },
   chainLightning: { particles: 0, segments: 108 },
-  electricWeaponTrail: { particles: 0, segments: 160 }
+  electricWeaponTrail: { particles: 0, segments: 160 },
+  nativeFire: { particles: 42, segments: 0 },
+  smokePlume: { particles: 48, segments: 0 },
+  nativeExplosion: { particles: 64, segments: 112 },
+  emberBurst: { particles: 36, segments: 0 },
+  debrisBurst: { particles: 44, segments: 0 },
+  dustCloud: { particles: 52, segments: 72 },
+  netherFire: { particles: 46, segments: 0 },
+  soulFire: { particles: 46, segments: 0 }
 };
 
 export const BUILTIN_VFX_PRESET_LOCALIZATION: Readonly<Record<string, string>> =

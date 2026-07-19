@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.4: build the fire/explosion preset family over the
-validated native recipe runtime. Phase 16.3 electric VFX is complete.
+Start Phase 16 milestone 16.5: build the magic/energy preset family. Phase 16.4
+fire/smoke/explosion VFX is complete.
 
 ## Completed Work
 
@@ -17,14 +17,13 @@ validated native recipe runtime. Phase 16.3 electric VFX is complete.
 
 ## Unfinished Work
 
-- Fire/explosion and later content families.
+- Magic/energy and later content families.
 - Search/favorites/recents, preview caching, 60 stable total,
   and benchmark/regression scenes remain Phase 16 work.
 
 ## Next Implementation Step
 
-Add fire, smoke, explosion, embers, debris, dust, Nether fire, and soul fire
-definitions/recipes without changing project persistence or evaluator ownership.
+Add aura, beam, projectile, portal, teleport, heal, corruption, and power-up.
 
 ## Tests To Run
 

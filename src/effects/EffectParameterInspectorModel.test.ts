@@ -82,7 +82,15 @@ describe("EffectParameterInspectorModel", () => {
       "electricCharge",
       "electricSparks",
       "chainLightning",
-      "electricWeaponTrail"
+      "electricWeaponTrail",
+      "nativeFire",
+      "smokePlume",
+      "nativeExplosion",
+      "emberBurst",
+      "debrisBurst",
+      "dustCloud",
+      "netherFire",
+      "soulFire"
     ] as const) {
       const model = requireModel(
         createEffectParameterInspectorModel(

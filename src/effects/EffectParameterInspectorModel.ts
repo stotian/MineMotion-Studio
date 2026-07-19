@@ -46,7 +46,15 @@ const LIVE_PREVIEW_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = 
   electricCharge: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   electricSparks: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   chainLightning: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", intensity: "live-preview" },
-  electricWeaponTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", intensity: "live-preview" }
+  electricWeaponTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", intensity: "live-preview" },
+  nativeFire: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  smokePlume: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  nativeExplosion: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  emberBurst: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  debrisBurst: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  dustCloud: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  netherFire: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  soulFire: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" }
 };
 
 const EXPORT_ONLY_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = {

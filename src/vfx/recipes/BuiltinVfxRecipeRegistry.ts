@@ -1,10 +1,12 @@
 import { listCombatVfxRecipes } from "./CombatVfxRecipes";
 import { listElectricVfxRecipes } from "./ElectricVfxRecipes";
+import { listFireVfxRecipes } from "./FireVfxRecipes";
 import type { VfxPresetRecipe } from "./VfxPresetRecipeTypes";
 
 const RECIPES = Object.freeze([
   ...listCombatVfxRecipes(),
-  ...listElectricVfxRecipes()
+  ...listElectricVfxRecipes(),
+  ...listFireVfxRecipes()
 ]);
 const BY_ID = new Map(RECIPES.map((recipe) => [recipe.id, recipe]));
 

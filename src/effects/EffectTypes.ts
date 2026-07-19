@@ -30,7 +30,15 @@ export type EffectType =
   | "electricCharge"
   | "electricSparks"
   | "chainLightning"
-  | "electricWeaponTrail";
+  | "electricWeaponTrail"
+  | "nativeFire"
+  | "smokePlume"
+  | "nativeExplosion"
+  | "emberBurst"
+  | "debrisBurst"
+  | "dustCloud"
+  | "netherFire"
+  | "soulFire";
 
 export type EffectSpace = VfxSpace;
 

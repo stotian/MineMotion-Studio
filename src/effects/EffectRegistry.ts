@@ -317,6 +317,38 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
     defaultDurationFrames: 18,
     defaultParameters: { color: "#9be7ff", secondaryColor: "#ffffff", alpha: 0.9, radius: 2, size: 0.13, intensity: 1.3 },
     tags: ["electric", "weapon", "trail"]
+  },
+  {
+    type: "nativeFire", name: "Fire", description: "A warm rising native flame field.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#ff8a2b", secondaryColor: "#ffd166", alpha: 0.9, radius: 1.2, count: 42, size: 0.16, speed: 1.8, intensity: 1.2 }, tags: ["fire", "flame", "loop"]
+  },
+  {
+    type: "smokePlume", name: "Smoke Plume", description: "A broad rising smoke volume.", space: "world", defaultDurationFrames: 60,
+    defaultParameters: { color: "#5f6268", alpha: 0.55, radius: 1.8, count: 48, size: 0.32, speed: 1.1, intensity: 0.8 }, tags: ["fire", "smoke", "plume"]
+  },
+  {
+    type: "nativeExplosion", name: "Native Explosion", description: "A layered flash, blast ring, flame, and debris burst.", space: "world", defaultDurationFrames: 24,
+    defaultParameters: { color: "#ff9f43", secondaryColor: "#fff1b8", alpha: 1, radius: 4, count: 64, size: 0.18, speed: 5, intensity: 2 }, tags: ["fire", "explosion", "blast"]
+  },
+  {
+    type: "emberBurst", name: "Ember Burst", description: "Long-lived glowing embers from a fire source.", space: "world", defaultDurationFrames: 36,
+    defaultParameters: { color: "#ffb347", alpha: 0.9, radius: 0.8, count: 36, size: 0.07, speed: 2.4, intensity: 1 }, tags: ["fire", "embers", "particles"]
+  },
+  {
+    type: "debrisBurst", name: "Debris Burst", description: "A heavy outward block-debris burst.", space: "world", defaultDurationFrames: 30,
+    defaultParameters: { color: "#8b7355", alpha: 0.9, radius: 0.4, count: 44, size: 0.2, speed: 4.2, intensity: 1.3 }, tags: ["explosion", "debris", "impact"]
+  },
+  {
+    type: "dustCloud", name: "Dust Cloud", description: "A soft expanding ground-level dust cloud.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#b9aa91", alpha: 0.5, radius: 2.6, count: 52, size: 0.3, speed: 1.3, intensity: 0.7 }, tags: ["dust", "smoke", "ground"]
+  },
+  {
+    type: "netherFire", name: "Nether Fire", description: "A deep red-orange Nether flame field.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#ff4b22", secondaryColor: "#ffb000", alpha: 0.95, radius: 1.3, count: 46, size: 0.15, speed: 1.9, intensity: 1.4 }, tags: ["fire", "nether", "flame"]
+  },
+  {
+    type: "soulFire", name: "Soul Fire", description: "A cyan soul-fire flame field and pulse.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#35e7e4", secondaryColor: "#b9ffff", alpha: 0.9, radius: 1.3, count: 46, size: 0.14, speed: 1.7, intensity: 1.5 }, tags: ["fire", "soul", "cyan"]
   }
 ];
 

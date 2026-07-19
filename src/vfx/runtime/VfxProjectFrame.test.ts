@@ -300,4 +300,30 @@ describe("prepareProjectVfxFrame", () => {
       "VFX_GLOBAL_SEGMENTS_BUDGET_CAPPED"
     );
   });
+
+  it("evaluates layered native explosions with measured particle and segment work", () => {
+    const project = createInitialProject();
+    project.effects.instances = [
+      createEffectInstance("nativeExplosion", {
+        id: "native_explosion",
+        startFrame: 0
+      })
+    ];
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 4,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects[0].primitives.map((primitive) => primitive.kind)).toEqual([
+      "particle-emitter",
+      "expanding-ring",
+      "light-pulse"
+    ]);
+    expect(prepared.value.effects[0].budget).toMatchObject({
+      particles: 64,
+      segments: 112
+    });
+  });
 });
