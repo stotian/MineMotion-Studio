@@ -145,6 +145,7 @@ import { SettingsModal } from "./ui/settings/SettingsModal";
 import { TemplatePicker } from "./ui/templates/TemplatePicker";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
 import { WorldImportPanel } from "./ui/world/WorldImportPanel";
+import { VfxWorkspacePanel } from "./ui/vfx/VfxWorkspacePanel";
 
 export function App() {
   const [settings, setSettings] = useState<AppSettings>(() =>
@@ -173,6 +174,7 @@ export function App() {
   const [rigStudioOpen, setRigStudioOpen] = useState(false);
   const [lightingStudioOpen, setLightingStudioOpen] = useState(false);
   const [worldImportOpen, setWorldImportOpen] = useState(false);
+  const [vfxWorkspaceOpen, setVfxWorkspaceOpen] = useState(false);
   const [worldScan, setWorldScan] = useState<MinecraftWorldScan | null>(null);
   const [worldImportOptions, setWorldImportOptions] =
     useState<WorldChunkImportOptions>(DEFAULT_WORLD_IMPORT_OPTIONS);
@@ -2425,6 +2427,7 @@ export function App() {
         onOpenExport={() => setExportOpen(true)}
         onOpenRigStudio={() => setRigStudioOpen(true)}
         onOpenLightingStudio={() => setLightingStudioOpen(true)}
+        onOpenVfxWorkspace={() => setVfxWorkspaceOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
         onToggleRenderPreview={handleToggleRenderPreview}
       />
@@ -2589,6 +2592,11 @@ export function App() {
         onSetActiveResourcePack={handleSetActiveResourcePack}
         onRemoveResourcePack={handleRemoveResourcePack}
         onAddEnvironmentKeyframe={handleAddEnvironmentKeyframe}
+      />
+      <VfxWorkspacePanel
+        open={vfxWorkspaceOpen}
+        presets={effectPresets}
+        onClose={() => setVfxWorkspaceOpen(false)}
       />
       <WorldImportPanel
         open={worldImportOpen}

@@ -215,3 +215,16 @@ Stable built-ins require a registered native recipe, current schema support,
 editable preview/export capabilities, bounded work, localization, deterministic
 all-quality evaluation, ready preview generation, and integration regressions.
 Compatibility and experimental records remain visible but outside stable claims.
+
+## TD-019 - VFX authoring is a declarative stack over Primitive V1
+
+Status: Accepted in Phase 17.1.
+
+Authoring documents are versioned, structured-cloneable, immutable values that
+contain existing VFX placement/quality fields and discriminated primitive,
+emitter, or restricted modifier stack items. Built-in recipes are evaluated and
+cloned into derived drafts; their catalog records are never mutated.
+
+Recipe callbacks, arbitrary JavaScript, unrestricted shaders, and a node graph
+are excluded. Stack commands compile back to the existing primitive/runtime
+path rather than establishing a parallel effect or project architecture.

@@ -115,6 +115,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
   pass stable eligibility/integration gates; 12 legacy entries remain non-stable.
 - Four deterministic benchmark projects lock exact family, particle-cap,
   segment-cap, and balanced-dense allocation behavior through package reload.
+- A dedicated VFX Studio creates blank drafts or immutable derived copies of all
+  60 stable built-ins. Versioned authoring documents contain only bounded,
+  structured-cloneable primitive, emitter, and restricted modifier stack data.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -128,13 +131,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 VFX authoring workspace and portable package system.
+- Phase 17 stack editing/compiler, custom preset persistence, and portable
+  package installation remain incomplete.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 77 frontend test files and 353 passing tests.
+- 78 frontend test files and 356 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -176,3 +180,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
   cache resources are marked shared and released only by their cache owner.
 - Phase 15.9 preserves the effects controller API while separating validation
   ownership, and closes the phase with the complete configured gate green.
+- Phase 17.1 layers a declarative authoring document over Primitive V1. Built-in
+  callbacks are evaluated then cloned; functions and unrestricted shaders are
+  absent, and no parallel effect collection or node graph is introduced.

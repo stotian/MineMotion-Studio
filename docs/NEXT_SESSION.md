@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.1: create the dedicated VFX workspace and safe
-stack-authoring contracts. Phase 16 is complete.
+Start Phase 17 milestone 17.2: implement immutable stack editing, safe modifier
+compilation, custom derived presets, and live preview. Phase 17.1 is complete.
 
 ## Completed Work
 
@@ -16,18 +16,20 @@ stack-authoring contracts. Phase 16 is complete.
 - Exactly 60 native presets are stable with deterministic cached previews and
   full integration verification; 12 compatibility entries remain non-stable.
 - Four benchmark/regression project fixtures lock dense budget behavior.
-- Exactly 60 native presets are stable after deterministic previews and complete
-  integration/regression coverage; 12 compatibility entries remain non-stable.
+- VFX Studio opens from the main toolbar and creates blank or built-in-derived
+  immutable drafts over existing Primitive V1 descriptors.
+- The versioned authoring contract accepts only bounded primitive, emitter, and
+  restricted modifier items; all 60 stable built-ins derive without mutation.
 
 ## Unfinished Work
 
-- Phase 17 authoring, derived presets, portable package safety, installation,
-  restricted templates, examples, and documentation remain.
+- Stack edits/compiler, persisted custom presets, portable package safety,
+  installation, restricted templates, examples, and documentation remain.
 
 ## Next Implementation Step
 
-Define a dedicated workspace shell and typed stack model for supported
-primitives/emitters/modifiers. Do not add a node graph or executable content.
+Add pure stack commands for add/reorder/duplicate/enable/edit and document
+settings, then compile restricted modifiers into validated Primitive V1 data.
 
 ## Tests To Run
 

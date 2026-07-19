@@ -1360,6 +1360,113 @@ p.parameter-control-error {
   max-height: min(90vh, 900px);
 }
 
+.vfx-workspace-panel {
+  width: min(1120px, 97vw);
+  max-height: min(90vh, 900px);
+}
+
+.vfx-workspace-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.85fr) minmax(260px, 0.85fr) minmax(340px, 1.3fr);
+  gap: 0.9rem;
+  padding: 0.95rem;
+}
+
+.vfx-workspace-layout section {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid #2b3443;
+  border-radius: 8px;
+  background: #111720;
+}
+
+.vfx-workspace-layout h3 {
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #c2cad8;
+  font-size: 0.85rem;
+}
+
+.vfx-workspace-layout label {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+  color: #9ca8ba;
+  font-size: 0.78rem;
+}
+
+.vfx-safety-note {
+  padding: 0.65rem;
+  color: #aac4ff;
+  background: #17233b;
+  border: 1px solid #304a7b;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.vfx-workspace-summary dl {
+  margin: 0;
+}
+
+.vfx-workspace-summary dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.42rem 0;
+  border-bottom: 1px solid #252e3b;
+  font-size: 0.76rem;
+}
+
+.vfx-workspace-summary dt {
+  color: #8f9caf;
+}
+
+.vfx-workspace-summary dd {
+  margin: 0;
+  text-align: right;
+  color: #d7deea;
+}
+
+.vfx-stack-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.vfx-stack-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem;
+  border: 1px solid #303b4d;
+  border-radius: 6px;
+  background: #171e29;
+}
+
+.vfx-stack-item span,
+.vfx-stack-item strong,
+.vfx-stack-item small {
+  min-width: 0;
+  display: block;
+}
+
+.vfx-stack-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.vfx-stack-item small,
+.vfx-stack-item em {
+  color: #8f9caf;
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
 .lighting-wide-section {
   grid-column: 1 / -1;
 }

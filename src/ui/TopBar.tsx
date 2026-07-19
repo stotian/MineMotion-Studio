@@ -11,6 +11,7 @@ import {
   Plug,
   Save,
   Settings,
+  Sparkles,
   Sun,
   Square,
   UserPlus,
@@ -38,6 +39,7 @@ interface TopBarProps {
   onOpenExport: () => void;
   onOpenRigStudio: () => void;
   onOpenLightingStudio: () => void;
+  onOpenVfxWorkspace: () => void;
   onOpenHelp: () => void;
   onToggleRenderPreview: () => void;
 }
@@ -62,6 +64,7 @@ export function TopBar({
   onOpenExport,
   onOpenRigStudio,
   onOpenLightingStudio,
+  onOpenVfxWorkspace,
   onOpenHelp,
   onToggleRenderPreview
 }: TopBarProps) {
@@ -137,6 +140,10 @@ export function TopBar({
         <button type="button" onClick={onOpenLightingStudio}>
           <Sun size={16} />
           Lighting
+        </button>
+        <button type="button" onClick={onOpenVfxWorkspace}>
+          <Sparkles size={16} />
+          VFX Studio
         </button>
         <button type="button" onClick={onOpenHelp}>
           <HelpCircle size={16} />

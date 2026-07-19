@@ -6,11 +6,11 @@ Phase 17 - VFX Authoring and Portable Packages
 
 ## Current Milestone
 
-17.1 - Dedicated VFX workspace and stack-authoring contracts
+17.2 - Stack editing, compilation, and custom derived presets
 
 ## Status
 
-IN_PROGRESS - Phase 16 is complete; Phase 17.1 is next.
+IN_PROGRESS - Phase 17.1 is complete; stack editing and compilation are next.
 
 ## Completed
 
@@ -130,20 +130,23 @@ IN_PROGRESS - Phase 16 is complete; Phase 17.1 is next.
   family coverage, particle cap, segment cap, and dense balanced allocation.
 - Final Phase 16 gate passes 23 focused files/207 tests and 77 files/353 tests,
   typecheck, build, and audit. Browser smoke remains environment-blocked.
+- Phase 17.1 adds a dedicated VFX Studio workspace and versioned immutable
+  authoring documents with bounded primitive, emitter, and restricted modifier
+  stack unions. All 60 stable built-ins derive to clone-safe custom drafts
+  without mutating catalog records or accepting executable content.
 
 ## In Progress
 
-- Phase 17.1 will create a dedicated VFX workspace and safe stack-based
-  primitive/emitter/modifier authoring contracts before any node graph.
+- Phase 17.2 will implement immutable add/reorder/duplicate/enable/edit commands,
+  safe modifier compilation, duration/target/quality edits, and real preview.
 
 ## Not Started
 
-- Phase 17.1 and later VFX authoring/package milestones, plus phases 18-35.
-- Later defined roadmap phases 17-35.
+- Phase 17.2 and later VFX authoring/package milestones, plus phases 18-35.
 
 ## Blockers
 
-- None for current Phase 16 TypeScript work.
+- None for current Phase 17 TypeScript work.
 - Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -152,22 +155,22 @@ IN_PROGRESS - Phase 16 is complete; Phase 17.1 is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 16.11 is the validated checkpoint containing this document; Git history
+- Phase 17.1 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused final Phase 16 tests: PASS - 23 files, 207 tests
-- `npm test`: PASS - 77 files, 353 tests
-- `npm run build`: PASS - 1,800 modules; existing large-chunk warning only
+- Focused Phase 17.1 tests: PASS - 3 files, 16 tests
+- `npm test`: PASS - 78 files, 356 tests
+- `npm run build`: PASS - 1,803 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 16.11 changes TypeScript/docs only.
+- Native checks: not rerun because Phase 17.1 changes TypeScript/CSS/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Create the Phase 17.1 dedicated VFX workspace shell and immutable stack authoring
-contracts, reusing current definitions, primitives, preview, and project paths.
+Implement the Phase 17.2 immutable stack command controller and compile enabled
+primitive/emitter/modifier items through the existing Primitive V1 runtime.
