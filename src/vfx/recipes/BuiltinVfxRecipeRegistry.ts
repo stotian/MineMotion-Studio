@@ -4,6 +4,7 @@ import { listFireVfxRecipes } from "./FireVfxRecipes";
 import { listMagicVfxRecipes } from "./MagicVfxRecipes";
 import { listEnvironmentVfxRecipes } from "./EnvironmentVfxRecipes";
 import { listScreenVfxRecipes } from "./ScreenVfxRecipes";
+import { listMovementVfxRecipes } from "./MovementVfxRecipes";
 import type { VfxPresetRecipe } from "./VfxPresetRecipeTypes";
 
 const RECIPES = Object.freeze([
@@ -12,7 +13,8 @@ const RECIPES = Object.freeze([
   ...listFireVfxRecipes(),
   ...listMagicVfxRecipes(),
   ...listEnvironmentVfxRecipes(),
-  ...listScreenVfxRecipes()
+  ...listScreenVfxRecipes(),
+  ...listMovementVfxRecipes()
 ]);
 const BY_ID = new Map(RECIPES.map((recipe) => [recipe.id, recipe]));
 

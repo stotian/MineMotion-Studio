@@ -453,6 +453,46 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
   {
     type: "colorDrain", name: "Color Drain", description: "Temporarily drains scene saturation for dramatic beats.", space: "screen", defaultDurationFrames: 36,
     defaultParameters: { alpha: 0.8, saturation: 0, intensity: 1 }, tags: ["screen", "color", "desaturate"]
+  },
+  {
+    type: "movementDash", name: "Dash Trail", description: "A fast layered trail and launch ring for directional dashes.", space: "world", defaultDurationFrames: 14,
+    defaultParameters: { color: "#d8f4ff", secondaryColor: "#ffffff", alpha: 0.9, radius: 3.5, size: 0.16, speed: 5, intensity: 1.4, direction: "forward" }, tags: ["movement", "dash", "trail"]
+  },
+  {
+    type: "movementWeaponTrail", name: "Weapon Trail", description: "A clean dual-layer trail for swords, axes, and tools.", space: "world", defaultDurationFrames: 18,
+    defaultParameters: { color: "#dcecff", secondaryColor: "#ffffff", alpha: 0.9, radius: 2.1, size: 0.14, speed: 3.5, intensity: 1.2, direction: "right" }, tags: ["movement", "weapon", "trail"]
+  },
+  {
+    type: "movementProjectileTrail", name: "Projectile Trail", description: "A luminous tapered projectile path with trailing motes.", space: "world", defaultDurationFrames: 30,
+    defaultParameters: { color: "#76d7ff", secondaryColor: "#e8fbff", alpha: 0.9, radius: 5, size: 0.1, count: 32, speed: 4.5, intensity: 1.3, direction: "forward" }, tags: ["movement", "projectile", "trail"]
+  },
+  {
+    type: "movementFootsteps", name: "Footstep Trail", description: "Alternating ground impressions with a compact dust wake.", space: "world", defaultDurationFrames: 36,
+    defaultParameters: { color: "#9b876c", secondaryColor: "#d2c0a6", alpha: 0.65, radius: 0.45, size: 0.08, count: 24, speed: 1.2, intensity: 0.8 }, tags: ["movement", "footsteps", "ground"]
+  },
+  {
+    type: "movementRunning", name: "Running Trail", description: "A low wake of speed streaks and kicked-up particles.", space: "world", defaultDurationFrames: 42,
+    defaultParameters: { color: "#c9d4dc", secondaryColor: "#ffffff", alpha: 0.65, radius: 3.2, size: 0.09, count: 28, speed: 4, intensity: 1, direction: "forward" }, tags: ["movement", "running", "speed"]
+  },
+  {
+    type: "movementFalling", name: "Falling Trail", description: "A vertical air trail that emphasizes a rapid fall.", space: "world", defaultDurationFrames: 36,
+    defaultParameters: { color: "#d8e7ef", secondaryColor: "#ffffff", alpha: 0.6, radius: 4, size: 0.08, count: 36, speed: 5, intensity: 1.1 }, tags: ["movement", "falling", "air"]
+  },
+  {
+    type: "movementFlying", name: "Flying Trail", description: "A broad twin wake for fast aerial movement.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#8edcff", secondaryColor: "#e5f8ff", alpha: 0.75, radius: 6, size: 0.11, count: 40, speed: 6, intensity: 1.3, direction: "forward" }, tags: ["movement", "flying", "trail"]
+  },
+  {
+    type: "movementElytraTrail", name: "Elytra Trail", description: "Two long Minecraft-native wingtip wakes with air motes.", space: "world", defaultDurationFrames: 60,
+    defaultParameters: { color: "#79cfff", secondaryColor: "#f1fbff", alpha: 0.72, radius: 7, size: 0.1, count: 32, speed: 7, intensity: 1.2, direction: "forward" }, tags: ["movement", "elytra", "minecraft"]
+  },
+  {
+    type: "movementEnderPearlTrail", name: "Ender Pearl Trail", description: "A violet teleport projectile trail with an End pulse.", space: "world", defaultDurationFrames: 28,
+    defaultParameters: { color: "#7e3fb2", secondaryColor: "#49d8c8", alpha: 0.9, radius: 5, size: 0.1, count: 36, speed: 5, intensity: 1.4, direction: "forward" }, tags: ["movement", "ender-pearl", "minecraft"]
+  },
+  {
+    type: "movementSwimmingTrail", name: "Swimming Trail", description: "A cool bubble wake and ripple for underwater motion.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#72c7e8", secondaryColor: "#d9f7ff", alpha: 0.65, radius: 3.5, size: 0.1, count: 38, speed: 2.4, intensity: 0.9, direction: "forward" }, tags: ["movement", "swimming", "water"]
   }
 ];
 

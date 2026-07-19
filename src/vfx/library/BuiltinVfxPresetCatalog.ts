@@ -75,7 +75,17 @@ const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
   screenBloom: "screen-cinematic",
   nativeVignette: "screen-cinematic",
   cinematicFreeze: "screen-cinematic",
-  colorDrain: "screen-cinematic"
+  colorDrain: "screen-cinematic",
+  movementDash: "movement-trails",
+  movementWeaponTrail: "movement-trails",
+  movementProjectileTrail: "movement-trails",
+  movementFootsteps: "movement-trails",
+  movementRunning: "movement-trails",
+  movementFalling: "movement-trails",
+  movementFlying: "movement-trails",
+  movementElytraTrail: "movement-trails",
+  movementEnderPearlTrail: "movement-trails",
+  movementSwimmingTrail: "movement-trails"
 };
 
 const CAPABILITIES_BY_EFFECT: Record<
@@ -143,7 +153,17 @@ const CAPABILITIES_BY_EFFECT: Record<
   screenBloom: { preview: true, export: true, limitations: [] },
   nativeVignette: { preview: true, export: true, limitations: [] },
   cinematicFreeze: { preview: true, export: true, limitations: ["Animation pose is held; audio playback continues."] },
-  colorDrain: { preview: true, export: true, limitations: [] }
+  colorDrain: { preview: true, export: true, limitations: [] },
+  movementDash: { preview: true, export: true, limitations: [] },
+  movementWeaponTrail: { preview: true, export: true, limitations: [] },
+  movementProjectileTrail: { preview: true, export: true, limitations: [] },
+  movementFootsteps: { preview: true, export: true, limitations: [] },
+  movementRunning: { preview: true, export: true, limitations: [] },
+  movementFalling: { preview: true, export: true, limitations: [] },
+  movementFlying: { preview: true, export: true, limitations: [] },
+  movementElytraTrail: { preview: true, export: true, limitations: [] },
+  movementEnderPearlTrail: { preview: true, export: true, limitations: [] },
+  movementSwimmingTrail: { preview: true, export: true, limitations: [] }
 };
 
 const BUILTIN_RECIPE_ID_SET = new Set<string>(
@@ -199,7 +219,17 @@ const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segm
   screenBloom: { particles: 0, segments: 0 },
   nativeVignette: { particles: 0, segments: 0 },
   cinematicFreeze: { particles: 0, segments: 0 },
-  colorDrain: { particles: 0, segments: 0 }
+  colorDrain: { particles: 0, segments: 0 },
+  movementDash: { particles: 0, segments: 224 },
+  movementWeaponTrail: { particles: 0, segments: 160 },
+  movementProjectileTrail: { particles: 32, segments: 96 },
+  movementFootsteps: { particles: 24, segments: 128 },
+  movementRunning: { particles: 28, segments: 80 },
+  movementFalling: { particles: 36, segments: 96 },
+  movementFlying: { particles: 40, segments: 160 },
+  movementElytraTrail: { particles: 32, segments: 192 },
+  movementEnderPearlTrail: { particles: 36, segments: 160 },
+  movementSwimmingTrail: { particles: 38, segments: 160 }
 };
 
 export const BUILTIN_VFX_PRESET_LOCALIZATION: Readonly<Record<string, string>> =

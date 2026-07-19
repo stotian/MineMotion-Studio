@@ -6,11 +6,11 @@ Phase 16 - Production Built-in VFX Library
 
 ## Current Milestone
 
-16.2 - Native recipe contract and combat preset family
+16.9 - VFX library navigation and personal state
 
 ## Status
 
-IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
+IN_PROGRESS - Phase 16.8 is complete; library navigation is next.
 
 ## Completed
 
@@ -114,19 +114,26 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
   redundant per-record sanitation after project validation: 17.6 s to 2.31 s.
 - Phase 16.7 adds native flash, shake, glitch, bars, bloom, vignette, freeze,
   and color drain with equivalent prepared parameters in viewport/export.
+- Phase 16.8 adds ten native movement recipes: the seven required movement
+  families plus Elytra, Ender-pearl, and swimming variants. The catalog now has
+  60 native recipes and 72 total entries; stability remains gated honestly.
+- Every movement parameter has an output-influence regression. The 4,097-effect
+  repair scenario now takes 0.95 s in focused measurement without validation
+  caching or weakened legacy repair behavior.
 
 ## In Progress
 
-- Phase 16.8 will build the movement/trail preset family.
+- Phase 16.9 will implement search, tags, categories, favorites, recents, and
+  built-in/custom distinction.
 
 ## Not Started
 
-- Phase 16.8 and later Phase 16 content/navigation/preview/benchmark milestones.
+- Phase 16.9 and later Phase 16 navigation/preview/benchmark milestones.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
 
-- None for Phase 16.2 TypeScript work.
+- None for current Phase 16 TypeScript work.
 - Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -135,16 +142,16 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 16.7 is the validated checkpoint containing this document; Git history
+- Phase 16.8 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.7 tests: PASS - 19 files, 192 tests
-- `npm test`: PASS - 73 files, 338 tests
-- `npm run build`: PASS - 1,797 modules; existing large-chunk warning only
+- Focused Phase 16.8 tests: PASS - 19 files, 194 tests
+- `npm test`: PASS - 73 files, 340 tests
+- `npm run build`: PASS - 1,798 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
 - Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -152,5 +159,5 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 
 ## Next Exact Action
 
-Build movement/trail effects: dash, weapon, projectile, footsteps, running,
-falling, and flying.
+Implement fast VFX library search, tag/category filters, favorites, recents,
+and explicit built-in/custom distinction without adding a second preset store.

@@ -64,7 +64,17 @@ export type EffectType =
   | "screenBloom"
   | "nativeVignette"
   | "cinematicFreeze"
-  | "colorDrain";
+  | "colorDrain"
+  | "movementDash"
+  | "movementWeaponTrail"
+  | "movementProjectileTrail"
+  | "movementFootsteps"
+  | "movementRunning"
+  | "movementFalling"
+  | "movementFlying"
+  | "movementElytraTrail"
+  | "movementEnderPearlTrail"
+  | "movementSwimmingTrail";
 
 export type EffectSpace = VfxSpace;
 

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { effectRegistry } from "../../effects/EffectRegistry";
+import type { VfxParameterValue } from "../core/VfxParameter";
 import type { VfxActiveFrameEvaluation } from "../runtime/VfxFrameEvaluator";
 import { listBuiltinVfxRecipes } from "./BuiltinVfxRecipeRegistry";
+import { MOVEMENT_VFX_RECIPE_IDS } from "./MovementVfxRecipes";
 import { evaluatePreparedVfxPresetRecipe, prepareVfxPresetRecipe } from "./VfxPresetRecipeEvaluator";
 import { VFX_PRESET_RECIPE_VERSION, type VfxPresetRecipe } from "./VfxPresetRecipeTypes";
 
@@ -68,6 +71,38 @@ describe("VfxPresetRecipeEvaluator", () => {
     const draft = prepareVfxPresetRecipe(frame(recipe.definitionId, "draft"), recipe);
     expect(final.ok && final.value.work).toEqual({ particles: 54, segments: 96 });
     expect(draft.ok && draft.value.work).toEqual({ particles: 14, segments: 24 });
+  });
+
+  it("makes every exposed movement parameter affect primitive output", () => {
+    for (const definitionId of MOVEMENT_VFX_RECIPE_IDS) {
+      const definition = effectRegistry.get(definitionId);
+      const recipe = listBuiltinVfxRecipes().find((candidate) => candidate.id === definitionId);
+      if (!definition || !recipe) throw new Error(`Missing movement fixture: ${definitionId}`);
+      const defaults = definition.defaultParameters as Record<string, VfxParameterValue>;
+      const baselineFrame = frame(definitionId);
+      baselineFrame.inputs = { ...baselineFrame.inputs, parameters: { ...defaults } };
+      const baseline = JSON.stringify(recipe.buildDescriptors(baselineFrame));
+
+      for (const [parameterId, value] of Object.entries(defaults)) {
+        const changedValue: VfxParameterValue =
+          typeof value === "number"
+            ? parameterId === "count" ? value + 1 : value * 0.7 + 0.13
+            : typeof value === "boolean"
+              ? !value
+              : parameterId === "direction"
+                ? value === "left" ? "right" : "left"
+                : value === "#123456" ? "#654321" : "#123456";
+        const changedFrame = structuredClone(baselineFrame);
+        changedFrame.inputs = {
+          ...changedFrame.inputs,
+          parameters: { ...defaults, [parameterId]: changedValue }
+        };
+        expect(
+          JSON.stringify(recipe.buildDescriptors(changedFrame)),
+          `${definitionId}.${parameterId}`
+        ).not.toBe(baseline);
+      }
+    }
   });
 
   it("fails closed before evaluation for mismatches, duplicates, and aggregate overflow", () => {

@@ -6,7 +6,7 @@ import {
   adaptLegacyEffectInstance
 } from "../vfx/compat/LegacyEffectAdapter";
 import { validateVfxInstance } from "../vfx/core/VfxValidator";
-import { synchronizeLegacyEffectNativeVfx } from "../vfx/serialization/VfxProjectMigration";
+import { validateSynchronizedLegacyEffectNativeVfx } from "../vfx/serialization/VfxProjectMigration";
 import { effectRegistry } from "./EffectRegistry";
 import {
   effectTimelineIssue,
@@ -279,10 +279,11 @@ export function validateEffectTimelineEffect(
   }
   if (value.nativeVfx !== undefined) {
     try {
-      synchronizeLegacyEffectNativeVfx(
+      const nativeError = validateSynchronizedLegacyEffectNativeVfx(
         value as unknown as EffectInstance,
-        value.nativeVfx as EffectInstance["nativeVfx"]
+        value.nativeVfx as NonNullable<EffectInstance["nativeVfx"]>
       );
+      if (nativeError) throw new Error(nativeError);
     } catch (error) {
       return effectTimelineIssue(
         "EFFECT_TIMELINE_NATIVE_VFX_INVALID",

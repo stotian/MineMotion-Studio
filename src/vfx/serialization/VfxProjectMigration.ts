@@ -39,11 +39,19 @@ function validationMessage(instance: VfxInstance): string | null {
         .join(" ");
 }
 
-function repairMigratedParameters(instance: VfxInstance): VfxInstance {
+function validateAndRepairMigratedParameters(instance: VfxInstance): {
+  instance: VfxInstance;
+  error: string | null;
+} {
   const definition = legacyVfxRegistry.get(instance.definitionId);
-  if (!definition) return instance;
+  if (!definition) {
+    return {
+      instance,
+      error: `definitionId: VFX definition was not found: ${instance.definitionId}`
+    };
+  }
   const validation = legacyVfxRegistry.validateInstance(instance);
-  if (validation.ok) return instance;
+  if (validation.ok) return { instance, error: null };
 
   const invalidParameterIds = new Set(
     validation.errors.flatMap((error) => {
@@ -51,7 +59,14 @@ function repairMigratedParameters(instance: VfxInstance): VfxInstance {
       return match?.[1] ? [match[1]] : [];
     })
   );
-  if (invalidParameterIds.size === 0) return instance;
+  if (invalidParameterIds.size === 0) {
+    return {
+      instance,
+      error: validation.errors
+        .map((error) => `${error.path}: ${error.message}`)
+        .join(" ")
+    };
+  }
 
   const defaults = new Map(
     definition.parameterSchema.map((parameter) => [
@@ -68,10 +83,11 @@ function repairMigratedParameters(instance: VfxInstance): VfxInstance {
         : value
     ]);
   }
-  return {
+  const repaired = {
     ...instance,
     parameters: Object.fromEntries(entries)
   };
+  return { instance: repaired, error: validationMessage(repaired) };
 }
 
 function cloneNativeVfx(value: VfxInstance): VfxInstance {
@@ -112,6 +128,61 @@ function samePlainData(left: unknown, right: unknown): boolean {
         samePlainData(leftRecord[key], rightRecord[key])
     )
   );
+}
+
+function sameVector3(
+  left: readonly number[] | undefined,
+  right: readonly number[]
+): boolean {
+  return Boolean(
+    left &&
+      left.length === 3 &&
+      left.every((value, index) => Object.is(value, right[index]))
+  );
+}
+
+/**
+ * Validates an already persisted schema 10 record without cloning or rebuilding
+ * it. This is the hot editor-command path; serializers still perform their
+ * independent canonical reconstruction and lossless equality checks.
+ */
+export function validateSynchronizedLegacyEffectNativeVfx(
+  effect: EffectInstance,
+  nativeVfx: VfxInstance
+): string | null {
+  const nativeValidation = validateAndRepairMigratedParameters(nativeVfx);
+  if (nativeValidation.error) return nativeValidation.error;
+  const projected = adaptLegacyEffectInstance(effect);
+  let projectedParameters = projected.parameters;
+  let nativeParameters = nativeVfx.parameters;
+  if (!samePlainData(nativeParameters, projectedParameters)) {
+    const projectedValidation = validateAndRepairMigratedParameters(projected);
+    if (projectedValidation.error) return projectedValidation.error;
+    projectedParameters = projectedValidation.instance.parameters;
+    nativeParameters = nativeValidation.instance.parameters;
+  }
+  if (
+    nativeVfx.serializationVersion !== projected.serializationVersion ||
+    nativeVfx.id !== projected.id ||
+    nativeVfx.definitionId !== projected.definitionId ||
+    nativeVfx.displayName !== projected.displayName ||
+    nativeVfx.startFrame !== projected.startFrame ||
+    nativeVfx.durationFrames !== projected.durationFrames ||
+    nativeVfx.enabled !== projected.enabled ||
+    nativeVfx.space !== projected.space ||
+    !sameVector3(nativeVfx.transform?.position, projected.transform.position) ||
+    !samePlainData(nativeParameters, projectedParameters)
+  ) {
+    return "Legacy and native VFX shared fields are inconsistent.";
+  }
+  if (projected.target === null) {
+    if (nativeVfx.target !== null) {
+      return "Legacy and native VFX targets are inconsistent.";
+    }
+  } else if (nativeVfx.target?.entityId !== projected.target.entityId) {
+    return "Legacy and native VFX targets are inconsistent.";
+  }
+  return null;
 }
 
 function synchronizeLegacyEffectNativeVfxInternal(
@@ -161,11 +232,11 @@ function synchronizeLegacyEffectNativeVfxInternal(
     };
   }
 
-  nativeVfx = repairMigratedParameters(nativeVfx);
-  const synchronizedError = validationMessage(nativeVfx);
-  if (synchronizedError) {
+  const synchronized = validateAndRepairMigratedParameters(nativeVfx);
+  nativeVfx = synchronized.instance;
+  if (synchronized.error) {
     throw new Error(
-      `Effect ${legacy.id} cannot be represented by schema 10 native VFX. ${synchronizedError}`
+      `Effect ${legacy.id} cannot be represented by schema 10 native VFX. ${synchronized.error}`
     );
   }
 

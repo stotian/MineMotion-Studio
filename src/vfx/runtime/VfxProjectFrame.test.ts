@@ -413,4 +413,38 @@ describe("prepareProjectVfxFrame", () => {
     project.exportSettings.includeVfx = false;
     expect(resolveVfxAnimationSampleFrame(project, 14)).toBe(14);
   });
+
+  it("prepares all native movement and Minecraft trail recipes", () => {
+    const project = createInitialProject();
+    const types = [
+      "movementDash",
+      "movementWeaponTrail",
+      "movementProjectileTrail",
+      "movementFootsteps",
+      "movementRunning",
+      "movementFalling",
+      "movementFlying",
+      "movementElytraTrail",
+      "movementEnderPearlTrail",
+      "movementSwimmingTrail"
+    ] as const;
+    project.effects.instances = types.map((type, index) =>
+      createEffectInstance(type, { id: `movement_${index}`, startFrame: 0 })
+    );
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 6,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects).toHaveLength(10);
+    expect(prepared.value.effects.every((effect) => effect.primitives.length >= 2)).toBe(true);
+    expect(prepared.value.budget.allocated).toMatchObject({
+      effects: 10,
+      particles: 266,
+      segments: 1_456
+    });
+    expect(prepared.value.effects.map((effect) => effect.type)).toEqual(types);
+  });
 });

@@ -80,7 +80,17 @@ const LIVE_PREVIEW_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = 
   screenBloom: { color: "live-preview", alpha: "live-preview", radius: "live-preview", intensity: "live-preview" },
   nativeVignette: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" },
   cinematicFreeze: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" },
-  colorDrain: { alpha: "live-preview", saturation: "live-preview", intensity: "live-preview" }
+  colorDrain: { alpha: "live-preview", saturation: "live-preview", intensity: "live-preview" },
+  movementDash: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" },
+  movementWeaponTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" },
+  movementProjectileTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" },
+  movementFootsteps: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  movementRunning: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" },
+  movementFalling: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  movementFlying: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" },
+  movementElytraTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" },
+  movementEnderPearlTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" },
+  movementSwimmingTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", count: "live-preview", speed: "live-preview", intensity: "live-preview", direction: "live-preview" }
 };
 
 const EXPORT_ONLY_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = {

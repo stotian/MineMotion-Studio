@@ -17,7 +17,7 @@ describe("BuiltinVfxPresetCatalog", () => {
   it("joins every existing effect to native metadata without claiming stability", () => {
     const presets = builtinVfxPresetCatalog.list();
 
-    expect(presets).toHaveLength(62);
+    expect(presets).toHaveLength(72);
     expect(builtinVfxPresetCatalog.countStable()).toBe(0);
     expect(presets.every((preset) => preset.metadata.id === preset.definition.id)).toBe(true);
     expect(
@@ -49,6 +49,14 @@ describe("BuiltinVfxPresetCatalog", () => {
       recipeId: "chainLightning",
       category: "lightning-electric",
       compatibility: { runtime: "native-primitives" }
+    });
+    expect(
+      presets.filter((preset) => preset.metadata.compatibility.runtime === "native-primitives")
+    ).toHaveLength(60);
+    expect(builtinVfxPresetCatalog.get("movementElytraTrail")?.metadata).toMatchObject({
+      recipeId: "movementElytraTrail",
+      category: "movement-trails",
+      frameBudget: { particles: 32, segments: 192 }
     });
   });
 
