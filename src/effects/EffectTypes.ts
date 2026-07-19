@@ -56,7 +56,15 @@ export type EffectType =
   | "environmentEnd"
   | "environmentNether"
   | "environmentCave"
-  | "environmentFireflies";
+  | "environmentFireflies"
+  | "nativeScreenFlash"
+  | "nativeScreenShake"
+  | "screenGlitch"
+  | "cinematicFrameBars"
+  | "screenBloom"
+  | "nativeVignette"
+  | "cinematicFreeze"
+  | "colorDrain";
 
 export type EffectSpace = VfxSpace;
 

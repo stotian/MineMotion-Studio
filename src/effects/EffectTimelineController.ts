@@ -179,8 +179,11 @@ function mutation(
   const timelineTracks = sanitizeTimelineTracks(
     project.animation.timelineTracks
   );
+  const existingInstances = new Set(project.effects.instances);
   const synchronizedInstances = instances.map((effect) =>
-    synchronizeValidatedLegacyEffectNativeVfx(effect, effect.nativeVfx)
+    existingInstances.has(effect) && effect.nativeVfx !== undefined
+      ? effect
+      : synchronizeValidatedLegacyEffectNativeVfx(effect, effect.nativeVfx)
   );
   return validResult({
     project: syncEffectTimelineLane({

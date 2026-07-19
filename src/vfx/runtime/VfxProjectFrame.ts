@@ -88,7 +88,7 @@ export function resolveVfxAnimationSampleFrame(
   let sampleFrame = frame;
   for (const effect of project.effects.instances) {
     if (
-      effect.type === "hitStop" &&
+      (effect.type === "hitStop" || effect.type === "cinematicFreeze") &&
       effect.enabled &&
       frame >= effect.startFrame &&
       frame <= effect.startFrame + effect.durationFrames
@@ -380,11 +380,19 @@ export function getPreparedVfxString(
 export function getPreparedCameraShakeOffset(
   effects: readonly PreparedProjectVfxEffect[]
 ): { x: number; y: number } {
-  const shake = effects.find((effect) => effect.type === "cameraShake");
+  const shake = effects.find(
+    (effect) =>
+      effect.type === "cameraShake" || effect.type === "nativeScreenShake"
+  );
   if (!shake) return { x: 0, y: 0 };
-  const strength =
-    getPreparedVfxNumber(shake, "strength", 0.7) *
-    (1 - shake.evaluation.progress);
+  const envelope =
+    shake.type === "nativeScreenShake"
+      ? Math.pow(
+          1 - shake.evaluation.progress,
+          Math.max(0.01, getPreparedVfxNumber(shake, "decay", 0.8))
+        ) * getPreparedVfxNumber(shake, "intensity", 1)
+      : 1 - shake.evaluation.progress;
+  const strength = getPreparedVfxNumber(shake, "strength", 0.7) * envelope;
   const frequency = getPreparedVfxNumber(shake, "frequency", 18);
   return {
     x: Math.sin(shake.evaluation.frame * frequency * 0.13) * strength * 8,

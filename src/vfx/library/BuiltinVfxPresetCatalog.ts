@@ -67,7 +67,15 @@ const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
   environmentEnd: "environment",
   environmentNether: "environment",
   environmentCave: "environment",
-  environmentFireflies: "environment"
+  environmentFireflies: "environment",
+  nativeScreenFlash: "screen-cinematic",
+  nativeScreenShake: "screen-cinematic",
+  screenGlitch: "screen-cinematic",
+  cinematicFrameBars: "screen-cinematic",
+  screenBloom: "screen-cinematic",
+  nativeVignette: "screen-cinematic",
+  cinematicFreeze: "screen-cinematic",
+  colorDrain: "screen-cinematic"
 };
 
 const CAPABILITIES_BY_EFFECT: Record<
@@ -127,7 +135,15 @@ const CAPABILITIES_BY_EFFECT: Record<
   environmentEnd: { preview: true, export: true, limitations: [] },
   environmentNether: { preview: true, export: true, limitations: [] },
   environmentCave: { preview: true, export: true, limitations: ["Droplet direction is approximated by isotropic motion."] },
-  environmentFireflies: { preview: true, export: true, limitations: [] }
+  environmentFireflies: { preview: true, export: true, limitations: [] },
+  nativeScreenFlash: { preview: true, export: true, limitations: [] },
+  nativeScreenShake: { preview: true, export: true, limitations: [] },
+  screenGlitch: { preview: true, export: true, limitations: [] },
+  cinematicFrameBars: { preview: true, export: true, limitations: [] },
+  screenBloom: { preview: true, export: true, limitations: [] },
+  nativeVignette: { preview: true, export: true, limitations: [] },
+  cinematicFreeze: { preview: true, export: true, limitations: ["Animation pose is held; audio playback continues."] },
+  colorDrain: { preview: true, export: true, limitations: [] }
 };
 
 const BUILTIN_RECIPE_ID_SET = new Set<string>(
@@ -175,7 +191,15 @@ const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segm
   environmentEnd: { particles: 68, segments: 80 },
   environmentNether: { particles: 76, segments: 0 },
   environmentCave: { particles: 42, segments: 0 },
-  environmentFireflies: { particles: 36, segments: 0 }
+  environmentFireflies: { particles: 36, segments: 0 },
+  nativeScreenFlash: { particles: 0, segments: 0 },
+  nativeScreenShake: { particles: 0, segments: 0 },
+  screenGlitch: { particles: 0, segments: 0 },
+  cinematicFrameBars: { particles: 0, segments: 0 },
+  screenBloom: { particles: 0, segments: 0 },
+  nativeVignette: { particles: 0, segments: 0 },
+  cinematicFreeze: { particles: 0, segments: 0 },
+  colorDrain: { particles: 0, segments: 0 }
 };
 
 export const BUILTIN_VFX_PRESET_LOCALIZATION: Readonly<Record<string, string>> =

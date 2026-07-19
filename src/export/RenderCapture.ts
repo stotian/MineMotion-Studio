@@ -45,7 +45,7 @@ export async function captureViewportPng(
   }
 
   if (settings.includePostProcessing) {
-    context.filter = createCanvasFilter(project);
+    context.filter = createCanvasFilter(project, prepared.value.effects);
   }
   const shake = getPreparedCameraShakeOffset(prepared.value.effects);
   context.drawImage(
@@ -91,14 +91,21 @@ export async function captureViewportPng(
   return await canvasToBlob(outputCanvas);
 }
 
-function createCanvasFilter(project: MineMotionProject): string {
+function createCanvasFilter(
+  project: MineMotionProject,
+  effects: readonly PreparedProjectVfxEffect[]
+): string {
   const post = project.postProcessing;
-  if (!post.enabled) return "none";
+  const drain = effects.find((effect) => effect.type === "colorDrain");
+  if (!post.enabled && !drain) return "none";
   const brightness = post.brightness * post.exposure;
+  const drainSaturation = drain
+    ? Math.max(0, 1 - getPreparedVfxNumber(drain, "alpha", 0.8) * getPreparedVfxNumber(drain, "intensity", 1) * (1 - getPreparedVfxNumber(drain, "saturation", 0)))
+    : 1;
   return [
     `brightness(${brightness})`,
     `contrast(${post.contrast})`,
-    `saturate(${post.saturation})`,
+    `saturate(${post.saturation * drainSaturation})`,
     `hue-rotate(${post.hueShift}deg)`
   ].join(" ");
 }
@@ -111,10 +118,13 @@ function drawScreenEffects(
 ): void {
   for (const effect of active) {
     const progress = effect.evaluation.progress;
-    const alpha = getPreparedVfxNumber(effect, "alpha", 0.6) * (1 - progress);
+    const nativeIntensity = ["nativeScreenFlash", "cinematicFreeze"].includes(effect.type)
+      ? getPreparedVfxNumber(effect, "intensity", 1)
+      : 1;
+    const alpha = getPreparedVfxNumber(effect, "alpha", 0.6) * nativeIntensity * (1 - progress);
     const colorValue = getPreparedVfxString(effect, "color", "#ffffff");
     const color = isSafeVfxColor(colorValue) ? colorValue : "#ffffff";
-    if (["flash", "explosionFlash", "impactFrame", "hitStop"].includes(effect.type)) {
+    if (["flash", "explosionFlash", "impactFrame", "hitStop", "nativeScreenFlash", "cinematicFreeze"].includes(effect.type)) {
       context.save();
       context.globalAlpha = Math.max(0, alpha);
       context.fillStyle = color;
@@ -138,13 +148,52 @@ function drawScreenEffects(
       context.restore();
     }
 
-    if (effect.type === "vignettePulse") {
+    if (effect.type === "vignettePulse" || effect.type === "nativeVignette") {
       drawVignette(
         context,
         width,
         height,
-        getPreparedVfxNumber(effect, "alpha", 0.55)
+        getPreparedVfxNumber(effect, "alpha", 0.55) *
+          (effect.type === "nativeVignette"
+            ? getPreparedVfxNumber(effect, "intensity", 1)
+            : 1),
+        effect.type === "nativeVignette" ? color : "#000000"
       );
+    }
+
+    if (effect.type === "screenBloom") {
+      const gradient = context.createRadialGradient(
+        width / 2, height / 2, 0,
+        width / 2, height / 2,
+        Math.max(width, height) * getPreparedVfxNumber(effect, "radius", 0.7)
+      );
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      context.save();
+      context.globalAlpha = Math.min(0.75, getPreparedVfxNumber(effect, "alpha", 0.35) * getPreparedVfxNumber(effect, "intensity", 1.3));
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, width, height);
+      context.restore();
+    }
+
+    if (effect.type === "screenGlitch") {
+      context.save();
+      context.globalAlpha = Math.min(0.7, getPreparedVfxNumber(effect, "alpha", 0.55));
+      context.fillStyle = color;
+      const sliceHeight = Math.max(1, Math.round(height / 24));
+      for (let index = 0; index < 6; index += 1) {
+        const y = ((effect.evaluation.frameSeed + index * 97) % 24) * sliceHeight;
+        const offset = Math.sin(effect.evaluation.frame * getPreparedVfxNumber(effect, "frequency", 18) * 0.13 + index) * getPreparedVfxNumber(effect, "strength", 0.7) * getPreparedVfxNumber(effect, "intensity", 1) * width * 0.02;
+        const secondaryValue = getPreparedVfxString(effect, "secondaryColor", "#ff4fd8");
+        context.fillStyle =
+          index % 2 === 0
+            ? color
+            : isSafeVfxColor(secondaryValue)
+              ? secondaryValue
+              : "#ff4fd8";
+        context.fillRect(offset, y, width, sliceHeight);
+      }
+      context.restore();
     }
   }
 }
@@ -153,7 +202,8 @@ function drawVignette(
   context: CanvasRenderingContext2D,
   width: number,
   height: number,
-  amount: number
+  amount: number,
+  edgeColor = "#000000"
 ): void {
   const gradient = context.createRadialGradient(
     width / 2,
@@ -164,9 +214,12 @@ function drawVignette(
     Math.max(width, height) * 0.72
   );
   gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-  gradient.addColorStop(1, `rgba(0, 0, 0, ${Math.min(0.88, amount)})`);
+  gradient.addColorStop(1, edgeColor);
+  context.save();
+  context.globalAlpha = Math.min(0.88, amount);
   context.fillStyle = gradient;
   context.fillRect(0, 0, width, height);
+  context.restore();
 }
 
 function drawCinematicBars(
@@ -177,7 +230,8 @@ function drawCinematicBars(
   height: number
 ): void {
   const barsEffect = activeEffects.find(
-    (effect) => effect.type === "cinematicBars"
+    (effect) =>
+      effect.type === "cinematicBars" || effect.type === "cinematicFrameBars"
   );
   if (!project.renderSettings.cinematicBarsEnabled && !barsEffect) return;
 
@@ -190,9 +244,17 @@ function drawCinematicBars(
         )
       : project.renderSettings.cinematicBarsRatio);
   const barHeight = ratio === "16:9" ? height * 0.09 : height * 0.14;
-  context.fillStyle = "#000000";
+  const colorValue = barsEffect
+    ? getPreparedVfxString(barsEffect, "color", "#000000")
+    : "#000000";
+  context.save();
+  context.globalAlpha = barsEffect?.type === "cinematicFrameBars"
+    ? Math.min(1, getPreparedVfxNumber(barsEffect, "alpha", 1) * getPreparedVfxNumber(barsEffect, "intensity", 1))
+    : 1;
+  context.fillStyle = isSafeVfxColor(colorValue) ? colorValue : "#000000";
   context.fillRect(0, 0, width, barHeight);
   context.fillRect(0, height - barHeight, width, barHeight);
+  context.restore();
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {

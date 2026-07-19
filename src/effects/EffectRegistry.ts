@@ -421,6 +421,38 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
   {
     type: "environmentFireflies", name: "Fireflies", description: "Warm floating lights for night scenes.", space: "world", defaultDurationFrames: 120,
     defaultParameters: { color: "#eaff76", secondaryColor: "#fffbd1", alpha: 0.85, radius: 5, count: 36, size: 0.08, speed: 0.35, intensity: 1.1 }, tags: ["environment", "fireflies", "night"]
+  },
+  {
+    type: "nativeScreenFlash", name: "Native Screen Flash", description: "A deterministic full-frame color flash.", space: "screen", defaultDurationFrames: 10,
+    defaultParameters: { color: "#ffffff", alpha: 0.75, intensity: 1 }, tags: ["screen", "flash", "cinematic"]
+  },
+  {
+    type: "nativeScreenShake", name: "Native Screen Shake", description: "A deterministic cinematic camera shake.", space: "camera", defaultDurationFrames: 18,
+    defaultParameters: { strength: 0.9, frequency: 20, decay: 0.8, intensity: 1 }, tags: ["screen", "camera", "shake"]
+  },
+  {
+    type: "screenGlitch", name: "Screen Glitch", description: "Horizontal slice displacement and color glitch.", space: "screen", defaultDurationFrames: 12,
+    defaultParameters: { color: "#55eaff", secondaryColor: "#ff4fd8", alpha: 0.55, strength: 0.7, frequency: 18, intensity: 1 }, tags: ["screen", "glitch", "digital"]
+  },
+  {
+    type: "cinematicFrameBars", name: "Cinematic Frame Bars", description: "Animated cinematic aspect-ratio bars.", space: "screen", defaultDurationFrames: 90,
+    defaultParameters: { color: "#000000", alpha: 1, barStyle: "2.35:1", intensity: 1 }, tags: ["screen", "bars", "framing"]
+  },
+  {
+    type: "screenBloom", name: "Screen Bloom", description: "A soft luminous center bloom overlay.", space: "screen", defaultDurationFrames: 24,
+    defaultParameters: { color: "#fff4d6", alpha: 0.35, radius: 0.7, intensity: 1.3 }, tags: ["screen", "bloom", "light"]
+  },
+  {
+    type: "nativeVignette", name: "Native Vignette", description: "A controllable dark edge vignette pulse.", space: "screen", defaultDurationFrames: 30,
+    defaultParameters: { color: "#000000", alpha: 0.55, intensity: 1 }, tags: ["screen", "vignette", "mood"]
+  },
+  {
+    type: "cinematicFreeze", name: "Cinematic Freeze", description: "Holds the animated pose while cinematic overlays continue.", space: "screen", defaultDurationFrames: 6,
+    defaultParameters: { color: "#ffffff", alpha: 0.08, intensity: 1 }, tags: ["screen", "freeze", "timing"]
+  },
+  {
+    type: "colorDrain", name: "Color Drain", description: "Temporarily drains scene saturation for dramatic beats.", space: "screen", defaultDurationFrames: 36,
+    defaultParameters: { alpha: 0.8, saturation: 0, intensity: 1 }, tags: ["screen", "color", "desaturate"]
   }
 ];
 

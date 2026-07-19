@@ -325,6 +325,7 @@ select {
 
 .cinematic-bars-overlay {
   --bar-size: 14%;
+  --bar-color: #000;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -334,7 +335,7 @@ select {
 .cinematic-bars-overlay span {
   display: block;
   height: var(--bar-size);
-  background: #000;
+  background: var(--bar-color);
 }
 
 @keyframes speed-lines-pulse {

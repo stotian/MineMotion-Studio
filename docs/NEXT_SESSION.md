@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.7: build the screen/cinematic preset family. Phase
-16.6 environment VFX is complete.
+Start Phase 16 milestone 16.8: build the movement/trail preset family. Phase
+16.7 screen/cinematic VFX is complete.
 
 ## Completed Work
 
@@ -17,13 +17,13 @@ Start Phase 16 milestone 16.7: build the screen/cinematic preset family. Phase
 
 ## Unfinished Work
 
-- Screen/cinematic and later content families.
+- Movement/trail and later library milestones.
 - Search/favorites/recents, preview caching, 60 stable total,
   and benchmark/regression scenes remain Phase 16 work.
 
 ## Next Implementation Step
 
-Add flashes, shakes, glitch, bars, bloom, vignette, freeze, and color drain.
+Add dash, weapon, projectile, footsteps, running, falling, and flying trails.
 
 ## Tests To Run
 

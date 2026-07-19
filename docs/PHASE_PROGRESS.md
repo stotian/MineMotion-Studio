@@ -112,14 +112,16 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
   with honest isotropic-motion limitations where Primitive V1 lacks direction.
 - The 4,097-effect repair gate now caches adapted definitions and avoids
   redundant per-record sanitation after project validation: 17.6 s to 2.31 s.
+- Phase 16.7 adds native flash, shake, glitch, bars, bloom, vignette, freeze,
+  and color drain with equivalent prepared parameters in viewport/export.
 
 ## In Progress
 
-- Phase 16.7 will build the screen/cinematic preset family.
+- Phase 16.8 will build the movement/trail preset family.
 
 ## Not Started
 
-- Phase 16.7 and later Phase 16 content/navigation/preview/benchmark milestones.
+- Phase 16.8 and later Phase 16 content/navigation/preview/benchmark milestones.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
@@ -133,16 +135,16 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 16.6 is the validated checkpoint containing this document; Git history
+- Phase 16.7 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.6 tests: PASS - 19 files, 191 tests
-- `npm test`: PASS - 73 files, 337 tests
-- `npm run build`: PASS - 1,796 modules; existing large-chunk warning only
+- Focused Phase 16.7 tests: PASS - 19 files, 192 tests
+- `npm test`: PASS - 73 files, 338 tests
+- `npm run build`: PASS - 1,797 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
 - Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -150,5 +152,5 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 
 ## Next Exact Action
 
-Build screen/cinematic effects: flashes, shakes, glitch, bars, bloom, vignette,
-freeze, and color drain.
+Build movement/trail effects: dash, weapon, projectile, footsteps, running,
+falling, and flying.

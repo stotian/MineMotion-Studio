@@ -72,7 +72,15 @@ const LIVE_PREVIEW_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = 
   environmentEnd: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   environmentNether: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   environmentCave: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
-  environmentFireflies: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" }
+  environmentFireflies: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  nativeScreenFlash: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" },
+  nativeScreenShake: { strength: "live-preview", frequency: "live-preview", decay: "live-preview", intensity: "live-preview" },
+  screenGlitch: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", strength: "live-preview", frequency: "live-preview", intensity: "live-preview" },
+  cinematicFrameBars: { color: "live-preview", alpha: "live-preview", barStyle: "live-preview", intensity: "live-preview" },
+  screenBloom: { color: "live-preview", alpha: "live-preview", radius: "live-preview", intensity: "live-preview" },
+  nativeVignette: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" },
+  cinematicFreeze: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" },
+  colorDrain: { alpha: "live-preview", saturation: "live-preview", intensity: "live-preview" }
 };
 
 const EXPORT_ONLY_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = {

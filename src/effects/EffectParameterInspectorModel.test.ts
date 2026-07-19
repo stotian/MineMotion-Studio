@@ -108,7 +108,15 @@ describe("EffectParameterInspectorModel", () => {
       "environmentEnd",
       "environmentNether",
       "environmentCave",
-      "environmentFireflies"
+      "environmentFireflies",
+      "nativeScreenFlash",
+      "nativeScreenShake",
+      "screenGlitch",
+      "cinematicFrameBars",
+      "screenBloom",
+      "nativeVignette",
+      "cinematicFreeze",
+      "colorDrain"
     ] as const) {
       const model = requireModel(
         createEffectParameterInspectorModel(

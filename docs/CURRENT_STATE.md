@@ -101,6 +101,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
   teleport, heal, corruption, and power-up using all primitive kinds.
 - Ten native environment presets add weather, atmosphere, dimension, cave, and
   firefly fields with catalog-declared Primitive V1 direction limitations.
+- Eight native screen/cinematic presets share evaluated parameters across
+  viewport and Canvas export: flash, shake, glitch, bars, bloom, vignette,
+  freeze, and color drain.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -121,7 +124,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 73 frontend test files and 337 passing tests.
+- 73 frontend test files and 338 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

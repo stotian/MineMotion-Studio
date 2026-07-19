@@ -6,6 +6,7 @@ import { createMineMotionPackageData } from "../../project/package/MineMotionPac
 import { PackageReader } from "../../project/package/PackageReader";
 import { createFinalCameraFrame } from "../../rendering/export/FinalCameraRenderer";
 import {
+  getPreparedCameraShakeOffset,
   prepareProjectVfxFrame,
   resolveVfxAnimationSampleFrame,
   shouldIncludeProjectVfx
@@ -377,5 +378,39 @@ describe("prepareProjectVfxFrame", () => {
       particles: 128,
       segments: 96
     });
+  });
+
+  it("prepares the native screen family and applies shake/freeze timing", () => {
+    const project = createInitialProject();
+    const types = [
+      "nativeScreenFlash",
+      "nativeScreenShake",
+      "screenGlitch",
+      "cinematicFrameBars",
+      "screenBloom",
+      "nativeVignette",
+      "cinematicFreeze",
+      "colorDrain"
+    ] as const;
+    project.effects.instances = types.map((type, index) =>
+      createEffectInstance(type, {
+        id: `screen_${index}`,
+        startFrame: 10
+      })
+    );
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 12,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects).toHaveLength(8);
+    expect(prepared.value.effects.every((effect) => effect.primitives[0]?.kind === "light-pulse")).toBe(true);
+    expect(getPreparedCameraShakeOffset(prepared.value.effects)).not.toEqual({ x: 0, y: 0 });
+    expect(resolveVfxAnimationSampleFrame(project, 14)).toBe(10);
+    project.renderSettings.renderPreviewEnabled = true;
+    project.exportSettings.includeVfx = false;
+    expect(resolveVfxAnimationSampleFrame(project, 14)).toBe(14);
   });
 });

@@ -85,6 +85,11 @@ export function Viewport({
     [project.postProcessing]
   );
 
+  const colorDrain = activeEffects.find((effect) => effect.type === "colorDrain");
+  const colorDrainFilter = colorDrain
+    ? `saturate(${Math.max(0, 1 - getPreparedVfxNumber(colorDrain, "alpha", 0.8) * getPreparedVfxNumber(colorDrain, "intensity", 1) * (1 - getPreparedVfxNumber(colorDrain, "saturation", 0)))})`
+    : "";
+
   const shakeStyle = useMemo<CSSProperties>(() => {
     const { x, y } = getPreparedCameraShakeOffset(activeEffects);
     if (x === 0 && y === 0) return {};
@@ -95,11 +100,15 @@ export function Viewport({
 
   const flashStyle = useMemo<CSSProperties>(() => {
     const flash = activeEffects.find((effect) =>
-      ["flash", "explosionFlash", "impactFrame", "hitStop"].includes(effect.type)
+      ["flash", "explosionFlash", "impactFrame", "hitStop", "nativeScreenFlash", "cinematicFreeze"].includes(effect.type)
     );
     if (!flash) return { opacity: 0 };
     const progress = flash.evaluation.progress;
-    const alpha = getPreparedVfxNumber(flash, "alpha", 0.75);
+    const alpha =
+      getPreparedVfxNumber(flash, "alpha", 0.75) *
+      (flash.type === "nativeScreenFlash" || flash.type === "cinematicFreeze"
+        ? getPreparedVfxNumber(flash, "intensity", 1)
+        : 1);
     const color = getPreparedVfxString(flash, "color", "#ffffff");
     return {
       opacity: Math.max(0, alpha * (1 - progress)),
@@ -137,7 +146,8 @@ export function Viewport({
 
   const barsStyle = useMemo<CSSProperties>(() => {
     const barsEffect = activeEffects.find(
-      (effect) => effect.type === "cinematicBars"
+      (effect) =>
+        effect.type === "cinematicBars" || effect.type === "cinematicFrameBars"
     );
     const enabled = project.renderSettings.cinematicBarsEnabled || Boolean(barsEffect);
     if (!enabled) return { display: "none" };
@@ -149,14 +159,45 @@ export function Viewport({
             project.renderSettings.cinematicBarsRatio
           )
         : project.renderSettings.cinematicBarsRatio);
+    const nativeBars = barsEffect?.type === "cinematicFrameBars";
+    const barColorValue = barsEffect
+      ? getPreparedVfxString(barsEffect, "color", "#000000")
+      : "#000000";
     return {
-      "--bar-size": style === "16:9" ? "9%" : "14%"
+      "--bar-size": style === "16:9" ? "9%" : "14%",
+      "--bar-color": isSafeVfxColor(barColorValue) ? barColorValue : "#000000",
+      opacity: nativeBars
+        ? Math.min(1, getPreparedVfxNumber(barsEffect, "alpha", 1) * getPreparedVfxNumber(barsEffect, "intensity", 1))
+        : 1
     } as CSSProperties;
   }, [activeEffects, project.renderSettings]);
 
   const speedLinesVisible = activeEffects.some(
     (effect) => effect.type === "speedLines"
   );
+
+  const bloomEffect = activeEffects.find((effect) => effect.type === "screenBloom");
+  const bloomStyle = bloomEffect
+    ? {
+        opacity: Math.min(0.75, getPreparedVfxNumber(bloomEffect, "alpha", 0.35) * getPreparedVfxNumber(bloomEffect, "intensity", 1.3)),
+        background: `radial-gradient(circle at center, ${getPreparedVfxString(bloomEffect, "color", "#fff4d6")} 0%, transparent ${Math.round(getPreparedVfxNumber(bloomEffect, "radius", 0.7) * 60)}%)`
+      }
+    : postProcessingStyles.overlayStyle;
+  const vignetteEffect = activeEffects.find((effect) => effect.type === "nativeVignette");
+  const vignetteStyle = vignetteEffect
+    ? {
+        opacity: Math.min(0.92, getPreparedVfxNumber(vignetteEffect, "alpha", 0.55) * getPreparedVfxNumber(vignetteEffect, "intensity", 1)),
+        background: `radial-gradient(circle at center, transparent 44%, ${getPreparedVfxString(vignetteEffect, "color", "#000000")} 100%)`
+      }
+    : postProcessingStyles.vignetteStyle;
+  const glitch = activeEffects.find((effect) => effect.type === "screenGlitch");
+  const glitchStyle = glitch
+    ? {
+        opacity: Math.min(0.8, getPreparedVfxNumber(glitch, "alpha", 0.55)),
+        transform: `translateX(${Math.sin(glitch.evaluation.frame * getPreparedVfxNumber(glitch, "frequency", 18) * 0.13) * getPreparedVfxNumber(glitch, "strength", 0.7) * getPreparedVfxNumber(glitch, "intensity", 1) * 8}px)`,
+        boxShadow: `inset 5px 0 ${getPreparedVfxString(glitch, "secondaryColor", "#ff4fd8")}, inset -5px 0 ${getPreparedVfxString(glitch, "color", "#55eaff")}`
+      }
+    : postProcessingStyles.chromaticStyle;
 
   useEffect(() => {
     if (lookThroughCameraRequest > 0 && selectedCamera) {
@@ -212,15 +253,16 @@ export function Viewport({
         className="viewport-canvas"
         style={{
           ...postProcessingStyles.canvasStyle,
+          filter: `${String(postProcessingStyles.canvasStyle.filter ?? "")} ${colorDrainFilter}`.trim() || undefined,
           ...shakeStyle
         }}
       />
-      <div className="post-bloom-overlay" style={postProcessingStyles.overlayStyle} />
-      <div className="post-chromatic-overlay" style={postProcessingStyles.chromaticStyle} />
+      <div className="post-bloom-overlay" style={bloomStyle} />
+      <div className="post-chromatic-overlay" style={glitchStyle} />
       <div className="fog-overlay" style={fogStyle} />
       {speedLinesVisible && <div className="speed-lines-overlay" />}
       <div className="flash-overlay" style={flashStyle} />
-      <div className="post-vignette-overlay" style={postProcessingStyles.vignetteStyle} />
+      <div className="post-vignette-overlay" style={vignetteStyle} />
       <div className="post-grain-overlay" style={postProcessingStyles.grainStyle} />
       <div className="cinematic-bars-overlay" style={barsStyle}>
         <span />
