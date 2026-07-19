@@ -114,7 +114,7 @@ function drawScreenEffects(
     const alpha = getPreparedVfxNumber(effect, "alpha", 0.6) * (1 - progress);
     const colorValue = getPreparedVfxString(effect, "color", "#ffffff");
     const color = isSafeVfxColor(colorValue) ? colorValue : "#ffffff";
-    if (["flash", "explosionFlash", "impactFrame"].includes(effect.type)) {
+    if (["flash", "explosionFlash", "impactFrame", "hitStop"].includes(effect.type)) {
       context.save();
       context.globalAlpha = Math.max(0, alpha);
       context.fillStyle = color;

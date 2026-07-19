@@ -17,7 +17,7 @@ describe("BuiltinVfxPresetCatalog", () => {
   it("joins every existing effect to native metadata without claiming stability", () => {
     const presets = builtinVfxPresetCatalog.list();
 
-    expect(presets).toHaveLength(12);
+    expect(presets).toHaveLength(20);
     expect(builtinVfxPresetCatalog.countStable()).toBe(0);
     expect(presets.every((preset) => preset.metadata.id === preset.definition.id)).toBe(true);
     expect(
@@ -33,6 +33,16 @@ describe("BuiltinVfxPresetCatalog", () => {
       builtinVfxPresetCatalog.get("colorGradeKeyframe")?.metadata.compatibility
         .maturity
     ).toBe("experimental");
+    expect(
+      builtinVfxPresetCatalog.get("criticalHit")?.metadata
+    ).toMatchObject({
+      recipeId: "criticalHit",
+      compatibility: {
+        maturity: "experimental",
+        runtime: "native-primitives",
+        capabilities: { preview: true, export: true }
+      }
+    });
   });
 
   it("freezes catalog metadata and filters experimental entries honestly", () => {
@@ -99,6 +109,20 @@ describe("BuiltinVfxPresetCatalog", () => {
     expect(Object.isFrozen(stored?.definition)).toBe(true);
     source.definition.tags = ["mutated"];
     expect(stored?.definition.tags).not.toEqual(["mutated"]);
+  });
+
+  it("rejects native metadata when its registered recipe is absent", () => {
+    const preset = clonePreset("criticalHit");
+    const result = validateBuiltinVfxPresetCatalog([preset], {
+      localization: BUILTIN_VFX_PRESET_LOCALIZATION,
+      recipeIds: new Set()
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.map((error) => error.code)).toContain(
+      "VFX_PRESET_RECIPE_MISSING"
+    );
   });
 
   it("fails closed for accessors and malformed definition schemas", () => {

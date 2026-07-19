@@ -5,6 +5,10 @@ import { createLegacyVfxRegistry } from "../compat/LegacyEffectAdapter";
 import { VfxRegistry } from "../core/VfxRegistry";
 import { measureLegacyVfxEffectWork } from "../runtime/VfxFrameBudget";
 import {
+  COMBAT_VFX_RECIPE_IDS,
+  listCombatVfxRecipes
+} from "../recipes/CombatVfxRecipes";
+import {
   BUILTIN_VFX_PRESET_METADATA_VERSION,
   type BuiltinVfxPreset,
   type BuiltinVfxPresetCategory,
@@ -24,7 +28,15 @@ const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
   vignettePulse: "screen-cinematic",
   colorGradeKeyframe: "screen-cinematic",
   cinematicBars: "screen-cinematic",
-  explosionFlash: "fire-explosion"
+  explosionFlash: "fire-explosion",
+  combatSparks: "combat",
+  combatImpact: "combat",
+  swordSlash: "combat",
+  parryBurst: "combat",
+  groundSlam: "combat",
+  landingDust: "combat",
+  criticalHit: "combat",
+  hitStop: "combat"
 };
 
 const CAPABILITIES_BY_EFFECT: Record<
@@ -42,7 +54,27 @@ const CAPABILITIES_BY_EFFECT: Record<
   vignettePulse: { preview: false, export: true, limitations: ["Animated vignette pulse is currently export-only."] },
   colorGradeKeyframe: { preview: false, export: false, limitations: ["Stored timeline marker; no visual runtime is connected."] },
   cinematicBars: { preview: true, export: true, limitations: ["Uses the compatibility overlay renderer."] },
-  explosionFlash: { preview: true, export: true, limitations: ["Uses the compatibility overlay renderer."] }
+  explosionFlash: { preview: true, export: true, limitations: ["Uses the compatibility overlay renderer."] },
+  combatSparks: { preview: true, export: true, limitations: [] },
+  combatImpact: { preview: true, export: true, limitations: [] },
+  swordSlash: { preview: true, export: true, limitations: [] },
+  parryBurst: { preview: true, export: true, limitations: [] },
+  groundSlam: { preview: true, export: true, limitations: [] },
+  landingDust: { preview: true, export: true, limitations: [] },
+  criticalHit: { preview: true, export: true, limitations: [] },
+  hitStop: { preview: true, export: true, limitations: ["Pose hold affects animated scene sampling; audio playback is not paused."] }
+};
+
+const COMBAT_RECIPE_ID_SET = new Set<string>(COMBAT_VFX_RECIPE_IDS);
+const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segments: number }>> = {
+  combatSparks: { particles: 28, segments: 0 },
+  combatImpact: { particles: 0, segments: 72 },
+  swordSlash: { particles: 0, segments: 88 },
+  parryBurst: { particles: 0, segments: 92 },
+  groundSlam: { particles: 48, segments: 112 },
+  landingDust: { particles: 36, segments: 64 },
+  criticalHit: { particles: 54, segments: 96 },
+  hitStop: { particles: 0, segments: 0 }
 };
 
 export const BUILTIN_VFX_PRESET_LOCALIZATION: Readonly<Record<string, string>> =
@@ -60,16 +92,19 @@ function localizationKey(type: EffectType): string {
 }
 
 function createMetadata(definition: EffectDefinition): BuiltinVfxPresetMetadata {
-  const measured = measureLegacyVfxEffectWork(
+  const nativeBudget = NATIVE_FINAL_BUDGETS[definition.type];
+  const measured = nativeBudget ?? measureLegacyVfxEffectWork(
     definition.type,
     definition.defaultParameters.count ?? 0
   );
   const capabilities = CAPABILITIES_BY_EFFECT[definition.type];
+  const native = COMBAT_RECIPE_ID_SET.has(definition.type);
   return {
     version: BUILTIN_VFX_PRESET_METADATA_VERSION,
     id: definition.type,
     effectType: definition.type,
     definitionId: definition.type,
+    ...(native ? { recipeId: definition.type } : {}),
     category: CATEGORY_BY_EFFECT[definition.type],
     tags: [...definition.tags],
     localizationKey: localizationKey(definition.type),
@@ -82,10 +117,10 @@ function createMetadata(definition: EffectDefinition): BuiltinVfxPresetMetadata 
     exportQuality: "final",
     compatibility: {
       maturity:
-        definition.type === "colorGradeKeyframe"
+        native || definition.type === "colorGradeKeyframe"
           ? "experimental"
           : "compatibility",
-      runtime: "compatibility-map",
+      runtime: native ? "native-primitives" : "compatibility-map",
       minProjectSchema: CURRENT_PROJECT_SCHEMA_VERSION,
       maxProjectSchema: CURRENT_PROJECT_SCHEMA_VERSION,
       capabilities: {
@@ -131,7 +166,8 @@ export class BuiltinVfxPresetCatalog {
 
   constructor(presets: readonly BuiltinVfxPreset[]) {
     const validation = validateBuiltinVfxPresetCatalog(presets, {
-      localization: BUILTIN_VFX_PRESET_LOCALIZATION
+      localization: BUILTIN_VFX_PRESET_LOCALIZATION,
+      recipeIds: new Set(listCombatVfxRecipes().map((recipe) => recipe.id))
     });
     if (!validation.ok) {
       throw new RangeError(

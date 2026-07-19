@@ -13,6 +13,12 @@ import { getRigDefinition } from "../../rigs/MinecraftRigPresets";
 import { createLegacyVfxRegistry } from "../compat/LegacyEffectAdapter";
 import type { VfxQuality } from "../core/VfxEvaluationContext";
 import { synchronizeLegacyEffectNativeVfx } from "../serialization/VfxProjectMigration";
+import type { VfxPrimitiveEvaluation } from "../primitives/VfxPrimitiveTypes";
+import { getCombatVfxRecipe } from "../recipes/CombatVfxRecipes";
+import {
+  evaluatePreparedVfxPresetRecipe,
+  prepareVfxPresetRecipe
+} from "../recipes/VfxPresetRecipeEvaluator";
 import {
   evaluateVfxFrame,
   type VfxActiveFrameEvaluation
@@ -48,6 +54,7 @@ export interface PreparedProjectVfxEffect {
   evaluation: VfxActiveFrameEvaluation;
   resolvedTarget: ResolvedVfxTarget | null;
   budget: VfxEffectBudgetAllocation;
+  primitives: readonly VfxPrimitiveEvaluation[];
 }
 
 export interface PreparedProjectVfxFrame {
@@ -71,6 +78,25 @@ export function shouldIncludeProjectVfx(project: MineMotionProject): boolean {
     !project.renderSettings.renderPreviewEnabled ||
     project.exportSettings.includeVfx
   );
+}
+
+export function resolveVfxAnimationSampleFrame(
+  project: MineMotionProject,
+  frame = project.animation.currentFrame
+): number {
+  if (!shouldIncludeProjectVfx(project)) return frame;
+  let sampleFrame = frame;
+  for (const effect of project.effects.instances) {
+    if (
+      effect.type === "hitStop" &&
+      effect.enabled &&
+      frame >= effect.startFrame &&
+      frame <= effect.startFrame + effect.durationFrames
+    ) {
+      sampleFrame = Math.min(sampleFrame, effect.startFrame);
+    }
+  }
+  return sampleFrame;
 }
 
 function issue(
@@ -235,19 +261,52 @@ export function prepareProjectVfxFrame(
         );
         continue;
       }
-      const allocation = requestVfxEffectBudget(
-        budget,
-        measureLegacyVfxEffectWork(
-          effect.type,
-          getEvaluationNumber(evaluation.value, "count", 18)
-        )
-      );
+      const recipe = getCombatVfxRecipe(evaluation.value.definitionId);
+      const preparedRecipe = recipe
+        ? prepareVfxPresetRecipe(evaluation.value, recipe)
+        : null;
+      if (preparedRecipe && !preparedRecipe.ok) {
+        errors.push(
+          ...preparedRecipe.errors.map((error) => ({
+            ...error,
+            path: `${path}.nativeVfx.recipe.${error.path ?? ""}`.replace(/\.$/, "")
+          }))
+        );
+        warnings.push(...preparedRecipe.warnings);
+        continue;
+      }
+      const work = preparedRecipe?.ok
+        ? preparedRecipe.value.work
+        : measureLegacyVfxEffectWork(
+            effect.type,
+            getEvaluationNumber(evaluation.value, "count", 18)
+          );
+      const allocation = requestVfxEffectBudget(budget, work);
       if (!allocation) continue;
+      const evaluatedRecipe = preparedRecipe?.ok
+        ? evaluatePreparedVfxPresetRecipe(
+            evaluation.value,
+            preparedRecipe.value,
+            allocation
+          )
+        : null;
+      if (evaluatedRecipe && !evaluatedRecipe.ok) {
+        errors.push(
+          ...evaluatedRecipe.errors.map((error) => ({
+            ...error,
+            path: `${path}.nativeVfx.recipe.${error.path ?? ""}`.replace(/\.$/, "")
+          }))
+        );
+        warnings.push(...evaluatedRecipe.warnings);
+        continue;
+      }
+      if (evaluatedRecipe?.ok) warnings.push(...evaluatedRecipe.warnings);
       effects.push({
         type: effect.type,
         displayName: synchronized.nativeVfx.displayName,
         evaluation: evaluation.value,
         budget: allocation,
+        primitives: evaluatedRecipe?.ok ? evaluatedRecipe.value.primitives : [],
         resolvedTarget: resolveTarget(
           project,
           evaluation.value.inputs.target,

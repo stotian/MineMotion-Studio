@@ -173,6 +173,78 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
       intensity: 1.2
     },
     tags: ["screen", "explosion"]
+  },
+  {
+    type: "combatSparks",
+    name: "Combat Sparks",
+    description: "A compact directional burst for weapon contact.",
+    space: "world",
+    defaultDurationFrames: 10,
+    defaultParameters: { color: "#ffd36a", alpha: 1, count: 28, size: 0.08, radius: 0.18, speed: 5.5, intensity: 1 },
+    tags: ["combat", "sparks", "impact"]
+  },
+  {
+    type: "combatImpact",
+    name: "Combat Impact",
+    description: "A readable contact ring and short light pulse.",
+    space: "world",
+    defaultDurationFrames: 12,
+    defaultParameters: { color: "#fff3c4", alpha: 0.95, radius: 1.5, intensity: 1.4 },
+    tags: ["combat", "impact", "ring"]
+  },
+  {
+    type: "swordSlash",
+    name: "Sword Slash",
+    description: "A tapered arc trail for melee swings.",
+    space: "world",
+    defaultDurationFrames: 14,
+    defaultParameters: { color: "#d8f3ff", alpha: 0.9, radius: 1.8, size: 0.16, intensity: 1 },
+    tags: ["combat", "slash", "trail"]
+  },
+  {
+    type: "parryBurst",
+    name: "Parry Burst",
+    description: "A bright crossed spark and defensive ring.",
+    space: "world",
+    defaultDurationFrames: 10,
+    defaultParameters: { color: "#a9e8ff", secondaryColor: "#ffffff", alpha: 1, radius: 1.3, intensity: 1.8 },
+    tags: ["combat", "parry", "spark"]
+  },
+  {
+    type: "groundSlam",
+    name: "Ground Slam",
+    description: "A heavy ground ring with an outward debris burst.",
+    space: "world",
+    defaultDurationFrames: 24,
+    defaultParameters: { color: "#d8b17a", alpha: 0.9, count: 48, size: 0.14, radius: 4.5, speed: 3.2, intensity: 1.4 },
+    tags: ["combat", "slam", "ground"]
+  },
+  {
+    type: "landingDust",
+    name: "Landing Dust",
+    description: "A low dust puff and subtle landing ring.",
+    space: "world",
+    defaultDurationFrames: 22,
+    defaultParameters: { color: "#b8aa92", alpha: 0.65, count: 36, size: 0.22, radius: 2.2, speed: 1.5, intensity: 0.8 },
+    tags: ["combat", "landing", "dust"]
+  },
+  {
+    type: "criticalHit",
+    name: "Critical Hit",
+    description: "A high-contrast impact burst for decisive strikes.",
+    space: "world",
+    defaultDurationFrames: 16,
+    defaultParameters: { color: "#fff0a6", secondaryColor: "#ff4d6d", alpha: 1, count: 54, size: 0.12, radius: 2.4, speed: 6.2, intensity: 2 },
+    tags: ["combat", "critical", "impact"]
+  },
+  {
+    type: "hitStop",
+    name: "Hit Stop",
+    description: "Briefly holds the animated pose while timeline VFX continue.",
+    space: "screen",
+    defaultDurationFrames: 3,
+    defaultParameters: { color: "#ffffff", alpha: 0.2, intensity: 1 },
+    tags: ["combat", "timing", "screen"]
   }
 ];
 

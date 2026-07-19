@@ -30,7 +30,15 @@ const LIVE_PREVIEW_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = 
   },
   fogPulse: { color: "live-preview", alpha: "live-preview" },
   cinematicBars: { barStyle: "live-preview" },
-  explosionFlash: { color: "live-preview", alpha: "live-preview" }
+  explosionFlash: { color: "live-preview", alpha: "live-preview" },
+  combatSparks: { color: "live-preview", alpha: "live-preview", count: "live-preview", size: "live-preview", radius: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  combatImpact: { color: "live-preview", alpha: "live-preview", radius: "live-preview", intensity: "live-preview" },
+  swordSlash: { color: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", intensity: "live-preview" },
+  parryBurst: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", intensity: "live-preview" },
+  groundSlam: { color: "live-preview", alpha: "live-preview", count: "live-preview", size: "live-preview", radius: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  landingDust: { color: "live-preview", alpha: "live-preview", count: "live-preview", size: "live-preview", radius: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  criticalHit: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", count: "live-preview", size: "live-preview", radius: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  hitStop: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" }
 };
 
 const EXPORT_ONLY_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = {

@@ -24,6 +24,7 @@ import {
   shouldIncludeProjectVfx,
   type PreparedProjectVfxEffect
 } from "../vfx/runtime/VfxProjectFrame";
+import type { VfxPrimitiveEvaluation } from "../vfx/primitives/VfxPrimitiveTypes";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -192,6 +193,18 @@ export class SceneRenderer {
     });
     const preparedEffects = prepared.ok ? prepared.value.effects : [];
     for (const effect of preparedEffects) {
+      if (effect.primitives.length > 0) {
+        if (effect.evaluation.inputs.renderLayer !== "world") continue;
+        const group = new THREE.Group();
+        group.name = effect.displayName;
+        this.applyTransform(group, effect.evaluation.inputs.transform);
+        for (const primitive of effect.primitives) {
+          const object = this.createNativePrimitiveObject(primitive);
+          if (object) group.add(object);
+        }
+        if (group.children.length > 0) this.sceneRoot.add(group);
+        continue;
+      }
       if (
         effect.type !== "lightningStrike" &&
         effect.type !== "shockwave" &&
@@ -367,6 +380,79 @@ export class SceneRenderer {
     }
 
     return null;
+  }
+
+  private createNativePrimitiveObject(
+    primitive: VfxPrimitiveEvaluation
+  ): THREE.Object3D | null {
+    const color = isSafeVfxColor(primitive.color) ? primitive.color : "#ffffff";
+    if (primitive.kind === "particle-emitter") {
+      if (primitive.particles.length === 0) return null;
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const material = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: Math.max(0, Math.min(1, primitive.particles[0]?.opacity ?? 0))
+      });
+      const particles = new THREE.InstancedMesh(
+        geometry,
+        material,
+        primitive.particles.length
+      );
+      const matrix = new THREE.Matrix4();
+      for (let index = 0; index < primitive.particles.length; index += 1) {
+        const sample = primitive.particles[index];
+        matrix.compose(
+          new THREE.Vector3(...sample.position),
+          new THREE.Quaternion(),
+          new THREE.Vector3(sample.size, sample.size, sample.size)
+        );
+        particles.setMatrixAt(index, matrix);
+      }
+      particles.instanceMatrix.needsUpdate = true;
+      return particles;
+    }
+
+    if (
+      primitive.kind === "beam" ||
+      primitive.kind === "trail" ||
+      primitive.kind === "expanding-ring"
+    ) {
+      if (primitive.points.length < 2) return null;
+      const points = primitive.points.map(
+        (sample) => new THREE.Vector3(...sample.position)
+      );
+      if (primitive.kind === "expanding-ring") points.push(points[0].clone());
+      const opacity =
+        primitive.kind === "beam"
+          ? primitive.opacity
+          : primitive.kind === "expanding-ring"
+            ? primitive.opacity
+            : primitive.points[0]?.opacity ?? 0;
+      return new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineBasicMaterial({
+          color,
+          transparent: true,
+          opacity: Math.max(0, Math.min(1, opacity))
+        })
+      );
+    }
+
+    if (primitive.radius <= 0 || primitive.intensity <= 0) return null;
+    const pulse = new THREE.Mesh(
+      new THREE.SphereGeometry(primitive.radius, 16, 8),
+      new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: Math.max(0, Math.min(0.45, primitive.intensity * 0.18)),
+        wireframe: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      })
+    );
+    pulse.position.set(...primitive.center);
+    return pulse;
   }
 
   private applyTransform(object: THREE.Object3D, transform: TransformData): void {

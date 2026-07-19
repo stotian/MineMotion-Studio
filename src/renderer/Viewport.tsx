@@ -95,7 +95,7 @@ export function Viewport({
 
   const flashStyle = useMemo<CSSProperties>(() => {
     const flash = activeEffects.find((effect) =>
-      ["flash", "explosionFlash", "impactFrame"].includes(effect.type)
+      ["flash", "explosionFlash", "impactFrame", "hitStop"].includes(effect.type)
     );
     if (!flash) return { opacity: 0 };
     const progress = flash.evaluation.progress;

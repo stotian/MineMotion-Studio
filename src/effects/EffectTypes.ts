@@ -14,7 +14,15 @@ export type EffectType =
   | "vignettePulse"
   | "colorGradeKeyframe"
   | "cinematicBars"
-  | "explosionFlash";
+  | "explosionFlash"
+  | "combatSparks"
+  | "combatImpact"
+  | "swordSlash"
+  | "parryBurst"
+  | "groundSlam"
+  | "landingDust"
+  | "criticalHit"
+  | "hitStop";
 
 export type EffectSpace = VfxSpace;
 

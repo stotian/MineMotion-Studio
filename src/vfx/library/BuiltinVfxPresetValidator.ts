@@ -47,6 +47,7 @@ const QUALITY_ORDER = ["draft", "medium", "high", "final"] as const;
 export interface BuiltinVfxPresetValidationContext {
   localization: Readonly<Record<string, string>>;
   assetIds?: ReadonlySet<string>;
+  recipeIds?: ReadonlySet<string>;
 }
 
 function issue(code: string, message: string, path: string): ValidationIssue {
@@ -170,6 +171,14 @@ function validateMetadata(
   }
   if (!RUNTIMES.has(compatibility.runtime)) {
     errors.push(issue("VFX_PRESET_RUNTIME_INVALID", "Preset runtime is invalid.", `${path}.metadata.compatibility.runtime`));
+  }
+  if (
+    compatibility.runtime === "native-primitives" &&
+    (typeof metadata.recipeId !== "string" ||
+      metadata.recipeId !== metadata.definitionId ||
+      !context.recipeIds?.has(metadata.recipeId))
+  ) {
+    errors.push(issue("VFX_PRESET_RECIPE_MISSING", "Native preset recipe is missing or does not match its definition.", `${path}.metadata.recipeId`));
   }
   if (
     !Number.isSafeInteger(compatibility.minProjectSchema) ||

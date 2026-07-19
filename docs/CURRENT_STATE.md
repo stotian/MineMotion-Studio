@@ -80,6 +80,16 @@ preview/export budgets, and explicit renderer ownership now coexist.
   incompatible project schema, false stable claims, and excessive budgets.
 - The 12 existing entries are compatibility/experimental, not falsely counted
   toward the 60 native stable preset target.
+- A versioned native recipe layer composes the existing five primitive kinds.
+  It validates, clones, freezes, and aggregate-budgets all descriptors before
+  the global allocator permits primitive sample generation.
+- Eight combat entries use that path and the existing schema 10 collection:
+  combat sparks/impact, sword slash, parry, ground slam, landing dust, critical
+  hit, and hit stop. Their parameters are live-preview editable and JSON/package
+  persistence continues through the existing serializer and VfxRegistry view.
+- Native world primitives render in the shared Three.js viewport/export canvas.
+  Hit stop samples the animated pose at its start while preserving the global
+  VFX/environment frame; excluding VFX from final export excludes the hold.
 
 ## Partial Systems
 
@@ -90,14 +100,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 16 native recipe/content families, navigation, preview cache, benchmarks,
-  and later phases.
+- Remaining Phase 16 content families, navigation, preview cache, stable-preset
+  regression gate, benchmarks, and later phases.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 71 frontend test files and 323 passing tests.
+- 73 frontend test files and 332 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

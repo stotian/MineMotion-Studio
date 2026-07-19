@@ -65,6 +65,26 @@ describe("EffectParameterInspectorModel", () => {
     expect(model.unknownParameters).toEqual([{ id: "legacyExtra", value: 42 }]);
   });
 
+  it("marks every native combat recipe parameter as live preview", () => {
+    for (const type of [
+      "combatSparks",
+      "combatImpact",
+      "swordSlash",
+      "parryBurst",
+      "groundSlam",
+      "landingDust",
+      "criticalHit",
+      "hitStop"
+    ] as const) {
+      const model = requireModel(
+        createEffectParameterInspectorModel(
+          createEffectInstance(type, { id: `effect_${type}`, startFrame: 0 })
+        )
+      );
+      expect(model.controls.every((control) => control.runtimeSupport === "live-preview")).toBe(true);
+    }
+  });
+
   it("repairs one invalid legacy parameter at a time without losing unknown values", () => {
     const legacy = {
       ...createEffectInstance("glowBurst", {

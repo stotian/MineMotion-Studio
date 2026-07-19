@@ -6,7 +6,6 @@ import { createBuiltinAudioClip, createImportedAudioClip } from "./audio/AudioCl
 import { findClipsStartingAtFrame } from "./audio/AudioTimelineIntegration";
 import { BUILTIN_SFX, getBuiltinSfx } from "./audio/BuiltinSfxRegistry";
 import { exportProjectWav } from "./audio/export/AudioMixdown";
-import { Animator } from "./animation/Animator";
 import { addTransformKeyframes, setCurrentFrame } from "./animation/Timeline";
 import { CommandPalette } from "./commands/CommandPalette";
 import { createBuiltinCommands } from "./commands/BuiltinCommands";
@@ -111,6 +110,7 @@ import type {
 } from "./rendering/postprocessing/PostProcessingTypes";
 import { renderViewportFrameToPng } from "./rendering/export/OfflineFrameRenderer";
 import { createFinalCameraFrame } from "./rendering/export/FinalCameraRenderer";
+import { sampleProjectAnimationWithVfxTiming } from "./vfx/runtime/VfxAnimationSampling";
 import { createRenderStateSnapshot } from "./rendering/export/RenderStateSnapshot";
 import { restoreRenderState } from "./rendering/export/RenderStateRestore";
 import { type SkyPresetId } from "./renderer/SkySystem";
@@ -237,14 +237,17 @@ export function App() {
     }
   }, [project.effects.instances, selectedEffectId]);
 
-  const displayProject = useMemo(
-    () =>
-      sampleEnvironmentProject(
-        Animator.sampleProject(project, project.animation.currentFrame),
-        project.animation.currentFrame
-      ),
-    [project]
-  );
+  const displayProject = useMemo(() => {
+    const timelineFrame = project.animation.currentFrame;
+    const sampled = sampleProjectAnimationWithVfxTiming(project, timelineFrame);
+    return sampleEnvironmentProject(
+      {
+        ...sampled,
+        animation: { ...sampled.animation, currentFrame: timelineFrame }
+      },
+      timelineFrame
+    );
+  }, [project]);
 
   useEffect(() => {
     SettingsStore.save(settings);

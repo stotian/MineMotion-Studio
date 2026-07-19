@@ -91,15 +91,22 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 - The Effects Library consumes catalog entries. Existing presets are honestly
   `compatibility`; `colorGradeKeyframe` is experimental and disabled because it
   has no visual runtime. Stable count remains zero until native parity exists.
+- Phase 16.2 adds a versioned immutable native recipe contract over the existing
+  primitive evaluator. Descriptors and aggregate quality-adjusted work are
+  validated before global budget allocation and primitive sample generation.
+- Eight combat definitions now round-trip through the existing schema 10
+  effect collection and render through shared preview/export paths: sparks,
+  impact, slash, parry, slam, landing dust, critical hit, and real pose-hold
+  hit stop. They remain experimental until thumbnails/regression gates exist.
 
 ## In Progress
 
-- Phase 16.2 will define reusable native preset recipes and implement the first
-  combat family over existing deterministic primitives.
+- Phase 16.3 will build the lightning/electric preset family over the native
+  recipe contract.
 
 ## Not Started
 
-- Phase 16.2 combat presets.
+- Phase 16.3 and later Phase 16 content/navigation/preview/benchmark milestones.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
@@ -113,23 +120,22 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 16.1 is the validated checkpoint containing this document; Git history
+- Phase 16.2 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.1 tests: PASS - 17 files, 177 tests
-- `npm test`: PASS - 71 files, 323 tests
-- `npm run build`: PASS - existing large-chunk warning only
+- Focused Phase 16.2 tests: PASS - 19 files, 186 tests
+- `npm test`: PASS - 73 files, 332 tests
+- `npm run build`: PASS - 1,791 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 16.1 changes TypeScript/docs only.
+- Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Define a typed native preset recipe that composes the five existing deterministic
-primitive descriptors without a parallel runtime. Then add and validate the
-combat family: sparks, impacts, slashes, parry, slam, landing, critical, hit stop.
+Build the Phase 16 lightning/electric family: strike, storm, beam, aura, charge,
+sparks, chain, and weapon trail, reusing the native recipe preflight/evaluator.

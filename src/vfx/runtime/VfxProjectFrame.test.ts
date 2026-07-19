@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import { createEffectInstance } from "../../effects/EffectRegistry";
 import { createInitialProject } from "../../project/ProjectStore";
 import { ProjectSerializer } from "../../project/ProjectSerializer";
+import { createMineMotionPackageData } from "../../project/package/MineMotionPackage";
+import { PackageReader } from "../../project/package/PackageReader";
 import { createFinalCameraFrame } from "../../rendering/export/FinalCameraRenderer";
 import {
   prepareProjectVfxFrame,
+  resolveVfxAnimationSampleFrame,
   shouldIncludeProjectVfx
 } from "./VfxProjectFrame";
 import { VFX_GLOBAL_FRAME_LIMITS } from "./VfxFrameBudget";
@@ -184,5 +187,74 @@ describe("prepareProjectVfxFrame", () => {
     expect(first.warnings.map((warning) => warning.code)).toContain(
       "VFX_GLOBAL_PARTICLES_BUDGET_CAPPED"
     );
+  });
+
+  it("evaluates native combat recipes through the shared project budget", () => {
+    const project = createInitialProject();
+    project.effects.instances = [
+      createEffectInstance("criticalHit", { id: "critical_native", startFrame: 0 })
+    ];
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 4,
+      includeVfx: true,
+      quality: "final"
+    });
+
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects[0].primitives.map((primitive) => primitive.kind)).toEqual([
+      "particle-emitter",
+      "expanding-ring",
+      "light-pulse"
+    ]);
+    expect(prepared.value.budget.allocated).toMatchObject({
+      effects: 1,
+      particles: 54,
+      segments: 96
+    });
+    const reloadedProjects = [
+      ProjectSerializer.parse(ProjectSerializer.serialize(project)),
+      PackageReader.parse(JSON.stringify(createMineMotionPackageData(project)))
+    ];
+    for (const reloaded of reloadedProjects) {
+      expect(reloaded.effects.instances[0]).toMatchObject({
+        type: "criticalHit",
+        nativeVfx: { definitionId: "criticalHit", serializationVersion: 1 }
+      });
+    }
+  });
+
+  it("holds animation sampling at the hit-stop start while global frames continue", () => {
+    const project = createInitialProject();
+    project.effects.instances = [
+      createEffectInstance("hitStop", { id: "hit_stop", startFrame: 12 })
+    ];
+    expect(resolveVfxAnimationSampleFrame(project, 11)).toBe(11);
+    expect(resolveVfxAnimationSampleFrame(project, 12)).toBe(12);
+    expect(resolveVfxAnimationSampleFrame(project, 14)).toBe(12);
+    expect(resolveVfxAnimationSampleFrame(project, 16)).toBe(16);
+    project.renderSettings.renderPreviewEnabled = true;
+    project.exportSettings.includeVfx = false;
+    expect(resolveVfxAnimationSampleFrame(project, 14)).toBe(14);
+  });
+
+  it("supports intentionally disabling a native particle burst with count zero", () => {
+    const project = createInitialProject();
+    project.effects.instances = [
+      createEffectInstance("combatSparks", {
+        id: "sparks_disabled",
+        startFrame: 0,
+        parameters: { count: 0 }
+      })
+    ];
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 1,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects[0].primitives).toEqual([]);
+    expect(prepared.value.effects[0].budget.particles).toBe(0);
   });
 });

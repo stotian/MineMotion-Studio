@@ -54,6 +54,7 @@ export interface BuiltinVfxPresetMetadata {
   id: string;
   effectType: EffectType;
   definitionId: string;
+  recipeId?: string;
   category: BuiltinVfxPresetCategory;
   tags: readonly string[];
   localizationKey: string;
