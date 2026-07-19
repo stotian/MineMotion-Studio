@@ -15,9 +15,9 @@ import {
   type EffectTimelineCommand,
   type EffectTimelineEditablePatch
 } from "./effects/EffectTimelineController";
-import { effectRegistry } from "./effects/EffectRegistry";
 import type { EffectType } from "./effects/EffectTypes";
 import { spawnEffectAtFrame } from "./effects/EffectSpawner";
+import { builtinVfxPresetCatalog } from "./vfx/library/BuiltinVfxPresetCatalog";
 import { exportCurrentFramePng } from "./export/FrameExporter";
 import {
   detectFfmpeg,
@@ -222,7 +222,7 @@ export function App() {
     [presets.rigPose, project.rigs.savedPoses]
   );
   const templates = useMemo(() => templateRegistry.list(), []);
-  const effectDefinitions = useMemo(() => effectRegistry.list(), []);
+  const effectPresets = useMemo(() => builtinVfxPresetCatalog.list(), []);
   const selectedObject = useMemo(
     () => findObject(project, selectedObjectId)?.entity ?? null,
     [project, selectedObjectId]
@@ -2432,7 +2432,7 @@ export function App() {
           onSelectObject={handleSelectObject}
         />
         <EffectsLibraryPanel
-          effects={effectDefinitions}
+          presets={effectPresets}
           selectedEffectId={selectedEffectId}
           effectInstances={project.effects.instances}
           audioClips={project.audio.clips}

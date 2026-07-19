@@ -73,6 +73,13 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Effects command execution retains its public API but hostile input validation
   and project/native-VFX validation now have focused modules. All 41 command
   characterization tests pass unchanged after the extraction.
+- A frozen Phase 16 built-in preset catalog joins metadata to existing effect
+  and native definitions. The Effects Library consumes it directly.
+- Catalog construction fails closed on corrupt records, duplicate IDs/definitions,
+  invalid schema/duration/quality/category/tags, missing assets/localization,
+  incompatible project schema, false stable claims, and excessive budgets.
+- The 12 existing entries are compatibility/experimental, not falsely counted
+  toward the 60 native stable preset target.
 
 ## Partial Systems
 
@@ -83,13 +90,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 16 production built-in preset catalog/content and later phases.
+- Phase 16 native recipe/content families, navigation, preview cache, benchmarks,
+  and later phases.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 70 frontend test files and 317 passing tests.
+- 71 frontend test files and 323 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

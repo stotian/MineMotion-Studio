@@ -115,3 +115,12 @@ package/schema characterization tests pass, and the complete Phase 15 gate is
 green. A real browser smoke was retried but remains environment-blocked before
 page attachment by `Cannot redefine property: process`; no visual pass is
 claimed from that attempt.
+
+## Phase 16.1 Outcome
+
+Built-in preset metadata and validation now exist without duplicating runtime
+definition authority. Existing compatibility visuals are visible but excluded
+from the stable preset count; the non-visual color-grade marker is explicitly
+experimental and cannot be added from the library. Generated thumbnails remain
+`pending` until the preview/cache milestone, and native content families begin
+in 16.2.

@@ -9,15 +9,15 @@ import {
 import type { BuiltinSfxDefinition } from "../../audio/AudioTypes";
 import type { AudioClip } from "../../audio/AudioTypes";
 import type {
-  EffectDefinition,
   EffectInstance,
   EffectType
 } from "../../effects/EffectTypes";
+import type { BuiltinVfxPreset } from "../../vfx/library/BuiltinVfxPresetTypes";
 import type { PostProcessingPreset, PostProcessingPresetId } from "../../rendering/postprocessing/PostProcessingTypes";
 import type { RenderSettings } from "../../project/ProjectFile";
 
 interface EffectsLibraryPanelProps {
-  effects: EffectDefinition[];
+  presets: readonly BuiltinVfxPreset[];
   selectedEffectId: string | null;
   effectInstances: readonly EffectInstance[];
   audioClips: AudioClip[];
@@ -35,7 +35,7 @@ interface EffectsLibraryPanelProps {
 }
 
 export function EffectsLibraryPanel({
-  effects,
+  presets,
   selectedEffectId,
   effectInstances,
   audioClips,
@@ -63,20 +63,32 @@ export function EffectsLibraryPanel({
           Library
         </h3>
         <div className="effect-library-list">
-          {effects.map((effect) => (
-            <button
-              key={effect.type}
-              type="button"
-              className="effect-card"
-              title={effect.description}
-              onClick={() => onAddEffect(effect.type)}
-            >
-              <strong>{effect.name}</strong>
-              <span>{effect.space}</span>
-              <small>{effect.description}</small>
-              <Plus size={14} />
-            </button>
-          ))}
+          {presets.map((preset) => {
+            const unavailable =
+              !preset.metadata.compatibility.capabilities.preview &&
+              !preset.metadata.compatibility.capabilities.export;
+            return (
+              <button
+                key={preset.metadata.id}
+                type="button"
+                className="effect-card"
+                title={[
+                  preset.definition.description,
+                  ...preset.metadata.compatibility.limitations
+                ].join(" ")}
+                disabled={unavailable}
+                onClick={() => onAddEffect(preset.metadata.effectType)}
+              >
+                <strong>{preset.localizedName}</strong>
+                <span>
+                  {preset.metadata.category} / {preset.definition.space}
+                </span>
+                <small>{preset.definition.description}</small>
+                <small>{preset.metadata.compatibility.maturity}</small>
+                <Plus size={14} />
+              </button>
+            );
+          })}
         </div>
       </section>
 

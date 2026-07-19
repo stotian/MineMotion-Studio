@@ -6,11 +6,11 @@ Phase 16 - Production Built-in VFX Library
 
 ## Current Milestone
 
-16.1 - Preset metadata and automated validation
+16.2 - Native recipe contract and combat preset family
 
 ## Status
 
-IN_PROGRESS - Phase 15 is complete; Phase 16.1 is the next READY milestone.
+IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 
 ## Completed
 
@@ -84,20 +84,27 @@ IN_PROGRESS - Phase 15 is complete; Phase 16.1 is the next READY milestone.
 - Final Phase 15 gate passes 29 focused files/225 tests and 70 files/317 tests,
   typecheck, build, and audit. The real browser smoke was retried and remains
   environment-blocked at bootstrap with `Cannot redefine property: process`.
+- Phase 16.1 adds a frozen versioned metadata catalog joined to the existing
+  effect/native registries. It validates IDs, definitions, localization,
+  thumbnails/assets, categories/tags, duration, qualities, schema compatibility,
+  capabilities, stable claims, and primitive/global frame budgets.
+- The Effects Library consumes catalog entries. Existing presets are honestly
+  `compatibility`; `colorGradeKeyframe` is experimental and disabled because it
+  has no visual runtime. Stable count remains zero until native parity exists.
 
 ## In Progress
 
-- Phase 16.1 will define built-in preset metadata/versioning/categories/tags/
-  quality/compatibility and validate IDs, schemas, assets, duration, and budgets.
+- Phase 16.2 will define reusable native preset recipes and implement the first
+  combat family over existing deterministic primitives.
 
 ## Not Started
 
-- Phase 16.1 preset catalog contracts and validation.
+- Phase 16.2 combat presets.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
 
-- None for Phase 16.1 TypeScript work.
+- None for Phase 16.2 TypeScript work.
 - Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -106,23 +113,23 @@ IN_PROGRESS - Phase 15 is complete; Phase 16.1 is the next READY milestone.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.9 is the validated checkpoint containing this document; Git history
+- Phase 16.1 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 15.9 tests: PASS - 29 files, 225 tests
-- `npm test`: PASS - 70 files, 317 tests
+- Focused Phase 16.1 tests: PASS - 17 files, 177 tests
+- `npm test`: PASS - 71 files, 323 tests
 - `npm run build`: PASS - existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 15.9 changes TypeScript/docs only.
+- Native checks: not rerun because milestone 16.1 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Start Phase 16.1 by inventorying current effect definitions, native VFX schema,
-primitive descriptors, and library UI. Define one reusable built-in preset
-catalog contract and fail-closed validator before adding content families.
+Define a typed native preset recipe that composes the five existing deterministic
+primitive descriptors without a parallel runtime. Then add and validate the
+combat family: sparks, impacts, slashes, parry, slam, landing, critical, hit stop.

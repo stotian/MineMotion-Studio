@@ -188,3 +188,16 @@ synchronization boundary; no parallel effect architecture is introduced.
 The existing characterization suite is the behavior contract. This extraction
 does not change errors, paths, no-op semantics, history labels, cloning, order,
 schema synchronization, or public imports.
+
+## TD-017 - Built-in preset metadata joins existing definition authorities
+
+Status: Accepted in Phase 16.1.
+
+Keep legacy `EffectRegistry` and native `VfxRegistry` authoritative. Build one
+read-only catalog by joining validated metadata to those definitions, freeze all
+published views, and consume the catalog directly in the Effects Library.
+
+Catalog validation fails closed for corrupt records, duplicate/mismatched IDs,
+missing assets/localization, bad duration/quality/schema compatibility, false
+stable claims, or work outside primitive/global budgets. Compatibility and
+experimental entries never count toward the 60 stable-preset acceptance target.

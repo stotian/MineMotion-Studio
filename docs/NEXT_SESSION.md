@@ -2,59 +2,39 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.1: define the production built-in VFX preset catalog
-contract and automated validation. Phase 15 is complete.
-
-## Phase Ordering Evidence
-
-- Phases 14 and 15 are complete.
-- Phase 16 is the lowest fully specified unfinished phase.
-- Phase 16 requires metadata/validation before the 60-preset content families.
-
-## Files To Inspect First
-
-- `src/effects/EffectRegistry.ts`
-- `src/vfx/core/VfxDefinition.ts`
-- `src/vfx/core/VfxRegistry.ts`
-- `src/vfx/primitives/VfxPrimitiveTypes.ts`
-- current Effects Library UI
-- active Phase 16 completion-pack file
+Start Phase 16 milestone 16.2: define reusable native preset recipes and build
+the combat preset family. Phase 15 and milestone 16.1 are complete.
 
 ## Completed Work
 
-- Phase 15 typed deterministic VFX foundation, schema 10 migration, editing,
-  shared preview/export, budgets, resource lifecycle, and stabilization.
-- Effects controller validation extraction preserves every public command result;
-  controller characterization remains 41/41 green.
-- Final Phase 15 gate: focused 29 files/225 tests; full 70 files/317 tests;
-  typecheck/build (1,780 modules)/audit green.
-- Browser visual smoke retry remains environment-blocked before attachment.
+- Phase 15 complete at `7dc093b`.
+- Phase 16.1 typed/frozen catalog metadata over existing registries.
+- Fail-closed validation covers IDs, schema, localization, thumbnail assets,
+  categories/tags, duration, qualities, compatibility, stable claims, and work.
+- Effects Library consumes catalog entries; unavailable experimental entries are
+  disabled and current compatibility entries do not count as stable.
+- Validation: focused 17 files/177 tests; full 71 files/323 tests;
+  typecheck/build (1,784 modules)/audit green.
 
 ## Unfinished Work
 
-- Define preset metadata/version/category/tag/thumbnail/quality/compatibility.
-- Add automated validation for IDs, schemas, assets, duration, localization,
-  and global budget compatibility.
-- Build/search/preview and validate at least 60 stable presets in later Phase 16
-  milestones without parallel registries or fake runtime claims.
-
-## Next Command
-
-```powershell
-git status --short --branch; git log -4 --oneline
-```
+- Define a native preset recipe/composition contract over existing primitives.
+- Add sparks, impacts, slashes, parry, slam, landing, critical, and hit-stop
+  presets with honest preview/export support.
+- Later families, search/favorites/recents, preview caching, 60 stable total,
+  and benchmark/regression scenes remain Phase 16 work.
 
 ## Next Implementation Step
 
-Inventory current registry/UI contracts and create a typed, versioned built-in
-preset metadata model that references existing definitions and primitive limits.
-Add fail-closed validation before introducing large preset datasets.
+Design a versioned recipe union that references validated VFX definitions and
+bounded primitive descriptors. Reuse `evaluateVfxPrimitive`; do not introduce a
+second frame evaluator or project collection.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npm test -- --run src/effects src/vfx
+npm test -- --run src/vfx src/effects
 npm test
 npm run build
 npm audit --audit-level=high
