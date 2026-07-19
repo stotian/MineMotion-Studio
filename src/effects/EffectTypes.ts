@@ -71,7 +71,7 @@ export function getBoundedLegacyParticleCount(
   const rawCount = effect.parameters.count ?? 18;
   const requested =
     typeof rawCount === "number" && Number.isFinite(rawCount)
-      ? Math.max(4, Math.round(rawCount))
+      ? Math.max(0, Math.round(rawCount))
       : 18;
   const safeRemaining = Number.isFinite(remainingBudget)
     ? Math.max(0, Math.floor(remainingBudget))

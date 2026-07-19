@@ -109,3 +109,20 @@ copy/paste, enable, priority, delete, and Inspector editing. New growth above
 4,096 instances is blocked, but oversized legacy projects remain repairable.
 Parameter keyframes and other native-only VFX fields wait for the tested schema
 10 migration instead of being encoded in an unofficial parallel contract.
+
+## TD-012 - The VFX schema generates Inspector parameter behavior
+
+Status: Accepted
+
+Derive number, integer, boolean, color, and enum controls from the canonical
+`VfxParameterSchema`, including labels, categories, units, bounds, steps,
+defaults, animation metadata, and current runtime support. Do not maintain a
+second UI parameter definition. Route committed changes through the schema 9
+timeline controller so one successful non-no-op edit creates one whole-project
+history checkpoint.
+
+Known parameters are validated against their definition. Bounded finite unknown
+legacy keys remain untouched, and an invalid known legacy value may be repaired
+one key at a time. New unknown keys remain rejected. Colors must be safe hex or
+alphabetic named tokens before reaching CSS, Canvas, or Three.js. Parameter
+keyframes and native-only fields remain schema 10 work.

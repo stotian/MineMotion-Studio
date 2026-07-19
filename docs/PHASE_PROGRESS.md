@@ -6,11 +6,11 @@ Phase 15 - Native Deterministic VFX Foundation
 
 ## Current Milestone
 
-15.5 - Schema-generated VFX Inspector controls
+15.6 - Schema 10 migration and serialization
 
 ## Status
 
-IN_PROGRESS - milestones 15.1 through 15.4 completed and validated; 15.5 is next.
+IN_PROGRESS - milestones 15.1 through 15.5 completed and validated; 15.6 is next.
 
 ## Completed
 
@@ -49,15 +49,20 @@ IN_PROGRESS - milestones 15.1 through 15.4 completed and validated; 15.5 is next
   enabled state, payloads, canonical labels, and foreign lanes.
 - Bounded plain-data validation, 4,096-instance editor growth ceiling with
   oversized legacy repair, and legacy renderer stack/particle budgets.
+- Phase 15.5 schema-generated Inspector controls for number, integer, boolean,
+  color, and enum parameters, with metadata, defaults, bounds, runtime-support
+  disclosure, and honest keyframe deferral.
+- Parameter commits use the existing schema 9 timeline controller. Invalid
+  legacy values can be repaired without dropping unknown keys, and safe color
+  tokens are enforced before renderer consumption.
 
 ## In Progress
 
-- Phase 15 foundation. The next unit is milestone 15.5 schema-generated
-  Inspector controls over the same schema 9 command/history path.
+- Phase 15 foundation. The next unit is milestone 15.6: inventory schemas 1-9
+  and every package/autosave/load path before designing schema 10.
 
 ## Not Started
 
-- Phase 15.5 schema-generated Inspector.
 - Phase 15.6 schema 10 migration and serialization.
 - Phase 15.7 preview/export integration.
 - Phase 15.8 performance limits and resource cleanup.
@@ -66,29 +71,30 @@ IN_PROGRESS - milestones 15.1 through 15.4 completed and validated; 15.5 is next
 
 ## Blockers
 
-- None for Phase 15.4 TypeScript work.
+- None for Phase 15.6 TypeScript work.
+- Manual Phase 15.5 browser smoke is environment-blocked because the in-app
+  browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
   desktop bundles passed at `1e911af`.
 
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.4 is the validated checkpoint containing this document; Git history
+- Phase 15.5 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
-- `npm install`: PASS - 108 packages audited, 0 vulnerabilities (baseline)
+- `npm ci`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 15.4 tests: PASS - 8 files, 96 tests
-- `npm test`: PASS - 62 files, 256 tests
-- `npm run build`: PASS - 1,769 modules; existing 1,050.38 kB chunk warning
-- `npm audit --audit-level=high`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 15.4 changes TypeScript/docs only.
+- Focused final serialization/Inspector tests: PASS - 2 files, 25 tests
+- `npm test`: PASS - 64 files, 281 tests
+- `npm run build`: PASS - existing large-chunk warning only
+- `npm audit`: PASS - 0 vulnerabilities
+- Native checks: not rerun because milestone 15.5 changes TypeScript/docs only.
 
 ## Next Exact Action
 
-Audit `VfxParameterSchema`, the legacy `EffectRegistry`, current effect
-Inspector controls, and the 15.4 command controller. Generate honest controls
-for every supported schema parameter and route committed edits through the same
-validated history path. Do not invent parameter keyframes or schema 10 fields.
+Inventory schemas 1-9 and every serializer, migration, autosave, project load,
+package read/write, export staging, and validation path. Record the schema 10
+compatibility surface before changing `CURRENT_PROJECT_SCHEMA_VERSION`.

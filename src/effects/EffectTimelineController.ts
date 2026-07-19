@@ -11,6 +11,10 @@ import {
   adaptLegacyEffectInstance
 } from "../vfx/compat/LegacyEffectAdapter";
 import { validateVfxInstance } from "../vfx/core/VfxValidator";
+import {
+  MAX_VFX_PARAMETER_ID_LENGTH,
+  MAX_VFX_PARAMETER_STRING_LENGTH
+} from "../vfx/core/VfxParameter";
 import { effectRegistry } from "./EffectRegistry";
 import type {
   EffectInstance,
@@ -25,6 +29,7 @@ import { syncEffectTimelineLane } from "./EffectTimelineTrack";
 
 const IDENTIFIER_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/;
 const MAX_ID_LENGTH = 128;
+const MAX_PARAMETER_PATCH_ENTRIES = 64;
 const EDITABLE_PATCH_KEYS = new Set([
   "name",
   "startFrame",
@@ -183,6 +188,20 @@ function isParameterRecord(value: unknown): value is EffectParameters {
   );
 }
 
+function isParameterPatchRecord(value: unknown): value is EffectParameters {
+  if (!isParameterRecord(value)) return false;
+  const entries = Object.entries(value);
+  return (
+    entries.length <= MAX_PARAMETER_PATCH_ENTRIES &&
+    entries.every(
+      ([key, parameter]) =>
+        key.length <= MAX_VFX_PARAMETER_ID_LENGTH &&
+        (typeof parameter !== "string" ||
+          parameter.length <= MAX_VFX_PARAMETER_STRING_LENGTH)
+    )
+  );
+}
+
 function validateTiming(
   startFrame: unknown,
   durationFrames: unknown,
@@ -233,13 +252,12 @@ function validateTimelineTiming(
   return null;
 }
 
-function validateKnownParameters(effect: EffectInstance): ValidationIssue | null {
-  const count = effect.parameters.count;
+function validateParticleCountBudget(count: unknown): ValidationIssue | null {
   if (
     count !== undefined &&
     (!Number.isSafeInteger(count) ||
-      count < 0 ||
-      count > MAX_LEGACY_EFFECT_PARTICLE_COUNT)
+      (count as number) < 0 ||
+      (count as number) > MAX_LEGACY_EFFECT_PARTICLE_COUNT)
   ) {
     return issue(
       "EFFECT_TIMELINE_PARAMETER_INVALID",
@@ -247,6 +265,12 @@ function validateKnownParameters(effect: EffectInstance): ValidationIssue | null
       "parameters.count"
     );
   }
+  return null;
+}
+
+function validateKnownParameters(effect: EffectInstance): ValidationIssue | null {
+  const countError = validateParticleCountBudget(effect.parameters.count);
+  if (countError) return countError;
 
   try {
     const definition = effectRegistry.get(effect.type);
@@ -271,6 +295,72 @@ function validateKnownParameters(effect: EffectInstance): ValidationIssue | null
           parameterError.message,
           parameterError.path ?? "parameters"
         );
+      }
+    }
+  } catch (error) {
+    return issue(
+      "EFFECT_TIMELINE_PARAMETER_INVALID",
+      error instanceof Error ? error.message : "Effect parameters are invalid.",
+      "parameters"
+    );
+  }
+  return null;
+}
+
+function validateKnownParameterPatch(
+  effect: EffectInstance,
+  parameters: EffectParameters
+): ValidationIssue | null {
+  const countError = validateParticleCountBudget(parameters.count);
+  if (countError) return countError;
+
+  try {
+    const definition = effectRegistry.get(effect.type);
+    if (!definition) {
+      return issue(
+        "EFFECT_TIMELINE_EFFECT_TYPE_INVALID",
+        "Effect type is not registered.",
+        "type"
+      );
+    }
+    const vfxDefinition = adaptLegacyEffectDefinition(definition);
+    const schemaById = new Map(
+      vfxDefinition.parameterSchema.map((parameter) => [parameter.id, parameter])
+    );
+    for (const [parameterId, value] of Object.entries(parameters)) {
+      if (!schemaById.has(parameterId)) {
+        // Preserve and repair an old out-of-schema `count`, but never create
+        // that key on an effect whose schema does not define it.
+        if (
+          parameterId === "count" &&
+          Object.hasOwn(effect.parameters, parameterId)
+        ) {
+          continue;
+        }
+        return issue(
+          "EFFECT_TIMELINE_PARAMETER_UNKNOWN",
+          `Parameter ${parameterId} is not supported by ${effect.type}.`,
+          `parameters.${parameterId}`
+        );
+      }
+      const validation = validateVfxInstance(
+        adaptLegacyEffectInstance({
+          ...effect,
+          parameters: { [parameterId]: value } as EffectParameters
+        }),
+        vfxDefinition
+      );
+      if (!validation.ok) {
+        const parameterError = validation.errors.find((error) =>
+          error.path?.startsWith(`parameters.${parameterId}`)
+        );
+        if (parameterError) {
+          return issue(
+            "EFFECT_TIMELINE_PARAMETER_INVALID",
+            parameterError.message,
+            parameterError.path ?? `parameters.${parameterId}`
+          );
+        }
       }
     }
   } catch (error) {
@@ -640,10 +730,10 @@ function validatePatch(value: unknown): ValidationIssue | null {
       "patch.targetObjectId"
     );
   }
-  if ("parameters" in value && !isParameterRecord(value.parameters)) {
+  if ("parameters" in value && !isParameterPatchRecord(value.parameters)) {
     return issue(
       "EFFECT_TIMELINE_PARAMETERS_INVALID",
-      "Effect parameters must contain finite primitive values.",
+      "Effect parameter patches must contain bounded finite primitive values.",
       "patch.parameters"
     );
   }
@@ -809,8 +899,19 @@ export function applyEffectTimelineCommand(
       ...(patch.enabled !== undefined ? { enabled: patch.enabled } : {})
     };
     const updated = cloneEffect(updatedValue);
-    const updatedError = validateEffect(updated, "effect");
+    const updatedError = validateEffect(
+      updated,
+      "effect",
+      patch.parameters === undefined
+    );
     if (updatedError) return failure(updatedError);
+    if (patch.parameters !== undefined) {
+      const parameterPatchError = validateKnownParameterPatch(
+        source,
+        patch.parameters
+      );
+      if (parameterPatchError) return failure(parameterPatchError);
+    }
     if (
       Object.hasOwn(patch, "startFrame") ||
       Object.hasOwn(patch, "durationFrames")

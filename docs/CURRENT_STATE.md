@@ -2,7 +2,7 @@
 
 MineMotion Studio `0.8.2` uses project schema 9.
 
-Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.4 are
+Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.5 are
 complete. Low-level contracts have stable ownership under `src/core`, and a
 typed VFX compatibility projection plus real schema 9 effects-lane editing now
 exist without changing project schema 9.
@@ -43,6 +43,14 @@ exist without changing project schema 9.
   effects remain the only authority and disabled effects remain selectable.
 - Legacy world-effect rendering is bounded to 64 active effects and 4,096 burst
   particles per frame; glow bursts use instancing instead of one mesh per cube.
+- Effect Inspector controls are generated from the canonical VFX parameter
+  schema for number, integer, boolean, color, and enum kinds. Metadata, defaults,
+  bounds, units, runtime support, and deferred animation support are visible.
+- Valid edits reuse the schema 9 command/history path; invalid legacy values can
+  be restored to their schema default while unknown finite legacy keys survive
+  edits, save/reload, packages, undo, and redo.
+- VFX color values are restricted to safe hex or named tokens at validation and
+  renderer boundaries.
 
 ## Partial Systems
 
@@ -53,14 +61,13 @@ exist without changing project schema 9.
 
 ## Absent Systems
 
-- Phase 15.5+ schema-generated controls, serialization migration, and
-  preview/export integration.
+- Phase 15.6+ schema migration and preview/export integration.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 62 frontend test files and 256 passing tests.
+- 64 frontend test files and 281 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -85,3 +92,7 @@ exist without changing project schema 9.
 - Phase 15.4 keeps `effects.instances` authoritative. Pure commands regenerate
   one effects lane and create one history checkpoint only for a real edit.
   Parameter keyframes remain deferred because schema 9 cannot represent them.
+- Phase 15.5 derives Inspector behavior from those definitions rather than a
+  copied UI schema. The controller validates known values and permits bounded,
+  one-key repair of invalid schema 9 legacy data without accepting new unknown
+  keys. Schema 10 fields and parameter keyframes remain deferred to 15.6.

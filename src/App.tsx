@@ -957,25 +957,28 @@ export function App() {
     (command: EffectTimelineCommand) => {
       const result = applyEffectTimelineCommand(projectRef.current, command);
       if (!result.ok) {
-        setStatus(result.errors[0]?.message ?? "Effect timeline edit failed.");
-        return;
+        const message =
+          result.errors[0]?.message ?? "Effect timeline edit failed.";
+        setStatus(message);
+        return message;
       }
       if (!result.value.changed) {
         setStatus("Effect timeline already has that value.");
-        return;
+        return null;
       }
 
       commitProject(result.value.project, result.value.historyLabel);
       setSelectedEffectId(result.value.selectedEffectId);
       if (result.value.selectedEffectId) setSelectedObjectId(null);
       setStatus(`${result.value.historyLabel}.`);
+      return null;
     },
     [commitProject]
   );
 
   const handleUpdateEffect = useCallback(
     (effectId: string, patch: EffectTimelineEditablePatch) => {
-      handleEffectTimelineCommand({ type: "update", effectId, patch });
+      return handleEffectTimelineCommand({ type: "update", effectId, patch });
     },
     [handleEffectTimelineCommand]
   );

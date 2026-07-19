@@ -60,6 +60,27 @@ describe("EffectSerializer", () => {
     expect(effect.parameters.count).toBe(1e9);
   });
 
+  it("preserves special own parameter keys without changing the prototype", () => {
+    const parameters = Object.fromEntries([
+      ["__proto__", "legacy-value"],
+      ["constructor", "legacy-constructor"]
+    ]);
+
+    const [effect] = sanitizeEffects([
+      {
+        id: "effect_legacy_special_keys",
+        type: "flash",
+        parameters
+      }
+    ]);
+
+    expect(Object.getPrototypeOf(effect.parameters)).toBe(Object.prototype);
+    expect(Object.hasOwn(effect.parameters, "__proto__")).toBe(true);
+    const preserved = effect.parameters as unknown as Record<string, unknown>;
+    expect(preserved["__proto__"]).toBe("legacy-value");
+    expect(preserved.constructor).toBe("legacy-constructor");
+  });
+
   it("normalizes negative zero in JSON-visible numeric fields", () => {
     const [effect] = sanitizeEffects([
       {

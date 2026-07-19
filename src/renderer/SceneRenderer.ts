@@ -23,6 +23,7 @@ import {
   MAX_LEGACY_ACTIVE_WORLD_EFFECTS,
   MAX_LEGACY_PARTICLES_PER_FRAME
 } from "../effects/EffectTypes";
+import { isSafeVfxColor } from "../vfx/core/VfxParameter";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -276,7 +277,9 @@ export class SceneRenderer {
     particleCount: number
   ): THREE.Object3D | null {
     const progress = getEffectProgress(effect, frame);
-    const color = effect.parameters.color ?? "#ffffff";
+    const color = isSafeVfxColor(effect.parameters.color)
+      ? effect.parameters.color
+      : "#ffffff";
     const alpha = effect.parameters.alpha ?? 0.8;
 
     if (effect.type === "lightningStrike") {

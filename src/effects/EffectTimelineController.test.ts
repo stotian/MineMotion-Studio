@@ -47,6 +47,18 @@ function createProject(): MineMotionProject {
   });
 }
 
+function createParticleProject(): MineMotionProject {
+  const initial = createInitialProject();
+  const effect = createEffectInstance("glowBurst", {
+    id: "effect_particles",
+    startFrame: 10
+  });
+  return syncEffectTimelineLane({
+    ...initial,
+    effects: { instances: [effect] }
+  });
+}
+
 function requireMutation(
   result: ReturnType<typeof applyEffectTimelineCommand>
 ): EffectTimelineMutation {
@@ -600,10 +612,10 @@ describe("EffectTimelineController", () => {
   it.each([Number.MAX_VALUE, 1e9, -1, 1.5])(
     "rejects unsafe particle count %s before it reaches the renderer",
     (count) => {
-      const project = createProject();
+      const project = createParticleProject();
       const result = applyEffectTimelineCommand(project, {
         type: "update",
-        effectId: "effect_first",
+        effectId: "effect_particles",
         patch: { parameters: { count } }
       });
       expect(errorCodes(result)).toContain("EFFECT_TIMELINE_PARAMETER_INVALID");
@@ -611,11 +623,11 @@ describe("EffectTimelineController", () => {
   );
 
   it("accepts the exact particle cap and rejects cap plus one for new edits", () => {
-    const project = createProject();
+    const project = createParticleProject();
     expect(
       applyEffectTimelineCommand(project, {
         type: "update",
-        effectId: "effect_first",
+        effectId: "effect_particles",
         patch: { parameters: { count: 1_024 } }
       }).ok
     ).toBe(true);
@@ -623,11 +635,48 @@ describe("EffectTimelineController", () => {
       errorCodes(
         applyEffectTimelineCommand(project, {
           type: "update",
-          effectId: "effect_first",
+          effectId: "effect_particles",
           patch: { parameters: { count: 1_025 } }
         })
       )
     ).toContain("EFFECT_TIMELINE_PARAMETER_INVALID");
+  });
+
+  it("rejects a new out-of-schema count but repairs one preserved from legacy data", () => {
+    const project = createProject();
+    expect(
+      errorCodes(
+        applyEffectTimelineCommand(project, {
+          type: "update",
+          effectId: "effect_first",
+          patch: { parameters: { count: 100 } }
+        })
+      )
+    ).toContain("EFFECT_TIMELINE_PARAMETER_UNKNOWN");
+
+    const legacy = {
+      ...project,
+      effects: {
+        instances: [
+          {
+            ...project.effects.instances[0],
+            parameters: Object.fromEntries([
+              ...Object.entries(project.effects.instances[0].parameters),
+              ["count", 1e9]
+            ])
+          },
+          project.effects.instances[1]
+        ]
+      }
+    };
+    const repair = applyEffectTimelineCommand(legacy, {
+      type: "update",
+      effectId: "effect_first",
+      patch: { parameters: { count: 100 } }
+    });
+    expect(repair.ok).toBe(true);
+    if (!repair.ok) return;
+    expect(repair.value.project.effects.instances[0].parameters.count).toBe(100);
   });
 
   it("keeps legacy oversized counts editable for non-parameter repairs", () => {
@@ -678,6 +727,18 @@ describe("EffectTimelineController", () => {
         throw new Error("must not execute");
       }
     });
+    const parameterAccessor: Record<string, unknown> = {};
+    Object.defineProperty(parameterAccessor, "alpha", {
+      enumerable: true,
+      get() {
+        throw new Error("must not execute");
+      }
+    });
+    const symbolParameters: Record<PropertyKey, unknown> = { alpha: 0.5 };
+    Object.defineProperty(symbolParameters, Symbol("hidden"), {
+      enumerable: true,
+      value: 1
+    });
     const cases: unknown[] = [
       inherited,
       accessor,
@@ -690,6 +751,16 @@ describe("EffectTimelineController", () => {
         type: "update",
         effectId: "effect_first",
         patch: { parameters: new Date() }
+      },
+      {
+        type: "update",
+        effectId: "effect_first",
+        patch: { parameters: parameterAccessor }
+      },
+      {
+        type: "update",
+        effectId: "effect_first",
+        patch: { parameters: symbolParameters }
       }
     ];
 
@@ -701,6 +772,40 @@ describe("EffectTimelineController", () => {
         false
       );
     }
+  });
+
+  it("bounds parameter patch entries, keys, and string values before mutation", () => {
+    const project = createProject();
+    const before = structuredClone(project);
+    const tooMany = Object.fromEntries(
+      Array.from({ length: 65 }, (_, index) => [`p${index}`, index])
+    );
+    const cases = [
+      { parameters: tooMany },
+      { parameters: { [`a${"b".repeat(128)}`]: 1 } },
+      { parameters: { color: "x".repeat(4_097) } }
+    ];
+
+    for (const patch of cases) {
+      const result = applyEffectTimelineCommand(project, {
+        type: "update",
+        effectId: "effect_first",
+        patch
+      } as EffectTimelineCommand);
+      expect(errorCodes(result)).toContain("EFFECT_TIMELINE_PARAMETERS_INVALID");
+    }
+    expect(project).toEqual(before);
+  });
+
+  it("rejects unsafe color syntax before it can reach CSS or renderer paths", () => {
+    const project = createProject();
+    const result = applyEffectTimelineCommand(project, {
+      type: "update",
+      effectId: "effect_first",
+      patch: { parameters: { color: "url(http://localhost/private)" } }
+    });
+
+    expect(errorCodes(result)).toContain("EFFECT_TIMELINE_PARAMETER_INVALID");
   });
 
   it("returns project validation errors instead of throwing on malformed animation data", () => {

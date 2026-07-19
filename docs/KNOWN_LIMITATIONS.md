@@ -18,7 +18,7 @@ still required before changing code.
 | LIM-009 | Preview, PNG, and WebM render different subsets of effects; `includeVfx=false` cannot remove world effects already in the canvas | Yes | P2 | 15.7 | OPEN |
 | LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | OPEN |
 | LIM-011 | A pure explicit frame/FPS/seed/quality evaluator exists, but legacy preview/export consumers do not use it yet | Yes | P2 | 15.7 | OPEN |
-| LIM-012 | Target IDs reach primitive inputs but are not scene/bone-resolved, and several registered effect parameters are visually ignored | Yes | P2/P4 | 15.5-15.7 | OPEN |
+| LIM-012 | Target IDs reach primitive inputs but are not scene/bone-resolved, and several registered effect parameters are visually ignored by the legacy runtime | Yes | P2/P4 | 15.7 | OPEN |
 | LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | OPEN |
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
 | LIM-015 | Static scene data and imported OBJ resources are rebuilt/reparsed on project updates | Yes | P3 | 20 | OPEN |
@@ -65,5 +65,15 @@ enable/disable, priority, selection, deletion, and committed Inspector edits
 through schema 9 project history. Save, package, undo, and reload preserve the
 authoritative instances and regenerate one canonical lane. Runtime particle
 budgets protect the legacy preview, but typed primitive preview/export parity,
-target resolution, complete disposal, schema-generated controls, and parameter
-keyframes remain assigned to 15.5-15.8.
+target resolution, complete disposal, and parameter keyframes remain assigned
+to 15.6-15.8.
+
+## Phase 15.5 Outcome
+
+The Inspector now derives every supported parameter control from the canonical
+schema and reports metadata and runtime support honestly. Edits, default repair,
+undo/redo, save/reload, and packages reuse schema 9 without data loss, including
+bounded unknown and special own legacy keys. Safe color tokens are enforced at
+validation and renderer boundaries. This does not make ignored parameters
+visually active, add parameter keyframes, or migrate native VFX fields; those
+remain assigned to 15.6-15.7.

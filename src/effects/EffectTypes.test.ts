@@ -15,6 +15,8 @@ describe("legacy effect runtime budgets", () => {
 
   it("caps each burst and obeys the remaining global frame budget", () => {
     expect(getBoundedLegacyParticleCount(glowBurst(18))).toBe(18);
+    expect(getBoundedLegacyParticleCount(glowBurst(0))).toBe(0);
+    expect(getBoundedLegacyParticleCount(glowBurst(3))).toBe(3);
     expect(getBoundedLegacyParticleCount(glowBurst(1e9))).toBe(
       MAX_LEGACY_EFFECT_PARTICLE_COUNT
     );

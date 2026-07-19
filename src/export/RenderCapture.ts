@@ -1,6 +1,7 @@
 import { getEffectProgress, isEffectActive } from "../effects/EffectTypes";
 import type { MineMotionProject } from "../project/ProjectFile";
 import type { ExportSettings } from "./ExportTypes";
+import { isSafeVfxColor } from "../vfx/core/VfxParameter";
 
 export async function captureViewportPng(
   viewportShell: HTMLElement,
@@ -70,7 +71,9 @@ function drawScreenEffects(
     if (["flash", "explosionFlash", "impactFrame"].includes(effect.type)) {
       context.save();
       context.globalAlpha = Math.max(0, alpha);
-      context.fillStyle = effect.parameters.color ?? "#ffffff";
+      context.fillStyle = isSafeVfxColor(effect.parameters.color)
+        ? effect.parameters.color
+        : "#ffffff";
       context.fillRect(0, 0, width, height);
       context.restore();
     }
@@ -78,7 +81,9 @@ function drawScreenEffects(
     if (effect.type === "speedLines") {
       context.save();
       context.globalAlpha = 0.3 * (effect.parameters.intensity ?? 1);
-      context.strokeStyle = effect.parameters.color ?? "#ffffff";
+      context.strokeStyle = isSafeVfxColor(effect.parameters.color)
+        ? effect.parameters.color
+        : "#ffffff";
       for (let index = 0; index < 42; index += 1) {
         const y = (height / 42) * index;
         context.beginPath();

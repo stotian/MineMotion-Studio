@@ -5,6 +5,7 @@ import { findObject } from "../project/ProjectStore";
 import { SceneRenderer } from "./SceneRenderer";
 import { getEffectProgress, isEffectActive } from "../effects/EffectTypes";
 import { createPostProcessingStyles } from "../rendering/postprocessing/PostProcessingPipeline";
+import { isSafeVfxColor } from "../vfx/core/VfxParameter";
 
 interface ViewportProps {
   project: MineMotionProject;
@@ -96,7 +97,9 @@ export function Viewport({
     const alpha = flash.parameters.alpha ?? 0.75;
     return {
       opacity: Math.max(0, alpha * (1 - progress)),
-      background: flash.parameters.color ?? "#ffffff",
+      background: isSafeVfxColor(flash.parameters.color)
+        ? flash.parameters.color
+        : "#ffffff",
       mixBlendMode: flash.type === "impactFrame" ? "difference" : "screen"
     };
   }, [activeEffects, project.animation.currentFrame]);
@@ -109,7 +112,9 @@ export function Viewport({
     const progress = fog
       ? getEffectProgress(fog, project.animation.currentFrame)
       : 0;
-    const color = fog?.parameters.color ?? project.postProcessing.fogColor;
+    const color = isSafeVfxColor(fog?.parameters.color)
+      ? fog.parameters.color
+      : project.postProcessing.fogColor;
     const alpha =
       (fog?.parameters.alpha ?? project.postProcessing.fogIntensity) *
       (fog ? Math.sin(progress * Math.PI) : 1);

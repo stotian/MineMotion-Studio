@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { VfxDefinition } from "./VfxDefinition";
 import type { VfxInstance } from "./VfxInstance";
+import { MAX_VFX_PARAMETER_ID_LENGTH } from "./VfxParameter";
 import { validateVfxDefinition, validateVfxInstance } from "./VfxValidator";
 
 function createDefinition(): VfxDefinition {
@@ -181,6 +182,30 @@ describe("VfxValidator", () => {
     );
   });
 
+  it("aligns integer schema metadata and parameter ID bounds", () => {
+    const definition = createDefinition();
+    const longId = `a${"b".repeat(MAX_VFX_PARAMETER_ID_LENGTH)}`;
+    const invalid = {
+      ...definition,
+      parameterSchema: [
+        {
+          ...definition.parameterSchema[0],
+          id: longId,
+          min: 0.5,
+          step: 0.5
+        }
+      ]
+    } as VfxDefinition;
+    const result = validateVfxDefinition(invalid);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    const codes = result.errors.map((item) => item.code);
+    expect(codes).toContain("VFX_PARAMETER_ID_INVALID");
+    expect(codes).toContain("VFX_PARAMETER_MIN_INVALID");
+    expect(codes).toContain("VFX_PARAMETER_STEP_INVALID");
+  });
+
   it("reports malformed enum options without throwing", () => {
     const definition = {
       ...createDefinition(),
@@ -202,5 +227,45 @@ describe("VfxValidator", () => {
     expect(result.errors.map((item) => item.code)).toContain(
       "VFX_PARAMETER_OPTIONS_INVALID"
     );
+  });
+
+  it("rejects unsafe color defaults and values while accepting named colors", () => {
+    const definition = {
+      ...createDefinition(),
+      parameterSchema: [
+        {
+          id: "color",
+          displayName: "Color",
+          animatable: true,
+          kind: "color",
+          defaultValue: "rebeccapurple"
+        }
+      ]
+    } as VfxDefinition;
+    const instance = {
+      ...createInstance(),
+      parameters: { color: "red" }
+    };
+
+    expect(validateVfxDefinition(definition).ok).toBe(true);
+    expect(validateVfxInstance(instance, definition).ok).toBe(true);
+    expect(
+      errorCodes(
+        validateVfxInstance(
+          {
+            ...instance,
+            parameters: { color: "url(http://localhost/)" }
+          },
+          definition
+        )
+      )
+    ).toContain("VFX_PARAMETER_COLOR_INVALID");
+    const unsafeDefinition = {
+      ...definition,
+      parameterSchema: [
+        { ...definition.parameterSchema[0], defaultValue: "linear-gradient(red, blue)" }
+      ]
+    } as VfxDefinition;
+    expect(validateVfxDefinition(unsafeDefinition).ok).toBe(false);
   });
 });

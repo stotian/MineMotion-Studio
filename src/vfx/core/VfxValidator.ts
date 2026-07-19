@@ -16,7 +16,11 @@ import {
   VFX_INSTANCE_SERIALIZATION_VERSION,
   type VfxInstance
 } from "./VfxInstance";
-import { isVfxParameterValue } from "./VfxParameter";
+import {
+  MAX_VFX_PARAMETER_ID_LENGTH,
+  isSafeVfxColor,
+  isVfxParameterValue
+} from "./VfxParameter";
 import type { VfxParameterDefinition } from "./VfxParameterSchema";
 
 const IDENTIFIER_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/;
@@ -54,6 +58,12 @@ function isIdentifier(value: unknown): value is string {
   return typeof value === "string" && IDENTIFIER_PATTERN.test(value);
 }
 
+function isParameterIdentifier(value: unknown): value is string {
+  return (
+    isIdentifier(value) && value.length <= MAX_VFX_PARAMETER_ID_LENGTH
+  );
+}
+
 function isFiniteVector3(value: unknown): boolean {
   return (
     Array.isArray(value) &&
@@ -73,7 +83,7 @@ function validateParameterDefinition(
   path: string
 ): ValidationIssue[] {
   const errors: ValidationIssue[] = [];
-  if (!isIdentifier(parameter.id)) {
+  if (!isParameterIdentifier(parameter.id)) {
     errors.push(
       issue("VFX_PARAMETER_ID_INVALID", "Parameter ID is invalid.", `${path}.id`)
     );
@@ -112,24 +122,46 @@ function validateParameterDefinition(
     }
     if (
       parameter.kind === "integer" &&
-      !Number.isInteger(parameter.defaultValue)
+      !Number.isSafeInteger(parameter.defaultValue)
     ) {
       errors.push(
         issue(
           "VFX_PARAMETER_DEFAULT_NOT_INTEGER",
-          "Integer parameter default must be an integer.",
+          "Integer parameter default must be a safe integer.",
           `${path}.defaultValue`
         )
       );
     }
-    if (parameter.min !== undefined && !Number.isFinite(parameter.min)) {
+    if (
+      parameter.min !== undefined &&
+      (!Number.isFinite(parameter.min) ||
+        (parameter.kind === "integer" &&
+          !Number.isSafeInteger(parameter.min)))
+    ) {
       errors.push(
-        issue("VFX_PARAMETER_MIN_INVALID", "Minimum must be finite.", `${path}.min`)
+        issue(
+          "VFX_PARAMETER_MIN_INVALID",
+          parameter.kind === "integer"
+            ? "Integer minimum must be a safe integer."
+            : "Minimum must be finite.",
+          `${path}.min`
+        )
       );
     }
-    if (parameter.max !== undefined && !Number.isFinite(parameter.max)) {
+    if (
+      parameter.max !== undefined &&
+      (!Number.isFinite(parameter.max) ||
+        (parameter.kind === "integer" &&
+          !Number.isSafeInteger(parameter.max)))
+    ) {
       errors.push(
-        issue("VFX_PARAMETER_MAX_INVALID", "Maximum must be finite.", `${path}.max`)
+        issue(
+          "VFX_PARAMETER_MAX_INVALID",
+          parameter.kind === "integer"
+            ? "Integer maximum must be a safe integer."
+            : "Maximum must be finite.",
+          `${path}.max`
+        )
       );
     }
     if (
@@ -173,12 +205,17 @@ function validateParameterDefinition(
     }
     if (
       parameter.step !== undefined &&
-      (!Number.isFinite(parameter.step) || parameter.step <= 0)
+      (!Number.isFinite(parameter.step) ||
+        parameter.step <= 0 ||
+        (parameter.kind === "integer" &&
+          !Number.isSafeInteger(parameter.step)))
     ) {
       errors.push(
         issue(
           "VFX_PARAMETER_STEP_INVALID",
-          "Parameter step must be finite and positive.",
+          parameter.kind === "integer"
+            ? "Integer parameter step must be a positive safe integer."
+            : "Parameter step must be finite and positive.",
           `${path}.step`
         )
       );
@@ -194,14 +231,11 @@ function validateParameterDefinition(
       );
     }
   } else if (parameter.kind === "color") {
-    if (
-      typeof parameter.defaultValue !== "string" ||
-      parameter.defaultValue.trim() === ""
-    ) {
+    if (!isSafeVfxColor(parameter.defaultValue)) {
       errors.push(
         issue(
           "VFX_PARAMETER_DEFAULT_INVALID",
-          "Color parameter default must be a non-empty string.",
+          "Color parameter default must be a safe hex or named color.",
           `${path}.defaultValue`
         )
       );
@@ -359,8 +393,10 @@ function validateParameterValue(
       return [issue("VFX_PARAMETER_TYPE_MISMATCH", "Expected a number.", path)];
     }
     const errors: ValidationIssue[] = [];
-    if (parameter.kind === "integer" && !Number.isInteger(value)) {
-      errors.push(issue("VFX_PARAMETER_NOT_INTEGER", "Expected an integer.", path));
+    if (parameter.kind === "integer" && !Number.isSafeInteger(value)) {
+      errors.push(
+        issue("VFX_PARAMETER_NOT_INTEGER", "Expected a safe integer.", path)
+      );
     }
     if (parameter.min !== undefined && value < parameter.min) {
       errors.push(issue("VFX_PARAMETER_BELOW_MIN", `Value must be at least ${parameter.min}.`, path));
@@ -376,8 +412,14 @@ function validateParameterValue(
   if ((parameter.kind === "color" || parameter.kind === "enum") && typeof value !== "string") {
     return [issue("VFX_PARAMETER_TYPE_MISMATCH", "Expected a string.", path)];
   }
-  if (parameter.kind === "color" && typeof value === "string" && value.trim() === "") {
-    return [issue("VFX_PARAMETER_COLOR_EMPTY", "Color cannot be empty.", path)];
+  if (parameter.kind === "color" && !isSafeVfxColor(value)) {
+    return [
+      issue(
+        "VFX_PARAMETER_COLOR_INVALID",
+        "Color must be a safe hex or named color.",
+        path
+      )
+    ];
   }
   if (parameter.kind === "enum" && typeof value === "string" && !parameter.options.includes(value)) {
     return [issue("VFX_PARAMETER_ENUM_INVALID", "Value is not a supported option.", path)];

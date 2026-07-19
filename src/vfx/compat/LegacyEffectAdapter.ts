@@ -216,16 +216,16 @@ function legacyRenderLayer(definition: EffectDefinition): VfxRenderLayer {
 function cloneLegacyParameters(
   parameters: EffectParameters
 ): Record<string, VfxParameterValue> {
-  const cloned: Record<string, VfxParameterValue> = {};
+  const entries: Array<[string, VfxParameterValue]> = [];
   for (const [key, value] of Object.entries(parameters)) {
     if (!isVfxParameterValue(value)) {
       throw new RangeError(
         `Legacy effect parameter ${key} cannot be represented by the Phase 15.1 VFX model.`
       );
     }
-    cloned[key] = value;
+    entries.push([key, value]);
   }
-  return cloned;
+  return Object.fromEntries(entries);
 }
 
 export function createLegacyVfxSeed(
@@ -428,7 +428,7 @@ export function adaptVfxInstanceToLegacyEffect(
     return invalidResult(errors, warnings);
   }
 
-  const parameters: Record<string, VfxParameterValue> = {};
+  const parameterEntries: Array<[string, VfxParameterValue]> = [];
   for (const [key, value] of Object.entries(instance.parameters)) {
     if (!isVfxParameterValue(value)) {
       return invalidResult(
@@ -442,8 +442,9 @@ export function adaptVfxInstanceToLegacyEffect(
         warnings
       );
     }
-    parameters[key] = value;
+    parameterEntries.push([key, value]);
   }
+  const parameters = Object.fromEntries(parameterEntries);
 
   return validResult(
     {

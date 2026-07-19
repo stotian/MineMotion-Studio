@@ -16,7 +16,14 @@ import {
   Upload
 } from "lucide-react";
 import type { EffectTimelineEditablePatch } from "../../effects/EffectTimelineController";
+import { createEffectParameterInspectorModel } from "../../effects/EffectParameterInspectorModel";
 import type { EffectInstance } from "../../effects/EffectTypes";
+import { MAX_VFX_PARAMETER_STRING_LENGTH } from "../../vfx/core/VfxParameter";
+import {
+  createVfxParameterPatch,
+  type VfxParameterControl,
+  type VfxParameterRuntimeSupport
+} from "../../vfx/editor/VfxParameterControlModel";
 import type { AnimationPreset } from "../../presets/AnimationPresets";
 import type { CameraPreset } from "../../presets/CameraPresets";
 import type { RigPosePreset } from "../../presets/RigPosePresets";
@@ -45,7 +52,7 @@ interface InspectorPanelProps {
   onUpdateEffect: (
     effectId: string,
     patch: EffectTimelineEditablePatch
-  ) => void;
+  ) => string | null;
   onDeleteEffect: (effectId: string) => void;
   onUpdatePostProcessing: (settings: Partial<PostProcessingSettings>) => void;
   onAddKeyframe: () => void;
@@ -331,18 +338,22 @@ function EffectInspector({
 }: {
   effect: EffectInstance;
   timelineDurationFrames: number;
-  onUpdate: (patch: EffectTimelineEditablePatch) => void;
+  onUpdate: (patch: EffectTimelineEditablePatch) => string | null;
   onDelete: () => void;
 }) {
-  const updateParameter = (
-    key: keyof EffectInstance["parameters"],
-    value: string | number | boolean
-  ) => {
-    onUpdate({
-      parameters: {
-        ...effect.parameters,
-        [key]: value
-      }
+  const parameterModel = createEffectParameterInspectorModel(effect);
+  const commitParameter = (control: VfxParameterControl, value: unknown) => {
+    const patch = createVfxParameterPatch(control, value);
+    if (!patch.ok) return patch.errors[0]?.message ?? "Parameter value is invalid.";
+    const nextValue = patch.value[control.id];
+    if (
+      control.source !== "invalid-legacy" &&
+      Object.is(control.value, nextValue)
+    ) {
+      return null;
+    }
+    return onUpdate({
+      parameters: patch.value as EffectTimelineEditablePatch["parameters"]
     });
   };
 
@@ -383,72 +394,17 @@ function EffectInspector({
         step={0.1}
         onCommit={(position) => onUpdate({ position })}
       />
-      {typeof effect.parameters.color === "string" && (
-        <CommittedColorField
-          label="Color"
-          value={effect.parameters.color}
-          onCommit={(color) => updateParameter("color", color)}
+      {parameterModel.ok ? (
+        <GeneratedParameterControls
+          effectId={effect.id}
+          controls={parameterModel.value.controls}
+          unknownParameters={parameterModel.value.unknownParameters}
+          onCommit={commitParameter}
         />
-      )}
-      {typeof effect.parameters.alpha === "number" && (
-        <CommittedNumberField
-          label="Alpha"
-          value={effect.parameters.alpha}
-          min={0}
-          max={1}
-          step={0.01}
-          onCommit={(alpha) => updateParameter("alpha", alpha)}
-        />
-      )}
-      {typeof effect.parameters.intensity === "number" && (
-        <CommittedNumberField
-          label="Intensity"
-          value={effect.parameters.intensity}
-          min={0}
-          max={3}
-          step={0.05}
-          onCommit={(intensity) => updateParameter("intensity", intensity)}
-        />
-      )}
-      {typeof effect.parameters.radius === "number" && (
-        <CommittedNumberField
-          label="Radius"
-          value={effect.parameters.radius}
-          min={0.1}
-          max={12}
-          step={0.1}
-          onCommit={(radius) => updateParameter("radius", radius)}
-        />
-      )}
-      {typeof effect.parameters.strength === "number" && (
-        <CommittedNumberField
-          label="Strength"
-          value={effect.parameters.strength}
-          min={0}
-          max={3}
-          step={0.05}
-          onCommit={(strength) => updateParameter("strength", strength)}
-        />
-      )}
-      {typeof effect.parameters.frequency === "number" && (
-        <CommittedNumberField
-          label="Frequency"
-          value={effect.parameters.frequency}
-          min={1}
-          max={60}
-          step={1}
-          onCommit={(frequency) => updateParameter("frequency", frequency)}
-        />
-      )}
-      {typeof effect.parameters.count === "number" && (
-        <CommittedNumberField
-          label="Count"
-          value={effect.parameters.count}
-          min={1}
-          max={80}
-          step={1}
-          onCommit={(count) => updateParameter("count", count)}
-        />
+      ) : (
+        <p className="parameter-control-error">
+          {parameterModel.errors[0]?.message ?? "Parameter controls are unavailable."}
+        </p>
       )}
       <div className="inspector-actions">
         <button type="button" onClick={onDelete}>
@@ -457,6 +413,343 @@ function EffectInspector({
         </button>
       </div>
     </section>
+  );
+}
+
+function GeneratedParameterControls({
+  effectId,
+  controls,
+  unknownParameters,
+  onCommit
+}: {
+  effectId: string;
+  controls: readonly VfxParameterControl[];
+  unknownParameters: readonly { id: string; value: string | number | boolean }[];
+  onCommit: (control: VfxParameterControl, value: unknown) => string | null;
+}) {
+  const groups = new Map<string, VfxParameterControl[]>();
+  for (const control of controls) {
+    const group = groups.get(control.category) ?? [];
+    group.push(control);
+    groups.set(control.category, group);
+  }
+
+  return (
+    <div className="generated-parameter-controls">
+      <p className="parameter-control-note">
+        Values come from the effect schema. Parameter keyframes require schema 10.
+      </p>
+      {[...groups.entries()].map(([category, categoryControls]) => (
+        <fieldset key={category} className="vfx-parameter-group">
+          <legend>{category}</legend>
+          {categoryControls.map((control) => (
+            <GeneratedParameterControl
+              key={`${effectId}:${control.id}`}
+              control={control}
+              onCommit={onCommit}
+            />
+          ))}
+        </fieldset>
+      ))}
+      {unknownParameters.length > 0 && (
+        <details className="legacy-parameter-list">
+          <summary>
+            Preserved legacy parameters ({unknownParameters.length})
+          </summary>
+          <ul>
+            {unknownParameters.map((parameter) => (
+              <li key={parameter.id}>
+                <code>{parameter.id}</code>: {String(parameter.value)}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
+function GeneratedParameterControl({
+  control,
+  onCommit
+}: {
+  control: VfxParameterControl;
+  onCommit: (control: VfxParameterControl, value: unknown) => string | null;
+}) {
+  switch (control.kind) {
+    case "number":
+    case "integer":
+      return <GeneratedNumericControl control={control} onCommit={onCommit} />;
+    case "boolean":
+      return <GeneratedBooleanControl control={control} onCommit={onCommit} />;
+    case "color":
+      return <GeneratedColorControl control={control} onCommit={onCommit} />;
+    case "enum":
+      return <GeneratedEnumControl control={control} onCommit={onCommit} />;
+  }
+}
+
+function GeneratedNumericControl({
+  control,
+  onCommit
+}: {
+  control: Extract<VfxParameterControl, { kind: "number" | "integer" }>;
+  onCommit: (control: VfxParameterControl, value: unknown) => string | null;
+}) {
+  const [draft, setDraft] = useState(() => String(control.value));
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDraft(String(control.value));
+    setError(control.validationMessage ?? null);
+  }, [control.source, control.validationMessage, control.value]);
+
+  const commit = (value: string) => {
+    const nextError = onCommit(control, value);
+    setError(nextError);
+  };
+
+  const restoreDefault = () => {
+    const nextError = onCommit(control, control.defaultValue);
+    setError(nextError);
+    if (!nextError) setDraft(String(control.defaultValue));
+  };
+
+  return (
+    <div className="vfx-parameter-control">
+      <label>
+        {control.displayName}
+        <input
+          type="number"
+          value={draft}
+          min={control.min}
+          max={control.max}
+          step={control.step}
+          aria-invalid={Boolean(error)}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={(event) => commit(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.currentTarget.blur();
+            if (event.key === "Escape") {
+              setDraft(String(control.value));
+              setError(control.validationMessage ?? null);
+            }
+          }}
+        />
+      </label>
+      <ParameterControlMetadata
+        control={control}
+        error={error}
+        onRestoreDefault={restoreDefault}
+      />
+    </div>
+  );
+}
+
+function GeneratedBooleanControl({
+  control,
+  onCommit
+}: {
+  control: Extract<VfxParameterControl, { kind: "boolean" }>;
+  onCommit: (control: VfxParameterControl, value: unknown) => string | null;
+}) {
+  const [error, setError] = useState<string | null>(control.validationMessage ?? null);
+
+  useEffect(() => {
+    setError(control.validationMessage ?? null);
+  }, [control.validationMessage, control.value]);
+
+  return (
+    <div className="vfx-parameter-control">
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          checked={control.value}
+          onChange={(event) => setError(onCommit(control, event.target.checked))}
+        />
+        {control.displayName}
+      </label>
+      <ParameterControlMetadata
+        control={control}
+        error={error}
+        onRestoreDefault={() =>
+          setError(onCommit(control, control.defaultValue))
+        }
+      />
+    </div>
+  );
+}
+
+function GeneratedColorControl({
+  control,
+  onCommit
+}: {
+  control: Extract<VfxParameterControl, { kind: "color" }>;
+  onCommit: (control: VfxParameterControl, value: unknown) => string | null;
+}) {
+  const [draft, setDraft] = useState(control.value);
+  const [error, setError] = useState<string | null>(control.validationMessage ?? null);
+  const canUsePicker = /^#[0-9a-fA-F]{6}$/.test(draft);
+
+  useEffect(() => {
+    setDraft(control.value);
+    setError(control.validationMessage ?? null);
+  }, [control.source, control.validationMessage, control.value]);
+
+  const commit = (value: string) => {
+    const nextError = onCommit(control, value);
+    setError(nextError);
+  };
+
+  const restoreDefault = () => {
+    const nextError = onCommit(control, control.defaultValue);
+    setError(nextError);
+    if (!nextError) setDraft(control.defaultValue);
+  };
+
+  return (
+    <div className="vfx-parameter-control">
+      <label>
+        {control.displayName}
+        <span className="parameter-color-inputs">
+          <input
+            type="text"
+            value={draft}
+            maxLength={MAX_VFX_PARAMETER_STRING_LENGTH}
+            aria-invalid={Boolean(error)}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={(event) => commit(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+              if (event.key === "Escape") {
+                setDraft(control.value);
+                setError(control.validationMessage ?? null);
+              }
+            }}
+          />
+          {canUsePicker && (
+            <input
+              type="color"
+              value={draft}
+              aria-label={`${control.displayName} picker`}
+              onChange={(event) => setDraft(event.target.value)}
+              onBlur={(event) => commit(event.currentTarget.value)}
+            />
+          )}
+        </span>
+      </label>
+      <ParameterControlMetadata
+        control={control}
+        error={error}
+        onRestoreDefault={restoreDefault}
+      />
+    </div>
+  );
+}
+
+function GeneratedEnumControl({
+  control,
+  onCommit
+}: {
+  control: Extract<VfxParameterControl, { kind: "enum" }>;
+  onCommit: (control: VfxParameterControl, value: unknown) => string | null;
+}) {
+  const [error, setError] = useState<string | null>(control.validationMessage ?? null);
+  const hasInvalidStoredValue =
+    control.source === "invalid-legacy" && !control.options.includes(control.value);
+
+  useEffect(() => {
+    setError(control.validationMessage ?? null);
+  }, [control.source, control.validationMessage, control.value]);
+
+  return (
+    <div className="vfx-parameter-control">
+      <label>
+        {control.displayName}
+        <select
+          value={control.value}
+          aria-invalid={Boolean(error)}
+          onChange={(event) => setError(onCommit(control, event.target.value))}
+        >
+          {hasInvalidStoredValue && (
+            <option value={control.value} disabled>
+              Invalid legacy value: {control.value}
+            </option>
+          )}
+          {control.options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </label>
+      <ParameterControlMetadata
+        control={control}
+        error={error}
+        onRestoreDefault={() =>
+          setError(onCommit(control, control.defaultValue))
+        }
+      />
+    </div>
+  );
+}
+
+function ParameterControlMetadata({
+  control,
+  error,
+  onRestoreDefault
+}: {
+  control: VfxParameterControl;
+  error: string | null;
+  onRestoreDefault: () => void;
+}) {
+  const defaultValue = String(control.defaultValue);
+  const numericMetadata =
+    control.kind === "number" || control.kind === "integer"
+      ? [
+          control.min === undefined ? null : `min ${control.min}`,
+          control.max === undefined ? null : `max ${control.max}`,
+          control.step === undefined ? null : `step ${control.step}`,
+          control.unit
+        ]
+          .filter((value): value is string => Boolean(value))
+          .join(" · ")
+      : "";
+  const supportLabel: Record<VfxParameterRuntimeSupport, string> = {
+    "live-preview": "Live preview",
+    "export-only": "Offline export only",
+    "stored-only": "Stored only (render support pending)"
+  };
+
+  return (
+    <div className="parameter-control-metadata">
+      <small>
+        Default: {defaultValue}
+        {numericMetadata ? ` · ${numericMetadata}` : ""}
+      </small>
+      <small className={`parameter-runtime-${control.runtimeSupport}`}>
+        {supportLabel[control.runtimeSupport]}
+      </small>
+      {control.animatable && (
+        <small>Keyframes unavailable until schema 10.</small>
+      )}
+      {control.description && <small>{control.description}</small>}
+      {control.source === "invalid-legacy" && (
+        <>
+          <small className="parameter-control-error">
+            Stored legacy value: {String(control.storedValue)}
+          </small>
+          <button
+            type="button"
+            className="parameter-restore-default"
+            onClick={onRestoreDefault}
+          >
+            Restore valid default
+          </button>
+        </>
+      )}
+      {error && <small className="parameter-control-error">{error}</small>}
+    </div>
   );
 }
 
@@ -879,36 +1172,6 @@ function CommittedNumberField({
         onKeyDown={(event) => {
           if (event.key === "Enter") event.currentTarget.blur();
           if (event.key === "Escape") setDraft(String(value));
-        }}
-      />
-    </label>
-  );
-}
-
-function CommittedColorField({
-  label,
-  value,
-  onCommit
-}: {
-  label: string;
-  value: string;
-  onCommit: (value: string) => void;
-}) {
-  const [draft, setDraft] = useState(value);
-
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  return (
-    <label>
-      {label}
-      <input
-        type="color"
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={() => {
-          if (draft !== value) onCommit(draft);
         }}
       />
     </label>

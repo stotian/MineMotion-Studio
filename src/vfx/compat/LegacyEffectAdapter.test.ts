@@ -55,6 +55,27 @@ describe("LegacyEffectAdapter", () => {
     );
   });
 
+  it("preserves special own legacy parameter keys in both directions", () => {
+    const legacy = {
+      ...createMaximalLegacyEffect(),
+      parameters: Object.fromEntries([
+        ...Object.entries(createMaximalLegacyEffect().parameters),
+        ["__proto__", "preserved"]
+      ])
+    } as EffectInstance;
+    const adapted = adaptLegacyEffectInstance(legacy);
+    const result = adaptVfxInstanceToLegacyEffect(adapted);
+
+    expect(Object.hasOwn(adapted.parameters, "__proto__")).toBe(true);
+    expect(adapted.parameters.__proto__).toBe("preserved");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(Object.hasOwn(result.value.parameters, "__proto__")).toBe(true);
+    expect(
+      (result.value.parameters as Record<string, unknown>).__proto__
+    ).toBe("preserved");
+  });
+
   it("adapts all built-in definitions from the authoritative registry data", () => {
     const adapted = BUILTIN_EFFECTS.map(adaptLegacyEffectDefinition);
 

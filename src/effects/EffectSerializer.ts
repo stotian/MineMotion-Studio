@@ -78,7 +78,7 @@ function sanitizeParameters(value: unknown, path: string): EffectParameters {
   if (!isPlainRecord(value)) {
     throw new Error(`${path} must be a plain object.`);
   }
-  const parameters: Record<string, string | number | boolean> = {};
+  const entries: Array<[string, string | number | boolean]> = [];
   for (const [key, parameter] of Object.entries(value)) {
     if (
       typeof parameter !== "string" &&
@@ -87,10 +87,12 @@ function sanitizeParameters(value: unknown, path: string): EffectParameters {
     ) {
       throw new Error(`${path}.${key} must be a finite primitive value.`);
     }
-    parameters[key] =
-      typeof parameter === "number" ? normalizeNumber(parameter) : parameter;
+    entries.push([
+      key,
+      typeof parameter === "number" ? normalizeNumber(parameter) : parameter
+    ]);
   }
-  return parameters as EffectParameters;
+  return Object.fromEntries(entries) as EffectParameters;
 }
 
 export function withEffectDefaults(

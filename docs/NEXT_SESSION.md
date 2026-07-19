@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Start Phase 15 milestone 15.5: generate honest effect Inspector controls from
-the existing parameter schemas and commit edits through the validated schema 9
-controller/history path. Milestones 15.1 through 15.4 are complete.
+Start Phase 15 milestone 15.6: inventory schemas 1-9 and every project,
+autosave, package, migration, validation, and export-staging path before any
+schema 10 implementation. Milestones 15.1 through 15.5 are complete.
 
 ## Phase Ordering Evidence
 
@@ -17,13 +17,14 @@ controller/history path. Milestones 15.1 through 15.4 are complete.
 
 ## Files To Inspect First
 
-- `src/vfx/core/VfxParameterSchema.ts`
+- `src/core/project/ProjectSchema.ts`
+- `src/project/ProjectFile.ts`
+- `src/project/ProjectSerializer.ts`
+- `src/project/ProjectMigrations.ts`
+- `src/project/ProjectValidator.ts`
+- `src/project/ProjectAutosave.ts`
+- `src/project/ProjectPackage.ts`
 - `src/vfx/compat/LegacyEffectAdapter.ts`
-- `src/effects/EffectRegistry.ts`
-- `src/effects/EffectTimelineController.ts`
-- `src/ui/inspector/InspectorPanel.tsx`
-- `src/ui/effects/EffectsLibraryPanel.tsx`
-- `src/history/HistoryStack.ts`
 
 ## Completed Work
 
@@ -47,11 +48,16 @@ controller/history path. Milestones 15.1 through 15.4 are complete.
   per frame, 1,024 per effect, and one instanced mesh per glow burst.
 - Milestone 15.4 validation: focused 8 files/96 tests, full 62 files/256 tests,
   typecheck/build/audit/diff checks green.
+- Milestone 15.5 generates all five supported parameter-control kinds from the
+  canonical schema and commits through the existing controller/history path.
+- Bounds, defaults, integer semantics, enum options, safe colors, runtime
+  support, and keyframe deferral are explicit. Invalid legacy values have a
+  one-action default repair and unknown finite legacy keys are preserved.
+- Full validation: 64 files/281 tests, typecheck, build, and audit green. Manual
+  browser attachment remains environment-blocked.
 
 ## Unfinished Work
 
-- Current effect parameter controls are not fully generated from the typed
-  `VfxParameterSchema`; milestone 15.5 must remove schema/UI drift.
 - Schema 9 cannot store parameter keyframes or native seed, quality, transform,
   layer, or blend fields. Do not fake these fields; design them in 15.6.
 - Typed primitive evaluation is not yet the shared viewport/PNG/WebM/native
@@ -72,17 +78,16 @@ git status --short --branch; git log -4 --oneline
 
 ## Next Implementation Step
 
-Inventory every legacy definition parameter against its projected
-`VfxParameterSchema` and the current Inspector. Design one schema-to-control
-adapter for supported number/boolean/color/enum values, including defaults,
-ranges, steps, validation, and committed history behavior. Reuse the 15.4
-controller and do not add an alternate parameter store.
+Map every schema 1-9 migration and all project persistence entry points,
+including autosave and `.minemotion` package handling. Write the schema 10 data
+contract and migration invariants only after the inventory proves how identity,
+inclusive timing, unknown legacy parameters, and future-version rejection flow.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npm test -- --run src/vfx src/effects src/ui/inspector
+npm test -- --run src/project src/vfx src/effects
 npm test -- --run --reporter=dot
 npm run build
 npm audit --audit-level=high
