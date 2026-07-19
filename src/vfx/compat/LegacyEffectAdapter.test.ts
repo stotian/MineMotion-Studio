@@ -212,6 +212,22 @@ describe("LegacyEffectAdapter", () => {
         renderLayer: "post" as const
       }),
       "VFX_LEGACY_RENDER_LAYER_UNSUPPORTED"
+    ],
+    [
+      "parameter keyframes",
+      (instance: ReturnType<typeof adaptLegacyEffectInstance>) => ({
+        ...instance,
+        parameterKeyframes: [
+          {
+            id: "keyframe_radius_1",
+            parameterId: "radius",
+            localFrame: 5,
+            value: 4,
+            interpolation: "linear" as const
+          }
+        ]
+      }),
+      "VFX_LEGACY_PARAMETER_KEYFRAMES_UNSUPPORTED"
     ]
   ])("rejects lossy schema 9 conversion for %s", (_label, mutate, code) => {
     const instance = mutate(

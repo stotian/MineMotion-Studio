@@ -1,8 +1,8 @@
 # Phase 15 - Native Deterministic VFX Foundation
 
 Phase status: IN_PROGRESS
-Milestone 15.4 status: COMPLETED - validated schema 9 effects-lane editing
-Next milestone after checkpoint: 15.5 - schema-generated Inspector controls
+Milestones 15.1-15.6 status: COMPLETED and validated
+Next milestone after checkpoint: 15.7 - native preview/export integration
 
 ## Requirements And Boundaries
 
@@ -396,6 +396,19 @@ Consequences: move/trim/duplicate/copy/paste/enable/priority/Inspector editing
 now survive undo and reload without schema change. Native-only fields and
 parameter keyframes remain impossible to persist until schema 10.
 
+Title: Persist native VFX in one enriched schema 10 effects collection
+Status: Accepted for milestone 15.6
+Context: Native-only VFX data must survive project/package/autosave/history
+before the typed renderer transition, while current visible behavior still
+depends on the legacy effect shape.
+Decision: Migrate schemas 1-9 to 10 by attaching one validated `nativeVfx`
+record to each existing effect entry. Synchronize shared fields, preserve
+native-only values, keep one collection/lane, reject corrupt/future data, retain
+an autosave backup, and guard lossless schema 9 rollback.
+Consequences: native version, seed, transform, targets, parameters/local
+keyframes, blend, layer, and qualities persist without a parallel store. The
+legacy projection remains a temporary runtime bridge until 15.7 proves parity.
+
 ## Milestone 15.1 Validation Record
 
 - Schema impact: none; `CURRENT_PROJECT_SCHEMA_VERSION` remains 9.
@@ -461,3 +474,21 @@ parameter keyframes remain impossible to persist until schema 10.
 - Manual visual validation: BLOCKED_BY_ENVIRONMENT - the in-app browser could
   not attach to the local webview in two attempts. Drag coordinate and
   minimum-width behavior are covered by deterministic regression tests.
+
+## Milestone 15.6 Validation Record
+
+- Schema impact: `CURRENT_PROJECT_SCHEMA_VERSION` advances from 9 to 10.
+- Migration: schemas 1-9 to 10 PASS, including legacy identity, inclusive
+  timing, targets, parameters, invalid legacy repair, and special own keys.
+- Persistence: project JSON, `.minemotion`, package v1/schema 9 input, browser
+  autosave/backup, history undo/redo, and lossless schema 9 rollback PASS.
+- Native contract: version, seed, transform, entity/bone target, parameters,
+  local-frame keyframes, blend, layer, and qualities round-trip.
+- Corruption: missing/future native data, future project/package versions,
+  package mismatch, invalid keyframes, and shared-field divergence fail closed.
+- Focused tests: PASS - 20 files, 200 tests.
+- Full tests: PASS - 65 files, 298 tests.
+- Typecheck/build/audit: PASS; existing large-chunk warning remains.
+- Native/Tauri validation: not rerun because no Rust/native source changed.
+- Manual visual validation: not applicable to this persistence-only milestone;
+  the existing browser attachment environment limitation remains recorded.

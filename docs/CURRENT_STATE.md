@@ -1,11 +1,11 @@
 # Current State
 
-MineMotion Studio `0.8.2` uses project schema 9.
+MineMotion Studio `0.8.2` uses project schema 10.
 
-Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.5 are
+Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.6 are
 complete. Low-level contracts have stable ownership under `src/core`, and a
-typed VFX compatibility projection plus real schema 9 effects-lane editing now
-exist without changing project schema 9.
+typed VFX compatibility projection plus real effects-lane editing now coexist
+with the schema 10 native persistence bridge.
 
 ## Working Systems
 
@@ -15,7 +15,7 @@ exist without changing project schema 9.
 - Resource pack/material/lighting studio MVP with atmosphere and environment keys.
 - Timeline, Dopesheet, Graph view, markers, reusable clips, and NLA skeleton.
 - Cinematic preset effects and post-processing preview/export overlays.
-- `.minemotion`/`.mmsproj` save/load and migrations from schemas 1-8 to 9.
+- `.minemotion`/`.mmsproj` save/load and migrations from schemas 1-9 to 10.
 - Production render queue, validation, estimates, PNG/ZIP/WebM/WAV/package/metadata output, final camera, render logs, and native FFmpeg bridge.
 - Windows Tauri debug application plus MSI/NSIS generation.
 - Stable core contracts for IDs, frame time/playback, scene entities, schema,
@@ -51,6 +51,12 @@ exist without changing project schema 9.
   edits, save/reload, packages, undo, and redo.
 - VFX color values are restricted to safe hex or named tokens at validation and
   renderer boundaries.
+- Schema 10 embeds one validated native VFX record in each existing effect and
+  persists native version, seed, transform, entity/bone target, parameters,
+  local-frame parameter keyframes, blend, layer, and preview/export qualities.
+- Project JSON, packages, autosave, history, and production package export
+  preserve native VFX. Autosave retains a rollback copy, and schema 9 export
+  fails explicitly when native-only data would be lost.
 
 ## Partial Systems
 
@@ -61,13 +67,13 @@ exist without changing project schema 9.
 
 ## Absent Systems
 
-- Phase 15.6+ schema migration and preview/export integration.
+- Phase 15.7+ preview/export integration, resource cleanup, and final gate.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 64 frontend test files and 281 passing tests.
+- 65 frontend test files and 298 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -77,7 +83,7 @@ exist without changing project schema 9.
 
 - `ProjectFile.ts` still owns product schema but re-exports generic scene types
   from `src/core/scene`.
-- `CURRENT_PROJECT_SCHEMA_VERSION` is the runtime source of truth for schema 9.
+- `CURRENT_PROJECT_SCHEMA_VERSION` is the runtime source of truth for schema 10.
 - Generated IDs are centralized; deterministic seeded IDs are a separate API.
 - Existing effects remain preset-based. Phase 15 must adapt `effects.instances`
   and the existing effects timeline lane instead of adding parallel project data.
@@ -95,4 +101,9 @@ exist without changing project schema 9.
 - Phase 15.5 derives Inspector behavior from those definitions rather than a
   copied UI schema. The controller validates known values and permits bounded,
   one-key repair of invalid schema 9 legacy data without accepting new unknown
-  keys. Schema 10 fields and parameter keyframes remain deferred to 15.6.
+  keys. Schema 10 now persists native fields and local parameter keyframes;
+  their typed visual evaluation remains deferred to 15.7.
+- Phase 15.6 keeps one effects collection: the legacy projection remains active
+  for current UI/rendering while a synchronized `nativeVfx` record is persisted.
+  Schema 10 shared-field mismatches, malformed native data, and future versions
+  fail closed. Typed runtime consumption becomes the exact 15.7 task.

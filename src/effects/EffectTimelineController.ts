@@ -8,13 +8,15 @@ import type { MineMotionProject } from "../project/ProjectFile";
 import { sanitizeTimelineTracks } from "../project/TimelineTrackSanitizer";
 import {
   adaptLegacyEffectDefinition,
-  adaptLegacyEffectInstance
+  adaptLegacyEffectInstance,
+  createLegacyVfxSeed
 } from "../vfx/compat/LegacyEffectAdapter";
 import { validateVfxInstance } from "../vfx/core/VfxValidator";
 import {
   MAX_VFX_PARAMETER_ID_LENGTH,
   MAX_VFX_PARAMETER_STRING_LENGTH
 } from "../vfx/core/VfxParameter";
+import { synchronizeLegacyEffectNativeVfx } from "../vfx/serialization/VfxProjectMigration";
 import { effectRegistry } from "./EffectRegistry";
 import type {
   EffectInstance,
@@ -60,7 +62,8 @@ const EFFECT_INSTANCE_KEYS = new Set([
   "position",
   "targetObjectId",
   "parameters",
-  "enabled"
+  "enabled",
+  "nativeVfx"
 ]);
 
 export const EFFECT_TIMELINE_CLIPBOARD_VERSION = 1 as const;
@@ -446,6 +449,20 @@ function validateEffect(
       `${path}.enabled`
     );
   }
+  if (value.nativeVfx !== undefined) {
+    try {
+      synchronizeLegacyEffectNativeVfx(
+        value as unknown as EffectInstance,
+        value.nativeVfx as EffectInstance["nativeVfx"]
+      );
+    } catch (error) {
+      return issue(
+        "EFFECT_TIMELINE_NATIVE_VFX_INVALID",
+        error instanceof Error ? error.message : "Native VFX data is invalid.",
+        `${path}.nativeVfx`
+      );
+    }
+  }
   if (enforceKnownParameterBounds) {
     const parameterError = validateKnownParameters(
       value as unknown as EffectInstance
@@ -512,7 +529,7 @@ function validateProjectEffects(project: MineMotionProject): ValidationIssue | n
 }
 
 function cloneEffect(effect: EffectInstance): EffectInstance {
-  return {
+  const legacy: EffectInstance = {
     id: effect.id,
     type: effect.type,
     name: effect.name,
@@ -532,6 +549,7 @@ function cloneEffect(effect: EffectInstance): EffectInstance {
     ) as EffectParameters,
     enabled: effect.enabled
   };
+  return synchronizeLegacyEffectNativeVfx(legacy, effect.nativeVfx);
 }
 
 function sameParameters(
@@ -631,11 +649,14 @@ function mutation(
   const timelineTracks = sanitizeTimelineTracks(
     project.animation.timelineTracks
   );
+  const synchronizedInstances = instances.map((effect) =>
+    synchronizeLegacyEffectNativeVfx(effect, effect.nativeVfx)
+  );
   return validResult({
     project: syncEffectTimelineLane({
       ...project,
       animation: { ...project.animation, timelineTracks },
-      effects: { instances }
+      effects: { instances: synchronizedInstances }
     }),
     changed: true,
     selectedEffectId,
@@ -854,12 +875,21 @@ export function applyEffectTimelineCommand(
       "command"
     );
     if (timingError) return failure(timingError);
-    const pasted = {
+    const pastedBase = {
       ...cloneEffect(source),
       id: command.newEffectId as string,
       name: `${source.name} Copy`,
       startFrame: normalizeNumber(command.startFrame as number)
     };
+    const pasted = synchronizeLegacyEffectNativeVfx(
+      pastedBase,
+      pastedBase.nativeVfx
+        ? {
+            ...pastedBase.nativeVfx,
+            seed: createLegacyVfxSeed(pastedBase.id, pastedBase.type)
+          }
+        : undefined
+    );
     return mutation(
       project,
       [...effects, pasted],
@@ -1042,12 +1072,21 @@ export function applyEffectTimelineCommand(
       "command"
     );
     if (timingError) return failure(timingError);
-    const duplicate = {
+    const duplicateBase = {
       ...cloneEffect(source),
       id: command.newEffectId as string,
       name: `${source.name} Copy`,
       startFrame: normalizeNumber(command.startFrame as number)
     };
+    const duplicate = synchronizeLegacyEffectNativeVfx(
+      duplicateBase,
+      duplicateBase.nativeVfx
+        ? {
+            ...duplicateBase.nativeVfx,
+            seed: createLegacyVfxSeed(duplicateBase.id, duplicateBase.type)
+          }
+        : undefined
+    );
     const duplicateError = validateEffect(duplicate, "effect");
     if (duplicateError) return failure(duplicateError);
     const instances = [...effects];

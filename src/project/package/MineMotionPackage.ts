@@ -1,11 +1,13 @@
 import { collectProjectAssets } from "../../assets/library/AssetLibrary";
 import type { MineMotionProject } from "../ProjectFile";
+import { ProjectSerializer } from "../ProjectSerializer";
 import { createMineMotionManifest } from "./MineMotionManifest";
 import type { MineMotionPackageData } from "./PackageTypes";
 
 export function createMineMotionPackageData(
   project: MineMotionProject
 ): MineMotionPackageData {
+  project = ProjectSerializer.toSerializableProject(project);
   const library = collectProjectAssets(project);
   const models: Record<string, string> = {};
   const skins: Record<string, string> = {};

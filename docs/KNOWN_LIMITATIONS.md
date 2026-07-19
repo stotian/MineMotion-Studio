@@ -33,7 +33,7 @@ still required before changing code.
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
 | LIM-026 | Primitive limits are per descriptor; a combined per-frame stack budget awaits real stack integration and measurement | Yes | P3 | 15.8/20 | OPEN |
-| LIM-027 | Schema 9 cannot persist VFX parameter keyframes or native seed/quality/layer/blend/transform fields | Yes | P4 | 15.6 | OPEN |
+| LIM-027 | Schema 10 persists native VFX fields and local parameter keyframes, but keyframe editing/evaluation is not connected yet | Yes | P4 | 15.7 | PARTIALLY_RESOLVED |
 
 ## Phase 15.1 Outcome
 
@@ -77,3 +77,13 @@ bounded unknown and special own legacy keys. Safe color tokens are enforced at
 validation and renderer boundaries. This does not make ignored parameters
 visually active, add parameter keyframes, or migrate native VFX fields; those
 remain assigned to 15.6-15.7.
+
+## Phase 15.6 Outcome
+
+Project schema 10 now migrates schemas 1-9 and losslessly persists native VFX
+version, seed, transform, entity/bone target, parameters/local keyframes, blend,
+layer, and qualities inside the single existing effects collection. JSON,
+packages, autosave, history, and rollback behavior are tested; corrupt/future
+data fails closed and autosave retains a previous payload. The legacy projection
+still drives visible rendering, and local parameter keyframes are stored but not
+yet edited or evaluated. Those runtime gaps remain assigned to 15.7.

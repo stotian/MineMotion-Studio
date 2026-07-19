@@ -14,6 +14,21 @@ export interface VfxTarget {
   boneId?: string;
 }
 
+export type VfxParameterKeyframeInterpolation =
+  | "constant"
+  | "linear"
+  | "ease-in"
+  | "ease-out"
+  | "ease-in-out";
+
+export interface VfxParameterKeyframe {
+  id: string;
+  parameterId: string;
+  localFrame: number;
+  value: VfxParameterValue;
+  interpolation: VfxParameterKeyframeInterpolation;
+}
+
 /**
  * Pure, structured-cloneable VFX data. Runtime/GPU objects must never be stored
  * here so project history and deterministic offline evaluation remain safe.
@@ -31,6 +46,7 @@ export interface VfxInstance {
   target: VfxTarget | null;
   seed: string;
   parameters: Readonly<Record<string, VfxParameterValue>>;
+  parameterKeyframes: readonly VfxParameterKeyframe[];
   blendMode: VfxBlendMode;
   renderLayer: VfxRenderLayer;
   previewQuality: VfxQuality;

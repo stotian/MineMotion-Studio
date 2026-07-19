@@ -126,3 +126,21 @@ legacy keys remain untouched, and an invalid known legacy value may be repaired
 one key at a time. New unknown keys remain rejected. Colors must be safe hex or
 alphabetic named tokens before reaching CSS, Canvas, or Three.js. Parameter
 keyframes and native-only fields remain schema 10 work.
+
+## TD-013 - Schema 10 enriches the single existing effects collection
+
+Status: Accepted
+
+Migrate schemas 1-9 to project schema 10 by attaching one validated `nativeVfx`
+record to every existing `effects.instances` entry. Do not add `project.vfx`, a
+second store, or a second lane. During the 15.6-to-15.7 bridge, current edits
+synchronize identity, display name, inclusive timing, enabled state, position,
+entity target, and parameters into the native record while preserving native
+rotation/scale, target bone, seed, local parameter keyframes, blend, layer, and
+qualities.
+
+Current schema 10 loads require native data and reject corrupt/future versions
+or shared-field disagreement. Schemas 1-9 migrate without mutating their source.
+Browser autosave keeps a previous payload, packages delegate to the canonical
+serializer, and schema 9 rollback is allowed only after guarded lossless reverse
+conversion. The legacy projection remains until typed runtime parity in 15.7.

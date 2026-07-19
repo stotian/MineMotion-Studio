@@ -30,7 +30,7 @@ contracts and evidence-based runtime capability reporting.
   character rig, camera helpers, OBJ preview, sky presets, and selection outline.
 - Project save/load as `.minemotion` packages with legacy `.mmsproj` JSON import
   and export.
-- Migration from schema v1 through v8 projects to schema v9.
+- Migration from schema v1 through v9 projects to schema v10.
 - App settings, autosave recovery, templates, presets, undo/redo, and plugin
   manager from earlier phases.
 - Cinematic effects library with lightning, impact frames, camera shake, flash,
@@ -166,11 +166,11 @@ installed and that command has completed successfully.
 
 ## Project And Package Format
 
-Current projects use `schemaVersion: 9`. The main save path downloads a
+Current projects use `schemaVersion: 10`. The main save path downloads a
 `.minemotion` file containing:
 
 - package manifest
-- schema v9 project JSON
+- schema v10 project JSON with validated native VFX data
 - embedded OBJ model data
 - embedded Minecraft skin data URLs
 - embedded Blockbench raw JSON
@@ -182,8 +182,8 @@ Current projects use `schemaVersion: 9`. The main save path downloads a
 - asset library metadata
 - package warnings
 
-Legacy `.mmsproj` JSON files remain loadable and exportable from the Export
-panel.
+Legacy `.mmsproj` JSON files remain loadable. Schema 9 export is available when
+the project contains no native-only VFX data that would be lost.
 
 ## Documentation
 

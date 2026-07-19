@@ -102,10 +102,11 @@ describe("EffectTimelineController", () => {
       "effect_first",
       "effect_second"
     ]);
-    expect(mutation.project.effects.instances[0]).toEqual({
+    expect(mutation.project.effects.instances[0]).toMatchObject({
       ...project.effects.instances[0],
       startFrame: 24
     });
+    expect(mutation.project.effects.instances[0].nativeVfx?.startFrame).toBe(24);
     expect(effectLane(mutation.project)?.items[0]).toMatchObject({
       effectId: "effect_first",
       startFrame: 24,
@@ -189,10 +190,15 @@ describe("EffectTimelineController", () => {
       "effect_duplicate",
       "effect_second"
     ]);
-    expect(duplicate).toEqual({
+    expect(duplicate).toMatchObject({
       ...project.effects.instances[0],
       id: "effect_duplicate",
       name: `${project.effects.instances[0].name} Copy`,
+      startFrame: 30
+    });
+    expect(duplicate.nativeVfx).toMatchObject({
+      id: "effect_duplicate",
+      displayName: "Shockwave Copy",
       startFrame: 30
     });
     expect(duplicate.position).not.toBe(project.effects.instances[0].position);
@@ -208,7 +214,7 @@ describe("EffectTimelineController", () => {
     expect(copied.ok).toBe(true);
     if (!copied.ok) return;
     expect(JSON.stringify(project)).toBe(before);
-    expect(copied.value.effect).toEqual(project.effects.instances[0]);
+    expect(copied.value.effect).toMatchObject(project.effects.instances[0]);
     expect(copied.value.effect).not.toBe(project.effects.instances[0]);
 
     const mutation = requireMutation(
@@ -221,10 +227,15 @@ describe("EffectTimelineController", () => {
     );
     const pasted = mutation.project.effects.instances.at(-1);
 
-    expect(pasted).toEqual({
+    expect(pasted).toMatchObject({
       ...project.effects.instances[0],
       id: "effect_pasted",
       name: `${project.effects.instances[0].name} Copy`,
+      startFrame: 70
+    });
+    expect(pasted?.nativeVfx).toMatchObject({
+      id: "effect_pasted",
+      displayName: "Shockwave Copy",
       startFrame: 70
     });
     expect(pasted?.position).not.toBe(copied.value.effect.position);
@@ -414,7 +425,12 @@ describe("EffectTimelineController", () => {
     const addition = requireMutation(
       applyEffectTimelineCommand(project, { type: "insert", effect: inserted })
     );
-    expect(addition.project.effects.instances.at(-1)).toEqual(inserted);
+    expect(addition.project.effects.instances.at(-1)).toMatchObject(inserted);
+    expect(addition.project.effects.instances.at(-1)?.nativeVfx).toMatchObject({
+      id: "effect_inserted",
+      definitionId: "fogPulse",
+      startFrame: 80
+    });
     expect(addition.selectedEffectId).toBe("effect_inserted");
 
     const deletion = requireMutation(
@@ -907,7 +923,7 @@ describe("EffectTimelineController", () => {
       ProjectSerializer.serialize(reordered.project)
     );
 
-    expect(reloaded.schemaVersion).toBe(9);
+    expect(reloaded.schemaVersion).toBe(10);
     expect(reloaded.effects.instances).toEqual(reordered.project.effects.instances);
     expect(effectLane(reloaded)?.items).toEqual(effectLane(reordered.project)?.items);
     expect(effectLane(reloaded)?.items[0].label).toBe(
@@ -942,6 +958,47 @@ describe("EffectTimelineController", () => {
     expect(redone?.effects.instances).toEqual(mutation.project.effects.instances);
     expect(effectLane(redone as MineMotionProject)?.items).toEqual(
       effectLane(mutation.project)?.items
+    );
+  });
+
+  it("synchronizes shared fields while preserving native-only VFX through history", () => {
+    const project = ProjectSerializer.parse(
+      ProjectSerializer.serialize(createProject())
+    );
+    const native = project.effects.instances[0].nativeVfx;
+    if (!native) throw new Error("native VFX fixture missing");
+    native.transform.rotation = [0, 30, 0];
+    native.seed = "custom-history-seed";
+    native.parameterKeyframes = [
+      {
+        id: "key_radius_history",
+        parameterId: "radius",
+        localFrame: 4,
+        value: 5,
+        interpolation: "linear"
+      }
+    ];
+    const history = new HistoryStack<MineMotionProject>();
+    const mutation = requireMutation(
+      applyEffectTimelineCommand(project, {
+        type: "move",
+        effectId: "effect_first",
+        startFrame: 36
+      })
+    );
+    history.push(project, mutation.historyLabel);
+
+    expect(mutation.project.effects.instances[0].nativeVfx).toMatchObject({
+      startFrame: 36,
+      seed: "custom-history-seed",
+      transform: { rotation: [0, 30, 0] },
+      parameterKeyframes: [{ id: "key_radius_history" }]
+    });
+    const undone = history.undo(mutation.project);
+    expect(undone?.effects.instances[0].nativeVfx).toEqual(native);
+    const redone = history.redo(undone as MineMotionProject);
+    expect(redone?.effects.instances[0].nativeVfx).toEqual(
+      mutation.project.effects.instances[0].nativeVfx
     );
   });
 

@@ -75,6 +75,7 @@ function createInstance(): VfxInstance {
     target: { entityId: "character_steve" },
     seed: "instance-seed",
     parameters: { legacyExtra: 42, count: 12 },
+    parameterKeyframes: [],
     blendMode: "additive",
     renderLayer: "world",
     previewQuality: "medium",
@@ -475,7 +476,7 @@ describe("evaluateVfxFrame", () => {
     ]);
   });
 
-  it("matches after a real schema 9 project save/reopen compatibility path", () => {
+  it("matches after a real schema 9 to 10 project migration path", () => {
     const legacy = createEffectInstance("glowBurst", {
       id: "effect_reload_test",
       startFrame: 12,
@@ -484,7 +485,9 @@ describe("evaluateVfxFrame", () => {
     });
     const project = createInitialProject();
     project.effects.instances = [legacy];
-    const reloaded = ProjectSerializer.parse(ProjectSerializer.serialize(project));
+    const reloaded = ProjectSerializer.parse(
+      JSON.stringify({ ...project, schemaVersion: 9 })
+    );
     const definition = createLegacyVfxRegistry().get("glowBurst");
     expect(definition).not.toBeNull();
 

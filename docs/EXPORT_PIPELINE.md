@@ -46,5 +46,5 @@ PNG sequence export:
 
 Cancellation is checked between frames.
 
-Production jobs are persisted in schema v9 with status, progress, logs, and
+Production jobs are persisted in schema v10 with status, progress, logs, and
 errors. See `RENDER_QUEUE.md` and `FFMPEG_EXPORT.md`.

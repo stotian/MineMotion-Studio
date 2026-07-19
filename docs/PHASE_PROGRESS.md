@@ -6,11 +6,11 @@ Phase 15 - Native Deterministic VFX Foundation
 
 ## Current Milestone
 
-15.6 - Schema 10 migration and serialization
+15.7 - Native VFX preview/export integration
 
 ## Status
 
-IN_PROGRESS - milestones 15.1 through 15.5 completed and validated; 15.6 is next.
+IN_PROGRESS - milestones 15.1 through 15.6 completed and validated; 15.7 is next.
 
 ## Completed
 
@@ -55,15 +55,21 @@ IN_PROGRESS - milestones 15.1 through 15.5 completed and validated; 15.6 is next
 - Parameter commits use the existing schema 9 timeline controller. Invalid
   legacy values can be repaired without dropping unknown keys, and safe color
   tokens are enforced before renderer consumption.
+- Phase 15.6 project schema 10 with deterministic migrations from schemas 1-9,
+  one native VFX record per existing effect, synchronized identity/timing/data,
+  persisted seed/transform/target/parameters/local keyframes/blend/layer/
+  qualities, and explicit future/corruption rejection.
+- JSON, `.minemotion`, browser autosave, history, and package render jobs share
+  the canonical serializer. Autosave retains a previous payload for recovery;
+  lossless schema 9 rollback rejects native-only fields instead of dropping them.
 
 ## In Progress
 
-- Phase 15 foundation. The next unit is milestone 15.6: inventory schemas 1-9
-  and every package/autosave/load path before designing schema 10.
+- Phase 15 foundation. The next unit is milestone 15.7: one canonical typed VFX
+  evaluation-preparation path shared by preview and every visual export.
 
 ## Not Started
 
-- Phase 15.6 schema 10 migration and serialization.
 - Phase 15.7 preview/export integration.
 - Phase 15.8 performance limits and resource cleanup.
 - Phase 15.9 full phase validation.
@@ -71,7 +77,7 @@ IN_PROGRESS - milestones 15.1 through 15.5 completed and validated; 15.6 is next
 
 ## Blockers
 
-- None for Phase 15.6 TypeScript work.
+- None for Phase 15.7 TypeScript work.
 - Manual Phase 15.5 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -80,21 +86,22 @@ IN_PROGRESS - milestones 15.1 through 15.5 completed and validated; 15.6 is next
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.5 is the validated checkpoint containing this document; Git history
+- Phase 15.6 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm ci`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused final serialization/Inspector tests: PASS - 2 files, 25 tests
-- `npm test`: PASS - 64 files, 281 tests
+- Focused Phase 15.6 tests: PASS - 20 files, 200 tests
+- `npm test`: PASS - 65 files, 298 tests
 - `npm run build`: PASS - existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 15.5 changes TypeScript/docs only.
+- Native checks: not rerun because milestone 15.6 changes TypeScript/docs only.
 
 ## Next Exact Action
 
-Inventory schemas 1-9 and every serializer, migration, autosave, project load,
-package read/write, export staging, and validation path. Record the schema 10
-compatibility surface before changing `CURRENT_PROJECT_SCHEMA_VERSION`.
+Inventory every legacy preview, CSS overlay, Three.js world effect, PNG capture,
+PNG sequence, WebM presentation, and FFmpeg staging caller. Create one typed
+evaluation-preparation result consumed by each path, preserve the legacy adapter
+until parity is proven, and make `includeVfx=false` exclude every VFX layer.

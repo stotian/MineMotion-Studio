@@ -27,5 +27,5 @@ audio mixdown, and before FFmpeg starts. Once the external FFmpeg process has
 started, the current MVP waits for that process to finish and reports its exit
 status.
 
-Queue history is serialized in schema v9. A job that was marked running when a
+Queue history is serialized in schema v10. A job that was marked running when a
 project was last saved is recovered as queued on load.

@@ -14,7 +14,8 @@ import {
 import type { VfxQuality } from "./VfxEvaluationContext";
 import {
   VFX_INSTANCE_SERIALIZATION_VERSION,
-  type VfxInstance
+  type VfxInstance,
+  type VfxParameterKeyframeInterpolation
 } from "./VfxInstance";
 import {
   MAX_VFX_PARAMETER_ID_LENGTH,
@@ -44,6 +45,15 @@ const VFX_QUALITIES = new Set<VfxQuality>([
   "high",
   "final"
 ]);
+const VFX_PARAMETER_KEYFRAME_INTERPOLATIONS =
+  new Set<VfxParameterKeyframeInterpolation>([
+    "constant",
+    "linear",
+    "ease-in",
+    "ease-out",
+    "ease-in-out"
+  ]);
+const MAX_VFX_PARAMETER_KEYFRAMES = 16_384;
 
 function issue(
   code: string,
@@ -577,6 +587,129 @@ export function validateVfxInstance(
         continue;
       }
       errors.push(...validateParameterValue(parameter, value, path));
+    }
+  }
+
+  if (!Array.isArray(instance.parameterKeyframes)) {
+    errors.push(
+      issue(
+        "VFX_PARAMETER_KEYFRAMES_INVALID",
+        "VFX parameter keyframes must be an array.",
+        "parameterKeyframes"
+      )
+    );
+  } else if (instance.parameterKeyframes.length > MAX_VFX_PARAMETER_KEYFRAMES) {
+    errors.push(
+      issue(
+        "VFX_PARAMETER_KEYFRAMES_LIMIT_EXCEEDED",
+        `VFX parameter keyframes cannot exceed ${MAX_VFX_PARAMETER_KEYFRAMES}.`,
+        "parameterKeyframes"
+      )
+    );
+  } else {
+    const keyframeIds = new Set<string>();
+    const schemaById = new Map(
+      (definition?.parameterSchema ?? []).map((parameter) => [parameter.id, parameter])
+    );
+    for (let index = 0; index < instance.parameterKeyframes.length; index += 1) {
+      const path = `parameterKeyframes.${index}`;
+      if (!Object.hasOwn(instance.parameterKeyframes, index)) {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAMES_INVALID",
+            "VFX parameter keyframes must be dense.",
+            path
+          )
+        );
+        continue;
+      }
+      const keyframe = instance.parameterKeyframes[index];
+      if (!isRecord(keyframe)) {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_INVALID",
+            "VFX parameter keyframes must be objects.",
+            path
+          )
+        );
+        continue;
+      }
+      if (!isIdentifier(keyframe.id)) {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_ID_INVALID",
+            "VFX parameter keyframe ID is invalid.",
+            `${path}.id`
+          )
+        );
+      } else if (keyframeIds.has(keyframe.id)) {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_ID_DUPLICATE",
+            `Duplicate VFX parameter keyframe ID: ${keyframe.id}.`,
+            `${path}.id`
+          )
+        );
+      } else {
+        keyframeIds.add(keyframe.id);
+      }
+      if (!isParameterIdentifier(keyframe.parameterId)) {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_PARAMETER_INVALID",
+            "VFX parameter keyframe parameter ID is invalid.",
+            `${path}.parameterId`
+          )
+        );
+      }
+      if (
+        typeof keyframe.localFrame !== "number" ||
+        !Number.isSafeInteger(keyframe.localFrame) ||
+        keyframe.localFrame < 0 ||
+        keyframe.localFrame > instance.durationFrames
+      ) {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_FRAME_INVALID",
+            "VFX parameter keyframe local frame must be inside the inclusive effect range.",
+            `${path}.localFrame`
+          )
+        );
+      }
+      if (!VFX_PARAMETER_KEYFRAME_INTERPOLATIONS.has(
+        keyframe.interpolation as VfxParameterKeyframeInterpolation
+      )) {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_INTERPOLATION_INVALID",
+            "VFX parameter keyframe interpolation is invalid.",
+            `${path}.interpolation`
+          )
+        );
+      }
+      const parameter = schemaById.get(String(keyframe.parameterId));
+      if (parameter) {
+        errors.push(
+          ...validateParameterValue(parameter, keyframe.value, `${path}.value`)
+        );
+      } else if (isVfxParameterValue(keyframe.value)) {
+        warnings.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_UNKNOWN",
+            `Keyframe for unknown parameter is preserved: ${String(keyframe.parameterId)}.`,
+            `${path}.parameterId`,
+            "warning"
+          )
+        );
+      } else {
+        errors.push(
+          issue(
+            "VFX_PARAMETER_KEYFRAME_VALUE_INVALID",
+            "Unknown parameter keyframe values must still be finite primitive values.",
+            `${path}.value`
+          )
+        );
+      }
     }
   }
 

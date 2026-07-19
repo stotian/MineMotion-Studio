@@ -1,6 +1,16 @@
 # Project Schema
 
-Current project files use `schemaVersion: 9`.
+Current project files use `schemaVersion: 10`.
+
+## Added In Schema 10
+
+- one validated `nativeVfx` record attached to every existing effect instance
+- native serialization version, definition ID, transform, entity/bone target,
+  deterministic seed, parameters and local-frame parameter keyframes
+- native blend mode, render layer, preview quality, and export quality
+- deterministic schemas 1-9 migration with legacy identity and inclusive timing
+- lossless schema 9 rollback export; native-only data loss is rejected
+- recoverable browser autosave backup and non-destructive recovery failure
 
 ## Added In Schema 9
 
@@ -69,15 +79,16 @@ Current project files use `schemaVersion: 9`.
 
 The serializer supports:
 
-- v1 -> v9
-- v2 -> v9
-- v3 -> v9
-- v4 -> v9
-- v5 -> v9
-- v6 -> v9
-- v7 -> v9
-- v8 -> v9
-- v9 round-trip
+- v1 -> v10
+- v2 -> v10
+- v3 -> v10
+- v4 -> v10
+- v5 -> v10
+- v6 -> v10
+- v7 -> v10
+- v8 -> v10
+- v9 -> v10
+- v10 round-trip
 
 Missing Phase 2, Phase 3, Phase 4, Phase 5, Phase 6, and Phase 8 fields are filled with safe
 defaults.
@@ -115,3 +126,5 @@ chunk cache data. Schema v6 adds rig, skin, pose, and Blockbench data. Schema
 v7 adds resource packs, materials, lighting, atmosphere, and environment keys.
 Schema v8 adds professional animation-editor metadata, markers, reusable clips,
 and NLA tracks. Schema v9 adds production render queue and FFmpeg settings.
+Schema v10 embeds native VFX persistence while retaining the legacy projection
+needed by the current renderer until milestone 15.7.

@@ -13,7 +13,7 @@ phase documents remain the source of truth for implementation details.
 | RISK-F | Main bundle is about 1 MB | CONFIRMED | 15.8/20 | Measure imports before lazy-loading or chunk changes. |
 | RISK-G | Manual browser smoke cannot attach to local webview | ENVIRONMENT_BLOCKED | Per UI milestone | Retry once per major UI milestone, document the result, and retain automated regression coverage. |
 | RISK-H | GitHub CI status is not yet evidenced | NOT_YET_AUDITED | After 15.9 | Add a Node CI workflow when it no longer distracts from Phase 15 stabilization. |
-| RISK-I | JSON package/save safety and future schema migration need audit | CONFIRMED | 15.6/24 | Keep schema 9 round-trips intact; make schema 10 migration explicit and tested. |
+| RISK-I | Downloaded JSON package writes are not atomic filesystem saves | PARTIALLY_MITIGATED | 24 | Schema 10 migration/package validation is tested and browser autosave keeps a rollback copy; native atomic file save still needs desktop work. |
 
 ## Phase 15.5 Resolution
 
@@ -23,5 +23,14 @@ phase documents remain the source of truth for implementation details.
   all tested persistence paths.
 - Non-hex legacy colors remain editable as text and are never silently coerced;
   unsafe CSS resource/function values are rejected.
-- Visual consumption gaps and schema 9 keyframe/native-field limits remain
-  tracked as LIM-012 and LIM-027 for milestones 15.6-15.7.
+- Visual consumption gaps and unconnected native keyframe evaluation remain
+  tracked as LIM-012 and LIM-027 for milestone 15.7.
+
+## Phase 15.6 Resolution
+
+- Schemas 1-9, project JSON, autosave, package, history, and render-package
+  persistence paths are inventoried and covered by migration round trips.
+- Schema 10 corruption, future versions, and legacy/native disagreement fail
+  closed. Failed autosave recovery retains both primary and backup payloads.
+- Native VFX persistence is no longer a risk; runtime coexistence and visual
+  parity remain RISK-A/RISK-B for 15.7.

@@ -1,7 +1,6 @@
 import { sanitizeAudioClips } from "../audio/AudioSerializer";
 import { createAudioTimelineItems } from "../audio/AudioTrack";
 import { sanitizeAssetLibrary } from "../assets/library/AssetSerializer";
-import { sanitizeEffects } from "../effects/EffectSerializer";
 import { createEffectTimelineLaneItems } from "../effects/EffectTimelineTrack";
 import { withExportSettingsDefaults } from "../export/ExportSettings";
 import { withFfmpegSettingsDefaults } from "../export/ffmpeg/FfmpegSettings";
@@ -36,6 +35,12 @@ import {
   mergeCanonicalTimelineTracks,
   sanitizeTimelineTracks
 } from "./TimelineTrackSanitizer";
+import {
+  migrateLegacyEffectsToSchema10,
+  normalizeEffectsForSchema10,
+  sanitizeSchema10Effects,
+  serializeEffectsAsSchema9
+} from "../vfx/serialization/VfxProjectMigration";
 
 type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
   schemaVersion?: number;
@@ -44,15 +49,43 @@ type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
 
 export class ProjectSerializer {
   static serialize(project: MineMotionProject): string {
+    const normalized = ProjectSerializer.toSerializableProject(project);
     const updatedProject: MineMotionProject = {
-      ...project,
+      ...normalized,
       metadata: {
-        ...project.metadata,
+        ...normalized.metadata,
         updatedAt: new Date().toISOString()
       }
     };
 
     return JSON.stringify(updatedProject, null, 2);
+  }
+
+  static serializeLegacyV9(project: MineMotionProject): string {
+    const normalized = ProjectSerializer.toSerializableProject(project);
+    return JSON.stringify(
+      {
+        ...normalized,
+        schemaVersion: 9,
+        effects: {
+          instances: serializeEffectsAsSchema9(normalized.effects.instances)
+        }
+      },
+      null,
+      2
+    );
+  }
+
+  static toSerializableProject(project: MineMotionProject): MineMotionProject {
+    const normalized: MineMotionProject = {
+      ...project,
+      schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
+      effects: {
+        instances: normalizeEffectsForSchema10(project.effects.instances)
+      }
+    };
+    ProjectSerializer.assertValidProject(normalized);
+    return normalized;
   }
 
   static parse(raw: string): MineMotionProject {
@@ -66,7 +99,7 @@ export class ProjectSerializer {
       return ProjectSerializer.migrate(parsed);
     }
 
-    const project = ProjectSerializer.withV9Defaults(parsed);
+    const project = ProjectSerializer.withV10Defaults(parsed, "require");
     ProjectSerializer.assertValidProject(project);
     return project;
   }
@@ -75,9 +108,9 @@ export class ProjectSerializer {
     if (parsed.schemaVersion === 1) {
       ProjectSerializer.assertLegacyCoreData(parsed);
       const migratedV2 = ProjectSerializer.withV2CompatibilityDefaults(parsed);
-      const migratedV9 = ProjectSerializer.withV9Defaults(migratedV2);
-      ProjectSerializer.assertValidProject(migratedV9);
-      return migratedV9;
+      const migratedV10 = ProjectSerializer.withV10Defaults(migratedV2, "migrate");
+      ProjectSerializer.assertValidProject(migratedV10);
+      return migratedV10;
     }
 
     if (
@@ -87,11 +120,12 @@ export class ProjectSerializer {
       parsed.schemaVersion === 5 ||
       parsed.schemaVersion === 6 ||
       parsed.schemaVersion === 7 ||
-      parsed.schemaVersion === 8
+      parsed.schemaVersion === 8 ||
+      parsed.schemaVersion === 9
     ) {
-      const migratedV9 = ProjectSerializer.withV9Defaults(parsed);
-      ProjectSerializer.assertValidProject(migratedV9);
-      return migratedV9;
+      const migratedV10 = ProjectSerializer.withV10Defaults(parsed, "migrate");
+      ProjectSerializer.assertValidProject(migratedV10);
+      return migratedV10;
     }
 
     if (parsed.schemaVersion === undefined) {
@@ -122,9 +156,16 @@ export class ProjectSerializer {
     };
   }
 
-  private static withV9Defaults(project: UnknownProject): MineMotionProject {
+  private static withV10Defaults(
+    project: UnknownProject,
+    nativeMode: "migrate" | "require"
+  ): MineMotionProject {
     const settingsDefaults = createDefaultProjectSettings();
-    const effects = sanitizeEffects(project.effects?.instances);
+    const rawEffects = project.effects?.instances;
+    const effects =
+      nativeMode === "require"
+        ? sanitizeSchema10Effects(rawEffects)
+        : migrateLegacyEffectsToSchema10(rawEffects);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
     const rigs = sanitizeRigProjectData(project.rigs);
     const resourcePacks = sanitizeResourcePackAssets(project.assets?.resourcePacks);

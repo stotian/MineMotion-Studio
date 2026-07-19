@@ -55,6 +55,7 @@ function createInstance(): VfxInstance {
     target: null,
     seed: "fixed-seed",
     parameters: { count: 12, direction: "radial" },
+    parameterKeyframes: [],
     blendMode: "additive",
     renderLayer: "world",
     previewQuality: "medium",
@@ -74,6 +75,41 @@ describe("VfxValidator", () => {
 
     expect(definitionResult.ok).toBe(true);
     expect(instanceResult.ok).toBe(true);
+  });
+
+  it("validates persisted parameter keyframes against the canonical schema", () => {
+    const definition = createDefinition();
+    const valid = {
+      ...createInstance(),
+      parameterKeyframes: [
+        {
+          id: "key_count_1",
+          parameterId: "count",
+          localFrame: 12,
+          value: 16,
+          interpolation: "linear" as const
+        }
+      ]
+    };
+    expect(validateVfxInstance(valid, definition).ok).toBe(true);
+
+    const invalid = {
+      ...valid,
+      parameterKeyframes: [
+        { ...valid.parameterKeyframes[0], value: 12.5 },
+        { ...valid.parameterKeyframes[0], localFrame: -1 }
+      ]
+    };
+    const result = validateVfxInstance(invalid, definition);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.map((error) => error.code)).toEqual(
+      expect.arrayContaining([
+        "VFX_PARAMETER_NOT_INTEGER",
+        "VFX_PARAMETER_KEYFRAME_ID_DUPLICATE",
+        "VFX_PARAMETER_KEYFRAME_FRAME_INVALID"
+      ])
+    );
   });
 
   it("warns about and preserves unknown primitive parameters", () => {

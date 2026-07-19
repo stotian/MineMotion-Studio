@@ -1,5 +1,6 @@
 import type { Vector3Tuple } from "../core/scene/SceneTypes";
 import type { VfxSpace } from "../vfx/core/VfxDefinition";
+import type { VfxInstance } from "../vfx/core/VfxInstance";
 
 export type EffectType =
   | "lightningStrike"
@@ -61,6 +62,8 @@ export interface EffectInstance {
   targetObjectId: string;
   parameters: EffectParameters;
   enabled: boolean;
+  /** Schema 10 native data; legacy fields remain the active 15.6 projection. */
+  nativeVfx?: VfxInstance;
 }
 
 export function getBoundedLegacyParticleCount(

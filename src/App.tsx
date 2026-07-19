@@ -84,6 +84,11 @@ import type {
 } from "./project/ProjectFile";
 import { ProjectSerializer } from "./project/ProjectSerializer";
 import {
+  hasProjectAutosave,
+  loadProjectAutosave,
+  saveProjectAutosave
+} from "./project/ProjectAutosave";
+import {
   createCharacter,
   createId,
   createInitialProject,
@@ -140,8 +145,6 @@ import { SettingsModal } from "./ui/settings/SettingsModal";
 import { TemplatePicker } from "./ui/templates/TemplatePicker";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
 import { WorldImportPanel } from "./ui/world/WorldImportPanel";
-
-const AUTOSAVE_KEY = "minemotion.autosave.project.v1";
 
 export function App() {
   const [settings, setSettings] = useState<AppSettings>(() =>
@@ -252,8 +255,7 @@ export function App() {
   }, [settings]);
 
   useEffect(() => {
-    const rawAutosave = window.localStorage.getItem(AUTOSAVE_KEY);
-    if (!rawAutosave) return;
+    if (!hasProjectAutosave(window.localStorage)) return;
 
     const shouldRestore = window.confirm(
       "A MineMotion autosave was found in this browser. Restore it?"
@@ -261,14 +263,23 @@ export function App() {
     if (!shouldRestore) return;
 
     try {
-      const restored = ProjectSerializer.parse(rawAutosave);
+      const recovered = loadProjectAutosave(window.localStorage);
+      if (!recovered) return;
+      const restored = recovered.project;
       setProject(restored);
       setSelectedObjectId(restored.scene.characters[0]?.id ?? null);
-      setStatus("Autosaved project restored from browser storage.");
+      setStatus(
+        recovered.source === "backup"
+          ? "Primary autosave was invalid; the retained backup was restored."
+          : "Autosaved project restored from browser storage."
+      );
       setIsDirty(true);
-    } catch {
-      window.localStorage.removeItem(AUTOSAVE_KEY);
-      setStatus("Autosave was invalid and has been cleared.");
+    } catch (error) {
+      setStatus(
+        error instanceof Error
+          ? `${error.message} Stored recovery data was retained.`
+          : "Autosave recovery failed; stored recovery data was retained."
+      );
     }
   }, []);
 
@@ -276,8 +287,16 @@ export function App() {
     if (!settings.general.autosaveEnabled || !isDirty) return;
 
     const interval = window.setInterval(() => {
-      window.localStorage.setItem(AUTOSAVE_KEY, ProjectSerializer.serialize(project));
-      setStatus(`Autosaved ${project.projectName} to browser storage.`);
+      try {
+        saveProjectAutosave(window.localStorage, project);
+        setStatus(`Autosaved ${project.projectName} to browser storage.`);
+      } catch (error) {
+        setStatus(
+          error instanceof Error
+            ? `Autosave failed: ${error.message}`
+            : "Autosave failed."
+        );
+      }
     }, settings.general.autosaveIntervalSeconds * 1000);
 
     return () => window.clearInterval(interval);
@@ -428,11 +447,19 @@ export function App() {
       document.activeElement.blur();
     }
     const currentProject = projectRef.current;
-    const raw = ProjectSerializer.serialize(currentProject);
-    const blob = new Blob([raw], { type: "application/json" });
-    const filename = `${sanitizeOutputName(currentProject.projectName)}.mmsproj`;
-    downloadBlob(blob, filename);
-    setStatus(`Legacy project exported as ${filename}.`);
+    try {
+      const raw = ProjectSerializer.serializeLegacyV9(currentProject);
+      const blob = new Blob([raw], { type: "application/json" });
+      const filename = `${sanitizeOutputName(currentProject.projectName)}.mmsproj`;
+      downloadBlob(blob, filename);
+      setStatus(`Legacy schema 9 project exported as ${filename}.`);
+    } catch (error) {
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : "Project contains native VFX data that schema 9 cannot represent."
+      );
+    }
   }, []);
 
   const handleLoadProject = useCallback(() => {

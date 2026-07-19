@@ -1,4 +1,4 @@
-export const CURRENT_PROJECT_SCHEMA_VERSION = 9 as const;
+export const CURRENT_PROJECT_SCHEMA_VERSION = 10 as const;
 
 export type ProjectSchemaVersion = typeof CURRENT_PROJECT_SCHEMA_VERSION;
 

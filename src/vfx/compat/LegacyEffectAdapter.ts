@@ -302,6 +302,7 @@ export function adaptLegacyEffectInstance(effect: EffectInstance): VfxInstance {
       : null,
     seed: createLegacyVfxSeed(effect.id, effect.type),
     parameters: cloneLegacyParameters(effect.parameters),
+    parameterKeyframes: [],
     blendMode: definition.defaultBlendMode,
     renderLayer: definition.defaultRenderLayer,
     previewQuality: LEGACY_PREVIEW_QUALITY,
@@ -420,6 +421,15 @@ export function adaptVfxInstanceToLegacyEffect(
         "VFX_LEGACY_SEED_UNSUPPORTED",
         "Schema 9 effects cannot store a custom VFX seed.",
         "seed"
+      )
+    );
+  }
+  if (instance.parameterKeyframes.length > 0) {
+    errors.push(
+      conversionIssue(
+        "VFX_LEGACY_PARAMETER_KEYFRAMES_UNSUPPORTED",
+        "Schema 9 effects cannot store VFX parameter keyframes.",
+        "parameterKeyframes"
       )
     );
   }

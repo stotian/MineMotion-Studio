@@ -228,7 +228,7 @@ chase, over-shoulder, and dramatic zoom setups.
 
 Use the top toolbar or `Ctrl+S` to download a `.minemotion` package. Legacy
 `.mmsproj` and JSON project files can still be opened. Phase 1, Phase 1.5, and
-Projects using schemas v1 through v8 are migrated to schema v9 when opened.
+Projects using schemas v1 through v9 are migrated to schema v10 when opened.
 
 ## Current Limits
 

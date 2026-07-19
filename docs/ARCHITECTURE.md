@@ -64,6 +64,8 @@ flowchart LR
   finite plain data for future primitives, never renderer/GPU resources.
 - `src/vfx/primitives`: versioned renderer-neutral descriptors, validation,
   bounded/nested sampling, and pure particle/beam/trail/ring/light evaluation.
+- `src/vfx/serialization`: schema 10 migration, shared-field synchronization,
+  native validation, and guarded schema 9 rollback conversion.
 - `src/audio`: audio clip types, import helpers, placeholder SFX registry,
   playback manager, serializer, and timeline helpers.
 - `src/audio/export`: browser WAV mixdown and WAV encoding.
@@ -73,7 +75,8 @@ flowchart LR
 - `src/rigs`: Minecraft rig definitions, Steve/Alex presets, skin import/UV
   mapping, pose and animation presets, IK placeholders, and Blockbench import.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
-- `src/project`: schema v9, serializer, migrations, package helpers, bounded
+- `src/project`: schema v10, serializer, migrations, recoverable autosave,
+  package helpers, bounded
   plain-data timeline sanitization/sync, initial state, and object helpers.
 - `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
@@ -82,7 +85,7 @@ flowchart LR
 
 ## Project System
 
-Project files use schema v9. The serializer migrates v1 through v8
+Project files use schema v10. The serializer migrates v1 through v9
 projects by
 adding:
 
@@ -136,7 +139,8 @@ editor. `timelineTracks` provide typed lanes for:
 
 Effect/audio lanes are synchronized from `effects.instances` and `audio.clips`.
 Effects are edited only through `EffectTimelineController`; successful commands
-mutate schema 9 instances, sanitize foreign lanes, rebuild exactly one
+mutate the legacy projection inside the single schema 10 instance collection,
+synchronize its native VFX record, sanitize foreign lanes, rebuild exactly one
 `track_effects_main`, and create one whole-project history checkpoint. Timeline
 items never become a second source of effect truth.
 
@@ -167,8 +171,8 @@ CSS, DOM, texture, material, cache, or runtime-class objects.
 Timeline commands are a separate integration layer over that pure runtime. They
 validate discriminated plain inputs, inject caller-owned IDs for duplicate and
 paste, preserve deterministic array priority, and reject invalid/no-op edits
-without history. Parameter keyframes are absent from schema 9 and deliberately
-remain outside this layer until the schema 10 migration.
+without history. Schema 10 persists bounded local-frame parameter keyframes,
+but editing/evaluation remains deferred until the typed runtime integration.
 
 ## Audio
 

@@ -661,6 +661,7 @@ describe("evaluateVfxPrimitive", () => {
       target: null,
       seed: "instance-seed",
       parameters: {},
+      parameterKeyframes: [],
       blendMode: "additive",
       renderLayer: "world",
       previewQuality: "medium",

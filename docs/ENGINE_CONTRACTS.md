@@ -10,7 +10,7 @@ replacing the project model, renderer, or React state.
 | generated and deterministic IDs | `src/core/ids` | Generated identity and seeded content identity stay separate. |
 | frames and playback clocks | `src/core/time` | Pure helpers accept explicit FPS, ranges, and timestamps. |
 | vectors, transforms, scene entities | `src/core/scene` | `ProjectFile.ts` re-exports these contracts for compatibility. |
-| schema version, migrations, validation | `src/core/serialization` | Schema 9 has one runtime source of truth. |
+| schema version, migrations, validation | `src/core/serialization` | Schema 10 has one runtime source of truth and tested migrations from 1-9. |
 | engine and user-facing errors | `src/core/errors` | Adoption is incremental at import/export boundaries. |
 | runtime support | `src/core/capabilities` | Support is detected from evidence, never inferred from a visible button. |
 | service boundaries | `src/core/services` | Interfaces guide extraction; there is no dependency injection container. |
@@ -61,7 +61,8 @@ disposal outside project/history data.
 
 Effects timeline editing is a command boundary rather than a second state
 model. `EffectTimelineController` validates plain command/project data, mutates
-schema 9 `effects.instances`, and asks the canonical lane projection to rebuild
+the legacy projection in schema 10 `effects.instances`, synchronizes its
+embedded native VFX record, and asks the canonical lane projection to rebuild
 `track_effects_main`. Foreign lanes pass through `TimelineTrackSanitizer`, so a
 history snapshot cannot retain accessors, classes, sparse arrays, or unrelated
 runtime values. IDs for duplicate and paste are injected by the caller; the
@@ -69,6 +70,6 @@ controller never consults time, UUID, crypto, or random entropy.
 
 Renderer safety currently adds a legacy integration guard of 64 active world
 effects and 4,096 burst particles per frame, with 1,024 particles per effect.
-These are runtime budgets, not schema defaults: oversized schema 9 projects can
-still load and be repaired, while editor commands refuse further growth past
+These are runtime budgets, not schema defaults: oversized legacy projects can
+still migrate and be repaired, while editor commands refuse further growth past
 4,096 effect instances.
