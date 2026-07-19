@@ -69,16 +69,13 @@ export function validateProductionExport(
   }
   if (!settings.outputName.trim()) errors.push("Output name is required.");
   if (settings.format === "webm_video" && !isWebMExportSupported()) {
-    errors.push("WebM export requires browser MediaRecorder and canvas capture support.");
+    errors.push(
+      "WebM export requires browser image bitmap, MediaRecorder, and canvas capture support."
+    );
   }
   if (settings.format === "webm_video" && settings.includeAudio) {
     warnings.push(
       "Browser WebM export records video only; export WAV separately or use native MP4 for muxed audio."
-    );
-  }
-  if (settings.format === "webm_video") {
-    warnings.push(
-      "WebM records the live viewport canvas size; width and height settings apply to PNG/offline frame exports."
     );
   }
   if (settings.format === "wav_audio" && !mixdownSupported) {

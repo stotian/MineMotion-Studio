@@ -7,6 +7,7 @@ export function restoreRenderState(
 ): MineMotionProject {
   return {
     ...project,
+    exportSettings: { ...snapshot.exportSettings },
     activeCameraId: snapshot.activeCameraId,
     scene: {
       ...project.scene,

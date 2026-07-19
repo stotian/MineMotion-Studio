@@ -176,7 +176,8 @@ function normalizeParameterValue(value: VfxParameterValue): VfxParameterValue {
 
 function resolveParameters(
   instance: VfxInstance,
-  definition: VfxDefinition
+  definition: VfxDefinition,
+  localFrame: number
 ): Record<string, VfxParameterValue> {
   const values = new Map<string, VfxParameterValue>();
   for (const parameter of definition.parameterSchema) {
@@ -188,9 +189,63 @@ function resolveParameters(
   for (const [parameterId, value] of Object.entries(instance.parameters)) {
     values.set(parameterId, normalizeParameterValue(value));
   }
+  const keyframesByParameter = new Map<
+    string,
+    Array<VfxInstance["parameterKeyframes"][number]>
+  >();
+  for (const keyframe of instance.parameterKeyframes) {
+    const entries = keyframesByParameter.get(keyframe.parameterId) ?? [];
+    entries.push(keyframe);
+    keyframesByParameter.set(keyframe.parameterId, entries);
+  }
+  for (const [parameterId, keyframes] of keyframesByParameter) {
+    const ordered = [...keyframes].sort(
+      (left, right) =>
+        left.localFrame - right.localFrame || compareText(left.id, right.id)
+    );
+    const previous = [...ordered]
+      .reverse()
+      .find((keyframe) => keyframe.localFrame <= localFrame);
+    if (!previous) continue;
+    const next = ordered.find(
+      (keyframe) => keyframe.localFrame > previous.localFrame
+    );
+    let value = previous.value;
+    if (
+      next &&
+      typeof previous.value === "number" &&
+      typeof next.value === "number" &&
+      previous.interpolation !== "constant"
+    ) {
+      const rawProgress =
+        (localFrame - previous.localFrame) /
+        (next.localFrame - previous.localFrame);
+      const progress = interpolateKeyframeProgress(
+        rawProgress,
+        previous.interpolation
+      );
+      value = previous.value + (next.value - previous.value) * progress;
+    }
+    values.set(parameterId, normalizeParameterValue(value));
+  }
   return Object.fromEntries(
     [...values.entries()].sort(([left], [right]) => compareText(left, right))
   );
+}
+
+function interpolateKeyframeProgress(
+  progress: number,
+  interpolation: VfxInstance["parameterKeyframes"][number]["interpolation"]
+): number {
+  const bounded = Math.min(1, Math.max(0, progress));
+  if (interpolation === "ease-in") return bounded * bounded;
+  if (interpolation === "ease-out") return 1 - (1 - bounded) ** 2;
+  if (interpolation === "ease-in-out") {
+    return bounded < 0.5
+      ? 2 * bounded * bounded
+      : 1 - (-2 * bounded + 2) ** 2 / 2;
+  }
+  return bounded;
 }
 
 function inactiveEvaluation(
@@ -343,7 +398,7 @@ export function evaluateVfxFrame(
         space: instance.space,
         transform: cloneTransform(instance.transform),
         target: cloneTarget(instance.target),
-        parameters: resolveParameters(instance, definition),
+        parameters: resolveParameters(instance, definition, localFrame),
         blendMode: instance.blendMode,
         renderLayer: instance.renderLayer
       }

@@ -1,7 +1,13 @@
-import { getEffectProgress, isEffectActive } from "../effects/EffectTypes";
 import type { MineMotionProject } from "../project/ProjectFile";
 import type { ExportSettings } from "./ExportTypes";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
+import {
+  getPreparedCameraShakeOffset,
+  getPreparedVfxNumber,
+  getPreparedVfxString,
+  prepareProjectVfxFrame,
+  type PreparedProjectVfxEffect
+} from "../vfx/runtime/VfxProjectFrame";
 
 export async function captureViewportPng(
   viewportShell: HTMLElement,
@@ -21,6 +27,18 @@ export async function captureViewportPng(
     throw new Error("Canvas 2D export context is unavailable.");
   }
 
+  const prepared = prepareProjectVfxFrame(project, {
+    includeVfx: settings.includeVfx,
+    quality: "export"
+  });
+  if (!prepared.ok) {
+    throw new Error(
+      `VFX frame preparation failed. ${prepared.errors
+        .map((error) => error.message)
+        .join(" ")}`
+    );
+  }
+
   if (!settings.transparentBackground) {
     context.fillStyle = "#000000";
     context.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
@@ -29,15 +47,45 @@ export async function captureViewportPng(
   if (settings.includePostProcessing) {
     context.filter = createCanvasFilter(project);
   }
-  context.drawImage(sourceCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
+  const shake = getPreparedCameraShakeOffset(prepared.value.effects);
+  context.drawImage(
+    sourceCanvas,
+    shake.x,
+    shake.y,
+    outputCanvas.width,
+    outputCanvas.height
+  );
   context.filter = "none";
 
   if (settings.includeVfx) {
-    drawScreenEffects(context, project, outputCanvas.width, outputCanvas.height);
+    drawScreenEffects(
+      context,
+      prepared.value.effects,
+      outputCanvas.width,
+      outputCanvas.height
+    );
+  }
+
+  if (
+    settings.includePostProcessing &&
+    project.postProcessing.vignetteAmount > 0
+  ) {
+    drawVignette(
+      context,
+      outputCanvas.width,
+      outputCanvas.height,
+      project.postProcessing.vignetteAmount
+    );
   }
 
   if (settings.includeCinematicBars) {
-    drawCinematicBars(context, project, outputCanvas.width, outputCanvas.height);
+    drawCinematicBars(
+      context,
+      project,
+      prepared.value.effects,
+      outputCanvas.width,
+      outputCanvas.height
+    );
   }
 
   return await canvasToBlob(outputCanvas);
@@ -57,33 +105,28 @@ function createCanvasFilter(project: MineMotionProject): string {
 
 function drawScreenEffects(
   context: CanvasRenderingContext2D,
-  project: MineMotionProject,
+  active: readonly PreparedProjectVfxEffect[],
   width: number,
   height: number
 ): void {
-  const active = project.effects.instances.filter((effect) =>
-    isEffectActive(effect, project.animation.currentFrame)
-  );
-
   for (const effect of active) {
-    const progress = getEffectProgress(effect, project.animation.currentFrame);
-    const alpha = (effect.parameters.alpha ?? 0.6) * (1 - progress);
+    const progress = effect.evaluation.progress;
+    const alpha = getPreparedVfxNumber(effect, "alpha", 0.6) * (1 - progress);
+    const colorValue = getPreparedVfxString(effect, "color", "#ffffff");
+    const color = isSafeVfxColor(colorValue) ? colorValue : "#ffffff";
     if (["flash", "explosionFlash", "impactFrame"].includes(effect.type)) {
       context.save();
       context.globalAlpha = Math.max(0, alpha);
-      context.fillStyle = isSafeVfxColor(effect.parameters.color)
-        ? effect.parameters.color
-        : "#ffffff";
+      context.fillStyle = color;
       context.fillRect(0, 0, width, height);
       context.restore();
     }
 
     if (effect.type === "speedLines") {
       context.save();
-      context.globalAlpha = 0.3 * (effect.parameters.intensity ?? 1);
-      context.strokeStyle = isSafeVfxColor(effect.parameters.color)
-        ? effect.parameters.color
-        : "#ffffff";
+      context.globalAlpha =
+        0.3 * getPreparedVfxNumber(effect, "intensity", 1);
+      context.strokeStyle = color;
       for (let index = 0; index < 42; index += 1) {
         const y = (height / 42) * index;
         context.beginPath();
@@ -95,12 +138,13 @@ function drawScreenEffects(
     }
 
     if (effect.type === "vignettePulse") {
-      drawVignette(context, width, height, effect.parameters.alpha ?? 0.55);
+      drawVignette(
+        context,
+        width,
+        height,
+        getPreparedVfxNumber(effect, "alpha", 0.55)
+      );
     }
-  }
-
-  if (project.postProcessing.vignetteAmount > 0) {
-    drawVignette(context, width, height, project.postProcessing.vignetteAmount);
   }
 }
 
@@ -127,18 +171,23 @@ function drawVignette(
 function drawCinematicBars(
   context: CanvasRenderingContext2D,
   project: MineMotionProject,
+  activeEffects: readonly PreparedProjectVfxEffect[],
   width: number,
   height: number
 ): void {
-  const barsEffect = project.effects.instances.find(
-    (effect) =>
-      effect.type === "cinematicBars" &&
-      isEffectActive(effect, project.animation.currentFrame)
+  const barsEffect = activeEffects.find(
+    (effect) => effect.type === "cinematicBars"
   );
   if (!project.renderSettings.cinematicBarsEnabled && !barsEffect) return;
 
   const ratio =
-    barsEffect?.parameters.barStyle ?? project.renderSettings.cinematicBarsRatio;
+    (barsEffect
+      ? getPreparedVfxString(
+          barsEffect,
+          "barStyle",
+          project.renderSettings.cinematicBarsRatio
+        )
+      : project.renderSettings.cinematicBarsRatio);
   const barHeight = ratio === "16:9" ? height * 0.09 : height * 0.14;
   context.fillStyle = "#000000";
   context.fillRect(0, 0, width, barHeight);

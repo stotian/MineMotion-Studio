@@ -25,6 +25,7 @@ export function createFinalCameraFrame(
   );
   return {
     ...project,
+    exportSettings: { ...settings },
     activeCameraId: camera?.id ?? project.activeCameraId,
     scene: {
       ...project.scene,

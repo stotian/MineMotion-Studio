@@ -1,3 +1,4 @@
+import type { ExportSettings } from "../../export/ExportTypes";
 import type { MineMotionProject } from "../../project/ProjectFile";
 
 export interface RenderStateSnapshot {
@@ -6,6 +7,7 @@ export interface RenderStateSnapshot {
   activeCameraId: string;
   activeCameraFlags: Record<string, boolean>;
   renderPreviewEnabled: boolean;
+  exportSettings: ExportSettings;
 }
 
 export function createRenderStateSnapshot(
@@ -18,6 +20,7 @@ export function createRenderStateSnapshot(
     activeCameraFlags: Object.fromEntries(
       project.scene.cameras.map((camera) => [camera.id, camera.active])
     ),
-    renderPreviewEnabled: project.renderSettings.renderPreviewEnabled
+    renderPreviewEnabled: project.renderSettings.renderPreviewEnabled,
+    exportSettings: { ...project.exportSettings }
   };
 }

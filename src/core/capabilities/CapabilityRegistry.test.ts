@@ -9,6 +9,7 @@ const WEB_PROBE: RuntimeProbe = {
   webgpu: false,
   canvasImageExport: true,
   canvasCaptureStream: true,
+  imageBitmap: true,
   mediaRecorder: true,
   webmVp8: true,
   webmVp9: true,
@@ -49,6 +50,14 @@ describe("CapabilityRegistry", () => {
     expect(registry.supports("ffmpeg")).toBe(true);
     expect(registry.get("ffmpeg").message).toBe("FFmpeg 7 detected.");
     expect(registry.supportedCodecs()).toContain("video/mp4;codec=h264");
+  });
+
+  it("does not advertise composited WebM without image bitmap support", () => {
+    const registry = CapabilityRegistry.detect({
+      probe: { ...WEB_PROBE, imageBitmap: false }
+    });
+
+    expect(registry.supports("webm-recording")).toBe(false);
   });
 
   it("returns an immutable, complete capability list", () => {

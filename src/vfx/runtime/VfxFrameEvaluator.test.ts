@@ -449,6 +449,49 @@ describe("evaluateVfxFrame", () => {
     expect(instance.parameters.count).toBe(12);
   });
 
+  it("evaluates local parameter keyframes without timeline-position drift", () => {
+    const instance = {
+      ...createInstance(),
+      parameterKeyframes: [
+        {
+          id: "intensity_start",
+          parameterId: "intensity",
+          localFrame: 2,
+          value: 1,
+          interpolation: "linear" as const
+        },
+        {
+          id: "intensity_end",
+          parameterId: "intensity",
+          localFrame: 10,
+          value: 3,
+          interpolation: "constant" as const
+        }
+      ]
+    };
+    const before = requireActive(
+      evaluateVfxFrame(instance, createDefinition(), createContext(11))
+    );
+    const middle = requireActive(
+      evaluateVfxFrame(instance, createDefinition(), createContext(16))
+    );
+    const end = requireActive(
+      evaluateVfxFrame(instance, createDefinition(), createContext(20))
+    );
+    const moved = requireActive(
+      evaluateVfxFrame(
+        { ...instance, startFrame: 100 },
+        createDefinition(),
+        createContext(106)
+      )
+    );
+
+    expect(before.inputs.parameters.intensity).toBe(1);
+    expect(middle.inputs.parameters.intensity).toBe(2);
+    expect(end.inputs.parameters.intensity).toBe(3);
+    expect(moved.inputs.parameters).toEqual(middle.inputs.parameters);
+  });
+
   it("orders Unicode and punctuation parameter keys by stable code units", () => {
     const instance = {
       ...createInstance(),

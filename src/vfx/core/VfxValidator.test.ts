@@ -110,6 +110,22 @@ describe("VfxValidator", () => {
         "VFX_PARAMETER_KEYFRAME_FRAME_INVALID"
       ])
     );
+
+    const nonAnimatable = {
+      ...createInstance(),
+      parameterKeyframes: [
+        {
+          id: "key_direction_1",
+          parameterId: "direction",
+          localFrame: 4,
+          value: "forward",
+          interpolation: "constant" as const
+        }
+      ]
+    };
+    expect(errorCodes(validateVfxInstance(nonAnimatable, definition))).toContain(
+      "VFX_PARAMETER_KEYFRAME_NOT_ANIMATABLE"
+    );
   });
 
   it("warns about and preserves unknown primitive parameters", () => {

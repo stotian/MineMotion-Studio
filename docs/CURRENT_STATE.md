@@ -2,7 +2,7 @@
 
 MineMotion Studio `0.8.2` uses project schema 10.
 
-Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.6 are
+Phase 14 architecture consolidation and Phase 15 milestones 15.1-15.7 are
 complete. Low-level contracts have stable ownership under `src/core`, and a
 typed VFX compatibility projection plus real effects-lane editing now coexist
 with the schema 10 native persistence bridge.
@@ -39,14 +39,14 @@ with the schema 10 native persistence bridge.
 - Effects Library, timeline blocks/handles, and committed Inspector controls
   perform real edits through whole-project history, including undo/redo and
   save/package round-trip.
-- Foreign timeline lanes are canonicalized as bounded plain data, while schema 9
-  effects remain the only authority and disabled effects remain selectable.
+- Foreign timeline lanes are canonicalized as bounded plain data, while schema
+  10 keeps one enriched effects authority and disabled effects remain selectable.
 - Legacy world-effect rendering is bounded to 64 active effects and 4,096 burst
   particles per frame; glow bursts use instancing instead of one mesh per cube.
 - Effect Inspector controls are generated from the canonical VFX parameter
   schema for number, integer, boolean, color, and enum kinds. Metadata, defaults,
   bounds, units, runtime support, and deferred animation support are visible.
-- Valid edits reuse the schema 9 command/history path; invalid legacy values can
+- Valid edits reuse the synchronized command/history path; invalid legacy values can
   be restored to their schema default while unknown finite legacy keys survive
   edits, save/reload, packages, undo, and redo.
 - VFX color values are restricted to safe hex or named tokens at validation and
@@ -57,23 +57,28 @@ with the schema 10 native persistence bridge.
 - Project JSON, packages, autosave, history, and production package export
   preserve native VFX. Autosave retains a rollback copy, and schema 9 export
   fails explicitly when native-only data would be lost.
+- One pure native prepared-frame contract now feeds Three.js world VFX, React
+  overlays, PNG/sequence, composited WebM, and FFmpeg staging. Local parameter
+  keyframes evaluate from effect-local time and missing targets emit warnings.
+- Final render state applies the selected VFX flag before painting;
+  `includeVfx=false` produces an empty prepared frame for every VFX layer.
 
 ## Partial Systems
 
-- Effects are still rendered by the preset-based legacy runtime. Timeline and
-  Inspector edits use schema 9 instances, but the typed evaluator/primitive
-  data are not yet the shared preview/export render path.
+- Known preset visuals still use a bounded compatibility map over prepared
+  native frames; primitive V1 descriptors are not yet the visual renderer for
+  every preset. This preserves appearance while runtime data is canonical.
 - Blockbench auto-rigging, production IK, animated resource textures, secure plugin execution, native dialogs, and full NLA blending are not implemented.
 
 ## Absent Systems
 
-- Phase 15.7+ preview/export integration, resource cleanup, and final gate.
+- Phase 15.8+ resource cleanup/global budgets and final Phase 15 gate.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 65 frontend test files and 298 passing tests.
+- 67 frontend test files and 307 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -101,9 +106,12 @@ with the schema 10 native persistence bridge.
 - Phase 15.5 derives Inspector behavior from those definitions rather than a
   copied UI schema. The controller validates known values and permits bounded,
   one-key repair of invalid schema 9 legacy data without accepting new unknown
-  keys. Schema 10 now persists native fields and local parameter keyframes;
-  their typed visual evaluation remains deferred to 15.7.
+  keys. Schema 10 persists native fields and local parameter keyframes.
 - Phase 15.6 keeps one effects collection: the legacy projection remains active
   for current UI/rendering while a synchronized `nativeVfx` record is persisted.
   Schema 10 shared-field mismatches, malformed native data, and future versions
-  fail closed. Typed runtime consumption becomes the exact 15.7 task.
+  fail closed.
+- Phase 15.7 evaluates the synchronized native record for all preview/export
+  preparation, safely resolves entity/bone references, and composes WebM from
+  the same captured frames as PNG/FFmpeg. The legacy visual map remains until
+  primitive parity is proven; cleanup and global budgets are the 15.8 task.

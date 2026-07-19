@@ -4,7 +4,7 @@
 | --- | --- | --- | --- | --- |
 | PNG current frame | Yes | Yes | No | Uses requested width and height. |
 | PNG sequence ZIP | Yes | Yes | No | Deterministic numbered frames. |
-| WebM | When MediaRecorder is available | Yes | No | Records live viewport resolution. |
+| WebM | When MediaRecorder and createImageBitmap are available | Yes | No | Records composited frames at selected resolution. |
 | WAV | When OfflineAudioContext is available | Yes | Audio only | Mixes the selected frame range. |
 | `.minemotion` | Yes | Yes | Embedded project assets | Portable JSON package payload. |
 | Audio metadata JSON | Yes | Yes | Metadata only | Does not encode sound. |

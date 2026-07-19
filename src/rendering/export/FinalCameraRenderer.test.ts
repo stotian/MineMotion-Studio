@@ -17,5 +17,6 @@ describe("final camera renderer", () => {
     expect(frame.scene.cameras.find((camera) => camera.id === secondCamera.id)?.active).toBe(true);
     expect(frame.animation.currentFrame).toBe(project.animation.durationFrames);
     expect(frame.animation.isPlaying).toBe(false);
+    expect(frame.exportSettings.cameraId).toBe(secondCamera.id);
   });
 });

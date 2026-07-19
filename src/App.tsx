@@ -36,7 +36,7 @@ import {
 } from "./export/ExportSettings";
 import type { ExportResult, ExportSettings } from "./export/ExportTypes";
 import { exportPngSequenceZip } from "./export/SequenceExporter";
-import { recordCanvasWebM } from "./export/video/WebMRecorder";
+import { recordCapturedFramesWebM } from "./export/video/WebMRecorder";
 import { createRenderJob } from "./export/renderQueue/RenderJob";
 import {
   clearFinishedRenderJobs,
@@ -1203,14 +1203,6 @@ export function App() {
               context,
               adapters: {
                 captureFrame,
-                presentFrame,
-                getViewportCanvas: () => {
-                  const canvas = viewportShell.querySelector("canvas");
-                  if (!canvas) {
-                    throw new Error("No viewport canvas is available for video export.");
-                  }
-                  return canvas;
-                },
                 download: downloadBlob
               }
             }),
@@ -1277,6 +1269,8 @@ export function App() {
   const handleExportCurrentFrame = useCallback(async () => {
     if (!validateCurrentExport()) return;
     exportCancelledRef.current = false;
+    const snapshot = createRenderStateSnapshot(project);
+    const settings = project.exportSettings;
     setExportProgress(
       createExportProgress({
         status: "preparing",
@@ -1285,10 +1279,17 @@ export function App() {
     );
 
     try {
+      const finalProject = createFinalCameraFrame(
+        project,
+        settings,
+        project.animation.currentFrame
+      );
+      setProject(finalProject);
+      await waitForNextPaint();
       const result = await exportCurrentFramePng(
         getViewportShell(),
-        project,
-        project.exportSettings
+        finalProject,
+        settings
       );
       downloadExportResult(result);
       setExportProgress(
@@ -1310,6 +1311,8 @@ export function App() {
         })
       );
       setStatus(message);
+    } finally {
+      setProject((currentProject) => restoreRenderState(currentProject, snapshot));
     }
   }, [project, validateCurrentExport]);
 
@@ -1332,13 +1335,9 @@ export function App() {
         onProgress: setExportProgress,
         isCancelled: () => exportCancelledRef.current,
         captureFrame: async (frame) => {
-          setProject((currentProject) => ({
-            ...currentProject,
-            animation: {
-              ...setCurrentFrame(currentProject.animation, frame),
-              isPlaying: false
-            }
-          }));
+          setProject((currentProject) =>
+            createFinalCameraFrame(currentProject, settings, frame)
+          );
           await waitForNextPaint();
           return await renderViewportFrameToPng(
             viewportShell,
@@ -1386,7 +1385,6 @@ export function App() {
     const settings = project.exportSettings;
     const snapshot = createRenderStateSnapshot(project);
     const totalFrames = settings.endFrame - settings.startFrame + 1;
-    const frameDurationMs = 1000 / settings.fps;
     setExportProgress(
       createExportProgress({
         status: "preparing",
@@ -1396,41 +1394,37 @@ export function App() {
     );
 
     try {
-      const canvas = getViewportShell().querySelector("canvas");
-      if (!canvas) {
-        throw new Error("No viewport canvas is available for WebM export.");
-      }
-
-      const recorder = recordCanvasWebM(
-        canvas,
-        totalFrames * frameDurationMs,
-        settings.fps,
-        settings.quality
-      );
-      for (
-        let frame = settings.startFrame, index = 0;
-        frame <= settings.endFrame;
-        frame += 1, index += 1
-      ) {
-        if (exportCancelledRef.current) break;
-        setProject((currentProject) => ({
-          ...currentProject,
-          animation: {
-            ...setCurrentFrame(currentProject.animation, frame),
-            isPlaying: false
-          }
-        }));
-        setExportProgress(
-          createExportProgress({
-            status: "rendering",
-            currentFrame: index + 1,
-            totalFrames,
-            message: `Recording frame ${index + 1} of ${totalFrames}.`
-          })
-        );
-        await wait(frameDurationMs);
-      }
-      const blob = await recorder;
+      const viewportShell = getViewportShell();
+      const blob = await recordCapturedFramesWebM({
+        startFrame: settings.startFrame,
+        endFrame: settings.endFrame,
+        fps: settings.fps,
+        width: settings.width,
+        height: settings.height,
+        quality: settings.quality,
+        isCancelled: () => exportCancelledRef.current,
+        captureFrame: async (frame) => {
+          setProject((currentProject) =>
+            createFinalCameraFrame(currentProject, settings, frame)
+          );
+          await waitForNextPaint();
+          return await renderViewportFrameToPng(
+            viewportShell,
+            createFinalCameraFrame(project, settings, frame),
+            settings
+          );
+        },
+        onFrame: (_frame, index) => {
+          setExportProgress(
+            createExportProgress({
+              status: "rendering",
+              currentFrame: index,
+              totalFrames,
+              message: `Recording frame ${index} of ${totalFrames}.`
+            })
+          );
+        }
+      });
       const filename = `${sanitizeOutputName(settings.outputName)}.webm`;
       downloadBlob(blob, filename);
       setExportProgress(
@@ -1441,14 +1435,14 @@ export function App() {
           message: `Exported ${filename}.`
         })
       );
-      setStatus(`Exported ${filename}. WebM uses live viewport resolution.`);
+      setStatus(`Exported ${filename} at ${settings.width}x${settings.height}.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "WebM export failed.";
       setExportProgress(
         createExportProgress({
-          status: "error",
+          status: exportCancelledRef.current ? "cancelled" : "error",
           message,
-          error: message
+          error: exportCancelledRef.current ? "" : message
         })
       );
       setStatus(message);

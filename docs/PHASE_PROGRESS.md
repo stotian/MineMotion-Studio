@@ -6,11 +6,11 @@ Phase 15 - Native Deterministic VFX Foundation
 
 ## Current Milestone
 
-15.7 - Native VFX preview/export integration
+15.8 - VFX performance budgets and resource cleanup
 
 ## Status
 
-IN_PROGRESS - milestones 15.1 through 15.6 completed and validated; 15.7 is next.
+IN_PROGRESS - milestones 15.1 through 15.7 completed and validated; 15.8 is next.
 
 ## Completed
 
@@ -62,22 +62,28 @@ IN_PROGRESS - milestones 15.1 through 15.6 completed and validated; 15.7 is next
 - JSON, `.minemotion`, browser autosave, history, and package render jobs share
   the canonical serializer. Autosave retains a previous payload for recovery;
   lossless schema 9 rollback rejects native-only fields instead of dropping them.
+- Phase 15.7 makes schema 10 native frame preparation the shared runtime input
+  for Three.js world effects, React overlays, PNG/sequence, WebM, and FFmpeg.
+  Local parameter keyframes evaluate deterministically, targets resolve with
+  warnings, and `includeVfx=false` short-circuits every VFX layer.
+- WebM now records the same composited captured frames as PNG/FFmpeg at the
+  selected output resolution; render state restores export settings as well as
+  camera/timeline state after completion, error, or cancellation.
 
 ## In Progress
 
-- Phase 15 foundation. The next unit is milestone 15.7: one canonical typed VFX
-  evaluation-preparation path shared by preview and every visual export.
+- Phase 15 foundation. The next unit is milestone 15.8: measured global budgets,
+  renderer resource ownership/disposal, and repeated lifecycle validation.
 
 ## Not Started
 
-- Phase 15.7 preview/export integration.
 - Phase 15.8 performance limits and resource cleanup.
 - Phase 15.9 full phase validation.
 - Later defined roadmap phases 16-25.
 
 ## Blockers
 
-- None for Phase 15.7 TypeScript work.
+- None for Phase 15.8 TypeScript work.
 - Manual Phase 15.5 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -86,22 +92,23 @@ IN_PROGRESS - milestones 15.1 through 15.6 completed and validated; 15.7 is next
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.6 is the validated checkpoint containing this document; Git history
+- Phase 15.7 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm ci`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 15.6 tests: PASS - 20 files, 200 tests
-- `npm test`: PASS - 65 files, 298 tests
+- Focused Phase 15.7 tests: PASS - 6 files, 34 tests
+- `npm test`: PASS - 67 files, 307 tests
 - `npm run build`: PASS - existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 15.6 changes TypeScript/docs only.
+- Native checks: not rerun because milestone 15.7 changes TypeScript/docs only.
+- Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
+  `Cannot redefine property: process`; automated presentation tests pass.
 
 ## Next Exact Action
 
-Inventory every legacy preview, CSS overlay, Three.js world effect, PNG capture,
-PNG sequence, WebM presentation, and FFmpeg staging caller. Create one typed
-evaluation-preparation result consumed by each path, preserve the legacy adapter
-until parity is proven, and make `includeVfx=false` exclude every VFX layer.
+Measure current per-frame effect/particle/segment/stack work and resource churn.
+Add global budgets before allocation, explicit object-tree disposal, and repeat
+add/remove/reopen/export/retry/cancel lifecycle tests without changing visuals.

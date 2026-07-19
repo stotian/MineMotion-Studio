@@ -6,7 +6,7 @@ import { FfmpegExportSession } from "../ffmpeg/FfmpegExportManager";
 import { isNativeExportFormat } from "../ffmpeg/FfmpegCommandBuilder";
 import type { FfmpegSettings } from "../ffmpeg/FfmpegSettings";
 import { exportPngSequenceZip } from "../SequenceExporter";
-import { startCanvasWebMRecording } from "../video/WebMRecorder";
+import { recordCapturedFramesWebM } from "../video/WebMRecorder";
 import type { RenderJob } from "./RenderJob";
 import type {
   RenderJobRunContext,
@@ -15,8 +15,6 @@ import type {
 
 export interface ProductionRenderAdapters {
   captureFrame: (frame: number) => Promise<Blob>;
-  presentFrame: (frame: number) => Promise<void>;
-  getViewportCanvas: () => HTMLCanvasElement;
   download: (blob: Blob, filename: string) => void;
 }
 
@@ -58,34 +56,26 @@ export async function executeProductionRenderJob(options: {
   }
 
   if (settings.format === "webm_video") {
-    const recording = startCanvasWebMRecording(
-      adapters.getViewportCanvas(),
-      settings.fps,
-      settings.quality
-    );
-    const frameDurationMs = 1000 / settings.fps;
-    try {
-      for (
-        let frame = settings.startFrame, index = 0;
-        frame <= settings.endFrame;
-        frame += 1, index += 1
-      ) {
-        context.throwIfCancelled();
-        await adapters.presentFrame(frame);
+    const blob = await recordCapturedFramesWebM({
+      startFrame: settings.startFrame,
+      endFrame: settings.endFrame,
+      fps: settings.fps,
+      width: settings.width,
+      height: settings.height,
+      quality: settings.quality,
+      captureFrame: adapters.captureFrame,
+      isCancelled: context.isCancelled,
+      onFrame: (_frame, index) => {
         context.report(
-          (index + 1) / totalFrames,
-          `Recording frame ${index + 1} of ${totalFrames}.`
+          index / totalFrames,
+          `Recording frame ${index} of ${totalFrames}.`
         );
-        await wait(frameDurationMs);
       }
-    } finally {
-      recording.stop();
-    }
-    const blob = await recording.result;
+    });
     context.throwIfCancelled();
     const filename = `${sanitizeOutputName(settings.outputName)}.webm`;
     adapters.download(blob, filename);
-    return { message: `Exported ${filename} at live viewport resolution.` };
+    return { message: `Exported ${filename} at ${settings.width}x${settings.height}.` };
   }
 
   if (settings.format === "wav_audio") {
@@ -174,8 +164,4 @@ export async function executeProductionRenderJob(options: {
   } finally {
     await session?.cleanup();
   }
-}
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }

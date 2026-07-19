@@ -116,11 +116,11 @@ contracts and evidence-based runtime capability reporting.
 - Browser decompression support is required for real gzip/zlib payloads.
 - Native Tauri file dialogs are not wired yet.
 - `.minemotion` is currently a JSON package payload, not a binary ZIP archive.
-- WebM export depends on browser `MediaRecorder` and records the live viewport
-  canvas resolution.
+- WebM export depends on browser `MediaRecorder` and `createImageBitmap`; it
+  records canonical composited frames at the selected output resolution.
 - Browser mode does not support MP4, H.265, ProRes, or MP3. Desktop export
   requires a user-installed FFmpeg executable and an existing output directory.
-- WebM is video-only and uses live viewport resolution.
+- WebM remains video-only in browser mode.
 - Native cancellation is checked before FFmpeg starts; an active FFmpeg process
   runs to completion in the current MVP.
 - The final EffectComposer shader stack is represented by safe preview/export
@@ -184,6 +184,10 @@ Current projects use `schemaVersion: 10`. The main save path downloads a
 
 Legacy `.mmsproj` JSON files remain loadable. Schema 9 export is available when
 the project contains no native-only VFX data that would be lost.
+
+Viewport, PNG sequence, WebM, and FFmpeg staging share deterministic schema 10
+native VFX frame preparation. Local parameter keyframes evaluate from effect
+time, missing targets warn safely, and disabling VFX excludes every VFX layer.
 
 ## Documentation
 

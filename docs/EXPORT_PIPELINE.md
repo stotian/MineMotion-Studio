@@ -7,8 +7,8 @@ The production pipeline supports browser downloads and a desktop FFmpeg bridge.
 - `png_frame`: captures the current viewport into one PNG.
 - `png_sequence`: advances the timeline frame by frame and stores numbered PNGs
   in a ZIP archive.
-- `webm_video`: records the live viewport canvas through browser
-  `MediaRecorder` where supported.
+- `webm_video`: records canonical composited captured frames at requested
+  resolution through browser `MediaRecorder` where supported.
 - `wav_audio`: renders project audio through `OfflineAudioContext` where
   supported.
 - `minemotion_package`: writes a portable MineMotion project package.

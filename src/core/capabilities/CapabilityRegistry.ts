@@ -26,6 +26,7 @@ export interface RuntimeProbe {
   webgpu: boolean;
   canvasImageExport: boolean;
   canvasCaptureStream: boolean;
+  imageBitmap: boolean;
   mediaRecorder: boolean;
   webmVp8: boolean;
   webmVp9: boolean;
@@ -110,6 +111,7 @@ export function probeRuntimeEnvironment(): RuntimeProbe {
       "gpu" in (navigator as Navigator & { gpu?: unknown }),
     canvasImageExport: Boolean(canvasPrototype && "toBlob" in canvasPrototype),
     canvasCaptureStream: Boolean(canvasPrototype && "captureStream" in canvasPrototype),
+    imageBitmap: typeof createImageBitmap === "function",
     mediaRecorder: recorderAvailable,
     webmVp8: supportsRecorderType("video/webm;codecs=vp8"),
     webmVp9: supportsRecorderType("video/webm;codecs=vp9"),
@@ -185,13 +187,22 @@ function buildCapabilities(
     "webm-recording": createCapability(
       "webm-recording",
       "WebM recording",
-      probe.canvasCaptureStream && probe.mediaRecorder && probe.webmVp9,
-      probe.canvasCaptureStream && probe.mediaRecorder && probe.webmVp9
+      probe.canvasCaptureStream &&
+        probe.imageBitmap &&
+        probe.mediaRecorder &&
+        probe.webmVp9,
+      probe.canvasCaptureStream &&
+        probe.imageBitmap &&
+        probe.mediaRecorder &&
+        probe.webmVp9
         ? "available"
         : "unavailable",
-      probe.canvasCaptureStream && probe.mediaRecorder && probe.webmVp9
-        ? "VP9 WebM recording is available."
-        : "VP9 MediaRecorder canvas capture is unavailable."
+      probe.canvasCaptureStream &&
+        probe.imageBitmap &&
+        probe.mediaRecorder &&
+        probe.webmVp9
+        ? "Composited VP9 WebM recording is available."
+        : "WebM requires image bitmaps, VP9 MediaRecorder, and canvas capture."
     ),
     "audio-decoding": createCapability(
       "audio-decoding",

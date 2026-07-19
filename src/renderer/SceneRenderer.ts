@@ -15,15 +15,19 @@ import { SkySystem } from "./SkySystem";
 import { createGridFloor } from "./GridFloor";
 import { CameraController } from "./CameraController";
 import type { ViewportSettings } from "../settings/AppSettings";
-import type { EffectInstance } from "../effects/EffectTypes";
 import {
-  getBoundedLegacyParticleCount,
-  getEffectProgress,
-  isEffectActive,
   MAX_LEGACY_ACTIVE_WORLD_EFFECTS,
+  MAX_LEGACY_EFFECT_PARTICLE_COUNT,
   MAX_LEGACY_PARTICLES_PER_FRAME
 } from "../effects/EffectTypes";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
+import {
+  getPreparedVfxNumber,
+  getPreparedVfxString,
+  prepareProjectVfxFrame,
+  shouldIncludeProjectVfx,
+  type PreparedProjectVfxEffect
+} from "../vfx/runtime/VfxProjectFrame";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -177,10 +181,16 @@ export class SceneRenderer {
       this.sceneRoot.add(this.createObjObject(project, obj));
     }
 
+    const prepared = prepareProjectVfxFrame(project, {
+      includeVfx: shouldIncludeProjectVfx(project),
+      quality: project.renderSettings.renderPreviewEnabled
+        ? "export"
+        : "preview"
+    });
+    const preparedEffects = prepared.ok ? prepared.value.effects : [];
     let renderedWorldEffects = 0;
     let remainingParticleBudget = MAX_LEGACY_PARTICLES_PER_FRAME;
-    for (const effect of project.effects.instances) {
-      if (!isEffectActive(effect, project.animation.currentFrame)) continue;
+    for (const effect of preparedEffects) {
       if (
         effect.type !== "lightningStrike" &&
         effect.type !== "shockwave" &&
@@ -189,14 +199,21 @@ export class SceneRenderer {
         continue;
       }
       if (renderedWorldEffects >= MAX_LEGACY_ACTIVE_WORLD_EFFECTS) break;
-      const particleCount = getBoundedLegacyParticleCount(
-        effect,
-        remainingParticleBudget
+      const requestedParticles = Math.max(
+        0,
+        Math.round(getPreparedVfxNumber(effect, "count", 18))
       );
+      const particleCount =
+        effect.type === "glowBurst"
+          ? Math.min(
+              MAX_LEGACY_EFFECT_PARTICLE_COUNT,
+              remainingParticleBudget,
+              requestedParticles
+            )
+          : 0;
       if (effect.type === "glowBurst" && particleCount === 0) continue;
       const object = this.createWorldEffectObject(
         effect,
-        project.animation.currentFrame,
         particleCount
       );
       if (object) {
@@ -272,22 +289,21 @@ export class SceneRenderer {
   }
 
   private createWorldEffectObject(
-    effect: EffectInstance,
-    frame: number,
+    effect: PreparedProjectVfxEffect,
     particleCount: number
   ): THREE.Object3D | null {
-    const progress = getEffectProgress(effect, frame);
-    const color = isSafeVfxColor(effect.parameters.color)
-      ? effect.parameters.color
+    const progress = effect.evaluation.progress;
+    const colorValue = getPreparedVfxString(effect, "color", "#ffffff");
+    const color = isSafeVfxColor(colorValue)
+      ? colorValue
       : "#ffffff";
-    const alpha = effect.parameters.alpha ?? 0.8;
+    const alpha = getPreparedVfxNumber(effect, "alpha", 0.8);
+    const position = effect.evaluation.inputs.transform.position;
 
     if (effect.type === "lightningStrike") {
       const points: THREE.Vector3[] = [];
-      const height = Math.max(2, effect.parameters.radius ?? 3);
-      const seed = effect.id
-        .split("")
-        .reduce((sum, character) => sum + character.charCodeAt(0), 0);
+      const height = Math.max(2, getPreparedVfxNumber(effect, "radius", 3));
+      const seed = effect.evaluation.frameSeed;
       for (let index = 0; index <= 8; index += 1) {
         const t = index / 8;
         const offset = index === 0 || index === 8
@@ -295,9 +311,9 @@ export class SceneRenderer {
           : Math.sin(seed + index * 1.7) * 0.24;
         points.push(
           new THREE.Vector3(
-            effect.position[0] + offset,
-            effect.position[1] + height * (1 - t),
-            effect.position[2] + Math.cos(seed + index * 2.1) * 0.18
+            position[0] + offset,
+            position[1] + height * (1 - t),
+            position[2] + Math.cos(seed + index * 2.1) * 0.18
           )
         );
       }
@@ -308,12 +324,15 @@ export class SceneRenderer {
         opacity: alpha * (1 - progress * 0.35)
       });
       const line = new THREE.Line(geometry, material);
-      line.name = effect.name;
+      line.name = effect.displayName;
       return line;
     }
 
     if (effect.type === "shockwave") {
-      const radius = Math.max(0.2, (effect.parameters.radius ?? 4) * progress);
+      const radius = Math.max(
+        0.2,
+        getPreparedVfxNumber(effect, "radius", 4) * progress
+      );
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(radius, 0.035, 8, 96),
         new THREE.MeshBasicMaterial({
@@ -323,14 +342,15 @@ export class SceneRenderer {
         })
       );
       ring.rotation.x = Math.PI / 2;
-      ring.position.set(...effect.position);
-      ring.name = effect.name;
+      ring.position.set(...position);
+      ring.name = effect.displayName;
       return ring;
     }
 
     if (effect.type === "glowBurst") {
-      const radius = (effect.parameters.radius ?? 2) * Math.max(0.15, progress);
-      const size = effect.parameters.size ?? 0.16;
+      const radius =
+        getPreparedVfxNumber(effect, "radius", 2) * Math.max(0.15, progress);
+      const size = getPreparedVfxNumber(effect, "size", 0.16);
       const geometry = new THREE.BoxGeometry(size, size, size);
       const material = new THREE.MeshBasicMaterial({
         color,
@@ -347,14 +367,14 @@ export class SceneRenderer {
         const angle = (index / particleCount) * Math.PI * 2;
         const vertical = Math.sin(index * 1.618) * radius * 0.45;
         matrix.makeTranslation(
-          effect.position[0] + Math.cos(angle) * radius,
-          effect.position[1] + vertical + 1,
-          effect.position[2] + Math.sin(angle) * radius
+          position[0] + Math.cos(angle) * radius,
+          position[1] + vertical + 1,
+          position[2] + Math.sin(angle) * radius
         );
         particles.setMatrixAt(index, matrix);
       }
       particles.instanceMatrix.needsUpdate = true;
-      particles.name = effect.name;
+      particles.name = effect.displayName;
       return particles;
     }
 

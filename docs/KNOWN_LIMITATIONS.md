@@ -11,14 +11,14 @@ still required before changing code.
 | LIM-002 | Atomic save, backup-before-migration, and recovery guarantees need a dedicated audit | Audit | P0/P1 | 24 | OPEN |
 | LIM-003 | Native open/save dialogs and file associations are absent | Yes | P4 | 24 | OPEN |
 | LIM-004 | Release-profile Tauri build is blocked on this host by Smart App Control; debug MSI/NSIS pass | Yes | P4 | 24 | ENVIRONMENT_BLOCKED |
-| LIM-005 | Browser WebM is video-only and records live viewport resolution | Yes | P2/P4 | 22/24 | OPEN |
+| LIM-005 | Browser WebM remains video-only; visual frames now use selected output resolution | Yes | P4 | 22/24 | PARTIALLY_RESOLVED |
 | LIM-006 | Browser export does not provide a final mixed-audio video | Yes | P4 | 22/24 | OPEN |
 | LIM-007 | FFmpeg cannot be cancelled after the native process starts | Yes | P3 | 24 | OPEN |
 | LIM-008 | Real FFmpeg codec execution is untested because FFmpeg is absent locally | Yes | P4 | 24 | BLOCKED_BY_ENVIRONMENT |
-| LIM-009 | Preview, PNG, and WebM render different subsets of effects; `includeVfx=false` cannot remove world effects already in the canvas | Yes | P2 | 15.7 | OPEN |
+| LIM-009 | Preview, PNG, WebM, and FFmpeg previously used divergent VFX inputs | Yes | P2 | 15.7 | RESOLVED |
 | LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | OPEN |
-| LIM-011 | A pure explicit frame/FPS/seed/quality evaluator exists, but legacy preview/export consumers do not use it yet | Yes | P2 | 15.7 | OPEN |
-| LIM-012 | Target IDs reach primitive inputs but are not scene/bone-resolved, and several registered effect parameters are visually ignored by the legacy runtime | Yes | P2/P4 | 15.7 | OPEN |
+| LIM-011 | Preview/export consumers previously bypassed the typed evaluator | Yes | P2 | 15.7 | RESOLVED |
+| LIM-012 | Entity/bone targets now resolve safely with warnings, but several registered parameters remain visually ignored by compatibility visuals | Yes | P4 | 16 | PARTIALLY_RESOLVED |
 | LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | OPEN |
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
 | LIM-015 | Static scene data and imported OBJ resources are rebuilt/reparsed on project updates | Yes | P3 | 20 | OPEN |
@@ -33,7 +33,7 @@ still required before changing code.
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
 | LIM-026 | Primitive limits are per descriptor; a combined per-frame stack budget awaits real stack integration and measurement | Yes | P3 | 15.8/20 | OPEN |
-| LIM-027 | Schema 10 persists native VFX fields and local parameter keyframes, but keyframe editing/evaluation is not connected yet | Yes | P4 | 15.7 | PARTIALLY_RESOLVED |
+| LIM-027 | Local parameter keyframes evaluate deterministically, but dedicated keyframe editing UI is not connected yet | Yes | P4 | 16 | PARTIALLY_RESOLVED |
 
 ## Phase 15.1 Outcome
 
@@ -84,6 +84,15 @@ Project schema 10 now migrates schemas 1-9 and losslessly persists native VFX
 version, seed, transform, entity/bone target, parameters/local keyframes, blend,
 layer, and qualities inside the single existing effects collection. JSON,
 packages, autosave, history, and rollback behavior are tested; corrupt/future
-data fails closed and autosave retains a previous payload. The legacy projection
-still drives visible rendering, and local parameter keyframes are stored but not
-yet edited or evaluated. Those runtime gaps remain assigned to 15.7.
+data fails closed and autosave retains a previous payload. At the 15.6
+checkpoint, the legacy projection still drove rendering and keyframes were not
+evaluated; Phase 15.7 resolves those runtime-input gaps.
+
+## Phase 15.7 Outcome
+
+Schema 10 native frame evaluation now prepares every active VFX input shared by
+viewport, PNG/sequence, composited WebM, and FFmpeg staging. Local parameter
+keyframes evaluate from local time, target entities/bones resolve without unsafe
+access, and missing references warn. `includeVfx=false` short-circuits all VFX
+before the final canvas paint. Known visual presets still use a compatibility
+map, and complete GPU disposal/global stack budgets remain 15.8.

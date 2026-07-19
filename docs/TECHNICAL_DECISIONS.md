@@ -144,3 +144,18 @@ or shared-field disagreement. Schemas 1-9 migrate without mutating their source.
 Browser autosave keeps a previous payload, packages delegate to the canonical
 serializer, and schema 9 rollback is allowed only after guarded lossless reverse
 conversion. The legacy projection remains until typed runtime parity in 15.7.
+
+## TD-014 - Native prepared frames unify preview and visual export
+
+Status: Accepted in Phase 15.7.
+
+Evaluate each schema 10 `nativeVfx` record through one pure project-frame
+preparation boundary with explicit frame, FPS, seed, quality, and inclusion.
+Three.js world visuals, React overlays, PNG/sequence, WebM, and FFmpeg consume
+that result. Final-camera state applies export visibility before painting, and
+`includeVfx=false` returns an empty prepared frame without inspecting effects.
+
+WebM records the same composited captured frames used by PNG/FFmpeg instead of
+the raw viewport canvas. Existing preset visuals remain a bounded compatibility
+map over typed evaluations until primitive render parity is proven. Missing
+entity/bone targets warn and resolve to null rather than unsafe access.

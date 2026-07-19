@@ -3,9 +3,15 @@ import type { CameraEntity, MineMotionProject } from "../project/ProjectFile";
 import type { ViewportSettings } from "../settings/AppSettings";
 import { findObject } from "../project/ProjectStore";
 import { SceneRenderer } from "./SceneRenderer";
-import { getEffectProgress, isEffectActive } from "../effects/EffectTypes";
 import { createPostProcessingStyles } from "../rendering/postprocessing/PostProcessingPipeline";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
+import {
+  getPreparedCameraShakeOffset,
+  getPreparedVfxNumber,
+  getPreparedVfxString,
+  prepareProjectVfxFrame,
+  shouldIncludeProjectVfx
+} from "../vfx/runtime/VfxProjectFrame";
 
 interface ViewportProps {
   project: MineMotionProject;
@@ -62,13 +68,17 @@ export function Viewport({
     [project.activeCameraId, project.scene.cameras]
   );
 
-  const activeEffects = useMemo(
+  const preparedVfx = useMemo(
     () =>
-      project.effects.instances.filter((effect) =>
-        isEffectActive(effect, project.animation.currentFrame)
-      ),
-    [project.animation.currentFrame, project.effects.instances]
+      prepareProjectVfxFrame(project, {
+        includeVfx: shouldIncludeProjectVfx(project),
+        quality: project.renderSettings.renderPreviewEnabled
+          ? "export"
+          : "preview"
+      }),
+    [project]
   );
+  const activeEffects = preparedVfx.ok ? preparedVfx.value.effects : [];
 
   const postProcessingStyles = useMemo(
     () => createPostProcessingStyles(project.postProcessing),
@@ -76,53 +86,54 @@ export function Viewport({
   );
 
   const shakeStyle = useMemo<CSSProperties>(() => {
-    const shake = activeEffects.find((effect) => effect.type === "cameraShake");
-    if (!shake) return {};
-    const progress = getEffectProgress(shake, project.animation.currentFrame);
-    const strength = (shake.parameters.strength ?? 0.7) * (1 - progress);
-    const frequency = shake.parameters.frequency ?? 18;
-    const x = Math.sin(project.animation.currentFrame * frequency * 0.13) * strength * 8;
-    const y = Math.cos(project.animation.currentFrame * frequency * 0.11) * strength * 6;
+    const { x, y } = getPreparedCameraShakeOffset(activeEffects);
+    if (x === 0 && y === 0) return {};
     return {
       transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`
     };
-  }, [activeEffects, project.animation.currentFrame]);
+  }, [activeEffects]);
 
   const flashStyle = useMemo<CSSProperties>(() => {
     const flash = activeEffects.find((effect) =>
       ["flash", "explosionFlash", "impactFrame"].includes(effect.type)
     );
     if (!flash) return { opacity: 0 };
-    const progress = getEffectProgress(flash, project.animation.currentFrame);
-    const alpha = flash.parameters.alpha ?? 0.75;
+    const progress = flash.evaluation.progress;
+    const alpha = getPreparedVfxNumber(flash, "alpha", 0.75);
+    const color = getPreparedVfxString(flash, "color", "#ffffff");
     return {
       opacity: Math.max(0, alpha * (1 - progress)),
-      background: isSafeVfxColor(flash.parameters.color)
-        ? flash.parameters.color
-        : "#ffffff",
+      background: isSafeVfxColor(color) ? color : "#ffffff",
       mixBlendMode: flash.type === "impactFrame" ? "difference" : "screen"
     };
-  }, [activeEffects, project.animation.currentFrame]);
+  }, [activeEffects]);
 
   const fogStyle = useMemo<CSSProperties>(() => {
     const fog = activeEffects.find((effect) => effect.type === "fogPulse");
     if (!fog && project.postProcessing.fogIntensity <= 0) {
       return { opacity: 0 };
     }
-    const progress = fog
-      ? getEffectProgress(fog, project.animation.currentFrame)
-      : 0;
-    const color = isSafeVfxColor(fog?.parameters.color)
-      ? fog.parameters.color
+    const progress = fog?.evaluation.progress ?? 0;
+    const fogColor = fog
+      ? getPreparedVfxString(fog, "color", project.postProcessing.fogColor)
+      : project.postProcessing.fogColor;
+    const color = isSafeVfxColor(fogColor)
+      ? fogColor
       : project.postProcessing.fogColor;
     const alpha =
-      (fog?.parameters.alpha ?? project.postProcessing.fogIntensity) *
+      (fog
+        ? getPreparedVfxNumber(
+            fog,
+            "alpha",
+            project.postProcessing.fogIntensity
+          )
+        : project.postProcessing.fogIntensity) *
       (fog ? Math.sin(progress * Math.PI) : 1);
     return {
       opacity: Math.max(0, alpha),
       background: `radial-gradient(circle at center, ${color} 0%, transparent 68%)`
     };
-  }, [activeEffects, project.animation.currentFrame, project.postProcessing]);
+  }, [activeEffects, project.postProcessing]);
 
   const barsStyle = useMemo<CSSProperties>(() => {
     const barsEffect = activeEffects.find(
@@ -131,7 +142,13 @@ export function Viewport({
     const enabled = project.renderSettings.cinematicBarsEnabled || Boolean(barsEffect);
     if (!enabled) return { display: "none" };
     const style =
-      barsEffect?.parameters.barStyle ?? project.renderSettings.cinematicBarsRatio;
+      (barsEffect
+        ? getPreparedVfxString(
+            barsEffect,
+            "barStyle",
+            project.renderSettings.cinematicBarsRatio
+          )
+        : project.renderSettings.cinematicBarsRatio);
     return {
       "--bar-size": style === "16:9" ? "9%" : "14%"
     } as CSSProperties;

@@ -5,15 +5,10 @@ boundaries and are presented separately in the UI.
 
 ## WebM
 
-WebM export uses:
-
-- the live viewport `<canvas>`
-- browser `canvas.captureStream`
-- browser `MediaRecorder`
-- VP9 WebM when supported, otherwise generic WebM
-
-Because it records the live viewport, the output resolution is the viewport
-canvas resolution rather than the requested export width and height.
+WebM export uses the same composited explicit-frame PNG capture path as sequence
+and FFmpeg staging, presents those frames on a dedicated canvas at the selected
+output width/height, then records `canvas.captureStream` with browser
+`MediaRecorder`. VP9 is preferred when supported, otherwise generic WebM.
 
 WebM is currently video-only. Export WAV separately or use native MP4 when a
 muxed audio result is required.

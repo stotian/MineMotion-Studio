@@ -5,8 +5,8 @@ phase documents remain the source of truth for implementation details.
 
 | ID | Risk | Status | Target | Current mitigation |
 | --- | --- | --- | --- | --- |
-| RISK-A | Legacy visible effects and typed VFX runtime coexist | CONFIRMED | 15.7 | Preserve the compatibility adapter; do not add a parallel store or remove legacy rendering before parity. |
-| RISK-B | Viewport and export VFX paths differ; `includeVfx=false` is incomplete | CONFIRMED | 15.7 | Build one typed evaluation/render-preparation path and prove input parity. |
+| RISK-A | Compatibility visuals remain over the canonical typed VFX runtime | MITIGATED | 16 | Keep the adapter until primitive visual parity is proven; no parallel store/lane exists. |
+| RISK-B | Viewport and export VFX paths previously differed | RESOLVED | 15.7 | One prepared-frame contract and composited capture path now feed all visual outputs. |
 | RISK-C | Scene renderer rebuilds can leak GPU resources | CONFIRMED | 15.8 | Add focused disposal, repeat-cycle tests, and measured resource diagnostics. |
 | RISK-D | `App.tsx` remains an orchestration hotspot | CONFIRMED | Incremental | 15.4 adds a focused effect command controller; new VFX rules stay outside `App.tsx`. |
 | RISK-E | `EffectTimelineController.ts` is large | CONFIRMED | After 15.8 | Preserve behavior now; split only with characterization tests in a maintenance change. |
@@ -34,3 +34,13 @@ phase documents remain the source of truth for implementation details.
   closed. Failed autosave recovery retains both primary and backup payloads.
 - Native VFX persistence is no longer a risk; runtime coexistence and visual
   parity remain RISK-A/RISK-B for 15.7.
+
+## Phase 15.7 Resolution
+
+- Native prepared frames are the common timing/parameter/quality/target input
+  for world, camera, overlay, PNG, WebM, and FFmpeg consumers.
+- Final-camera presentation applies export VFX visibility before capture;
+  disabled VFX short-circuits without evaluating or drawing any VFX layer.
+- WebM records the canonical composited capture rather than the raw viewport.
+- Compatibility visuals remain intentionally tracked by mitigated RISK-A;
+  resource churn and global budgets remain RISK-C for 15.8.

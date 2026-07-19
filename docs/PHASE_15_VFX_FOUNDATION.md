@@ -1,22 +1,22 @@
 # Phase 15 - Native Deterministic VFX Foundation
 
 Phase status: IN_PROGRESS
-Milestones 15.1-15.6 status: COMPLETED and validated
-Next milestone after checkpoint: 15.7 - native preview/export integration
+Milestones 15.1-15.7 status: COMPLETED and validated
+Next milestone after checkpoint: 15.8 - performance budgets and cleanup
 
 ## Requirements And Boundaries
 
 Phase 15 must make VFX deterministic and first-class without replacing the
-working project, timeline, renderer, history, or export paths. Schema 9
-`effects.instances` and `track_effects_main` remain authoritative until a
-schema 10 migration is designed and tested.
+working project, timeline, renderer, history, or export paths. Schema 10 keeps
+one enriched `effects.instances` authority and one `track_effects_main`; schemas
+1-9 migrate through the tested compatibility bridge.
 
 The first four milestones add pure typed contracts, definition/instance
 validation, a derived registry view, a reversible legacy adapter, stable seed
 derivation, counter-addressed randomness, pure frame evaluation, five bounded
 renderer-neutral primitive kinds, and real effects-lane editing. They do not
 claim schema-generated controls, parameter keyframes, serialization migration,
-or preview/export parity yet.
+or preview/export parity in their individual checkpoints.
 
 Non-functional requirements:
 
@@ -336,11 +336,11 @@ represented honestly and remain deferred to the tested schema 10 milestone.
 
 - `SceneRenderer.sceneRoot.clear()` detaches recreated effect geometry and
   materials without complete disposal. Target: 15.8.
-- preview, PNG, and WebM currently render different subsets of effects and
-  `includeVfx` cannot remove world VFX already present in the canvas. Target:
-  15.7.
-- target IDs are retained in pure primitive inputs but are not resolved against
-  scene objects or bones. Target: 15.7.
+- before 15.7, preview, PNG, and WebM rendered different VFX subsets and
+  `includeVfx` could not remove world VFX already present in the canvas; the
+  shared prepared/capture path now resolves this.
+- target IDs now resolve safely against scene objects and rig bones with
+  warnings for missing references; bone-space placement remains future work.
 - several legacy parameters are defined but ignored by render paths. Target:
   15.5/15.7.
 - schema 10, independent persisted seeds, target bones, transform, quality,
@@ -492,3 +492,24 @@ legacy projection remains a temporary runtime bridge until 15.7 proves parity.
 - Native/Tauri validation: not rerun because no Rust/native source changed.
 - Manual visual validation: not applicable to this persistence-only milestone;
   the existing browser attachment environment limitation remains recorded.
+
+## Milestone 15.7 Validation Record
+
+- Runtime input: schema 10 native prepared frames feed Three.js world effects,
+  React overlays, PNG/sequence, composited WebM, and FFmpeg staging.
+- Determinism: playback/scrub/step/export use explicit frame/FPS/quality/seed;
+  local parameter keyframes evaluate without timeline-position drift.
+- Visibility: `includeVfx=false` short-circuits world, camera, overlay, and post
+  VFX before final presentation/capture.
+- Targets: entity and rig-bone references resolve safely; missing references
+  return structured warnings.
+- Compatibility: known preset visuals and schema 9 adapter remain while native
+  evaluation becomes authoritative; no second store, lane, or renderer exists.
+- WebM: records canonical composited PNG-equivalent frames at selected output
+  resolution and closes bitmaps/tracks on normal/cancelled paths.
+- Focused tests: PASS - 6 files, 34 tests.
+- Full tests: PASS - 67 files, 307 tests.
+- Typecheck/build/audit: PASS; 1,776 modules and known chunk warning.
+- Native/Tauri validation: not rerun because no Rust/native source changed.
+- Manual visual validation: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeated
+  `Cannot redefine property: process`; automated presentation tests pass.

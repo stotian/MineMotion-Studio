@@ -689,6 +689,15 @@ export function validateVfxInstance(
       }
       const parameter = schemaById.get(String(keyframe.parameterId));
       if (parameter) {
+        if (!parameter.animatable) {
+          errors.push(
+            issue(
+              "VFX_PARAMETER_KEYFRAME_NOT_ANIMATABLE",
+              `VFX parameter does not support keyframes: ${parameter.id}.`,
+              `${path}.parameterId`
+            )
+          );
+        }
         errors.push(
           ...validateParameterValue(parameter, keyframe.value, `${path}.value`)
         );

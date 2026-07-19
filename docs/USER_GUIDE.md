@@ -155,8 +155,8 @@ Available output:
 - **PNG Frame**: captures the current viewport frame.
 - **PNG ZIP**: captures the selected frame range as numbered PNG files inside a
   ZIP archive.
-- **WebM**: records the live viewport canvas when browser `MediaRecorder`
-  support is available. It is video-only.
+- **WebM**: records composited explicit frames at the selected resolution when
+  browser `MediaRecorder` and `createImageBitmap` are available. It is video-only.
 - **WAV**: mixes imported audio and generated placeholder SFX when
   `OfflineAudioContext` support is available.
 - **MP4 H.264/H.265, ProRes, MP3**: available only in the desktop app after a
@@ -243,5 +243,5 @@ Projects using schemas v1 through v9 are migrated to schema v10 when opened.
 - External plugin scripts are not executed yet.
 - Native Tauri file dialogs are not wired yet.
 - Browser mode does not encode MP4, H.265, ProRes, or MP3.
-- WebM records live viewport resolution and does not mux project audio.
+- WebM uses selected output resolution but does not mux project audio.
 - Desktop native formats require a separately installed FFmpeg build.

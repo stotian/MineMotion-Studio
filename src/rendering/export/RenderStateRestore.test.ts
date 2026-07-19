@@ -6,8 +6,14 @@ import { restoreRenderState } from "./RenderStateRestore";
 describe("render state restore", () => {
   it("restores timeline frame and playback state after export", () => {
     const project = createInitialProject();
+    const originalSettings = {
+      ...project.exportSettings,
+      includeVfx: false,
+      outputName: "restored-settings"
+    };
     const snapshot = createRenderStateSnapshot({
       ...project,
+      exportSettings: originalSettings,
       animation: {
         ...project.animation,
         currentFrame: 42,
@@ -19,5 +25,7 @@ describe("render state restore", () => {
 
     expect(restored.animation.currentFrame).toBe(42);
     expect(restored.animation.isPlaying).toBe(true);
+    expect(restored.exportSettings).toEqual(originalSettings);
+    expect(restored.exportSettings).not.toBe(snapshot.exportSettings);
   });
 });

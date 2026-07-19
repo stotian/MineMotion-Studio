@@ -118,11 +118,11 @@ The legacy world-effect bridge now evaluates at most 64 active effects and
 each glow burst through one `THREE.InstancedMesh`. Full object-tree disposal and
 pooling remain assigned to Phase 15.8.
 
-Screen-space effects and post-processing are handled by React overlays around
-the canvas. Export captures those overlays through a canvas capture path for
-PNG output and records the live viewport canvas for WebM where browser support
-allows it. Final-camera offline capture samples explicit frames, while large
-PNG sequences still remain memory-bound in browser mode.
+Screen-space effects and post-processing are previewed through React overlays
+around the canvas. A shared native prepared-frame contract feeds preview and
+the Canvas compositor; PNG, WebM, and FFmpeg consume the same explicit-frame
+capture. WebM records that compositor at selected output resolution. Large PNG
+sequences still remain memory-bound in browser mode.
 
 ## Timeline
 
