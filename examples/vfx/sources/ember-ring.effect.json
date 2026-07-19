@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "id": "example:ember-ring",
+  "displayName": "Ember Ring",
+  "description": "Warm embers rising through an expanding impact ring.",
+  "source": { "kind": "blank" },
+  "durationFrames": 36,
+  "space": "world",
+  "target": null,
+  "seed": "minemotion-example-ember-ring-v1",
+  "blendMode": "additive",
+  "renderLayer": "world",
+  "previewQuality": "high",
+  "exportQuality": "final",
+  "stack": [
+    {
+      "id": "ember:particles",
+      "kind": "emitter",
+      "label": "Rising embers",
+      "enabled": true,
+      "descriptor": {
+        "version": 1,
+        "id": "ember-particles",
+        "kind": "particle-emitter",
+        "color": "#ff9f43",
+        "count": 48,
+        "shape": "ring",
+        "radius": 1.2,
+        "speed": 2.4,
+        "lifetimeSeconds": 1.2,
+        "startSize": 0.12,
+        "endSize": 0.03,
+        "startOpacity": 0.95,
+        "endOpacity": 0
+      }
+    },
+    {
+      "id": "ember:ring",
+      "kind": "primitive",
+      "label": "Impact ring",
+      "enabled": true,
+      "descriptor": {
+        "version": 1,
+        "id": "ember-ring",
+        "kind": "expanding-ring",
+        "color": "#ffd166",
+        "center": [0, 0.05, 0],
+        "startRadius": 0.2,
+        "endRadius": 3.4,
+        "thickness": 0.09,
+        "segments": 96,
+        "startOpacity": 0.9,
+        "endOpacity": 0
+      }
+    },
+    {
+      "id": "ember:glow",
+      "kind": "primitive",
+      "label": "Warm pulse",
+      "enabled": true,
+      "descriptor": {
+        "version": 1,
+        "id": "ember-glow",
+        "kind": "light-pulse",
+        "color": "#fff1b8",
+        "center": [0, 0.4, 0],
+        "startRadius": 0.25,
+        "endRadius": 2.2,
+        "baseIntensity": 0,
+        "peakIntensity": 1.4
+      }
+    },
+    {
+      "id": "ember:opacity",
+      "kind": "modifier",
+      "label": "Soft fade",
+      "enabled": true,
+      "modifier": { "kind": "opacity", "multiplier": 0.85 }
+    }
+  ]
+}

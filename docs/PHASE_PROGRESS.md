@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-Phase 17 - VFX Authoring and Portable Packages
+Phase 17 - VFX Authoring and Portable Packages (complete)
 
 ## Current Milestone
 
-17.7 - Installed custom presets in library, timeline, runtime, and projects
+17.8 - Safe examples, author documentation, and node-graph research
 
 ## Status
 
-IN_PROGRESS - Phase 17.6 is complete; installed preset integration is next.
+COMPLETE - all Phase 17 tasks and acceptance criteria are implemented.
 
 ## Completed
 
@@ -162,15 +162,22 @@ IN_PROGRESS - Phase 17.6 is complete; installed preset integration is next.
 - Disabled, missing, or version-changed local sources are visible in the scene
   effect list while their self-contained project recipe remains deterministic.
   Schema 9 export rejects custom recipes explicitly instead of losing them.
+- Phase 17.8 ships two deterministic CC0 example archives generated from
+  declarative sources through the production writer/reader. Exact bytes and
+  SHA-256 checksums have a read-only drift gate.
+- Author documentation covers the complete safe workflow, package limits,
+  assets, permissions, dependencies, lifecycle, persistence, and failures.
+- Node-graph research keeps the stable ordered stack authoritative and records
+  strict schema/compiler/security/accessibility evidence required before a
+  future graph can be considered.
 
 ## In Progress
 
-- Phase 17.8 will ship safe example packages, author documentation, and the
-  evidence-based node-graph research decision needed to close Phase 17.
+- Phase 18 English/French localization will start from the active phase file.
 
 ## Not Started
 
-- Phase 17.8 example/documentation/research closure, plus phases 18-35.
+- Phases 18-35.
 
 ## Blockers
 
@@ -183,22 +190,23 @@ IN_PROGRESS - Phase 17.6 is complete; installed preset integration is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 17.7 is the validated checkpoint containing this document; Git history
+- Phase 17.8 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 17.7 tests: PASS - 5 files, 81 tests
+- Deterministic example drift gate: PASS - 1 file, 1 test
+- Focused Phase 17.8 tests: PASS - 8 files, 33 tests
 - `npm test`: PASS - 84 files, 384 tests
 - `npm run build`: PASS - 1,814 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 17.7 changes TypeScript/docs only.
+- Native checks: not rerun because Phase 17.8 changes examples/scripts/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Ship bounded example `.minemotion-vfx` packages, author/import documentation,
-and a node-graph research note without adding executable content or a graph UI.
+Load only `completion-pack/phases/18_LOCALIZATION.md`, inventory current user-
+facing strings/localization hooks, and start the first uncompleted Phase 18 task.

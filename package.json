@@ -10,6 +10,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:watch": "vitest",
+    "generate:vfx-examples": "node scripts/generate-vfx-examples.mjs",
+    "verify:vfx-examples": "node scripts/generate-vfx-examples.mjs --verify",
     "typecheck": "tsc --noEmit",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"

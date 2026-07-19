@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "id": "example:soul-portal",
+  "displayName": "Soul Portal",
+  "description": "Cyan portal rings, a vertical energy trail, and drifting soul motes.",
+  "source": { "kind": "blank" },
+  "durationFrames": 60,
+  "space": "world",
+  "target": null,
+  "seed": "minemotion-example-soul-portal-v1",
+  "blendMode": "screen",
+  "renderLayer": "world",
+  "previewQuality": "high",
+  "exportQuality": "final",
+  "stack": [
+    {
+      "id": "portal:outer",
+      "kind": "primitive",
+      "label": "Outer portal ring",
+      "enabled": true,
+      "descriptor": {
+        "version": 1,
+        "id": "portal-outer",
+        "kind": "expanding-ring",
+        "color": "#35e7e4",
+        "center": [0, 1.4, 0],
+        "startRadius": 0.4,
+        "endRadius": 2.6,
+        "thickness": 0.12,
+        "segments": 128,
+        "startOpacity": 0.95,
+        "endOpacity": 0.15
+      }
+    },
+    {
+      "id": "portal:trail",
+      "kind": "primitive",
+      "label": "Portal energy trail",
+      "enabled": true,
+      "descriptor": {
+        "version": 1,
+        "id": "portal-trail",
+        "kind": "trail",
+        "color": "#b9ffff",
+        "points": [[-1.4, 0.2, 0], [-0.8, 1.4, 0], [0, 2.4, 0], [0.8, 1.4, 0], [1.4, 0.2, 0]],
+        "segments": 128,
+        "startWidth": 0.14,
+        "endWidth": 0.03,
+        "startOpacity": 0.9,
+        "endOpacity": 0.1
+      }
+    },
+    {
+      "id": "portal:motes",
+      "kind": "emitter",
+      "label": "Soul motes",
+      "enabled": true,
+      "descriptor": {
+        "version": 1,
+        "id": "portal-motes",
+        "kind": "particle-emitter",
+        "color": "#62f5e9",
+        "count": 56,
+        "shape": "sphere",
+        "radius": 2.1,
+        "speed": 1.1,
+        "lifetimeSeconds": 1.8,
+        "startSize": 0.1,
+        "endSize": 0.02,
+        "startOpacity": 0.85,
+        "endOpacity": 0
+      }
+    },
+    {
+      "id": "portal:tint",
+      "kind": "modifier",
+      "label": "Soul tint",
+      "enabled": true,
+      "modifier": { "kind": "tint", "color": "#49d8c8" }
+    }
+  ]
+}

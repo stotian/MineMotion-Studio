@@ -144,6 +144,12 @@ preview/export budgets, and explicit renderer ownership now coexist.
   packages, autosave, preview, and export preparation. Local package state is
   used only for availability diagnostics; missing/disabled/version-changed
   sources stay visible without making the project unreadable.
+- Two checked-in CC0 `.minemotion-vfx` examples are reproducibly generated from
+  declarative sources through the production writer/reader and protected by
+  exact-byte plus SHA-256 drift verification.
+- The complete author/import/lifecycle/security guide is published. Node-graph
+  research defers a second editor/runtime until a bounded versioned graph can
+  prove a capability unavailable in the ordered stack.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -157,7 +163,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 examples, node-graph research, and author documentation remain.
+- Phase 17 is complete. Phase 18 English/French localization is next.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
@@ -222,3 +228,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
   native record. The local registry is provenance/availability state, not a
   runtime dependency or second project authority; schema 9 rollback fails
   explicitly for records it cannot represent.
+- Phase 17.8 ships deterministic examples and documentation while retaining the
+  ordered stack as the sole authoring authority. A future graph must compile
+  into the current Primitive V1/runtime path and meet explicit entry criteria.

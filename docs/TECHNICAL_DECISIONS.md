@@ -311,3 +311,19 @@ visible missing/disabled/version-mismatch diagnostics. Once inserted, the
 project is self-contained: history, JSON, project packages, autosave, preview,
 and export evaluate the embedded descriptors through the existing prepared-frame
 and budget path. Schema 9 export rejects this native-only payload explicitly.
+
+## TD-026 - Keep the ordered VFX stack as the sole authoring authority
+
+Status: Accepted in Phase 17.8.
+
+Defer a visual node graph because every currently supported authoring operation
+is represented by the stable bounded stack and compiles directly to Primitive
+V1. A graph today would duplicate documents, editing semantics, migration,
+security validation, and deterministic evaluation without enabling a supported
+runtime capability.
+
+A future graph requires an accepted capability that the stack cannot represent,
+a versioned closed acyclic schema, bounded deterministic compilation/work
+accounting, migration/downgrade rules, accessibility/repair behavior, and
+preview/export/adversarial evidence. Its first prototype must project or compile
+into the existing path, never create a second project effect authority.

@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.8: ship safe example packages, author documentation,
-and the node-graph research decision. Phase 17.7 is complete.
+Start Phase 18 localization after reading only its active completion-pack file.
+Phase 17 is complete.
 
 ## Completed Work
 
@@ -34,22 +34,25 @@ and the node-graph research decision. Phase 17.7 is complete.
   persist compiled descriptors/provenance through schema 10 native VFX.
 - Timeline operations, history, JSON/project packages/autosave, preview/export,
   source-status diagnostics, and explicit schema 9 refusal are regression-tested.
+- Two deterministic safe example packages, checksum/drift verification, the
+  complete author/import guide, and the node-graph research decision are shipped.
 
 ## Unfinished Work
 
-- Safe examples, node-graph research note, and author documentation remain.
+- Phase 18 and later roadmap phases remain.
 
 ## Next Implementation Step
 
-Add deterministic safe example archives from declarative source fixtures,
-document package author/import/lifecycle constraints, and record why a visual
-node graph remains deferred until a future versioned contract exists.
+Read `completion-pack/phases/18_LOCALIZATION.md`, inventory existing English/
+French support and hard-coded user-facing strings, then implement the first
+stable localization milestone without broad unrelated rewrites.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npm test -- --run src/vfx src/effects
+npm run verify:vfx-examples
+npx vitest run src/vfx src/effects
 npm test
 npm run build
 npm audit --audit-level=high
