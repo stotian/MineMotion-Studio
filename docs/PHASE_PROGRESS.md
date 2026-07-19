@@ -106,14 +106,16 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
   effects before the shared 8,192-segment limit.
 - Phase 16.4 adds native fire, smoke plume, layered explosion, embers, debris,
   dust cloud, Nether fire, and soul fire through the same recipe registry.
+- Phase 16.5 adds native magic aura, beam, projectile, portal, teleport, heal,
+  corruption, and power-up recipes using every existing primitive family.
 
 ## In Progress
 
-- Phase 16.5 will build the magic/energy preset family.
+- Phase 16.6 will build the environment preset family.
 
 ## Not Started
 
-- Phase 16.5 and later Phase 16 content/navigation/preview/benchmark milestones.
+- Phase 16.6 and later Phase 16 content/navigation/preview/benchmark milestones.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
@@ -127,16 +129,16 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 16.4 is the validated checkpoint containing this document; Git history
+- Phase 16.5 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.4 tests: PASS - 19 files, 189 tests
-- `npm test`: PASS - 73 files, 335 tests
-- `npm run build`: PASS - 1,794 modules; existing large-chunk warning only
+- Focused Phase 16.5 tests: PASS - 19 files, 190 tests
+- `npm test`: PASS - 73 files, 336 tests
+- `npm run build`: PASS - 1,795 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
 - Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -144,5 +146,5 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 
 ## Next Exact Action
 
-Build the Phase 16 magic/energy family: aura, beam, projectile, portal,
-teleport, heal, corruption, and power-up.
+Build environment effects: rain, snow, ash, fog, dust, storms, End, Nether,
+caves, and fireflies.

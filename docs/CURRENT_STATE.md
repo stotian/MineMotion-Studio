@@ -97,6 +97,8 @@ preview/export budgets, and explicit renderer ownership now coexist.
   segment cap and are rejected before geometry/sample allocation.
 - Eight native fire/explosion presets add flame, smoke, layered explosion,
   embers, debris, dust, Nether fire, and soul fire using the same runtime.
+- Eight native magic/energy presets add aura, beam, projectile, portal,
+  teleport, heal, corruption, and power-up using all primitive kinds.
 
 ## Partial Systems
 
@@ -114,7 +116,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 73 frontend test files and 335 passing tests.
+- 73 frontend test files and 336 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

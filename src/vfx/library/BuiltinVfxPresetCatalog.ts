@@ -49,7 +49,15 @@ const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
   debrisBurst: "fire-explosion",
   dustCloud: "fire-explosion",
   netherFire: "fire-explosion",
-  soulFire: "fire-explosion"
+  soulFire: "fire-explosion",
+  magicAura: "magic-energy",
+  magicBeam: "magic-energy",
+  magicProjectile: "magic-energy",
+  magicPortal: "magic-energy",
+  magicTeleport: "magic-energy",
+  magicHeal: "magic-energy",
+  magicCorruption: "magic-energy",
+  magicPowerUp: "magic-energy"
 };
 
 const CAPABILITIES_BY_EFFECT: Record<
@@ -91,7 +99,15 @@ const CAPABILITIES_BY_EFFECT: Record<
   debrisBurst: { preview: true, export: true, limitations: [] },
   dustCloud: { preview: true, export: true, limitations: [] },
   netherFire: { preview: true, export: true, limitations: [] },
-  soulFire: { preview: true, export: true, limitations: [] }
+  soulFire: { preview: true, export: true, limitations: [] },
+  magicAura: { preview: true, export: true, limitations: [] },
+  magicBeam: { preview: true, export: true, limitations: [] },
+  magicProjectile: { preview: true, export: true, limitations: [] },
+  magicPortal: { preview: true, export: true, limitations: [] },
+  magicTeleport: { preview: true, export: true, limitations: [] },
+  magicHeal: { preview: true, export: true, limitations: [] },
+  magicCorruption: { preview: true, export: true, limitations: [] },
+  magicPowerUp: { preview: true, export: true, limitations: [] }
 };
 
 const BUILTIN_RECIPE_ID_SET = new Set<string>(
@@ -121,7 +137,15 @@ const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segm
   debrisBurst: { particles: 44, segments: 0 },
   dustCloud: { particles: 52, segments: 72 },
   netherFire: { particles: 46, segments: 0 },
-  soulFire: { particles: 46, segments: 0 }
+  soulFire: { particles: 46, segments: 0 },
+  magicAura: { particles: 38, segments: 80 },
+  magicBeam: { particles: 0, segments: 160 },
+  magicProjectile: { particles: 0, segments: 96 },
+  magicPortal: { particles: 44, segments: 160 },
+  magicTeleport: { particles: 48, segments: 80 },
+  magicHeal: { particles: 34, segments: 80 },
+  magicCorruption: { particles: 42, segments: 160 },
+  magicPowerUp: { particles: 56, segments: 160 }
 };
 
 export const BUILTIN_VFX_PRESET_LOCALIZATION: Readonly<Record<string, string>> =

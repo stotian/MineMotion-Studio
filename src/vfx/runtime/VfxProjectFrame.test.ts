@@ -326,4 +326,30 @@ describe("prepareProjectVfxFrame", () => {
       segments: 112
     });
   });
+
+  it("evaluates a native magic portal with concentric rings and sparks", () => {
+    const project = createInitialProject();
+    project.effects.instances = [
+      createEffectInstance("magicPortal", {
+        id: "magic_portal",
+        startFrame: 0
+      })
+    ];
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 12,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects[0].primitives.map((primitive) => primitive.kind)).toEqual([
+      "expanding-ring",
+      "expanding-ring",
+      "particle-emitter"
+    ]);
+    expect(prepared.value.effects[0].budget).toMatchObject({
+      particles: 44,
+      segments: 160
+    });
+  });
 });

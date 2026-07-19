@@ -54,7 +54,15 @@ const LIVE_PREVIEW_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = 
   debrisBurst: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   dustCloud: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   netherFire: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
-  soulFire: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" }
+  soulFire: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  magicAura: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  magicBeam: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", intensity: "live-preview" },
+  magicProjectile: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", intensity: "live-preview" },
+  magicPortal: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  magicTeleport: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  magicHeal: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  magicCorruption: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  magicPowerUp: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" }
 };
 
 const EXPORT_ONLY_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = {

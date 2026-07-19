@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.5: build the magic/energy preset family. Phase 16.4
-fire/smoke/explosion VFX is complete.
+Start Phase 16 milestone 16.6: build the environment preset family. Phase 16.5
+magic/energy VFX is complete.
 
 ## Completed Work
 
@@ -17,13 +17,13 @@ fire/smoke/explosion VFX is complete.
 
 ## Unfinished Work
 
-- Magic/energy and later content families.
+- Environment and later content families.
 - Search/favorites/recents, preview caching, 60 stable total,
   and benchmark/regression scenes remain Phase 16 work.
 
 ## Next Implementation Step
 
-Add aura, beam, projectile, portal, teleport, heal, corruption, and power-up.
+Add rain, snow, ash, fog, dust, storms, End, Nether, caves, and fireflies.
 
 ## Tests To Run
 

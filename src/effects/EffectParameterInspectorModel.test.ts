@@ -90,7 +90,15 @@ describe("EffectParameterInspectorModel", () => {
       "debrisBurst",
       "dustCloud",
       "netherFire",
-      "soulFire"
+      "soulFire",
+      "magicAura",
+      "magicBeam",
+      "magicProjectile",
+      "magicPortal",
+      "magicTeleport",
+      "magicHeal",
+      "magicCorruption",
+      "magicPowerUp"
     ] as const) {
       const model = requireModel(
         createEffectParameterInspectorModel(

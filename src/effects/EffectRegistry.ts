@@ -349,6 +349,38 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
   {
     type: "soulFire", name: "Soul Fire", description: "A cyan soul-fire flame field and pulse.", space: "world", defaultDurationFrames: 48,
     defaultParameters: { color: "#35e7e4", secondaryColor: "#b9ffff", alpha: 0.9, radius: 1.3, count: 46, size: 0.14, speed: 1.7, intensity: 1.5 }, tags: ["fire", "soul", "cyan"]
+  },
+  {
+    type: "magicAura", name: "Magic Aura", description: "Layered orbiting energy around a subject.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#b978ff", secondaryColor: "#f3dcff", alpha: 0.85, radius: 1.8, count: 38, size: 0.08, speed: 1.3, intensity: 1.2 }, tags: ["magic", "aura", "energy"]
+  },
+  {
+    type: "magicBeam", name: "Magic Beam", description: "A focused dual-layer arcane beam.", space: "world", defaultDurationFrames: 24,
+    defaultParameters: { color: "#9c6cff", secondaryColor: "#ffffff", alpha: 0.95, radius: 7, size: 0.12, intensity: 1.6 }, tags: ["magic", "beam", "energy"]
+  },
+  {
+    type: "magicProjectile", name: "Magic Projectile", description: "A moving energy core with a luminous trail.", space: "world", defaultDurationFrames: 30,
+    defaultParameters: { color: "#7f8cff", secondaryColor: "#dce1ff", alpha: 0.95, radius: 4, size: 0.16, intensity: 1.5 }, tags: ["magic", "projectile", "trail"]
+  },
+  {
+    type: "magicPortal", name: "Magic Portal", description: "Concentric arcane rings with portal sparks.", space: "world", defaultDurationFrames: 60,
+    defaultParameters: { color: "#8d4dcc", secondaryColor: "#dfb8ff", alpha: 0.9, radius: 2.5, count: 44, size: 0.08, speed: 1.1, intensity: 1.4 }, tags: ["magic", "portal", "ring"]
+  },
+  {
+    type: "magicTeleport", name: "Magic Teleport", description: "A fast collapsing ring and displacement burst.", space: "world", defaultDurationFrames: 18,
+    defaultParameters: { color: "#62d5ff", secondaryColor: "#ffffff", alpha: 1, radius: 2.2, count: 48, size: 0.09, speed: 4, intensity: 1.8 }, tags: ["magic", "teleport", "burst"]
+  },
+  {
+    type: "magicHeal", name: "Magic Heal", description: "A gentle restorative ring and rising motes.", space: "world", defaultDurationFrames: 42,
+    defaultParameters: { color: "#65f5a5", secondaryColor: "#e0ffec", alpha: 0.8, radius: 1.8, count: 34, size: 0.1, speed: 1.2, intensity: 1.1 }, tags: ["magic", "heal", "restoration"]
+  },
+  {
+    type: "magicCorruption", name: "Magic Corruption", description: "Dark unstable motes and contracting energy rings.", space: "world", defaultDurationFrames: 48,
+    defaultParameters: { color: "#57256f", secondaryColor: "#d04cff", alpha: 0.85, radius: 2.1, count: 42, size: 0.11, speed: 1.5, intensity: 1.5 }, tags: ["magic", "corruption", "dark"]
+  },
+  {
+    type: "magicPowerUp", name: "Magic Power Up", description: "A strong gathering aura, rings, and core pulse.", space: "world", defaultDurationFrames: 36,
+    defaultParameters: { color: "#ffd45e", secondaryColor: "#fff7d1", alpha: 0.95, radius: 2.8, count: 56, size: 0.1, speed: 2, intensity: 2 }, tags: ["magic", "power-up", "energy"]
   }
 ];
 

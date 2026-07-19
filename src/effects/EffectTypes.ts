@@ -38,7 +38,15 @@ export type EffectType =
   | "debrisBurst"
   | "dustCloud"
   | "netherFire"
-  | "soulFire";
+  | "soulFire"
+  | "magicAura"
+  | "magicBeam"
+  | "magicProjectile"
+  | "magicPortal"
+  | "magicTeleport"
+  | "magicHeal"
+  | "magicCorruption"
+  | "magicPowerUp";
 
 export type EffectSpace = VfxSpace;
 
