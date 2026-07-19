@@ -272,9 +272,16 @@ export function createLegacyVfxRegistry(
   return new VfxRegistry(definitions.map(adaptLegacyEffectDefinition));
 }
 
+const legacyDefinitionCache = new Map<EffectType, VfxDefinition>();
+
 function getLegacyVfxDefinition(definitionId: string): VfxDefinition | null {
   const definition = effectRegistry.get(definitionId as EffectType);
-  return definition ? adaptLegacyEffectDefinition(definition) : null;
+  if (!definition) return null;
+  const cached = legacyDefinitionCache.get(definition.type);
+  if (cached) return cached;
+  const adapted = adaptLegacyEffectDefinition(definition);
+  legacyDefinitionCache.set(definition.type, adapted);
+  return adapted;
 }
 
 export function adaptLegacyEffectInstance(effect: EffectInstance): VfxInstance {

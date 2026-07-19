@@ -21,6 +21,15 @@ function cloneLegacyEffect(effect: EffectInstance): EffectInstance {
   return sanitized;
 }
 
+function cloneValidatedLegacyEffect(effect: EffectInstance): EffectInstance {
+  const { nativeVfx: _nativeVfx, ...legacy } = effect;
+  return {
+    ...legacy,
+    position: [...legacy.position],
+    parameters: Object.fromEntries(Object.entries(legacy.parameters))
+  };
+}
+
 function validationMessage(instance: VfxInstance): string | null {
   const validation = legacyVfxRegistry.validateInstance(instance);
   return validation.ok
@@ -105,11 +114,14 @@ function samePlainData(left: unknown, right: unknown): boolean {
   );
 }
 
-export function synchronizeLegacyEffectNativeVfx(
+function synchronizeLegacyEffectNativeVfxInternal(
   effect: EffectInstance,
-  existing?: VfxInstance
+  existing: VfxInstance | undefined,
+  trustedValidatedLegacy: boolean
 ): SerializedEffectInstanceV10 {
-  const legacy = cloneLegacyEffect(effect);
+  const legacy = trustedValidatedLegacy
+    ? cloneValidatedLegacyEffect(effect)
+    : cloneLegacyEffect(effect);
   const projected = adaptLegacyEffectInstance(legacy);
   let nativeVfx = projected;
 
@@ -158,6 +170,20 @@ export function synchronizeLegacyEffectNativeVfx(
   }
 
   return { ...legacy, nativeVfx };
+}
+
+export function synchronizeLegacyEffectNativeVfx(
+  effect: EffectInstance,
+  existing?: VfxInstance
+): SerializedEffectInstanceV10 {
+  return synchronizeLegacyEffectNativeVfxInternal(effect, existing, false);
+}
+
+export function synchronizeValidatedLegacyEffectNativeVfx(
+  effect: EffectInstance,
+  existing?: VfxInstance
+): SerializedEffectInstanceV10 {
+  return synchronizeLegacyEffectNativeVfxInternal(effect, existing, true);
 }
 
 export function migrateLegacyEffectsToSchema10(

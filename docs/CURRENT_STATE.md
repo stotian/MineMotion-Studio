@@ -99,6 +99,11 @@ preview/export budgets, and explicit renderer ownership now coexist.
   embers, debris, dust, Nether fire, and soul fire using the same runtime.
 - Eight native magic/energy presets add aura, beam, projectile, portal,
   teleport, heal, corruption, and power-up using all primitive kinds.
+- Ten native environment presets add weather, atmosphere, dimension, cave, and
+  firefly fields with catalog-declared Primitive V1 direction limitations.
+- Validated effects commands reuse cached adapted definitions and skip redundant
+  one-record sanitation after whole-project validation. The 4,097-effect legacy
+  repair regression improved from 17.6 s to 2.31 s with identical persistence.
 
 ## Partial Systems
 
@@ -116,7 +121,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 73 frontend test files and 336 passing tests.
+- 73 frontend test files and 337 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

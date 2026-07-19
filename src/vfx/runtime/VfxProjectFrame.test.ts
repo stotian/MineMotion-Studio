@@ -352,4 +352,30 @@ describe("prepareProjectVfxFrame", () => {
       segments: 160
     });
   });
+
+  it("prepares a mixed native environment storm within shared budgets", () => {
+    const project = createInitialProject();
+    project.effects.instances = [
+      createEffectInstance("environmentStorm", {
+        id: "environment_storm",
+        startFrame: 0
+      })
+    ];
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 20,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects[0].primitives.map((primitive) => primitive.kind)).toEqual([
+      "particle-emitter",
+      "beam",
+      "beam"
+    ]);
+    expect(prepared.value.effects[0].budget).toMatchObject({
+      particles: 128,
+      segments: 96
+    });
+  });
 });

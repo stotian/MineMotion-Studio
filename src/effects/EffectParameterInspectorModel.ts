@@ -62,7 +62,17 @@ const LIVE_PREVIEW_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = 
   magicTeleport: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   magicHeal: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
   magicCorruption: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
-  magicPowerUp: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" }
+  magicPowerUp: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentRain: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentSnow: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentAsh: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentFog: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentDust: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentStorm: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentEnd: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentNether: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentCave: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  environmentFireflies: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" }
 };
 
 const EXPORT_ONLY_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = {

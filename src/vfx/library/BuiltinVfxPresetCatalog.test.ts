@@ -17,7 +17,7 @@ describe("BuiltinVfxPresetCatalog", () => {
   it("joins every existing effect to native metadata without claiming stability", () => {
     const presets = builtinVfxPresetCatalog.list();
 
-    expect(presets).toHaveLength(44);
+    expect(presets).toHaveLength(54);
     expect(builtinVfxPresetCatalog.countStable()).toBe(0);
     expect(presets.every((preset) => preset.metadata.id === preset.definition.id)).toBe(true);
     expect(

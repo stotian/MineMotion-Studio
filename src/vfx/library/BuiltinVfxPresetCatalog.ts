@@ -57,7 +57,17 @@ const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
   magicTeleport: "magic-energy",
   magicHeal: "magic-energy",
   magicCorruption: "magic-energy",
-  magicPowerUp: "magic-energy"
+  magicPowerUp: "magic-energy",
+  environmentRain: "environment",
+  environmentSnow: "environment",
+  environmentAsh: "environment",
+  environmentFog: "environment",
+  environmentDust: "environment",
+  environmentStorm: "environment",
+  environmentEnd: "environment",
+  environmentNether: "environment",
+  environmentCave: "environment",
+  environmentFireflies: "environment"
 };
 
 const CAPABILITIES_BY_EFFECT: Record<
@@ -107,7 +117,17 @@ const CAPABILITIES_BY_EFFECT: Record<
   magicTeleport: { preview: true, export: true, limitations: [] },
   magicHeal: { preview: true, export: true, limitations: [] },
   magicCorruption: { preview: true, export: true, limitations: [] },
-  magicPowerUp: { preview: true, export: true, limitations: [] }
+  magicPowerUp: { preview: true, export: true, limitations: [] },
+  environmentRain: { preview: true, export: true, limitations: ["Primitive V1 approximates directional rainfall with isotropic field motion."] },
+  environmentSnow: { preview: true, export: true, limitations: ["Primitive V1 approximates directional snowfall with isotropic field motion."] },
+  environmentAsh: { preview: true, export: true, limitations: ["Primitive V1 approximates directional ash fall with isotropic field motion."] },
+  environmentFog: { preview: true, export: true, limitations: [] },
+  environmentDust: { preview: true, export: true, limitations: [] },
+  environmentStorm: { preview: true, export: true, limitations: ["Rain motion is isotropic in Primitive V1."] },
+  environmentEnd: { preview: true, export: true, limitations: [] },
+  environmentNether: { preview: true, export: true, limitations: [] },
+  environmentCave: { preview: true, export: true, limitations: ["Droplet direction is approximated by isotropic motion."] },
+  environmentFireflies: { preview: true, export: true, limitations: [] }
 };
 
 const BUILTIN_RECIPE_ID_SET = new Set<string>(
@@ -145,7 +165,17 @@ const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segm
   magicTeleport: { particles: 48, segments: 80 },
   magicHeal: { particles: 34, segments: 80 },
   magicCorruption: { particles: 42, segments: 160 },
-  magicPowerUp: { particles: 56, segments: 160 }
+  magicPowerUp: { particles: 56, segments: 160 },
+  environmentRain: { particles: 120, segments: 0 },
+  environmentSnow: { particles: 96, segments: 0 },
+  environmentAsh: { particles: 84, segments: 0 },
+  environmentFog: { particles: 72, segments: 0 },
+  environmentDust: { particles: 76, segments: 0 },
+  environmentStorm: { particles: 128, segments: 96 },
+  environmentEnd: { particles: 68, segments: 80 },
+  environmentNether: { particles: 76, segments: 0 },
+  environmentCave: { particles: 42, segments: 0 },
+  environmentFireflies: { particles: 36, segments: 0 }
 };
 
 export const BUILTIN_VFX_PRESET_LOCALIZATION: Readonly<Record<string, string>> =

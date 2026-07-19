@@ -7,7 +7,10 @@ import {
 import type { MineMotionProject } from "../project/ProjectFile";
 import { sanitizeTimelineTracks } from "../project/TimelineTrackSanitizer";
 import { createLegacyVfxSeed } from "../vfx/compat/LegacyEffectAdapter";
-import { synchronizeLegacyEffectNativeVfx } from "../vfx/serialization/VfxProjectMigration";
+import {
+  synchronizeLegacyEffectNativeVfx,
+  synchronizeValidatedLegacyEffectNativeVfx
+} from "../vfx/serialization/VfxProjectMigration";
 import {
   effectTimelineIssue as issue,
   isEffectTimelineRecord as isRecord,
@@ -177,7 +180,7 @@ function mutation(
     project.animation.timelineTracks
   );
   const synchronizedInstances = instances.map((effect) =>
-    synchronizeLegacyEffectNativeVfx(effect, effect.nativeVfx)
+    synchronizeValidatedLegacyEffectNativeVfx(effect, effect.nativeVfx)
   );
   return validResult({
     project: syncEffectTimelineLane({

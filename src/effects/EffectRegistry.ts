@@ -381,6 +381,46 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
   {
     type: "magicPowerUp", name: "Magic Power Up", description: "A strong gathering aura, rings, and core pulse.", space: "world", defaultDurationFrames: 36,
     defaultParameters: { color: "#ffd45e", secondaryColor: "#fff7d1", alpha: 0.95, radius: 2.8, count: 56, size: 0.1, speed: 2, intensity: 2 }, tags: ["magic", "power-up", "energy"]
+  },
+  {
+    type: "environmentRain", name: "Rain Field", description: "A dense local rain volume.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#9fc7df", alpha: 0.55, radius: 8, count: 120, size: 0.04, speed: 6, intensity: 1 }, tags: ["environment", "rain", "weather"]
+  },
+  {
+    type: "environmentSnow", name: "Snow Field", description: "A soft drifting local snow volume.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#f4f8ff", alpha: 0.75, radius: 8, count: 96, size: 0.1, speed: 0.8, intensity: 0.8 }, tags: ["environment", "snow", "weather"]
+  },
+  {
+    type: "environmentAsh", name: "Ash Fall", description: "Slow dark ash drifting through the scene.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#69645f", alpha: 0.55, radius: 7, count: 84, size: 0.08, speed: 0.7, intensity: 0.8 }, tags: ["environment", "ash", "weather"]
+  },
+  {
+    type: "environmentFog", name: "Ground Fog", description: "Low expanding fog motes around a location.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#a9b5bf", alpha: 0.3, radius: 5, count: 72, size: 0.4, speed: 0.35, intensity: 0.7 }, tags: ["environment", "fog", "mood"]
+  },
+  {
+    type: "environmentDust", name: "Ambient Dust", description: "Fine dust suspended in a lit scene.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#c6b58f", alpha: 0.45, radius: 6, count: 76, size: 0.06, speed: 0.3, intensity: 0.6 }, tags: ["environment", "dust", "ambient"]
+  },
+  {
+    type: "environmentStorm", name: "Storm Field", description: "Rain, charged air, and intermittent native bolts.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#7796ad", secondaryColor: "#d9f4ff", alpha: 0.65, radius: 9, count: 128, size: 0.05, speed: 7, intensity: 1.4 }, tags: ["environment", "storm", "weather"]
+  },
+  {
+    type: "environmentEnd", name: "End Atmosphere", description: "Purple End motes and spatial energy rings.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#b06cff", secondaryColor: "#e8d4ff", alpha: 0.65, radius: 6, count: 68, size: 0.08, speed: 0.6, intensity: 1 }, tags: ["environment", "end", "motes"]
+  },
+  {
+    type: "environmentNether", name: "Nether Atmosphere", description: "Hot red ash and a low heat pulse.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#8f3c2e", secondaryColor: "#ff8a3d", alpha: 0.55, radius: 6, count: 76, size: 0.09, speed: 0.7, intensity: 1 }, tags: ["environment", "nether", "ash"]
+  },
+  {
+    type: "environmentCave", name: "Cave Drips", description: "Sparse cave droplets and damp motes.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#7da8b5", alpha: 0.55, radius: 5, count: 42, size: 0.07, speed: 1.2, intensity: 0.7 }, tags: ["environment", "cave", "drips"]
+  },
+  {
+    type: "environmentFireflies", name: "Fireflies", description: "Warm floating lights for night scenes.", space: "world", defaultDurationFrames: 120,
+    defaultParameters: { color: "#eaff76", secondaryColor: "#fffbd1", alpha: 0.85, radius: 5, count: 36, size: 0.08, speed: 0.35, intensity: 1.1 }, tags: ["environment", "fireflies", "night"]
   }
 ];
 

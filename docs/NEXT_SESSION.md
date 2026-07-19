@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.6: build the environment preset family. Phase 16.5
-magic/energy VFX is complete.
+Start Phase 16 milestone 16.7: build the screen/cinematic preset family. Phase
+16.6 environment VFX is complete.
 
 ## Completed Work
 
@@ -17,13 +17,13 @@ magic/energy VFX is complete.
 
 ## Unfinished Work
 
-- Environment and later content families.
+- Screen/cinematic and later content families.
 - Search/favorites/recents, preview caching, 60 stable total,
   and benchmark/regression scenes remain Phase 16 work.
 
 ## Next Implementation Step
 
-Add rain, snow, ash, fog, dust, storms, End, Nether, caves, and fireflies.
+Add flashes, shakes, glitch, bars, bloom, vignette, freeze, and color drain.
 
 ## Tests To Run
 

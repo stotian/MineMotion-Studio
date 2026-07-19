@@ -98,7 +98,17 @@ describe("EffectParameterInspectorModel", () => {
       "magicTeleport",
       "magicHeal",
       "magicCorruption",
-      "magicPowerUp"
+      "magicPowerUp",
+      "environmentRain",
+      "environmentSnow",
+      "environmentAsh",
+      "environmentFog",
+      "environmentDust",
+      "environmentStorm",
+      "environmentEnd",
+      "environmentNether",
+      "environmentCave",
+      "environmentFireflies"
     ] as const) {
       const model = requireModel(
         createEffectParameterInspectorModel(

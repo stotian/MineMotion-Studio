@@ -46,7 +46,17 @@ export type EffectType =
   | "magicTeleport"
   | "magicHeal"
   | "magicCorruption"
-  | "magicPowerUp";
+  | "magicPowerUp"
+  | "environmentRain"
+  | "environmentSnow"
+  | "environmentAsh"
+  | "environmentFog"
+  | "environmentDust"
+  | "environmentStorm"
+  | "environmentEnd"
+  | "environmentNether"
+  | "environmentCave"
+  | "environmentFireflies";
 
 export type EffectSpace = VfxSpace;
 
