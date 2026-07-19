@@ -255,3 +255,16 @@ Reject code, WASM, executable files, unrestricted shader source, undeclared
 files, unknown manifest fields/permissions, incompatible versions, and authoring
 documents that fail existing Primitive V1 compilation or budgets. Reading is an
 in-memory validation step and never implies installation.
+
+## TD-022 - Package export is canonical and inspection precedes installation
+
+Status: Accepted in Phase 17.4.
+
+Canonicalize JSON object keys and non-semantic manifest lists, sort archive
+assets by path, and use a fixed ZIP timestamp. Validate the finished archive
+through the same bounded reader used for imports before returning it.
+
+Package inspection compiles the authoring document and exposes preview, work,
+licenses, permissions, assets, dependency satisfaction, and install readiness.
+It performs no registry mutation or installation, preserving a clear review
+boundary before locally persistent state changes.

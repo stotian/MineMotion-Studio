@@ -1439,6 +1439,59 @@ p.parameter-control-error {
   grid-column: 1 / -1;
 }
 
+.vfx-package-report {
+  grid-column: 1 / -1;
+}
+
+.vfx-package-report-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+  gap: 0.8rem;
+}
+
+.vfx-package-report-grid img {
+  width: 100%;
+  border: 1px solid #35435a;
+  border-radius: 6px;
+}
+
+.vfx-package-report-grid dl {
+  margin: 0;
+}
+
+.vfx-package-report-grid dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.38rem 0;
+  border-bottom: 1px solid #252e3b;
+  font-size: 0.75rem;
+}
+
+.vfx-package-report-grid dd {
+  margin: 0;
+  text-align: right;
+}
+
+.vfx-package-report-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+}
+
+.vfx-package-report-lists div,
+.vfx-package-report-lists span,
+.vfx-package-report-lists strong {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+}
+
+.vfx-package-report-lists span {
+  color: #9ca8ba;
+}
+
 .vfx-workspace-preview {
   display: block;
   width: 100%;

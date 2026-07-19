@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.4: deterministic `.minemotion-vfx` export/import,
-preview, and dependency/permission report. Phase 17.3 is complete.
+Start Phase 17 milestone 17.5: local package install, enable, disable, update,
+inspect, and uninstall lifecycle. Phase 17.4 is complete.
 
 ## Completed Work
 
@@ -24,16 +24,18 @@ preview, and dependency/permission report. Phase 17.3 is complete.
   target/duration/quality; restricted modifiers compile and preview for real.
 - Closed manifest V1 and bounded ZIP32 extraction now reject unsafe paths,
   code, archive bombs, undeclared assets, invalid metadata, and bad budgets.
+- Canonical byte-stable ZIP export, round-trip rewrite, and pre-install preview/
+  dependency/permission/license/asset/budget reports are live in VFX Studio.
 
 ## Unfinished Work
 
-- Deterministic import/export, inspection, installation, richer asset handling,
-  restricted templates, examples, and documentation remain.
+- Local installation lifecycle, richer asset handling, restricted templates,
+  examples, and author documentation remain.
 
 ## Next Implementation Step
 
-Add deterministic stored-ZIP writing with canonical JSON/order/timestamps and
-round-trip tests, then generate a pre-install package/dependency report.
+Add a bounded versioned local registry and pure install/enable/disable/update/
+inspect/uninstall operations with dependency and immutable built-in protection.
 
 ## Tests To Run
 

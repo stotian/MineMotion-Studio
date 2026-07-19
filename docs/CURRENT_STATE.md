@@ -125,6 +125,10 @@ preview/export budgets, and explicit renderer ownership now coexist.
   validate versions, IDs, licenses, dependencies, permissions, declared assets,
   PNG dimensions, authoring data, and compiled budgets while rejecting code,
   traversal, archive bombs, malformed ZIP metadata, and undeclared files.
+- Canonical package writing sorts JSON/lists/entries, fixes ZIP timestamps, and
+  self-validates before delivery. VFX Studio exports drafts and inspects package
+  preview, work, licenses, permissions, assets, dependencies, and readiness
+  without installing or mutating local state.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -138,14 +142,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 deterministic package writing/inspection, custom preset persistence,
-  installation, richer asset support, restricted templates, and examples remain.
+- Phase 17 local package lifecycle/custom preset persistence, richer asset
+  support, restricted templates, examples, and author documentation remain.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 80 frontend test files and 367 passing tests.
+- 81 frontend test files and 371 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -194,3 +198,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
   descriptors, then reuses Primitive V1 validation, evaluation, and budgets.
 - Phase 17.3 uses a closed ZIP32 profile and keeps extraction as validated
   in-memory data; reading never implies installation or filesystem writes.
+- Phase 17.4 makes package bytes canonical and keeps inspection a read-only
+  boundary before any local registry mutation.

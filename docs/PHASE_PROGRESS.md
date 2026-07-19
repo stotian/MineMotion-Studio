@@ -6,11 +6,11 @@ Phase 17 - VFX Authoring and Portable Packages
 
 ## Current Milestone
 
-17.4 - Deterministic package export/import and pre-install inspection
+17.5 - Local package install, enable, update, inspect, and uninstall
 
 ## Status
 
-IN_PROGRESS - Phase 17.3 is complete; deterministic package workflows are next.
+IN_PROGRESS - Phase 17.4 is complete; local package lifecycle is next.
 
 ## Completed
 
@@ -143,15 +143,19 @@ IN_PROGRESS - Phase 17.3 is complete; deterministic package workflows are next.
   ZIP32 reader. It rejects traversal, duplicates, code/shaders, undeclared files,
   encryption/ZIP64/symlinks, metadata/CRC/size/ratio/count violations, bad image
   dimensions, versions/licenses/dependencies/permissions, and over-budget drafts.
+- Phase 17.4 writes byte-stable canonical stored ZIP archives, self-validates
+  them through the bounded reader, and proves export/import/rewrite equality
+  with assets. VFX Studio exports drafts and shows preview, budgets, licenses,
+  permissions, assets, dependencies, compatibility, and readiness pre-install.
 
 ## In Progress
 
-- Phase 17.4 will add deterministic package writing/round-trip tests plus package
-  preview and dependency/permission reports before installation.
+- Phase 17.5 will add a versioned bounded local package registry with install,
+  enable, disable, compatible update, inspect, and uninstall operations.
 
 ## Not Started
 
-- Phase 17.4 and later VFX package milestones, plus phases 18-35.
+- Phase 17.5 and later VFX asset/template/example milestones, plus phases 18-35.
 
 ## Blockers
 
@@ -164,22 +168,22 @@ IN_PROGRESS - Phase 17.3 is complete; deterministic package workflows are next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 17.3 is the validated checkpoint containing this document; Git history
+- Phase 17.4 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 17.3 tests: PASS - 4 files, 15 tests
-- `npm test`: PASS - 80 files, 367 tests
-- `npm run build`: PASS - 1,805 modules; existing large-chunk warning only
+- Focused Phase 17.4 tests: PASS - 5 files, 19 tests
+- `npm test`: PASS - 81 files, 371 tests
+- `npm run build`: PASS - 1,811 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 17.3 changes TypeScript/docs only.
+- Native checks: not rerun because Phase 17.4 changes TypeScript/CSS/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Implement deterministic Phase 17.4 `.minemotion-vfx` writing and byte-stable
-round trips, then expose preview/dependency/permission reports before install.
+Implement a bounded versioned local VFX package registry and pure lifecycle
+operations, then connect inspected packages to explicit install/update actions.
