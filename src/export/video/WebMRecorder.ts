@@ -25,32 +25,60 @@ export function startCanvasWebMRecording(
   }
   const stream = canvas.captureStream(fps);
   const chunks: BlobPart[] = [];
-  const recorder = new MediaRecorder(stream, {
-    mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-      ? "video/webm;codecs=vp9"
-      : "video/webm",
-    videoBitsPerSecond:
-      quality === "high" ? 12_000_000 : quality === "medium" ? 7_000_000 : 3_000_000
-  });
-  recorder.addEventListener("dataavailable", (event) => {
+  let recorder: MediaRecorder;
+  try {
+    recorder = new MediaRecorder(stream, {
+      mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+        ? "video/webm;codecs=vp9"
+        : "video/webm",
+      videoBitsPerSecond:
+        quality === "high" ? 12_000_000 : quality === "medium" ? 7_000_000 : 3_000_000
+    });
+  } catch (error) {
+    stopMediaStream(stream);
+    throw error;
+  }
+
+  const handleData = (event: BlobEvent): void => {
     if (event.data.size > 0) chunks.push(event.data);
-  });
+  };
+  let settled = false;
+  let resolveResult!: (blob: Blob) => void;
+  let rejectResult!: (error: Error) => void;
+  const cleanup = (): void => {
+    recorder.removeEventListener("dataavailable", handleData);
+    recorder.removeEventListener("stop", handleStop);
+    recorder.removeEventListener("error", handleError);
+    stopMediaStream(stream);
+  };
+  const handleStop = (): void => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    resolveResult(new Blob(chunks, { type: "video/webm" }));
+  };
+  const handleError = (): void => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    rejectResult(new Error("WebM recorder failed."));
+  };
   const result = new Promise<Blob>((resolve, reject) => {
-    recorder.addEventListener(
-      "stop",
-      () => {
-        for (const track of stream.getTracks()) track.stop();
-        resolve(new Blob(chunks, { type: "video/webm" }));
-      },
-      { once: true }
-    );
-    recorder.addEventListener(
-      "error",
-      () => reject(new Error("WebM recorder failed.")),
-      { once: true }
-    );
+    resolveResult = resolve;
+    rejectResult = reject;
   });
-  recorder.start();
+  recorder.addEventListener("dataavailable", handleData);
+  recorder.addEventListener("stop", handleStop);
+  recorder.addEventListener("error", handleError);
+  try {
+    recorder.start();
+  } catch (error) {
+    settled = true;
+    cleanup();
+    rejectResult(
+      error instanceof Error ? error : new Error("WebM recorder failed to start.")
+    );
+  }
 
   return {
     result,
@@ -58,6 +86,10 @@ export function startCanvasWebMRecording(
       if (recorder.state !== "inactive") recorder.stop();
     }
   };
+}
+
+function stopMediaStream(stream: MediaStream): void {
+  for (const track of stream.getTracks()) track.stop();
 }
 
 export async function recordCanvasWebM(

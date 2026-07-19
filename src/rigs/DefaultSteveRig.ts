@@ -5,6 +5,7 @@ import type { RigBone } from "./Bone";
 import { getRigDefinition } from "./MinecraftRigPresets";
 import { makeBoneObjectId } from "./RigSelection";
 import { applySkinUvToBoxGeometry } from "./MinecraftSkinMapper";
+import { markSharedThreeResource } from "../renderer/ThreeResourceDisposal";
 
 const MATERIALS = {
   head: createSolidMaterial("#d9a066"),
@@ -16,6 +17,9 @@ const MATERIALS = {
   sword: createSolidMaterial("#c7d0dc"),
   item: createSolidMaterial("#74b36a")
 };
+for (const material of Object.values(MATERIALS)) {
+  markSharedThreeResource(material);
+}
 
 const textureCache = new Map<string, THREE.Texture>();
 
@@ -130,6 +134,7 @@ function getSkinTexture(dataUrl: string): THREE.Texture {
   const cached = textureCache.get(dataUrl);
   if (cached) return cached;
   const texture = new THREE.TextureLoader().load(dataUrl);
+  markSharedThreeResource(texture);
   texture.magFilter = THREE.NearestFilter;
   texture.minFilter = THREE.NearestFilter;
   texture.colorSpace = THREE.SRGBColorSpace;

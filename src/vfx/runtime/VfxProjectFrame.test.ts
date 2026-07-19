@@ -7,6 +7,7 @@ import {
   prepareProjectVfxFrame,
   shouldIncludeProjectVfx
 } from "./VfxProjectFrame";
+import { VFX_GLOBAL_FRAME_LIMITS } from "./VfxFrameBudget";
 
 function createProject() {
   const project = createInitialProject();
@@ -66,7 +67,19 @@ describe("prepareProjectVfxFrame", () => {
 
     expect(result).toEqual({
       ok: true,
-      value: { frame: 15, fps: 24, included: false, effects: [] },
+      value: {
+        frame: 15,
+        fps: 24,
+        included: false,
+        effects: [],
+        budget: {
+          limits: { ...VFX_GLOBAL_FRAME_LIMITS },
+          requested: { effects: 0, particles: 0, segments: 0, stackWork: 0 },
+          allocated: { effects: 0, particles: 0, segments: 0, stackWork: 0 },
+          droppedEffects: 0,
+          limitHits: { effects: 0, particles: 0, segments: 0, stackWork: 0 }
+        }
+      },
       warnings: []
     });
   });
@@ -131,6 +144,45 @@ describe("prepareProjectVfxFrame", () => {
     if (result.ok) return;
     expect(result.errors.map((error) => error.code)).toContain(
       "VFX_PROJECT_PREPARATION_FAILED"
+    );
+  });
+
+  it("applies the global particle cap deterministically before rendering", () => {
+    const project = createInitialProject();
+    project.effects.instances = Array.from({ length: 6 }, (_, index) =>
+      createEffectInstance("glowBurst", {
+        id: `effect_budget_${index}`,
+        startFrame: 0,
+        parameters: { count: 1_024 }
+      })
+    );
+
+    const first = prepareProjectVfxFrame(project, {
+      frame: 0,
+      includeVfx: true,
+      quality: "final"
+    });
+    const second = prepareProjectVfxFrame(structuredClone(project), {
+      frame: 0,
+      includeVfx: true,
+      quality: "final"
+    });
+
+    expect(first).toEqual(second);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    expect(first.value.effects).toHaveLength(4);
+    expect(first.value.effects.map((effect) => effect.budget.particles)).toEqual([
+      1_024,
+      1_024,
+      1_024,
+      1_024
+    ]);
+    expect(first.value.budget.allocated.particles).toBe(4_096);
+    expect(first.value.budget.requested.particles).toBe(6_144);
+    expect(first.value.budget.droppedEffects).toBe(2);
+    expect(first.warnings.map((warning) => warning.code)).toContain(
+      "VFX_GLOBAL_PARTICLES_BUDGET_CAPPED"
     );
   });
 });

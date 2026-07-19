@@ -159,3 +159,18 @@ WebM records the same composited captured frames used by PNG/FFmpeg instead of
 the raw viewport canvas. Existing preset visuals remain a bounded compatibility
 map over typed evaluations until primitive render parity is proven. Missing
 entity/bone targets warn and resolve to null rather than unsafe access.
+
+## TD-015 - Global VFX work is budgeted at prepared-frame ownership
+
+Status: Accepted in Phase 15.8.
+
+Measure compatibility-renderer work where schema 10 frames become visual stack
+entries, before Three.js or Canvas consumers allocate. Preserve stable project
+order and cap each frame to 64 active effects, 4,096 particles, 8,192 segments,
+and 10,000 combined stack work units. Keep requested/allocated diagnostics and
+limit-hit counts on the transient prepared frame; do not persist budget state.
+
+Renderer object trees own their geometries and non-cached materials/textures.
+Recursive disposal deduplicates shared references and handles render targets and
+skeletons. Module caches explicitly mark borrowed materials/textures as shared,
+so reconstruction cannot dispose a resource that a later frame will reuse.

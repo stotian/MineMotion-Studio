@@ -16,7 +16,7 @@ still required before changing code.
 | LIM-007 | FFmpeg cannot be cancelled after the native process starts | Yes | P3 | 24 | OPEN |
 | LIM-008 | Real FFmpeg codec execution is untested because FFmpeg is absent locally | Yes | P4 | 24 | BLOCKED_BY_ENVIRONMENT |
 | LIM-009 | Preview, PNG, WebM, and FFmpeg previously used divergent VFX inputs | Yes | P2 | 15.7 | RESOLVED |
-| LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | OPEN |
+| LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | RESOLVED |
 | LIM-011 | Preview/export consumers previously bypassed the typed evaluator | Yes | P2 | 15.7 | RESOLVED |
 | LIM-012 | Entity/bone targets now resolve safely with warnings, but several registered parameters remain visually ignored by compatibility visuals | Yes | P4 | 16 | PARTIALLY_RESOLVED |
 | LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | OPEN |
@@ -32,7 +32,7 @@ still required before changing code.
 | LIM-023 | Main JavaScript bundle is about 1 MB and triggers a Vite chunk warning | Yes | P3 | 20 | OPEN |
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
-| LIM-026 | Primitive limits are per descriptor; a combined per-frame stack budget awaits real stack integration and measurement | Yes | P3 | 15.8/20 | OPEN |
+| LIM-026 | Primitive limits were per descriptor without a combined measured runtime stack budget | Yes | P3 | 15.8 | RESOLVED |
 | LIM-027 | Local parameter keyframes evaluate deterministically, but dedicated keyframe editing UI is not connected yet | Yes | P4 | 16 | PARTIALLY_RESOLVED |
 
 ## Phase 15.1 Outcome
@@ -96,3 +96,13 @@ keyframes evaluate from local time, target entities/bones resolve without unsafe
 access, and missing references warn. `includeVfx=false` short-circuits all VFX
 before the final canvas paint. Known visual presets still use a compatibility
 map, and complete GPU disposal/global stack budgets remain 15.8.
+
+## Phase 15.8 Outcome
+
+The canonical prepared frame now measures and caps active effects, particles,
+segments, and combined stack work before Three.js/Canvas allocation. Owned scene
+resources are recursively disposed once on rebuild and shutdown; explicitly
+shared material/skin caches are not invalidated by a renderer refresh. Repeated
+add/remove/reopen and WebM success/retry/cancel/error tests cover the resource
+lifecycle. Static scene rebuilding remains a Phase 20 optimization, but it no
+longer leaks detached object trees.

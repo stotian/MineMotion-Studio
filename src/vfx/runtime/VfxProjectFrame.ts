@@ -17,6 +17,13 @@ import {
   evaluateVfxFrame,
   type VfxActiveFrameEvaluation
 } from "./VfxFrameEvaluator";
+import {
+  createEmptyVfxFrameBudgetSummary,
+  measureLegacyVfxEffectWork,
+  requestVfxEffectBudget,
+  type VfxEffectBudgetAllocation,
+  type VfxFrameBudgetSummary
+} from "./VfxFrameBudget";
 
 export type VfxFrameQualitySource = "preview" | "export" | VfxQuality;
 
@@ -40,6 +47,7 @@ export interface PreparedProjectVfxEffect {
   displayName: string;
   evaluation: VfxActiveFrameEvaluation;
   resolvedTarget: ResolvedVfxTarget | null;
+  budget: VfxEffectBudgetAllocation;
 }
 
 export interface PreparedProjectVfxFrame {
@@ -47,6 +55,7 @@ export interface PreparedProjectVfxFrame {
   fps: number;
   included: boolean;
   effects: PreparedProjectVfxEffect[];
+  budget: VfxFrameBudgetSummary;
 }
 
 export type PreparedProjectVfxFrameResult =
@@ -166,12 +175,19 @@ export function prepareProjectVfxFrame(
   const frame = options.frame ?? project.animation.currentFrame;
   const fps = options.fps ?? project.animation.fps;
   if (!options.includeVfx) {
-    return validResult({ frame, fps, included: false, effects: [] });
+    return validResult({
+      frame,
+      fps,
+      included: false,
+      effects: [],
+      budget: createEmptyVfxFrameBudgetSummary()
+    });
   }
 
   const errors: ValidationIssue[] = [];
   const warnings: ValidationIssue[] = [];
   const effects: PreparedProjectVfxEffect[] = [];
+  const budget = createEmptyVfxFrameBudgetSummary();
   for (let index = 0; index < project.effects.instances.length; index += 1) {
     const effect = project.effects.instances[index];
     const path = `effects.instances.${index}`;
@@ -219,10 +235,19 @@ export function prepareProjectVfxFrame(
         );
         continue;
       }
+      const allocation = requestVfxEffectBudget(
+        budget,
+        measureLegacyVfxEffectWork(
+          effect.type,
+          getEvaluationNumber(evaluation.value, "count", 18)
+        )
+      );
+      if (!allocation) continue;
       effects.push({
         type: effect.type,
         displayName: synchronized.nativeVfx.displayName,
         evaluation: evaluation.value,
+        budget: allocation,
         resolvedTarget: resolveTarget(
           project,
           evaluation.value.inputs.target,
@@ -241,9 +266,38 @@ export function prepareProjectVfxFrame(
     }
   }
 
+  appendBudgetWarnings(budget, warnings);
+
   return errors.length > 0
     ? invalidResult(errors, warnings)
-    : validResult({ frame, fps, included: true, effects }, warnings);
+    : validResult({ frame, fps, included: true, effects, budget }, warnings);
+}
+
+function getEvaluationNumber(
+  evaluation: VfxActiveFrameEvaluation,
+  parameterId: string,
+  fallback: number
+): number {
+  const value = evaluation.inputs.parameters[parameterId];
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function appendBudgetWarnings(
+  budget: VfxFrameBudgetSummary,
+  warnings: ValidationIssue[]
+): void {
+  const dimensions = ["effects", "particles", "segments", "stackWork"] as const;
+  for (const dimension of dimensions) {
+    if (budget.limitHits[dimension] === 0) continue;
+    warnings.push(
+      issue(
+        `VFX_GLOBAL_${dimension.replace(/([A-Z])/g, "_$1").toUpperCase()}_BUDGET_CAPPED`,
+        `Global VFX ${dimension} budget was reached; ${budget.requested[dimension]} units were requested and ${budget.allocated[dimension]} were allocated.`,
+        "effects.instances",
+        "warning"
+      )
+    );
+  }
 }
 
 export function getPreparedVfxNumber(

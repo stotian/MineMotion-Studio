@@ -63,6 +63,7 @@ function createChunkBorder(chunk: ImportedChunkData): THREE.LineSegments {
   const maxY = Math.max(chunk.maxY + 1, minY + 1);
   const box = new THREE.BoxGeometry(16, maxY - minY, 16);
   const edges = new THREE.EdgesGeometry(box);
+  box.dispose();
   const lines = new THREE.LineSegments(
     edges,
     new THREE.LineBasicMaterial({

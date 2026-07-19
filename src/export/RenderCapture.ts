@@ -127,8 +127,9 @@ function drawScreenEffects(
       context.globalAlpha =
         0.3 * getPreparedVfxNumber(effect, "intensity", 1);
       context.strokeStyle = color;
-      for (let index = 0; index < 42; index += 1) {
-        const y = (height / 42) * index;
+      const segments = effect.budget.segments;
+      for (let index = 0; index < segments; index += 1) {
+        const y = (height / segments) * index;
         context.beginPath();
         context.moveTo(width * 0.5, height * 0.5);
         context.lineTo(width, y);

@@ -8,6 +8,7 @@ import type {
 import { TextureResolver } from "../minecraft/resources/TextureResolver";
 import { resolveBiomeTint } from "../minecraft/resources/BiomeTint";
 import { getMaterialPresetForBlock } from "../minecraft/materials/MinecraftMaterialPresets";
+import { markSharedThreeResource } from "./ThreeResourceDisposal";
 
 const materialCache = new Map<string, THREE.MeshStandardMaterial>();
 
@@ -39,7 +40,7 @@ export function getMaterialForBlock(
         context.settings?.textureFiltering ?? "nearest"
       )
     : null;
-  const material = new THREE.MeshStandardMaterial({
+  const material = markSharedThreeResource(new THREE.MeshStandardMaterial({
     color: biomeTint ?? (texture ? "#ffffff" : block.color),
     map: texture,
     roughness: preset.roughness,
@@ -51,7 +52,7 @@ export function getMaterialForBlock(
     emissive: preset.emissiveColor,
     emissiveIntensity: preset.emissiveIntensity,
     side: preset.transparent ? THREE.DoubleSide : THREE.FrontSide
-  });
+  }));
 
   material.name = `${blockId}:${preset.id}:${resolution.status}`;
   materialCache.set(cacheKey, material);
@@ -83,6 +84,7 @@ function loadMinecraftTexture(
   filtering: "nearest" | "linear"
 ): THREE.Texture {
   const texture = new THREE.TextureLoader().load(dataUrl);
+  markSharedThreeResource(texture);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;

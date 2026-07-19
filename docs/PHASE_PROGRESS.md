@@ -6,11 +6,11 @@ Phase 15 - Native Deterministic VFX Foundation
 
 ## Current Milestone
 
-15.8 - VFX performance budgets and resource cleanup
+15.9 - Phase 15 stabilization gate
 
 ## Status
 
-IN_PROGRESS - milestones 15.1 through 15.7 completed and validated; 15.8 is next.
+IN_PROGRESS - milestones 15.1 through 15.8 completed and validated; final stabilization is next.
 
 ## Completed
 
@@ -69,21 +69,29 @@ IN_PROGRESS - milestones 15.1 through 15.7 completed and validated; 15.8 is next
 - WebM now records the same composited captured frames as PNG/FFmpeg at the
   selected output resolution; render state restores export settings as well as
   camera/timeline state after completion, error, or cancellation.
+- Phase 15.8 measures and enforces one deterministic pre-allocation frame budget:
+  64 active effects, 4,096 particles, 8,192 segments, and 10,000 combined stack
+  work units. Prepared frames report requested/allocated work and limit hits.
+- Scene reconstruction now recursively disposes owned geometries, materials,
+  textures, render targets, skeletons, buffers, and roots while preserving
+  explicitly shared Minecraft material/skin caches. WebM releases bitmaps,
+  tracks, and listeners on success, retry, cancellation, and recorder error.
+- Repeated add/remove/reopen cycles retain schema 10 native identity and leave
+  no effects behind; imported-chunk temporary border geometry is also released.
 
 ## In Progress
 
-- Phase 15 foundation. The next unit is milestone 15.8: measured global budgets,
-  renderer resource ownership/disposal, and repeated lifecycle validation.
+- Phase 15 foundation. The next unit is milestone 15.9: final controller audit,
+  visual-smoke retry, complete stabilization gate, and phase handoff.
 
 ## Not Started
 
-- Phase 15.8 performance limits and resource cleanup.
 - Phase 15.9 full phase validation.
 - Later defined roadmap phases 16-25.
 
 ## Blockers
 
-- None for Phase 15.8 TypeScript work.
+- None for Phase 15.9 TypeScript work.
 - Manual Phase 15.5 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -92,23 +100,23 @@ IN_PROGRESS - milestones 15.1 through 15.7 completed and validated; 15.8 is next
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 15.7 is the validated checkpoint containing this document; Git history
+- Phase 15.8 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
-- `npm ci`: PASS - 108 packages audited, 0 vulnerabilities
+- `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 15.7 tests: PASS - 6 files, 34 tests
-- `npm test`: PASS - 67 files, 307 tests
+- Focused Phase 15.8 tests: PASS - 21 files, 115 tests
+- `npm test`: PASS - 70 files, 317 tests
 - `npm run build`: PASS - existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 15.7 changes TypeScript/docs only.
-- Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
-  `Cannot redefine property: process`; automated presentation tests pass.
+- Native checks: not rerun because milestone 15.8 changes TypeScript/docs only.
+- Manual visual smoke: not rerun in 15.8; the documented browser bootstrap
+  environment failure remains and automated lifecycle/presentation tests pass.
 
 ## Next Exact Action
 
-Measure current per-frame effect/particle/segment/stack work and resource churn.
-Add global budgets before allocation, explicit object-tree disposal, and repeat
-add/remove/reopen/export/retry/cancel lifecycle tests without changing visuals.
+Start Phase 15.9 by auditing oversized VFX controllers against existing
+characterization coverage. Split only if ownership materially improves without
+behavior change, retry the real visual smoke, then run the complete Phase 15 gate.

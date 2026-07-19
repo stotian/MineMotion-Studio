@@ -62,6 +62,14 @@ with the schema 10 native persistence bridge.
   keyframes evaluate from effect-local time and missing targets emit warnings.
 - Final render state applies the selected VFX flag before painting;
   `includeVfx=false` produces an empty prepared frame for every VFX layer.
+- Shared frame preparation enforces pre-allocation global caps of 64 effects,
+  4,096 particles, 8,192 segments, and 10,000 combined work units, with
+  deterministic project-order allocation and structured diagnostics.
+- Scene root rebuild/dispose recursively releases owned Three.js geometries,
+  materials, textures, render targets, skeletons, instance buffers, and roots.
+  Explicitly shared Minecraft materials and skin textures remain cache-owned.
+- WebM capture releases image bitmaps, MediaStream tracks, and recorder listeners
+  across normal export, repeated retry, cancellation, startup failure, and error.
 
 ## Partial Systems
 
@@ -72,13 +80,13 @@ with the schema 10 native persistence bridge.
 
 ## Absent Systems
 
-- Phase 15.8+ resource cleanup/global budgets and final Phase 15 gate.
+- Phase 15.9 final Phase 15 stabilization gate.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 67 frontend test files and 307 passing tests.
+- 70 frontend test files and 317 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -114,4 +122,7 @@ with the schema 10 native persistence bridge.
 - Phase 15.7 evaluates the synchronized native record for all preview/export
   preparation, safely resolves entity/bone references, and composes WebM from
   the same captured frames as PNG/FFmpeg. The legacy visual map remains until
-  primitive parity is proven; cleanup and global budgets are the 15.8 task.
+  primitive parity is proven.
+- Phase 15.8 budgets the shared prepared stack before any visual allocation and
+  makes GPU ownership explicit. Rebuilds dispose owned resources once, while
+  cache resources are marked shared and released only by their cache owner.

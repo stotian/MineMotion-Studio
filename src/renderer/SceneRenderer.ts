@@ -14,12 +14,8 @@ import { createSolidMaterial } from "./MinecraftMaterialSystem";
 import { SkySystem } from "./SkySystem";
 import { createGridFloor } from "./GridFloor";
 import { CameraController } from "./CameraController";
+import { disposeThreeObjectTree } from "./ThreeResourceDisposal";
 import type { ViewportSettings } from "../settings/AppSettings";
-import {
-  MAX_LEGACY_ACTIVE_WORLD_EFFECTS,
-  MAX_LEGACY_EFFECT_PARTICLE_COUNT,
-  MAX_LEGACY_PARTICLES_PER_FRAME
-} from "../effects/EffectTypes";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
 import {
   getPreparedVfxNumber,
@@ -121,12 +117,19 @@ export class SceneRenderer {
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointer);
     window.removeEventListener("resize", this.resize);
     this.controller.dispose();
+    disposeThreeObjectTree(this.sceneRoot);
+    disposeThreeObjectTree(this.gridFloor);
+    disposeThreeObjectTree(this.selectionBox);
+    this.scene.clear();
+    this.renderer.renderLists.dispose();
     this.renderer.dispose();
-    this.options.container.innerHTML = "";
+    this.renderer.forceContextLoss();
+    this.renderer.domElement.remove();
+    this.project = null;
   }
 
   private rebuildSceneRoot(project: MineMotionProject): void {
-    this.sceneRoot.clear();
+    disposeThreeObjectTree(this.sceneRoot);
     const activeResourcePack = project.assets.resourcePacks.find(
       (pack) => pack.id === project.minecraftResources.activeResourcePackId
     );
@@ -188,8 +191,6 @@ export class SceneRenderer {
         : "preview"
     });
     const preparedEffects = prepared.ok ? prepared.value.effects : [];
-    let renderedWorldEffects = 0;
-    let remainingParticleBudget = MAX_LEGACY_PARTICLES_PER_FRAME;
     for (const effect of preparedEffects) {
       if (
         effect.type !== "lightningStrike" &&
@@ -198,19 +199,7 @@ export class SceneRenderer {
       ) {
         continue;
       }
-      if (renderedWorldEffects >= MAX_LEGACY_ACTIVE_WORLD_EFFECTS) break;
-      const requestedParticles = Math.max(
-        0,
-        Math.round(getPreparedVfxNumber(effect, "count", 18))
-      );
-      const particleCount =
-        effect.type === "glowBurst"
-          ? Math.min(
-              MAX_LEGACY_EFFECT_PARTICLE_COUNT,
-              remainingParticleBudget,
-              requestedParticles
-            )
-          : 0;
+      const particleCount = effect.budget.particles;
       if (effect.type === "glowBurst" && particleCount === 0) continue;
       const object = this.createWorldEffectObject(
         effect,
@@ -218,8 +207,6 @@ export class SceneRenderer {
       );
       if (object) {
         this.sceneRoot.add(object);
-        renderedWorldEffects += 1;
-        remainingParticleBudget -= particleCount;
       }
     }
   }
@@ -304,9 +291,10 @@ export class SceneRenderer {
       const points: THREE.Vector3[] = [];
       const height = Math.max(2, getPreparedVfxNumber(effect, "radius", 3));
       const seed = effect.evaluation.frameSeed;
-      for (let index = 0; index <= 8; index += 1) {
-        const t = index / 8;
-        const offset = index === 0 || index === 8
+      const segments = effect.budget.segments;
+      for (let index = 0; index <= segments; index += 1) {
+        const t = index / segments;
+        const offset = index === 0 || index === segments
           ? 0
           : Math.sin(seed + index * 1.7) * 0.24;
         points.push(
@@ -334,7 +322,7 @@ export class SceneRenderer {
         getPreparedVfxNumber(effect, "radius", 4) * progress
       );
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(radius, 0.035, 8, 96),
+        new THREE.TorusGeometry(radius, 0.035, 8, effect.budget.segments),
         new THREE.MeshBasicMaterial({
           color,
           transparent: true,
