@@ -201,3 +201,17 @@ Catalog validation fails closed for corrupt records, duplicate/mismatched IDs,
 missing assets/localization, bad duration/quality/schema compatibility, false
 stable claims, or work outside primitive/global budgets. Compatibility and
 experimental entries never count toward the 60 stable-preset acceptance target.
+
+## TD-018 - Built-in previews are deterministic data and personal cache is local
+
+Status: Accepted in Phase 16.
+
+Generate bounded SVG thumbnails from validated native primitive descriptors and
+schedule one cache operation per idle task. Version cache keys with preset
+metadata, fail softly when storage is missing/corrupt/full, and never persist
+preview cache or favorites/recents inside project files.
+
+Stable built-ins require a registered native recipe, current schema support,
+editable preview/export capabilities, bounded work, localization, deterministic
+all-quality evaluation, ready preview generation, and integration regressions.
+Compatibility and experimental records remain visible but outside stable claims.

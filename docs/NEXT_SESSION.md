@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 16 milestone 16.11: create benchmark/regression scenes and close
-Phase 16. Phase 16.10 previews/stable verification is complete.
+Start Phase 17 milestone 17.1: create the dedicated VFX workspace and safe
+stack-authoring contracts. Phase 16 is complete.
 
 ## Completed Work
 
@@ -15,17 +15,19 @@ Phase 16. Phase 16.10 previews/stable verification is complete.
 - Search, category/tags/source filters, 128 favorites, and 20 recents are live.
 - Exactly 60 native presets are stable with deterministic cached previews and
   full integration verification; 12 compatibility entries remain non-stable.
-- Native presets remain experimental until generated thumbnails and stable
-  regression coverage are complete; stable count remains zero.
+- Four benchmark/regression project fixtures lock dense budget behavior.
+- Exactly 60 native presets are stable after deterministic previews and complete
+  integration/regression coverage; 12 compatibility entries remain non-stable.
 
 ## Unfinished Work
 
-- Benchmark/regression scenes and the final Phase 16 closure gate remain.
+- Phase 17 authoring, derived presets, portable package safety, installation,
+  restricted templates, examples, and documentation remain.
 
 ## Next Implementation Step
 
-Add representative and dense benchmark scene fixtures with deterministic budget
-expectations, then run the full gate and close Phase 16.
+Define a dedicated workspace shell and typed stack model for supported
+primitives/emitters/modifiers. Do not add a node graph or executable content.
 
 ## Tests To Run
 

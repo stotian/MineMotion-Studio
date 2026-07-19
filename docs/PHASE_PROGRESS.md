@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-Phase 16 - Production Built-in VFX Library
+Phase 17 - VFX Authoring and Portable Packages
 
 ## Current Milestone
 
-16.11 - VFX benchmark/regression scenes and Phase 16 closure
+17.1 - Dedicated VFX workspace and stack-authoring contracts
 
 ## Status
 
-IN_PROGRESS - Phase 16.10 is complete; benchmark/regression scenes are next.
+IN_PROGRESS - Phase 16 is complete; Phase 17.1 is next.
 
 ## Completed
 
@@ -126,15 +126,19 @@ IN_PROGRESS - Phase 16.10 is complete; benchmark/regression scenes are next.
   at a time, caches them locally, and promotes exactly 60 native presets stable.
 - Every stable preset passes timeline, JSON/package persistence, preview/export,
   missing-target, all-quality, thumbnail, and cache-recovery verification.
+- Phase 16.11 adds four deterministic project benchmark/regression fixtures for
+  family coverage, particle cap, segment cap, and dense balanced allocation.
+- Final Phase 16 gate passes 23 focused files/207 tests and 77 files/353 tests,
+  typecheck, build, and audit. Browser smoke remains environment-blocked.
 
 ## In Progress
 
-- Phase 16.11 will add benchmark/regression scene fixtures, enforce dense
-  measured budgets, run the final gate, and close Phase 16.
+- Phase 17.1 will create a dedicated VFX workspace and safe stack-based
+  primitive/emitter/modifier authoring contracts before any node graph.
 
 ## Not Started
 
-- Phase 16.11 benchmark/regression scene and final closure milestone.
+- Phase 17.1 and later VFX authoring/package milestones, plus phases 18-35.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
@@ -148,22 +152,22 @@ IN_PROGRESS - Phase 16.10 is complete; benchmark/regression scenes are next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 16.8 is the validated checkpoint containing this document; Git history
+- Phase 16.11 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.10 tests: PASS - 22 files, 204 tests
-- `npm test`: PASS - 76 files, 350 tests
+- Focused final Phase 16 tests: PASS - 23 files, 207 tests
+- `npm test`: PASS - 77 files, 353 tests
 - `npm run build`: PASS - 1,800 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
+- Native checks: not rerun because Phase 16.11 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Create deterministic VFX benchmark/regression scene fixtures for representative
-families and dense combinations, enforce budgets, then run the final Phase 16 gate.
+Create the Phase 17.1 dedicated VFX workspace shell and immutable stack authoring
+contracts, reusing current definitions, primitives, preview, and project paths.
