@@ -3,7 +3,7 @@ import { createBlankVfxAuthoringDocument } from "../authoring/VfxAuthoringDocume
 import { applyVfxAuthoringCommand, createDefaultVfxAuthoringStackItem } from "../authoring/VfxAuthoringController";
 import { readVfxPackageArchive } from "./VfxPackageArchiveReader";
 import { createVfxPackageManifest, writeVfxPackageArchive } from "./VfxPackageArchiveWriter";
-import { inspectVfxPackage, satisfiesVfxPackageVersion } from "./VfxPackageInspection";
+import { compareVfxPackageVersions, inspectVfxPackage, satisfiesVfxPackageVersion } from "./VfxPackageInspection";
 
 function bytes(blob: Blob): Promise<Uint8Array> {
   return blob.arrayBuffer().then((buffer) => new Uint8Array(buffer));
@@ -89,5 +89,7 @@ describe("deterministic VFX package round trips and inspection", () => {
     expect(satisfiesVfxPackageVersion("1.1.9", ">=1.2.0")).toBe(false);
     expect(satisfiesVfxPackageVersion("0.2.9", "^0.2.0")).toBe(true);
     expect(satisfiesVfxPackageVersion("0.3.0", "^0.2.0")).toBe(false);
+    expect(compareVfxPackageVersions("1.0.0", "1.0.0-beta.2")).toBeGreaterThan(0);
+    expect(compareVfxPackageVersions("1.0.0-beta.10", "1.0.0-beta.2")).toBeGreaterThan(0);
   });
 });

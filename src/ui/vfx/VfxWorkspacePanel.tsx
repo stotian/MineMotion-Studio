@@ -16,7 +16,7 @@ import {
   WandSparkles,
   X
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   applyVfxAuthoringCommand,
   createDefaultVfxAuthoringStackItem,
@@ -44,6 +44,17 @@ import {
   inspectVfxPackage,
   type VfxPackageInspectionReport
 } from "../../vfx/package/VfxPackageInspection";
+import {
+  createEmptyVfxPackageRegistry,
+  inspectInstalledVfxPackage,
+  installVfxPackage,
+  loadVfxPackageRegistry,
+  saveVfxPackageRegistry,
+  setVfxPackageEnabled,
+  uninstallVfxPackage,
+  updateVfxPackage,
+  type VfxPackageRegistry
+} from "../../vfx/package/VfxPackageRegistry";
 
 interface VfxWorkspacePanelProps {
   open: boolean;
@@ -95,7 +106,10 @@ export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelP
   const [packageAuthor, setPackageAuthor] = useState("MineMotion Creator");
   const [packageLicense, setPackageLicense] = useState("CC0-1.0");
   const [inspection, setInspection] = useState<VfxPackageInspectionReport | null>(null);
+  const [inspectedBytes, setInspectedBytes] = useState<ArrayBuffer | null>(null);
+  const [registry, setRegistry] = useState<VfxPackageRegistry>(() => createEmptyVfxPackageRegistry());
   const packageInputRef = useRef<HTMLInputElement | null>(null);
+  const registryLoadedRef = useRef(false);
   const compilation = useMemo(() => compileVfxAuthoringDocument(document), [document]);
   const previewUrl = useMemo(
     () => compilation.ok
@@ -104,6 +118,15 @@ export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelP
     [compilation, document.displayName, document.id]
   );
   const selectedItem = document.stack.find((item) => item.id === selectedItemId) ?? null;
+
+  useEffect(() => {
+    if (!open || registryLoadedRef.current || typeof window === "undefined") return;
+    registryLoadedRef.current = true;
+    void loadVfxPackageRegistry(window.localStorage).then((loaded) => {
+      setRegistry(loaded.registry);
+      if (loaded.warnings.length > 0) setMessage(loaded.warnings.join(" "));
+    });
+  }, [open]);
 
   if (!open) return null;
 
@@ -157,13 +180,56 @@ export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelP
   const inspectPackageFile = async (file: File | undefined) => {
     if (!file) return;
     try {
-      const archive = await readVfxPackageArchive(await file.arrayBuffer());
+      const bytes = await file.arrayBuffer();
+      const archive = await readVfxPackageArchive(bytes);
       const report = inspectVfxPackage(archive);
       setInspection(report);
+      setInspectedBytes(bytes);
       setMessage(`Inspected ${report.displayName}. Nothing was installed or changed.`);
     } catch (error) {
       setInspection(null);
+      setInspectedBytes(null);
       setMessage(error instanceof Error ? error.message : "Could not inspect VFX package.");
+    }
+  };
+
+  const persistRegistry = (next: VfxPackageRegistry, successMessage: string) => {
+    if (!saveVfxPackageRegistry(window.localStorage, next)) {
+      setMessage("Local VFX package storage is full or unavailable; no registry change was kept.");
+      return;
+    }
+    setRegistry(next);
+    setMessage(successMessage);
+  };
+
+  const installInspectedPackage = async () => {
+    if (!inspection || !inspectedBytes) return;
+    try {
+      const exists = registry.packages.some((entry) => entry.id === inspection.packageId);
+      const timestamp = new Date().toISOString();
+      const next = exists
+        ? await updateVfxPackage(registry, inspectedBytes, timestamp)
+        : await installVfxPackage(registry, inspectedBytes, timestamp);
+      persistRegistry(next, `${inspection.displayName} ${exists ? "updated" : "installed"} locally.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not install VFX package.");
+    }
+  };
+
+  const toggleInstalledPackage = (packageId: string, enabled: boolean) => {
+    try {
+      persistRegistry(setVfxPackageEnabled(registry, packageId, enabled), `${packageId} ${enabled ? "enabled" : "disabled"}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not change VFX package state.");
+    }
+  };
+
+  const removeInstalledPackage = (packageId: string) => {
+    if (!window.confirm(`Uninstall local VFX package ${packageId}?`)) return;
+    try {
+      persistRegistry(uninstallVfxPackage(registry, packageId), `${packageId} uninstalled locally.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not uninstall VFX package.");
     }
   };
 
@@ -252,8 +318,25 @@ export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelP
               <div><strong>Dependencies</strong>{inspection.dependencies.length === 0 ? <span>None</span> : inspection.dependencies.map((dependency) => <span key={dependency.id}>{dependency.id} {dependency.versionRange}: {dependency.status}{dependency.optional ? " (optional)" : ""}</span>)}</div>
               <div><strong>Permissions</strong>{inspection.permissions.length === 0 ? <span>None</span> : inspection.permissions.map((permission) => <span key={permission.id}>{permission.id}: {permission.description}</span>)}</div>
             </div>
-            <p className="vfx-safety-note">Inspection only. This package has not been installed, enabled, or written to local storage.</p>
+            <p className="vfx-safety-note">{inspectedBytes ? "Inspection only. This package has not been installed, enabled, or written to local storage." : "Read-only inspection of an already installed local package."}</p>
+            <button type="button" disabled={!inspection.installReady || !inspectedBytes} onClick={() => void installInspectedPackage()}>
+              <ShieldCheck size={14} /> {registry.packages.some((entry) => entry.id === inspection.packageId) ? "Update Installed Package" : "Install Package Locally"}
+            </button>
           </section>}
+          <section className="vfx-installed-packages">
+            <h3><ShieldCheck size={15} /> Installed Custom Packages ({registry.packages.length}/32)</h3>
+            <div className="vfx-installed-list">
+              {registry.packages.map((entry) => <article key={entry.id}>
+                <span><strong>{entry.archive.manifest.displayName}</strong><small>{entry.id} / {entry.version} / {entry.enabled ? "enabled" : "disabled"}</small></span>
+                <div>
+                  <button type="button" onClick={() => { setInspection(inspectInstalledVfxPackage(registry, entry.id)); setInspectedBytes(null); setMessage(`Inspecting installed package ${entry.id}.`); }}>Inspect</button>
+                  <button type="button" onClick={() => toggleInstalledPackage(entry.id, !entry.enabled)}>{entry.enabled ? "Disable" : "Enable"}</button>
+                  <button type="button" onClick={() => removeInstalledPackage(entry.id)}>Uninstall</button>
+                </div>
+              </article>)}
+              {registry.packages.length === 0 && <p className="empty-note">No custom VFX packages are installed locally.</p>}
+            </div>
+          </section>
         </div>
         <input ref={packageInputRef} className="hidden-input" type="file" accept=".minemotion-vfx,application/zip" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; void inspectPackageFile(file); }} />
       </section>

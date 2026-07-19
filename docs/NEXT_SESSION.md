@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.5: local package install, enable, disable, update,
-inspect, and uninstall lifecycle. Phase 17.4 is complete.
+Start Phase 17 milestone 17.6: safe package asset handlers and restricted shader
+template validation/fallback. Phase 17.5 is complete.
 
 ## Completed Work
 
@@ -26,16 +26,18 @@ inspect, and uninstall lifecycle. Phase 17.4 is complete.
   code, archive bombs, undeclared assets, invalid metadata, and bad budgets.
 - Canonical byte-stable ZIP export, round-trip rewrite, and pre-install preview/
   dependency/permission/license/asset/budget reports are live in VFX Studio.
+- A bounded versioned local registry now installs, updates, enables, disables,
+  inspects, and uninstalls canonical packages with dependency protection.
 
 ## Unfinished Work
 
-- Local installation lifecycle, richer asset handling, restricted templates,
-  examples, and author documentation remain.
+- Safe typed asset consumption, restricted templates, installed custom effect
+  integration, examples, and author documentation remain.
 
 ## Next Implementation Step
 
-Add a bounded versioned local registry and pure install/enable/disable/update/
-inspect/uninstall operations with dependency and immutable built-in protection.
+Validate/resolve all supported asset kinds from package entries, then define a
+closed restricted shader template schema with safe fallback and no source code.
 
 ## Tests To Run
 

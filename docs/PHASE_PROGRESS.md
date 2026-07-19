@@ -6,11 +6,11 @@ Phase 17 - VFX Authoring and Portable Packages
 
 ## Current Milestone
 
-17.5 - Local package install, enable, update, inspect, and uninstall
+17.6 - Safe asset handlers and restricted shader templates
 
 ## Status
 
-IN_PROGRESS - Phase 17.4 is complete; local package lifecycle is next.
+IN_PROGRESS - Phase 17.5 is complete; safe package asset semantics are next.
 
 ## Completed
 
@@ -147,15 +147,19 @@ IN_PROGRESS - Phase 17.4 is complete; local package lifecycle is next.
   them through the bounded reader, and proves export/import/rewrite equality
   with assets. VFX Studio exports drafts and shows preview, budgets, licenses,
   permissions, assets, dependencies, compatibility, and readiness pre-install.
+- Phase 17.5 adds a bounded versioned local registry that reparses canonical
+  archive bytes on load. Install/update/enable/disable/inspect/uninstall protect
+  built-ins, require compatible enabled dependencies, prevent breaking active
+  dependents, persist immutably, and fail soft on corrupt/unavailable storage.
 
 ## In Progress
 
-- Phase 17.5 will add a versioned bounded local package registry with install,
-  enable, disable, compatible update, inspect, and uninstall operations.
+- Phase 17.6 will validate and resolve supported texture/sprite/audio/model/
+  gradient/curve/thumbnail/localization assets and restricted shader templates.
 
 ## Not Started
 
-- Phase 17.5 and later VFX asset/template/example milestones, plus phases 18-35.
+- Phase 17.6 and later integration/example milestones, plus phases 18-35.
 
 ## Blockers
 
@@ -168,22 +172,22 @@ IN_PROGRESS - Phase 17.4 is complete; local package lifecycle is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 17.4 is the validated checkpoint containing this document; Git history
+- Phase 17.5 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 17.4 tests: PASS - 5 files, 19 tests
-- `npm test`: PASS - 81 files, 371 tests
-- `npm run build`: PASS - 1,811 modules; existing large-chunk warning only
+- Focused Phase 17.5 tests: PASS - 5 files, 24 tests
+- `npm test`: PASS - 82 files, 377 tests
+- `npm run build`: PASS - 1,812 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 17.4 changes TypeScript/CSS/docs only.
+- Native checks: not rerun because Phase 17.5 changes TypeScript/CSS/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Implement a bounded versioned local VFX package registry and pure lifecycle
-operations, then connect inspected packages to explicit install/update actions.
+Implement safe typed handlers for every declared Phase 17 asset kind and a
+closed restricted-shader-template parameter schema with fallback behavior.

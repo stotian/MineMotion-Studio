@@ -50,10 +50,25 @@ function semverParts(value: string): [number, number, number] {
   return [major, minor, patch];
 }
 
-function compare(left: string, right: string): number {
+export function compareVfxPackageVersions(left: string, right: string): number {
   const a = semverParts(left);
   const b = semverParts(right);
   for (let index = 0; index < 3; index += 1) if (a[index] !== b[index]) return a[index] < b[index] ? -1 : 1;
+  const leftPre = left.includes("-") ? left.slice(left.indexOf("-") + 1).split(".") : [];
+  const rightPre = right.includes("-") ? right.slice(right.indexOf("-") + 1).split(".") : [];
+  if (leftPre.length === 0 || rightPre.length === 0) return leftPre.length === rightPre.length ? 0 : leftPre.length === 0 ? 1 : -1;
+  const count = Math.max(leftPre.length, rightPre.length);
+  for (let index = 0; index < count; index += 1) {
+    const leftPart = leftPre[index];
+    const rightPart = rightPre[index];
+    if (leftPart === undefined || rightPart === undefined) return leftPart === rightPart ? 0 : leftPart === undefined ? -1 : 1;
+    if (leftPart === rightPart) continue;
+    const leftNumber = /^\d+$/.test(leftPart) ? Number(leftPart) : null;
+    const rightNumber = /^\d+$/.test(rightPart) ? Number(rightPart) : null;
+    if (leftNumber !== null && rightNumber !== null) return leftNumber < rightNumber ? -1 : 1;
+    if (leftNumber !== null || rightNumber !== null) return leftNumber !== null ? -1 : 1;
+    return leftPart < rightPart ? -1 : 1;
+  }
   return 0;
 }
 
@@ -62,7 +77,7 @@ export function satisfiesVfxPackageVersion(version: string, range: string): bool
   if (!match || !SEMVER_PATTERN.test(version) || !SEMVER_PATTERN.test(match[2])) return false;
   const operator = match[1] ?? "";
   const target = match[2];
-  const relation = compare(version, target);
+  const relation = compareVfxPackageVersions(version, target);
   if (operator === ">=") return relation >= 0;
   if (operator === "<=") return relation <= 0;
   if (operator === ">") return relation > 0;

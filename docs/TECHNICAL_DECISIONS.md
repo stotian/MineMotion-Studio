@@ -268,3 +268,16 @@ Package inspection compiles the authoring document and exposes preview, work,
 licenses, permissions, assets, dependency satisfaction, and install readiness.
 It performs no registry mutation or installation, preserving a clear review
 boundary before locally persistent state changes.
+
+## TD-023 - Store canonical archives and revalidate the local registry
+
+Status: Accepted in Phase 17.5.
+
+Persist the validated canonical package archive as immutable Base64 plus only
+identity, version, enabled state, and timestamps. Reparse every archive with the
+bounded reader on load and reject the whole runtime snapshot if enabled package
+dependencies are inconsistent. Preserve corrupt stored text for recovery.
+
+Bound browser-local storage separately from the portable archive format. Local
+lifecycle operations must prevent built-in ID collisions and cannot disable,
+remove, or incompatibly update a package required by an enabled dependent.
