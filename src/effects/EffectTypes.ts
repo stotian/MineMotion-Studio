@@ -3,6 +3,7 @@ import type { VfxSpace } from "../vfx/core/VfxDefinition";
 import type { VfxInstance } from "../vfx/core/VfxInstance";
 
 export type EffectType =
+  | "customVfx"
   | "lightningStrike"
   | "impactFrame"
   | "cameraShake"

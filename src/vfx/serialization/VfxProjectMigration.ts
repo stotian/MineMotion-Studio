@@ -3,7 +3,7 @@ import type { EffectInstance } from "../../effects/EffectTypes";
 import {
   adaptLegacyEffectInstance,
   adaptVfxInstanceToLegacyEffect,
-  createLegacyVfxRegistry
+  createProjectVfxRegistry
 } from "../compat/LegacyEffectAdapter";
 import type { VfxInstance } from "../core/VfxInstance";
 import type { VfxParameterValue } from "../core/VfxParameter";
@@ -12,7 +12,7 @@ export interface SerializedEffectInstanceV10 extends EffectInstance {
   nativeVfx: VfxInstance;
 }
 
-const legacyVfxRegistry = createLegacyVfxRegistry();
+const legacyVfxRegistry = createProjectVfxRegistry();
 
 function cloneLegacyEffect(effect: EffectInstance): EffectInstance {
   const { nativeVfx: _nativeVfx, ...legacy } = effect;
@@ -153,6 +153,7 @@ export function validateSynchronizedLegacyEffectNativeVfx(
   const nativeValidation = validateAndRepairMigratedParameters(nativeVfx);
   if (nativeValidation.error) return nativeValidation.error;
   const projected = adaptLegacyEffectInstance(effect);
+  const isCustomRecipe = nativeVfx.customRecipe !== undefined;
   let projectedParameters = projected.parameters;
   let nativeParameters = nativeVfx.parameters;
   if (!samePlainData(nativeParameters, projectedParameters)) {
@@ -169,7 +170,7 @@ export function validateSynchronizedLegacyEffectNativeVfx(
     nativeVfx.startFrame !== projected.startFrame ||
     nativeVfx.durationFrames !== projected.durationFrames ||
     nativeVfx.enabled !== projected.enabled ||
-    nativeVfx.space !== projected.space ||
+    (!isCustomRecipe && nativeVfx.space !== projected.space) ||
     !sameVector3(nativeVfx.transform?.position, projected.transform.position) ||
     !samePlainData(nativeParameters, projectedParameters)
   ) {
@@ -202,6 +203,7 @@ function synchronizeLegacyEffectNativeVfxInternal(
     if (existingError) {
       throw new Error(`Schema 10 native VFX data is invalid. ${existingError}`);
     }
+    const isCustomRecipe = cloned.customRecipe !== undefined;
     nativeVfx = {
       ...cloned,
       serializationVersion: projected.serializationVersion,
@@ -211,7 +213,7 @@ function synchronizeLegacyEffectNativeVfxInternal(
       startFrame: projected.startFrame,
       durationFrames: projected.durationFrames,
       enabled: projected.enabled,
-      space: projected.space,
+      space: isCustomRecipe ? cloned.space : projected.space,
       transform: {
         position: [...projected.transform.position],
         rotation: [...cloned.transform.rotation],

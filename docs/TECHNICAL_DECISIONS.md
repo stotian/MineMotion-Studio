@@ -295,3 +295,19 @@ Restricted shader assets contain a built-in template ID and exact parameters,
 never source. When a valid template is unavailable, use the existing Primitive
 V1 default material and report the fallback instead of failing rendering or
 claiming unsupported shader behavior.
+
+## TD-025 - Custom packages embed compiled recipes in schema 10
+
+Status: Accepted in Phase 17.7.
+
+Represent an installed custom effect as the schema 10-only `customVfx` carrier
+inside the existing `effects.instances` collection and timeline lane. Persist
+the validated compiled Primitive V1 descriptors and package/document provenance
+in `nativeVfx.customRecipe`; do not add a project package registry, second effect
+store, dynamic callback registry, or executable recipe format.
+
+The local package registry controls what can be newly inserted and provides
+visible missing/disabled/version-mismatch diagnostics. Once inserted, the
+project is self-contained: history, JSON, project packages, autosave, preview,
+and export evaluate the embedded descriptors through the existing prepared-frame
+and budget path. Schema 9 export rejects this native-only payload explicitly.

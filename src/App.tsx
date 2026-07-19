@@ -17,6 +17,16 @@ import {
 import type { EffectType } from "./effects/EffectTypes";
 import { spawnEffectAtFrame } from "./effects/EffectSpawner";
 import { builtinVfxPresetCatalog } from "./vfx/library/BuiltinVfxPresetCatalog";
+import {
+  createEmptyVfxPackageRegistry,
+  loadVfxPackageRegistry,
+  type VfxPackageRegistry
+} from "./vfx/package/VfxPackageRegistry";
+import {
+  createInstalledVfxEffect,
+  getInstalledVfxSourceStatus,
+  listEnabledInstalledVfxPresets
+} from "./vfx/package/VfxPackageProjectIntegration";
 import { exportCurrentFramePng } from "./export/FrameExporter";
 import {
   detectFfmpeg,
@@ -185,6 +195,8 @@ export function App() {
   const [ffmpegDetection, setFfmpegDetection] =
     useState<FfmpegDetectionResult>(WEB_FFMPEG_STATUS);
   const [plugins, setPlugins] = useState(() => pluginRegistry.list());
+  const [vfxPackageRegistry, setVfxPackageRegistry] =
+    useState<VfxPackageRegistry>(() => createEmptyVfxPackageRegistry());
 
   const historyRef = useRef(new HistoryStack<MineMotionProject>());
   const projectRef = useRef(project);
@@ -213,6 +225,19 @@ export function App() {
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const audioManagerRef = useRef<AudioManager | null>(null);
   const lastPlaybackTimeRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    void loadVfxPackageRegistry(window.localStorage).then((loaded) => {
+      if (cancelled) return;
+      setVfxPackageRegistry(loaded.registry);
+      if (loaded.warnings.length > 0) setStatus(loaded.warnings.join(" "));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const previousAudioFrameRef = useRef(0);
   const exportCancelledRef = useRef(false);
   const renderJobRunnerRef = useRef(new RenderJobRunner());
@@ -983,6 +1008,56 @@ export function App() {
       setStatus(`Added effect ${effect.name} at frame ${effect.startFrame}.`);
     },
     [commitProject, selectedObjectId]
+  );
+
+  const handleAddCustomEffect = useCallback(
+    (packageId: string) => {
+      const entry = vfxPackageRegistry.packages.find(
+        (candidate) => candidate.id === packageId && candidate.enabled
+      );
+      if (!entry) {
+        setStatus(`Custom VFX package ${packageId} is missing or disabled.`);
+        return;
+      }
+      const currentProject = projectRef.current;
+      const startFrame = currentProject.animation.currentFrame;
+      const remainingFrames = currentProject.animation.durationFrames - startFrame;
+      if (remainingFrames < 1) {
+        setStatus("Move before the final project frame to add an effect.");
+        return;
+      }
+      try {
+        const created = createInstalledVfxEffect(entry, {
+          id: createId("effect"),
+          startFrame,
+          targetObjectId: selectedObjectId ?? undefined
+        });
+        const effect = {
+          ...created,
+          durationFrames: Math.min(created.durationFrames, remainingFrames)
+        };
+        const result = applyEffectTimelineCommand(currentProject, {
+          type: "insert",
+          effect
+        });
+        if (!result.ok) {
+          setStatus(result.errors[0]?.message ?? "Could not add custom VFX.");
+          return;
+        }
+        if (result.value.changed) commitProject(result.value.project, result.value.historyLabel);
+        setSelectedEffectId(result.value.selectedEffectId);
+        setSelectedObjectId(null);
+        setStatus(`Added custom VFX ${effect.name} at frame ${effect.startFrame}.`);
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : "Could not add custom VFX.");
+      }
+    },
+    [commitProject, selectedObjectId, vfxPackageRegistry]
+  );
+
+  const customVfxPresets = useMemo(
+    () => listEnabledInstalledVfxPresets(vfxPackageRegistry),
+    [vfxPackageRegistry]
   );
 
   const handleEffectTimelineCommand = useCallback(
@@ -2439,6 +2514,7 @@ export function App() {
         />
         <EffectsLibraryPanel
           presets={effectPresets}
+          customPresets={customVfxPresets}
           selectedEffectId={selectedEffectId}
           effectInstances={project.effects.instances}
           audioClips={project.audio.clips}
@@ -2447,6 +2523,10 @@ export function App() {
           activePostPresetId={project.postProcessing.presetId}
           renderSettings={project.renderSettings}
           onAddEffect={handleAddEffect}
+          onAddCustomEffect={handleAddCustomEffect}
+          getCustomSourceStatus={(effect) =>
+            getInstalledVfxSourceStatus(effect, vfxPackageRegistry)
+          }
           onSelectEffect={handleSelectEffect}
           onApplyPostPreset={handleApplyPostPreset}
           onToggleRenderPreview={handleToggleRenderPreview}
@@ -2596,6 +2676,8 @@ export function App() {
       <VfxWorkspacePanel
         open={vfxWorkspaceOpen}
         presets={effectPresets}
+        registry={vfxPackageRegistry}
+        onRegistryChange={setVfxPackageRegistry}
         onClose={() => setVfxWorkspaceOpen(false)}
       />
       <WorldImportPanel

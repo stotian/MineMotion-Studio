@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 17 milestone 17.7: integrate enabled installed custom presets into
-library, timeline, runtime, export, and projects. Phase 17.6 is complete.
+Start Phase 17 milestone 17.8: ship safe example packages, author documentation,
+and the node-graph research decision. Phase 17.7 is complete.
 
 ## Completed Work
 
@@ -30,16 +30,20 @@ library, timeline, runtime, export, and projects. Phase 17.6 is complete.
   inspects, and uninstalls canonical packages with dependency protection.
 - Every declared asset kind now has a closed bounded resolver; restricted shader
   templates contain parameters only and fallback to Primitive V1 material.
+- Enabled installed packages now appear in the existing Effects Library and
+  persist compiled descriptors/provenance through schema 10 native VFX.
+- Timeline operations, history, JSON/project packages/autosave, preview/export,
+  source-status diagnostics, and explicit schema 9 refusal are regression-tested.
 
 ## Unfinished Work
 
-- Installed custom effect integration, safe examples, node-graph research note,
-  and author documentation remain.
+- Safe examples, node-graph research note, and author documentation remain.
 
 ## Next Implementation Step
 
-Extend the existing effect/native VFX persistence minimally so enabled custom
-documents can be added from the library and survive timeline/export/projects.
+Add deterministic safe example archives from declarative source fixtures,
+document package author/import/lifecycle constraints, and record why a visual
+node graph remains deferred until a future versioned contract exists.
 
 ## Tests To Run
 

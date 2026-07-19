@@ -155,15 +155,22 @@ IN_PROGRESS - Phase 17.6 is complete; installed preset integration is next.
   schemas: PNG texture/sprite/thumbnail, signed audio, box models, gradients,
   curves, localization, and three parameter-only shader templates. JSON shape
   limits and Primitive V1 material fallback keep executable source impossible.
+- Phase 17.7 exposes enabled installed packages in the existing Effects Library
+  and inserts them into the single `effects.instances` collection. Schema 10
+  embeds immutable compiled descriptors plus package provenance, so timeline
+  edits, history, JSON/packages/autosave, preview, and export share one runtime.
+- Disabled, missing, or version-changed local sources are visible in the scene
+  effect list while their self-contained project recipe remains deterministic.
+  Schema 9 export rejects custom recipes explicitly instead of losing them.
 
 ## In Progress
 
-- Phase 17.7 will expose enabled installed documents as custom library presets
-  and persist their runtime descriptors through the existing effect collection.
+- Phase 17.8 will ship safe example packages, author documentation, and the
+  evidence-based node-graph research decision needed to close Phase 17.
 
 ## Not Started
 
-- Phase 17.7 and later example/documentation milestones, plus phases 18-35.
+- Phase 17.8 example/documentation/research closure, plus phases 18-35.
 
 ## Blockers
 
@@ -176,22 +183,22 @@ IN_PROGRESS - Phase 17.6 is complete; installed preset integration is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 17.6 is the validated checkpoint containing this document; Git history
+- Phase 17.7 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 17.6 tests: PASS - 6 files, 29 tests
-- `npm test`: PASS - 83 files, 382 tests
-- `npm run build`: PASS - 1,813 modules; existing large-chunk warning only
+- Focused Phase 17.7 tests: PASS - 5 files, 81 tests
+- `npm test`: PASS - 84 files, 384 tests
+- `npm run build`: PASS - 1,814 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 17.6 changes TypeScript/docs only.
+- Native checks: not rerun because Phase 17.7 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Integrate enabled installed custom presets into the Effects Library and existing
-timeline/project/preview/export paths without a parallel effect collection.
+Ship bounded example `.minemotion-vfx` packages, author/import documentation,
+and a node-graph research note without adding executable content or a graph UI.

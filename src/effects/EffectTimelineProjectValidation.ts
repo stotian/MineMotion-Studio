@@ -277,6 +277,13 @@ export function validateEffectTimelineEffect(
       `${path}.enabled`
     );
   }
+  if (value.type === "customVfx" && value.nativeVfx === undefined) {
+    return effectTimelineIssue(
+      "EFFECT_TIMELINE_NATIVE_VFX_REQUIRED",
+      "Custom VFX effects require embedded schema 10 native data.",
+      `${path}.nativeVfx`
+    );
+  }
   if (value.nativeVfx !== undefined) {
     try {
       const nativeError = validateSynchronizedLegacyEffectNativeVfx(

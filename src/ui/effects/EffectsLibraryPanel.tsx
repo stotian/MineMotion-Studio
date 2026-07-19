@@ -31,9 +31,14 @@ import {
   type VfxLibrarySourceFilter
 } from "../../vfx/library/VfxLibraryNavigation";
 import { scheduleBuiltinVfxPresetPreviews } from "../../vfx/library/VfxPresetPreviewCache";
+import type {
+  InstalledCustomVfxPreset,
+  InstalledVfxSourceStatus
+} from "../../vfx/package/VfxPackageProjectIntegration";
 
 interface EffectsLibraryPanelProps {
   presets: readonly BuiltinVfxPreset[];
+  customPresets: readonly InstalledCustomVfxPreset[];
   selectedEffectId: string | null;
   effectInstances: readonly EffectInstance[];
   audioClips: AudioClip[];
@@ -42,6 +47,8 @@ interface EffectsLibraryPanelProps {
   activePostPresetId: PostProcessingPresetId;
   renderSettings: RenderSettings;
   onAddEffect: (type: EffectType) => void;
+  onAddCustomEffect: (packageId: string) => void;
+  getCustomSourceStatus: (effect: EffectInstance) => InstalledVfxSourceStatus | null;
   onSelectEffect: (effectId: string) => void;
   onApplyPostPreset: (presetId: PostProcessingPresetId) => void;
   onToggleRenderPreview: () => void;
@@ -52,6 +59,7 @@ interface EffectsLibraryPanelProps {
 
 export function EffectsLibraryPanel({
   presets,
+  customPresets,
   selectedEffectId,
   effectInstances,
   audioClips,
@@ -60,6 +68,8 @@ export function EffectsLibraryPanel({
   activePostPresetId,
   renderSettings,
   onAddEffect,
+  onAddCustomEffect,
+  getCustomSourceStatus,
   onSelectEffect,
   onApplyPostPreset,
   onToggleRenderPreview,
@@ -95,6 +105,14 @@ export function EffectsLibraryPanel({
     () => resolveRecentBuiltinVfxPresets(presets, preferences.recentIds),
     [preferences.recentIds, presets]
   );
+  const filteredCustomPresets = useMemo(() => {
+    if (source === "builtin" || category !== "all" || selectedTags.length > 0 || favoritesOnly) return [];
+    const needle = search.trim().toLocaleLowerCase();
+    return customPresets.filter((preset) =>
+      needle === "" || [preset.displayName, preset.description, preset.packageId, preset.author]
+        .some((value) => value.toLocaleLowerCase().includes(needle))
+    );
+  }, [category, customPresets, favoritesOnly, search, selectedTags, source]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -151,7 +169,7 @@ export function EffectsLibraryPanel({
                 aria-pressed={source === value}
                 onClick={() => setSource(value)}
               >
-                {value === "all" ? `All ${presets.length}` : value === "builtin" ? `Built-in ${presets.length}` : "Custom 0"}
+                {value === "all" ? `All ${presets.length + customPresets.length}` : value === "builtin" ? `Built-in ${presets.length}` : `Custom ${customPresets.length}`}
               </button>
             ))}
           </div>
@@ -208,7 +226,7 @@ export function EffectsLibraryPanel({
             </div>
           )}
           <small className="effect-result-count">
-            {filteredPresets.length} result{filteredPresets.length === 1 ? "" : "s"}
+            {filteredPresets.length + filteredCustomPresets.length} result{filteredPresets.length + filteredCustomPresets.length === 1 ? "" : "s"}
           </small>
         </div>
         <div className="effect-library-list">
@@ -258,7 +276,19 @@ export function EffectsLibraryPanel({
               </div>
             );
           })}
-          {filteredPresets.length === 0 && (
+          {filteredCustomPresets.map((preset) => (
+            <div key={`${preset.packageId}@${preset.packageVersion}`} className="effect-card" title={`${preset.description} ${preset.author} / ${preset.license}`}>
+              <button type="button" className="effect-card-main" onClick={() => onAddCustomEffect(preset.packageId)}>
+                <img className="effect-preview" src={preset.previewDataUrl} alt="" />
+                <strong>{preset.displayName}</strong>
+                <span>Custom / {preset.space}</span>
+                <small>{preset.description}</small>
+                <small>{preset.packageId} / {preset.packageVersion}</small>
+                <Plus size={14} />
+              </button>
+            </div>
+          ))}
+          {filteredPresets.length + filteredCustomPresets.length === 0 && (
             <span className="empty-note">
               {source === "custom" ? "No custom VFX packages are installed." : "No VFX presets match these filters."}
             </span>
@@ -287,7 +317,14 @@ export function EffectsLibraryPanel({
               <span>
                 {effect.startFrame}–{effect.startFrame + effect.durationFrames}f
               </span>
-              <small>{effect.enabled ? "Enabled" : "Disabled"}</small>
+              <small>{(() => {
+                const sourceStatus = getCustomSourceStatus(effect);
+                const state = effect.enabled ? "Enabled" : "Disabled";
+                if (sourceStatus === "missing") return `${state} / source package missing (embedded recipe kept)`;
+                if (sourceStatus === "disabled") return `${state} / source package disabled (embedded recipe kept)`;
+                if (sourceStatus === "version-mismatch") return `${state} / source package version changed (embedded recipe kept)`;
+                return effect.enabled ? "Enabled" : "Disabled";
+              })()}</small>
             </button>
           ))}
           {effectInstances.length === 0 && (

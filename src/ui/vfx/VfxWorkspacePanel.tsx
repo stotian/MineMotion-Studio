@@ -16,7 +16,7 @@ import {
   WandSparkles,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   applyVfxAuthoringCommand,
   createDefaultVfxAuthoringStackItem,
@@ -45,10 +45,8 @@ import {
   type VfxPackageInspectionReport
 } from "../../vfx/package/VfxPackageInspection";
 import {
-  createEmptyVfxPackageRegistry,
   inspectInstalledVfxPackage,
   installVfxPackage,
-  loadVfxPackageRegistry,
   saveVfxPackageRegistry,
   setVfxPackageEnabled,
   uninstallVfxPackage,
@@ -59,6 +57,8 @@ import {
 interface VfxWorkspacePanelProps {
   open: boolean;
   presets: readonly BuiltinVfxPreset[];
+  registry: VfxPackageRegistry;
+  onRegistryChange: (registry: VfxPackageRegistry) => void;
   onClose: () => void;
 }
 
@@ -93,7 +93,7 @@ function withPrimaryValue(item: VfxAuthoringStackItem, value: number): VfxAuthor
   return { ...item, descriptor: { ...descriptor, peakIntensity: value } };
 }
 
-export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelProps) {
+export function VfxWorkspacePanel({ open, presets, registry, onRegistryChange, onClose }: VfxWorkspacePanelProps) {
   const nativePresets = useMemo(
     () => presets.filter((preset) => preset.metadata.compatibility.maturity === "stable" && preset.metadata.recipeId),
     [presets]
@@ -107,9 +107,7 @@ export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelP
   const [packageLicense, setPackageLicense] = useState("CC0-1.0");
   const [inspection, setInspection] = useState<VfxPackageInspectionReport | null>(null);
   const [inspectedBytes, setInspectedBytes] = useState<ArrayBuffer | null>(null);
-  const [registry, setRegistry] = useState<VfxPackageRegistry>(() => createEmptyVfxPackageRegistry());
   const packageInputRef = useRef<HTMLInputElement | null>(null);
-  const registryLoadedRef = useRef(false);
   const compilation = useMemo(() => compileVfxAuthoringDocument(document), [document]);
   const previewUrl = useMemo(
     () => compilation.ok
@@ -118,15 +116,6 @@ export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelP
     [compilation, document.displayName, document.id]
   );
   const selectedItem = document.stack.find((item) => item.id === selectedItemId) ?? null;
-
-  useEffect(() => {
-    if (!open || registryLoadedRef.current || typeof window === "undefined") return;
-    registryLoadedRef.current = true;
-    void loadVfxPackageRegistry(window.localStorage).then((loaded) => {
-      setRegistry(loaded.registry);
-      if (loaded.warnings.length > 0) setMessage(loaded.warnings.join(" "));
-    });
-  }, [open]);
 
   if (!open) return null;
 
@@ -198,7 +187,7 @@ export function VfxWorkspacePanel({ open, presets, onClose }: VfxWorkspacePanelP
       setMessage("Local VFX package storage is full or unavailable; no registry change was kept.");
       return;
     }
-    setRegistry(next);
+    onRegistryChange(next);
     setMessage(successMessage);
   };
 

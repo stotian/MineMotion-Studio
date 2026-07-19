@@ -34,6 +34,7 @@ still required before changing code.
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
 | LIM-026 | Primitive limits were per descriptor without a combined measured runtime stack budget | Yes | P3 | 15.8 | RESOLVED |
 | LIM-027 | Local parameter keyframes evaluate deterministically, but dedicated keyframe editing UI is not connected yet | Yes | P4 | 16 | PARTIALLY_RESOLVED |
+| LIM-028 | Custom package source updates are not automatically rebased into already embedded project recipes; projects keep the inserted version and show a version-change warning | Yes | P4 | 17/future | OPEN_SAFE_DEFAULT |
 
 ## Phase 15.1 Outcome
 

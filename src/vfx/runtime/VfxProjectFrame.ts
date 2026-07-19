@@ -10,7 +10,7 @@ import type { EffectType } from "../../effects/EffectTypes";
 import type { MineMotionProject, SceneEntity } from "../../project/ProjectFile";
 import { findObject } from "../../project/ProjectStore";
 import { getRigDefinition } from "../../rigs/MinecraftRigPresets";
-import { createLegacyVfxRegistry } from "../compat/LegacyEffectAdapter";
+import { createProjectVfxRegistry } from "../compat/LegacyEffectAdapter";
 import type { VfxQuality } from "../core/VfxEvaluationContext";
 import { synchronizeLegacyEffectNativeVfx } from "../serialization/VfxProjectMigration";
 import type { VfxPrimitiveEvaluation } from "../primitives/VfxPrimitiveTypes";
@@ -19,6 +19,7 @@ import {
   evaluatePreparedVfxPresetRecipe,
   prepareVfxPresetRecipe
 } from "../recipes/VfxPresetRecipeEvaluator";
+import { VFX_PRESET_RECIPE_VERSION, type VfxPresetRecipe } from "../recipes/VfxPresetRecipeTypes";
 import {
   evaluateVfxFrame,
   type VfxActiveFrameEvaluation
@@ -71,7 +72,7 @@ export type PreparedProjectVfxFrameResult =
 export const DEFAULT_PROJECT_VFX_CONTEXT_SEED =
   "minemotion-project-vfx-runtime-v1";
 
-const legacyVfxRegistry = createLegacyVfxRegistry();
+const legacyVfxRegistry = createProjectVfxRegistry();
 
 export function shouldIncludeProjectVfx(project: MineMotionProject): boolean {
   return (
@@ -194,6 +195,19 @@ function resolveQuality(
   return source;
 }
 
+function customRecipeForInstance(
+  instance: ReturnType<typeof synchronizeLegacyEffectNativeVfx>["nativeVfx"]
+): VfxPresetRecipe | null {
+  if (!instance.customRecipe) return null;
+  const descriptors = instance.customRecipe.descriptors;
+  return {
+    version: VFX_PRESET_RECIPE_VERSION,
+    id: instance.id,
+    definitionId: instance.definitionId,
+    buildDescriptors: () => descriptors
+  };
+}
+
 export function prepareProjectVfxFrame(
   project: MineMotionProject,
   options: PrepareProjectVfxFrameOptions
@@ -261,7 +275,9 @@ export function prepareProjectVfxFrame(
         );
         continue;
       }
-      const recipe = getBuiltinVfxRecipe(evaluation.value.definitionId);
+      const recipe =
+        customRecipeForInstance(synchronized.nativeVfx) ??
+        getBuiltinVfxRecipe(evaluation.value.definitionId);
       const preparedRecipe = recipe
         ? prepareVfxPresetRecipe(evaluation.value, recipe)
         : null;

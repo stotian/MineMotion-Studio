@@ -496,10 +496,26 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
   }
 ];
 
+/** Schema 10 carrier for portable compiled recipes; deliberately not built-in catalog content. */
+export const CUSTOM_VFX_EFFECT_DEFINITION: EffectDefinition = {
+  type: "customVfx",
+  name: "Custom VFX",
+  description: "A portable declarative VFX package embedded in schema 10 project data.",
+  space: "world",
+  defaultDurationFrames: 24,
+  defaultParameters: {},
+  tags: ["vfx", "custom", "package"]
+};
+
 export class EffectRegistry {
   private readonly effects = new Map<EffectType, EffectDefinition>();
 
-  constructor(definitions: EffectDefinition[] = BUILTIN_EFFECTS) {
+  constructor(
+    definitions: EffectDefinition[] = [
+      ...BUILTIN_EFFECTS,
+      CUSTOM_VFX_EFFECT_DEFINITION
+    ]
+  ) {
     for (const definition of definitions) {
       this.register(definition);
     }

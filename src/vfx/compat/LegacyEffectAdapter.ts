@@ -5,7 +5,7 @@ import {
   type ValidationIssue,
   type ValidationResult
 } from "../../core/serialization/ValidationResult";
-import { effectRegistry } from "../../effects/EffectRegistry";
+import { BUILTIN_EFFECTS, effectRegistry } from "../../effects/EffectRegistry";
 import type {
   EffectDefinition,
   EffectInstance,
@@ -267,9 +267,14 @@ export function adaptLegacyEffectDefinition(
 }
 
 export function createLegacyVfxRegistry(
-  definitions: readonly EffectDefinition[] = effectRegistry.list()
+  definitions: readonly EffectDefinition[] = BUILTIN_EFFECTS
 ): VfxRegistry {
   return new VfxRegistry(definitions.map(adaptLegacyEffectDefinition));
+}
+
+/** Includes schema 10-only registered carrier definitions used by project data. */
+export function createProjectVfxRegistry(): VfxRegistry {
+  return createLegacyVfxRegistry(effectRegistry.list());
 }
 
 const legacyDefinitionCache = new Map<EffectType, VfxDefinition>();
@@ -342,6 +347,15 @@ function isLegacyEffectType(value: string): value is EffectType {
 export function adaptVfxInstanceToLegacyEffect(
   instance: VfxInstance
 ): ValidationResult<EffectInstance> {
+  if (instance.customRecipe !== undefined || instance.definitionId === "customVfx") {
+    return invalidResult([
+      conversionIssue(
+        "VFX_LEGACY_CUSTOM_RECIPE_UNSUPPORTED",
+        "Schema 9 cannot store portable custom VFX recipes.",
+        "customRecipe"
+      )
+    ]);
+  }
   if (!isLegacyEffectType(instance.definitionId)) {
     return invalidResult([
       conversionIssue(

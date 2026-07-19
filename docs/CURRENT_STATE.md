@@ -136,6 +136,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Closed asset handlers resolve bounded PNG, signed audio, box model, gradient,
   curve, localization, and parameter-only restricted shader data. JSON structure
   is bounded and unavailable templates explicitly use Primitive V1 material.
+- Enabled installed packages appear as generated-preview custom cards in the
+  existing Effects Library and insert `customVfx` records into the existing
+  effect collection/lane. Their schema 10 `nativeVfx.customRecipe` embeds
+  validated compiled descriptors and package/document provenance.
+- Custom recipes survive timeline edits/duplication, history, JSON, project
+  packages, autosave, preview, and export preparation. Local package state is
+  used only for availability diagnostics; missing/disabled/version-changed
+  sources stay visible without making the project unreadable.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -149,14 +157,13 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 installed custom effect integration, examples, node-graph research,
-  and author documentation remain.
+- Phase 17 examples, node-graph research, and author documentation remain.
 - Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 83 frontend test files and 382 passing tests.
+- 84 frontend test files and 384 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -211,3 +218,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
   state and revalidates all enabled dependency relationships on load.
 - Phase 17.6 keeps package assets declarative and uses a real default-material
   fallback when a restricted built-in shader template is unavailable.
+- Phase 17.7 persists compiled custom descriptors in the existing schema 10
+  native record. The local registry is provenance/availability state, not a
+  runtime dependency or second project authority; schema 9 rollback fails
+  explicitly for records it cannot represent.

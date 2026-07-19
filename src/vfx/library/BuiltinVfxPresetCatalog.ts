@@ -14,6 +14,7 @@ import {
 import { validateBuiltinVfxPresetCatalog } from "./BuiltinVfxPresetValidator";
 
 const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
+  customVfx: "magic-energy",
   lightningStrike: "lightning-electric",
   impactFrame: "combat",
   cameraShake: "screen-cinematic",
@@ -92,6 +93,7 @@ const CAPABILITIES_BY_EFFECT: Record<
   EffectType,
   { preview: boolean; export: boolean; limitations: readonly string[] }
 > = {
+  customVfx: { preview: true, export: true, limitations: [] },
   lightningStrike: { preview: true, export: true, limitations: ["Some compatibility parameters are stored but not visualized."] },
   impactFrame: { preview: true, export: true, limitations: ["Uses the compatibility overlay renderer."] },
   cameraShake: { preview: true, export: true, limitations: ["Uses the compatibility camera renderer."] },

@@ -6,8 +6,27 @@ import type {
 } from "./VfxDefinition";
 import type { VfxQuality } from "./VfxEvaluationContext";
 import type { VfxParameterValue } from "./VfxParameter";
+import type { VfxPrimitiveDescriptor } from "../primitives/VfxPrimitiveTypes";
 
 export const VFX_INSTANCE_SERIALIZATION_VERSION = 1 as const;
+export const VFX_CUSTOM_RECIPE_VERSION = 1 as const;
+
+export interface VfxCustomRecipeSource {
+  packageId: string;
+  packageVersion: string;
+  documentId: string;
+}
+
+/**
+ * Immutable, self-contained schema 10 runtime payload for an installed custom
+ * package. The source registry remains local metadata; projects keep the
+ * compiled descriptors so reload, history, preview, and export cannot drift.
+ */
+export interface VfxCustomRecipe {
+  version: typeof VFX_CUSTOM_RECIPE_VERSION;
+  source: VfxCustomRecipeSource;
+  descriptors: readonly VfxPrimitiveDescriptor[];
+}
 
 export interface VfxTarget {
   entityId: string;
@@ -51,6 +70,7 @@ export interface VfxInstance {
   renderLayer: VfxRenderLayer;
   previewQuality: VfxQuality;
   exportQuality: VfxQuality;
+  customRecipe?: VfxCustomRecipe;
 }
 
 /** Matches the current inclusive EffectInstance timing contract. */

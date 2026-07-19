@@ -13,6 +13,7 @@ import {
 } from "./VfxDefinition";
 import type { VfxQuality } from "./VfxEvaluationContext";
 import {
+  VFX_CUSTOM_RECIPE_VERSION,
   VFX_INSTANCE_SERIALIZATION_VERSION,
   type VfxInstance,
   type VfxParameterKeyframeInterpolation
@@ -23,6 +24,9 @@ import {
   isVfxParameterValue
 } from "./VfxParameter";
 import type { VfxParameterDefinition } from "./VfxParameterSchema";
+import { validateVfxPrimitiveDescriptor } from "../primitives/VfxPrimitiveValidator";
+import { MAX_VFX_RECIPE_PRIMITIVES } from "../recipes/VfxPresetRecipeTypes";
+import { VFX_GLOBAL_FRAME_LIMITS } from "../runtime/VfxFrameBudget";
 
 const IDENTIFIER_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/;
 const VFX_SPACES = new Set<VfxSpace>(["world", "screen", "camera"]);
@@ -54,6 +58,9 @@ const VFX_PARAMETER_KEYFRAME_INTERPOLATIONS =
     "ease-in-out"
   ]);
 const MAX_VFX_PARAMETER_KEYFRAMES = 16_384;
+const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+const CUSTOM_RECIPE_KEYS = new Set(["version", "source", "descriptors"]);
+const CUSTOM_RECIPE_SOURCE_KEYS = new Set(["packageId", "packageVersion", "documentId"]);
 
 function issue(
   code: string,
@@ -86,6 +93,60 @@ function isFiniteVector3(value: unknown): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function validateCustomRecipe(instance: VfxInstance): ValidationIssue[] {
+  const recipe = instance.customRecipe;
+  if (instance.definitionId === "customVfx" && recipe === undefined) {
+    return [issue("VFX_CUSTOM_RECIPE_REQUIRED", "Custom VFX instances require an embedded compiled recipe.", "customRecipe")];
+  }
+  if (recipe === undefined) return [];
+  const errors: ValidationIssue[] = [];
+  if (instance.definitionId !== "customVfx") {
+    errors.push(issue("VFX_CUSTOM_RECIPE_DEFINITION_INVALID", "Embedded custom recipes require the customVfx definition.", "definitionId"));
+  }
+  if (!isRecord(recipe) || recipe.version !== VFX_CUSTOM_RECIPE_VERSION) {
+    return [issue("VFX_CUSTOM_RECIPE_VERSION_UNSUPPORTED", "Custom VFX recipe version is unsupported.", "customRecipe.version")];
+  }
+  const invalidRecipeKey = Object.keys(recipe).find((key) => !CUSTOM_RECIPE_KEYS.has(key));
+  if (invalidRecipeKey) errors.push(issue("VFX_CUSTOM_RECIPE_FIELD_INVALID", `Unknown custom VFX recipe field: ${invalidRecipeKey}.`, `customRecipe.${invalidRecipeKey}`));
+  if (!isRecord(recipe.source)) {
+    errors.push(issue("VFX_CUSTOM_RECIPE_SOURCE_INVALID", "Custom VFX recipe source is invalid.", "customRecipe.source"));
+  } else {
+    const invalidSourceKey = Object.keys(recipe.source).find((key) => !CUSTOM_RECIPE_SOURCE_KEYS.has(key));
+    if (invalidSourceKey) errors.push(issue("VFX_CUSTOM_RECIPE_SOURCE_FIELD_INVALID", `Unknown custom VFX recipe source field: ${invalidSourceKey}.`, `customRecipe.source.${invalidSourceKey}`));
+    if (!isIdentifier(recipe.source.packageId)) errors.push(issue("VFX_CUSTOM_RECIPE_PACKAGE_ID_INVALID", "Custom VFX package ID is invalid.", "customRecipe.source.packageId"));
+    if (typeof recipe.source.packageVersion !== "string" || !SEMVER_PATTERN.test(recipe.source.packageVersion)) errors.push(issue("VFX_CUSTOM_RECIPE_PACKAGE_VERSION_INVALID", "Custom VFX package version must be semantic versioning.", "customRecipe.source.packageVersion"));
+    if (!isIdentifier(recipe.source.documentId)) errors.push(issue("VFX_CUSTOM_RECIPE_DOCUMENT_ID_INVALID", "Custom VFX document ID is invalid.", "customRecipe.source.documentId"));
+  }
+  if (!Array.isArray(recipe.descriptors) || recipe.descriptors.length > MAX_VFX_RECIPE_PRIMITIVES) {
+    errors.push(issue("VFX_CUSTOM_RECIPE_PRIMITIVE_COUNT_INVALID", `Custom VFX recipes support 0-${MAX_VFX_RECIPE_PRIMITIVES} primitives.`, "customRecipe.descriptors"));
+    return errors;
+  }
+  if (recipe.descriptors.some((_, index) => !Object.hasOwn(recipe.descriptors, index))) {
+    errors.push(issue("VFX_CUSTOM_RECIPE_PRIMITIVES_INVALID", "Custom VFX recipe primitives must be dense.", "customRecipe.descriptors"));
+    return errors;
+  }
+  const ids = new Set<string>();
+  let particles = 0;
+  let segments = 0;
+  recipe.descriptors.forEach((descriptor, index) => {
+    const path = `customRecipe.descriptors.${index}`;
+    const result = validateVfxPrimitiveDescriptor(descriptor);
+    if (!result.ok) {
+      errors.push(...result.errors.map((entry) => ({ ...entry, path: `${path}.${entry.path ?? ""}`.replace(/\.$/, "") })));
+      return;
+    }
+    if (ids.has(result.value.id)) errors.push(issue("VFX_CUSTOM_RECIPE_PRIMITIVE_ID_DUPLICATE", `Duplicate primitive ID: ${result.value.id}.`, `${path}.id`));
+    ids.add(result.value.id);
+    if (result.value.kind === "particle-emitter") particles += result.value.count;
+    if (result.value.kind === "beam") segments += result.value.subdivisions;
+    if (result.value.kind === "trail" || result.value.kind === "expanding-ring") segments += result.value.segments;
+  });
+  if (particles > VFX_GLOBAL_FRAME_LIMITS.particles || segments > VFX_GLOBAL_FRAME_LIMITS.segments || 1 + particles + segments > VFX_GLOBAL_FRAME_LIMITS.stackWork) {
+    errors.push(issue("VFX_CUSTOM_RECIPE_BUDGET_EXCEEDED", "Custom VFX recipe exceeds the single-effect global frame budget.", "customRecipe.descriptors"));
+  }
+  return errors;
 }
 
 function validateParameterDefinition(
@@ -545,7 +606,7 @@ export function validateVfxInstance(
         )
       );
     }
-    if (definition.space !== instance.space) {
+    if (definition.space !== instance.space && instance.customRecipe === undefined) {
       errors.push(
         issue(
           "VFX_SPACE_MISMATCH",
@@ -555,6 +616,8 @@ export function validateVfxInstance(
       );
     }
   }
+
+  errors.push(...validateCustomRecipe(instance));
 
   if (!isRecord(instance.parameters)) {
     errors.push(issue("VFX_PARAMETERS_INVALID", "VFX parameters must be an object.", "parameters"));
