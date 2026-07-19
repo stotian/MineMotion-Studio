@@ -22,7 +22,15 @@ export type EffectType =
   | "groundSlam"
   | "landingDust"
   | "criticalHit"
-  | "hitStop";
+  | "hitStop"
+  | "electricStrike"
+  | "electricStorm"
+  | "electricBeam"
+  | "electricAura"
+  | "electricCharge"
+  | "electricSparks"
+  | "chainLightning"
+  | "electricWeaponTrail";
 
 export type EffectSpace = VfxSpace;
 

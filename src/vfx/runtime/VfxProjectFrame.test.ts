@@ -257,4 +257,47 @@ describe("prepareProjectVfxFrame", () => {
     expect(prepared.value.effects[0].primitives).toEqual([]);
     expect(prepared.value.effects[0].budget.particles).toBe(0);
   });
+
+  it("evaluates the electric family through the same prepared-frame contract", () => {
+    const project = createInitialProject();
+    project.effects.instances = [
+      createEffectInstance("electricStorm", {
+        id: "electric_storm",
+        startFrame: 0
+      })
+    ];
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 8,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects[0].primitives).toHaveLength(3);
+    expect(prepared.value.effects[0].primitives.every((primitive) => primitive.kind === "beam")).toBe(true);
+    expect(prepared.value.effects[0].budget.segments).toBe(168);
+  });
+
+  it("drops dense electric storms deterministically at the shared segment cap", () => {
+    const project = createInitialProject();
+    project.effects.instances = Array.from({ length: 60 }, (_, index) =>
+      createEffectInstance("electricStorm", {
+        id: `electric_storm_${index}`,
+        startFrame: 0
+      })
+    );
+    const prepared = prepareProjectVfxFrame(project, {
+      frame: 8,
+      includeVfx: true,
+      quality: "final"
+    });
+    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) return;
+    expect(prepared.value.effects).toHaveLength(48);
+    expect(prepared.value.budget.allocated.segments).toBe(8_064);
+    expect(prepared.value.budget.droppedEffects).toBe(12);
+    expect(prepared.warnings.map((warning) => warning.code)).toContain(
+      "VFX_GLOBAL_SEGMENTS_BUDGET_CAPPED"
+    );
+  });
 });

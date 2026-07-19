@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { VfxActiveFrameEvaluation } from "../runtime/VfxFrameEvaluator";
-import { listCombatVfxRecipes } from "./CombatVfxRecipes";
+import { listBuiltinVfxRecipes } from "./BuiltinVfxRecipeRegistry";
 import { evaluatePreparedVfxPresetRecipe, prepareVfxPresetRecipe } from "./VfxPresetRecipeEvaluator";
 import { VFX_PRESET_RECIPE_VERSION, type VfxPresetRecipe } from "./VfxPresetRecipeTypes";
 
@@ -37,7 +37,7 @@ function frame(
 
 describe("VfxPresetRecipeEvaluator", () => {
   it("preflights and evaluates every combat recipe deterministically", () => {
-    for (const recipe of listCombatVfxRecipes()) {
+    for (const recipe of listBuiltinVfxRecipes()) {
       for (const quality of ["draft", "medium", "high", "final"] as const) {
         const active = frame(recipe.definitionId, quality);
         const first = prepareVfxPresetRecipe(active, recipe);
@@ -62,7 +62,7 @@ describe("VfxPresetRecipeEvaluator", () => {
   });
 
   it("quality-scales aggregate work before allocating primitive samples", () => {
-    const recipe = listCombatVfxRecipes().find((candidate) => candidate.id === "criticalHit");
+    const recipe = listBuiltinVfxRecipes().find((candidate) => candidate.id === "criticalHit");
     if (!recipe) throw new Error("critical recipe missing");
     const final = prepareVfxPresetRecipe(frame(recipe.definitionId, "final"), recipe);
     const draft = prepareVfxPresetRecipe(frame(recipe.definitionId, "draft"), recipe);

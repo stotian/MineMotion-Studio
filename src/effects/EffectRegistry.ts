@@ -245,6 +245,78 @@ export const BUILTIN_EFFECTS: EffectDefinition[] = [
     defaultDurationFrames: 3,
     defaultParameters: { color: "#ffffff", alpha: 0.2, intensity: 1 },
     tags: ["combat", "timing", "screen"]
+  },
+  {
+    type: "electricStrike",
+    name: "Electric Strike",
+    description: "A native vertical lightning strike with a contact flare.",
+    space: "world",
+    defaultDurationFrames: 12,
+    defaultParameters: { color: "#aee8ff", secondaryColor: "#ffffff", alpha: 1, radius: 5, count: 20, size: 0.08, speed: 4, intensity: 1.8 },
+    tags: ["electric", "lightning", "strike"]
+  },
+  {
+    type: "electricStorm",
+    name: "Electric Storm",
+    description: "Multiple deterministic bolts across a wide area.",
+    space: "world",
+    defaultDurationFrames: 36,
+    defaultParameters: { color: "#8fdcff", alpha: 0.9, radius: 7, intensity: 1.4 },
+    tags: ["electric", "lightning", "storm"]
+  },
+  {
+    type: "electricBeam",
+    name: "Electric Beam",
+    description: "A focused jittered energy beam.",
+    space: "world",
+    defaultDurationFrames: 20,
+    defaultParameters: { color: "#9cecff", alpha: 0.95, radius: 6, size: 0.1, intensity: 1.5 },
+    tags: ["electric", "beam", "energy"]
+  },
+  {
+    type: "electricAura",
+    name: "Electric Aura",
+    description: "Orbiting electrical particles and a pulsing ring.",
+    space: "world",
+    defaultDurationFrames: 48,
+    defaultParameters: { color: "#73d7ff", alpha: 0.8, radius: 1.8, count: 34, size: 0.07, speed: 1.2, intensity: 1 },
+    tags: ["electric", "aura", "loop"]
+  },
+  {
+    type: "electricCharge",
+    name: "Electric Charge",
+    description: "A gathering spark field with a bright core pulse.",
+    space: "world",
+    defaultDurationFrames: 30,
+    defaultParameters: { color: "#b9f2ff", alpha: 0.9, radius: 2.4, count: 42, size: 0.09, speed: 1.8, intensity: 2 },
+    tags: ["electric", "charge", "power-up"]
+  },
+  {
+    type: "electricSparks",
+    name: "Electric Sparks",
+    description: "A crisp blue-white electrical spark burst.",
+    space: "world",
+    defaultDurationFrames: 14,
+    defaultParameters: { color: "#d5f7ff", alpha: 1, radius: 0.3, count: 32, size: 0.06, speed: 5, intensity: 1.2 },
+    tags: ["electric", "sparks", "burst"]
+  },
+  {
+    type: "chainLightning",
+    name: "Chain Lightning",
+    description: "A segmented bolt linking several nearby points.",
+    space: "world",
+    defaultDurationFrames: 18,
+    defaultParameters: { color: "#a7e9ff", secondaryColor: "#ffffff", alpha: 0.95, radius: 6, intensity: 1.6 },
+    tags: ["electric", "lightning", "chain"]
+  },
+  {
+    type: "electricWeaponTrail",
+    name: "Electric Weapon Trail",
+    description: "A charged tapered trail for weapon motion.",
+    space: "world",
+    defaultDurationFrames: 18,
+    defaultParameters: { color: "#9be7ff", secondaryColor: "#ffffff", alpha: 0.9, radius: 2, size: 0.13, intensity: 1.3 },
+    tags: ["electric", "weapon", "trail"]
   }
 ];
 

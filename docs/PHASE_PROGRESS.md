@@ -98,15 +98,21 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
   effect collection and render through shared preview/export paths: sparks,
   impact, slash, parry, slam, landing dust, critical hit, and real pose-hold
   hit stop. They remain experimental until thumbnails/regression gates exist.
+- Phase 16.3 generalizes recipe lookup into one built-in registry and adds eight
+  native lightning/electric entries: strike, storm, beam, aura, charge, sparks,
+  chain lightning, and layered weapon trail. All exposed parameters drive
+  runtime output and all four quality levels pass deterministic evaluation.
+- Dense storm regression reaches 8,064 allocated segments and drops later
+  effects before the shared 8,192-segment limit.
 
 ## In Progress
 
-- Phase 16.3 will build the lightning/electric preset family over the native
-  recipe contract.
+- Phase 16.4 will build fire, smoke, explosion, embers, debris, dust, Nether
+  fire, and soul fire presets over the native recipe contract.
 
 ## Not Started
 
-- Phase 16.3 and later Phase 16 content/navigation/preview/benchmark milestones.
+- Phase 16.4 and later Phase 16 content/navigation/preview/benchmark milestones.
 - Later defined roadmap phases 17-35.
 
 ## Blockers
@@ -120,16 +126,16 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 16.2 is the validated checkpoint containing this document; Git history
+- Phase 16.3 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 108 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 16.2 tests: PASS - 19 files, 186 tests
-- `npm test`: PASS - 73 files, 332 tests
-- `npm run build`: PASS - 1,791 modules; existing large-chunk warning only
+- Focused Phase 16.3 tests: PASS - 19 files, 188 tests
+- `npm test`: PASS - 73 files, 334 tests
+- `npm run build`: PASS - 1,793 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
 - Native checks: not rerun because milestone 16.2 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -137,5 +143,5 @@ IN_PROGRESS - Phase 15 and milestone 16.1 are complete; 16.2 is next.
 
 ## Next Exact Action
 
-Build the Phase 16 lightning/electric family: strike, storm, beam, aura, charge,
-sparks, chain, and weapon trail, reusing the native recipe preflight/evaluator.
+Build the Phase 16 fire/explosion family: fire, smoke, explosion, embers,
+debris, dust, Nether fire, and soul fire.

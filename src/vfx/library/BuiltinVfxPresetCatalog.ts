@@ -4,10 +4,7 @@ import { CURRENT_PROJECT_SCHEMA_VERSION } from "../../core/serialization/SchemaV
 import { createLegacyVfxRegistry } from "../compat/LegacyEffectAdapter";
 import { VfxRegistry } from "../core/VfxRegistry";
 import { measureLegacyVfxEffectWork } from "../runtime/VfxFrameBudget";
-import {
-  COMBAT_VFX_RECIPE_IDS,
-  listCombatVfxRecipes
-} from "../recipes/CombatVfxRecipes";
+import { listBuiltinVfxRecipes } from "../recipes/BuiltinVfxRecipeRegistry";
 import {
   BUILTIN_VFX_PRESET_METADATA_VERSION,
   type BuiltinVfxPreset,
@@ -36,7 +33,15 @@ const CATEGORY_BY_EFFECT: Record<EffectType, BuiltinVfxPresetCategory> = {
   groundSlam: "combat",
   landingDust: "combat",
   criticalHit: "combat",
-  hitStop: "combat"
+  hitStop: "combat",
+  electricStrike: "lightning-electric",
+  electricStorm: "lightning-electric",
+  electricBeam: "lightning-electric",
+  electricAura: "lightning-electric",
+  electricCharge: "lightning-electric",
+  electricSparks: "lightning-electric",
+  chainLightning: "lightning-electric",
+  electricWeaponTrail: "lightning-electric"
 };
 
 const CAPABILITIES_BY_EFFECT: Record<
@@ -62,10 +67,20 @@ const CAPABILITIES_BY_EFFECT: Record<
   groundSlam: { preview: true, export: true, limitations: [] },
   landingDust: { preview: true, export: true, limitations: [] },
   criticalHit: { preview: true, export: true, limitations: [] },
-  hitStop: { preview: true, export: true, limitations: ["Pose hold affects animated scene sampling; audio playback is not paused."] }
+  hitStop: { preview: true, export: true, limitations: ["Pose hold affects animated scene sampling; audio playback is not paused."] },
+  electricStrike: { preview: true, export: true, limitations: [] },
+  electricStorm: { preview: true, export: true, limitations: [] },
+  electricBeam: { preview: true, export: true, limitations: [] },
+  electricAura: { preview: true, export: true, limitations: [] },
+  electricCharge: { preview: true, export: true, limitations: [] },
+  electricSparks: { preview: true, export: true, limitations: [] },
+  chainLightning: { preview: true, export: true, limitations: [] },
+  electricWeaponTrail: { preview: true, export: true, limitations: [] }
 };
 
-const COMBAT_RECIPE_ID_SET = new Set<string>(COMBAT_VFX_RECIPE_IDS);
+const BUILTIN_RECIPE_ID_SET = new Set<string>(
+  listBuiltinVfxRecipes().map((recipe) => recipe.id)
+);
 const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segments: number }>> = {
   combatSparks: { particles: 28, segments: 0 },
   combatImpact: { particles: 0, segments: 72 },
@@ -74,7 +89,15 @@ const NATIVE_FINAL_BUDGETS: Partial<Record<EffectType, { particles: number; segm
   groundSlam: { particles: 48, segments: 112 },
   landingDust: { particles: 36, segments: 64 },
   criticalHit: { particles: 54, segments: 96 },
-  hitStop: { particles: 0, segments: 0 }
+  hitStop: { particles: 0, segments: 0 },
+  electricStrike: { particles: 20, segments: 72 },
+  electricStorm: { particles: 0, segments: 168 },
+  electricBeam: { particles: 0, segments: 96 },
+  electricAura: { particles: 34, segments: 72 },
+  electricCharge: { particles: 42, segments: 72 },
+  electricSparks: { particles: 32, segments: 0 },
+  chainLightning: { particles: 0, segments: 108 },
+  electricWeaponTrail: { particles: 0, segments: 160 }
 };
 
 export const BUILTIN_VFX_PRESET_LOCALIZATION: Readonly<Record<string, string>> =
@@ -98,7 +121,7 @@ function createMetadata(definition: EffectDefinition): BuiltinVfxPresetMetadata 
     definition.defaultParameters.count ?? 0
   );
   const capabilities = CAPABILITIES_BY_EFFECT[definition.type];
-  const native = COMBAT_RECIPE_ID_SET.has(definition.type);
+  const native = BUILTIN_RECIPE_ID_SET.has(definition.type);
   return {
     version: BUILTIN_VFX_PRESET_METADATA_VERSION,
     id: definition.type,
@@ -167,7 +190,7 @@ export class BuiltinVfxPresetCatalog {
   constructor(presets: readonly BuiltinVfxPreset[]) {
     const validation = validateBuiltinVfxPresetCatalog(presets, {
       localization: BUILTIN_VFX_PRESET_LOCALIZATION,
-      recipeIds: new Set(listCombatVfxRecipes().map((recipe) => recipe.id))
+      recipeIds: BUILTIN_RECIPE_ID_SET
     });
     if (!validation.ok) {
       throw new RangeError(

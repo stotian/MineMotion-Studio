@@ -91,7 +91,7 @@ const RECIPES: readonly VfxPresetRecipe[] = Object.freeze([
   recipe("swordSlash", (frame) => {
     const radius = numberParameter(frame, "radius", 1.8);
     const points: readonly Vector3Tuple[] = [[-radius, 0.2, 0], [-radius * 0.55, radius * 0.75, 0], [0, radius, 0], [radius * 0.65, radius * 0.55, 0], [radius, 0, 0]];
-    return [{ version: VFX_PRIMITIVE_VERSION, id: "slash-arc", kind: "trail", color: stringParameter(frame, "color", "#d8f3ff"), points, segments: 88, startWidth: numberParameter(frame, "size", 0.16), endWidth: 0.015, startOpacity: numberParameter(frame, "alpha", 0.9) * (1 - frame.progress * 0.4), endOpacity: 0 }];
+    return [{ version: VFX_PRIMITIVE_VERSION, id: "slash-arc", kind: "trail", color: stringParameter(frame, "color", "#d8f3ff"), points, segments: 88, startWidth: Math.max(0.001, numberParameter(frame, "size", 0.16)), endWidth: 0.015, startOpacity: numberParameter(frame, "alpha", 0.9) * (1 - frame.progress * 0.4), endOpacity: 0 }];
   }),
   recipe("parryBurst", (frame) => {
     const color = stringParameter(frame, "color", "#a9e8ff");
@@ -116,12 +116,6 @@ const RECIPES: readonly VfxPresetRecipe[] = Object.freeze([
   }),
   recipe("hitStop", (frame) => [{ version: VFX_PRIMITIVE_VERSION, id: "hit-stop-accent", kind: "light-pulse", color: stringParameter(frame, "color", "#ffffff"), center: [0, 0, 0], startRadius: 0, endRadius: 0.1, baseIntensity: 0, peakIntensity: numberParameter(frame, "intensity", 1) }])
 ]);
-
-const BY_ID = new Map(RECIPES.map((entry) => [entry.id, entry]));
-
-export function getCombatVfxRecipe(definitionId: string): VfxPresetRecipe | null {
-  return BY_ID.get(definitionId) ?? null;
-}
 
 export function listCombatVfxRecipes(): readonly VfxPresetRecipe[] {
   return RECIPES;

@@ -14,7 +14,7 @@ import { createLegacyVfxRegistry } from "../compat/LegacyEffectAdapter";
 import type { VfxQuality } from "../core/VfxEvaluationContext";
 import { synchronizeLegacyEffectNativeVfx } from "../serialization/VfxProjectMigration";
 import type { VfxPrimitiveEvaluation } from "../primitives/VfxPrimitiveTypes";
-import { getCombatVfxRecipe } from "../recipes/CombatVfxRecipes";
+import { getBuiltinVfxRecipe } from "../recipes/BuiltinVfxRecipeRegistry";
 import {
   evaluatePreparedVfxPresetRecipe,
   prepareVfxPresetRecipe
@@ -261,7 +261,7 @@ export function prepareProjectVfxFrame(
         );
         continue;
       }
-      const recipe = getCombatVfxRecipe(evaluation.value.definitionId);
+      const recipe = getBuiltinVfxRecipe(evaluation.value.definitionId);
       const preparedRecipe = recipe
         ? prepareVfxPresetRecipe(evaluation.value, recipe)
         : null;

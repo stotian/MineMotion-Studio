@@ -65,7 +65,7 @@ describe("EffectParameterInspectorModel", () => {
     expect(model.unknownParameters).toEqual([{ id: "legacyExtra", value: 42 }]);
   });
 
-  it("marks every native combat recipe parameter as live preview", () => {
+  it("marks every native combat/electric recipe parameter as live preview", () => {
     for (const type of [
       "combatSparks",
       "combatImpact",
@@ -74,7 +74,15 @@ describe("EffectParameterInspectorModel", () => {
       "groundSlam",
       "landingDust",
       "criticalHit",
-      "hitStop"
+      "hitStop",
+      "electricStrike",
+      "electricStorm",
+      "electricBeam",
+      "electricAura",
+      "electricCharge",
+      "electricSparks",
+      "chainLightning",
+      "electricWeaponTrail"
     ] as const) {
       const model = requireModel(
         createEffectParameterInspectorModel(

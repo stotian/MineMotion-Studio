@@ -38,7 +38,15 @@ const LIVE_PREVIEW_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = 
   groundSlam: { color: "live-preview", alpha: "live-preview", count: "live-preview", size: "live-preview", radius: "live-preview", speed: "live-preview", intensity: "live-preview" },
   landingDust: { color: "live-preview", alpha: "live-preview", count: "live-preview", size: "live-preview", radius: "live-preview", speed: "live-preview", intensity: "live-preview" },
   criticalHit: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", count: "live-preview", size: "live-preview", radius: "live-preview", speed: "live-preview", intensity: "live-preview" },
-  hitStop: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" }
+  hitStop: { color: "live-preview", alpha: "live-preview", intensity: "live-preview" },
+  electricStrike: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  electricStorm: { color: "live-preview", alpha: "live-preview", radius: "live-preview", intensity: "live-preview" },
+  electricBeam: { color: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", intensity: "live-preview" },
+  electricAura: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  electricCharge: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  electricSparks: { color: "live-preview", alpha: "live-preview", radius: "live-preview", count: "live-preview", size: "live-preview", speed: "live-preview", intensity: "live-preview" },
+  chainLightning: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", intensity: "live-preview" },
+  electricWeaponTrail: { color: "live-preview", secondaryColor: "live-preview", alpha: "live-preview", radius: "live-preview", size: "live-preview", intensity: "live-preview" }
 };
 
 const EXPORT_ONLY_PARAMETERS: Partial<Record<EffectType, RuntimeSupportMap>> = {

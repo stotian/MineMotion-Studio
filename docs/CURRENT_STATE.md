@@ -90,6 +90,11 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Native world primitives render in the shared Three.js viewport/export canvas.
   Hit stop samples the animated pose at its start while preserving the global
   VFX/environment frame; excluding VFX from final export excludes the hold.
+- One built-in recipe registry now resolves both combat and electric families.
+  Eight electric presets cover strike, storm, beam, aura, charge, sparks, chain
+  lightning, and a layered weapon trail with all exposed parameters live.
+- Dense electric storm combinations are regression-tested against the shared
+  segment cap and are rejected before geometry/sample allocation.
 
 ## Partial Systems
 
@@ -107,7 +112,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 73 frontend test files and 332 passing tests.
+- 73 frontend test files and 334 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
