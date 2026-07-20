@@ -3,6 +3,8 @@ import type { AppSettings } from "../../settings/AppSettings";
 import type { ProjectSettings } from "../../project/ProjectFile";
 import type { SkyPresetId } from "../../renderer/SkySystem";
 import { SKY_PRESETS } from "../../renderer/SkySystem";
+import { useLocalization } from "../../localization/LocalizationContext";
+import type { AppLanguagePreference } from "../../localization/LocalizationTypes";
 
 interface SettingsModalProps {
   open: boolean;
@@ -21,6 +23,8 @@ export function SettingsModal({
   onAppSettingsChange,
   onProjectSettingsChange
 }: SettingsModalProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   if (!open) return null;
 
   return (
@@ -29,21 +33,40 @@ export function SettingsModal({
         className="modal-panel settings-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Settings"
+        aria-label={t("settings.title")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
           <h2>
             <Settings size={18} />
-            Settings
+            {t("settings.title")}
           </h2>
           <button type="button" onClick={onClose}>
-            Close
+            {t("common.close")}
           </button>
         </div>
         <div className="settings-grid">
           <section>
-            <h3>App Settings</h3>
+            <h3>{t("settings.app")}</h3>
+            <label>
+              {t("settings.language")}
+              <select
+                value={appSettings.general.language}
+                onChange={(event) =>
+                  onAppSettingsChange({
+                    ...appSettings,
+                    general: {
+                      ...appSettings.general,
+                      language: event.target.value as AppLanguagePreference
+                    }
+                  })
+                }
+              >
+                <option value="system">{t("settings.language.system")}</option>
+                <option value="en">{t("settings.language.english")}</option>
+                <option value="fr">{t("settings.language.french")}</option>
+              </select>
+            </label>
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -58,10 +81,10 @@ export function SettingsModal({
                   })
                 }
               />
-              Autosave enabled
+              {t("settings.autosaveEnabled")}
             </label>
             <NumberSetting
-              label="Autosave interval (s)"
+              label={t("settings.autosaveInterval")}
               value={appSettings.general.autosaveIntervalSeconds}
               min={5}
               onChange={(value) =>
@@ -75,7 +98,7 @@ export function SettingsModal({
               }
             />
             <NumberSetting
-              label="Default FPS"
+              label={t("settings.defaultFps")}
               value={appSettings.general.defaultFps}
               min={1}
               max={120}
@@ -90,7 +113,7 @@ export function SettingsModal({
               }
             />
             <NumberSetting
-              label="Default duration"
+              label={t("settings.defaultDuration")}
               value={appSettings.general.defaultProjectDurationFrames}
               min={1}
               onChange={(value) =>
@@ -104,7 +127,7 @@ export function SettingsModal({
               }
             />
             <TextSetting
-              label="Default name pattern"
+              label={t("settings.defaultNamePattern")}
               value={appSettings.general.defaultProjectNamePattern}
               onChange={(value) =>
                 onAppSettingsChange({
@@ -119,9 +142,9 @@ export function SettingsModal({
           </section>
 
           <section>
-            <h3>Viewport</h3>
+            <h3>{t("settings.viewport")}</h3>
             <ColorSetting
-              label="Background color"
+              label={t("settings.backgroundColor")}
               value={appSettings.viewport.backgroundColor}
               onChange={(value) =>
                 onAppSettingsChange({
@@ -147,10 +170,10 @@ export function SettingsModal({
                   })
                 }
               />
-              Show grid
+              {t("settings.showGrid")}
             </label>
             <NumberSetting
-              label="Grid size"
+              label={t("settings.gridSize")}
               value={appSettings.viewport.gridSize}
               min={8}
               onChange={(value) =>
@@ -164,7 +187,7 @@ export function SettingsModal({
               }
             />
             <NumberSetting
-              label="Orbit speed"
+              label={t("settings.orbitSpeed")}
               value={appSettings.viewport.orbitSpeed}
               min={0.1}
               step={0.1}
@@ -179,7 +202,7 @@ export function SettingsModal({
               }
             />
             <label>
-              Render quality
+              {t("settings.renderQuality")}
               <select
                 value={appSettings.viewport.renderQuality}
                 onChange={(event) =>
@@ -192,17 +215,17 @@ export function SettingsModal({
                   })
                 }
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">{t("common.low")}</option>
+                <option value="medium">{t("common.medium")}</option>
+                <option value="high">{t("common.high")}</option>
               </select>
             </label>
           </section>
 
           <section>
-            <h3>Editor</h3>
+            <h3>{t("settings.editor")}</h3>
             <label>
-              Theme
+              {t("settings.theme")}
               <select
                 value={appSettings.editor.theme}
                 onChange={(event) =>
@@ -215,12 +238,12 @@ export function SettingsModal({
                   })
                 }
               >
-                <option value="dark">Dark</option>
-                <option value="light">Light placeholder</option>
+                <option value="dark">{t("settings.theme.dark")}</option>
+                <option value="light">{t("settings.theme.lightPlaceholder")}</option>
               </select>
             </label>
             <NumberSetting
-              label="UI scale"
+              label={t("settings.uiScale")}
               value={appSettings.editor.uiScale}
               min={0.8}
               max={1.4}
@@ -249,10 +272,10 @@ export function SettingsModal({
                   })
                 }
               />
-              Snap to grid
+              {t("settings.snapToGrid")}
             </label>
             <NumberSetting
-              label="Transform step"
+              label={t("settings.transformStep")}
               value={appSettings.editor.transformStep}
               min={0.01}
               step={0.01}
@@ -267,7 +290,7 @@ export function SettingsModal({
               }
             />
             <NumberSetting
-              label="Rotation step"
+              label={t("settings.rotationStep")}
               value={appSettings.editor.rotationStepDegrees}
               min={1}
               onChange={(value) =>
@@ -283,9 +306,9 @@ export function SettingsModal({
           </section>
 
           <section>
-            <h3>Minecraft</h3>
+            <h3>{t("settings.minecraft")}</h3>
             <label>
-              Default sky
+              {t("settings.defaultSky")}
               <select
                 value={appSettings.minecraft.defaultSkyPreset}
                 onChange={(event) =>
@@ -306,7 +329,7 @@ export function SettingsModal({
               </select>
             </label>
             <label>
-              Block palette style
+              {t("settings.blockPaletteStyle")}
               <select
                 value={appSettings.minecraft.defaultBlockPaletteStyle}
                 onChange={(event) =>
@@ -319,13 +342,13 @@ export function SettingsModal({
                   })
                 }
               >
-                <option value="classic">Classic</option>
-                <option value="muted">Muted</option>
-                <option value="nether">Nether</option>
+                <option value="classic">{t("settings.palette.classic")}</option>
+                <option value="muted">{t("settings.palette.muted")}</option>
+                <option value="nether">{t("settings.palette.nether")}</option>
               </select>
             </label>
             <NumberSetting
-              label="Default terrain size"
+              label={t("settings.defaultTerrainSize")}
               value={appSettings.minecraft.defaultTerrainSize}
               min={8}
               max={64}
@@ -340,7 +363,7 @@ export function SettingsModal({
               }
             />
             <TextSetting
-              label="Resource pack path"
+              label={t("settings.resourcePackPath")}
               value={appSettings.minecraft.resourcePackPath}
               onChange={(value) =>
                 onAppSettingsChange({
@@ -355,9 +378,9 @@ export function SettingsModal({
           </section>
 
           <section>
-            <h3>Project Settings</h3>
+            <h3>{t("settings.project")}</h3>
             <TextSetting
-              label="Project name"
+              label={t("settings.projectName")}
               value={projectSettings.projectName}
               onChange={(value) =>
                 onProjectSettingsChange({
@@ -367,7 +390,7 @@ export function SettingsModal({
               }
             />
             <NumberSetting
-              label="FPS"
+              label={t("settings.fps")}
               value={projectSettings.fps}
               min={1}
               max={120}
@@ -379,7 +402,7 @@ export function SettingsModal({
               }
             />
             <NumberSetting
-              label="Duration frames"
+              label={t("settings.durationFrames")}
               value={projectSettings.durationFrames}
               min={1}
               onChange={(value) =>
@@ -390,7 +413,7 @@ export function SettingsModal({
               }
             />
             <label>
-              Terrain preset
+              {t("settings.terrainPreset")}
               <select
                 value={projectSettings.terrainPreset}
                 onChange={(event) =>
@@ -400,14 +423,14 @@ export function SettingsModal({
                   })
                 }
               >
-                <option value="none">None</option>
-                <option value="demo">Demo</option>
-                <option value="flat">Flat</option>
-                <option value="nether">Nether</option>
+                <option value="none">{t("common.none")}</option>
+                <option value="demo">{t("settings.terrain.demo")}</option>
+                <option value="flat">{t("settings.terrain.flat")}</option>
+                <option value="nether">{t("settings.terrain.nether")}</option>
               </select>
             </label>
             <label>
-              Resolution preset
+              {t("settings.resolutionPreset")}
               <select
                 value={projectSettings.renderResolutionPreset}
                 onChange={(event) =>
@@ -421,11 +444,11 @@ export function SettingsModal({
                 <option value="1080p">1080p</option>
                 <option value="1440p">1440p</option>
                 <option value="4k">4K</option>
-                <option value="custom">Custom</option>
+                <option value="custom">{t("settings.resolution.custom")}</option>
               </select>
             </label>
             <TextSetting
-              label="Author"
+              label={t("settings.author")}
               value={projectSettings.author}
               onChange={(value) =>
                 onProjectSettingsChange({
@@ -435,7 +458,7 @@ export function SettingsModal({
               }
             />
             <label>
-              Notes
+              {t("settings.notes")}
               <textarea
                 value={projectSettings.notes}
                 onChange={(event) =>
@@ -449,7 +472,7 @@ export function SettingsModal({
           </section>
 
           <section>
-            <h3>Plugins</h3>
+            <h3>{t("settings.plugins")}</h3>
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -464,7 +487,7 @@ export function SettingsModal({
                   })
                 }
               />
-              Enable built-in plugin registry
+              {t("settings.plugins.enabled")}
             </label>
             <label className="checkbox-label">
               <input
@@ -480,10 +503,10 @@ export function SettingsModal({
                   })
                 }
               />
-              Allow experimental plugin manifests
+              {t("settings.plugins.experimental")}
             </label>
             <TextSetting
-              label="Plugin folder path"
+              label={t("settings.plugins.folder")}
               value={appSettings.plugins.pluginFolderPath}
               onChange={(value) =>
                 onAppSettingsChange({
@@ -496,7 +519,7 @@ export function SettingsModal({
               }
             />
             <p className="empty-note">
-              External plugin JavaScript execution is disabled in this build.
+              {t("settings.plugins.executionDisabled")}
             </p>
           </section>
         </div>

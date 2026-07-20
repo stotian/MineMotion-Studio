@@ -1,4 +1,5 @@
 import { HelpCircle } from "lucide-react";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface HelpPanelProps {
   open: boolean;
@@ -7,6 +8,8 @@ interface HelpPanelProps {
 }
 
 export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   if (!open) return null;
 
   return (
@@ -15,16 +18,16 @@ export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) 
         className="modal-panel help-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="MineMotion help"
+        aria-label={t("help.ariaLabel")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
           <h2>
             <HelpCircle size={18} />
-            Quick Start
+            {t("help.quickStart")}
           </h2>
           <button type="button" onClick={onClose}>
-            Close
+            {t("common.close")}
           </button>
         </div>
         <div className="help-content">
@@ -33,20 +36,29 @@ export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) 
             className="primary-action"
             onClick={onLoadSampleScene}
           >
-            Load Sample Scene
+            {t("help.loadSampleScene")}
           </button>
           <ul>
-            <li>Drag in the viewport to orbit, right-drag to pan, wheel to zoom.</li>
-            <li>Select objects in the viewport or outliner.</li>
-            <li>Edit transforms in the inspector.</li>
-            <li>Add a keyframe, move to another frame, edit, then add another.</li>
-            <li>Add cinematic effects from the Effects panel at the current frame.</li>
-            <li>Use post-processing presets for cinematic looks.</li>
-            <li>Toggle Render Preview to view bars, post effects, and active camera framing.</li>
-            <li>Import SFX or add placeholder SFX to the timeline.</li>
-            <li>Use Play to preview linear animation.</li>
-            <li>World import scans real Java world folders and can load selected chunks.</li>
-            <li>Save projects as `.minemotion` packages; legacy `.mmsproj` export is in Export.</li>
+            <li>{t("help.orbit")}</li>
+            <li>{t("help.select")}</li>
+            <li>{t("help.transforms")}</li>
+            <li>{t("help.keyframes")}</li>
+            <li>{t("help.effects")}</li>
+            <li>{t("help.postProcessing")}</li>
+            <li>{t("help.renderPreview")}</li>
+            <li>{t("help.sfx")}</li>
+            <li>{t("help.play")}</li>
+            <li>{t("help.worldImport")}</li>
+            <li>{t("help.save")}</li>
+          </ul>
+          <h3>{t("help.shortcuts")}</h3>
+          <ul>
+            <li>{t("help.shortcut.commands")}</li>
+            <li>{t("help.shortcut.save")}</li>
+            <li>{t("help.shortcut.undo")}</li>
+            <li>{t("help.shortcut.duplicate")}</li>
+            <li>{t("help.shortcut.delete")}</li>
+            <li>{t("help.shortcut.play")}</li>
           </ul>
         </div>
       </section>

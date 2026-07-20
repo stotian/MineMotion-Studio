@@ -18,6 +18,7 @@ import {
   Video,
   Wand2
 } from "lucide-react";
+import { useLocalization } from "../localization/LocalizationContext";
 
 interface TopBarProps {
   projectName: string;
@@ -68,6 +69,8 @@ export function TopBar({
   onOpenHelp,
   onToggleRenderPreview
 }: TopBarProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   return (
     <header className="top-bar">
       <div className="brand">
@@ -80,78 +83,78 @@ export function TopBar({
           </span>
         </div>
       </div>
-      <nav className="top-actions" aria-label="Main actions">
+      <nav className="top-actions" aria-label={t("topbar.mainActions")}>
         <button type="button" onClick={onNewProject}>
           <Wand2 size={16} />
-          New Project
+          {t("topbar.newProject")}
         </button>
         <button type="button" onClick={onNewProjectFromTemplate}>
           <LayoutTemplate size={16} />
-          Templates
+          {t("topbar.templates")}
         </button>
         <button type="button" onClick={onOpenWorld}>
           <FolderOpen size={16} />
-          Open World
+          {t("topbar.openWorld")}
         </button>
         <button type="button" onClick={onSaveProject}>
           <Save size={16} />
-          Save Project
+          {t("topbar.saveProject")}
         </button>
         <button type="button" onClick={onLoadProject}>
           <FolderOpen size={16} />
-          Load Project
+          {t("topbar.loadProject")}
         </button>
         <button type="button" onClick={onAddCharacter}>
           <UserPlus size={16} />
-          Add Character
+          {t("topbar.addCharacter")}
         </button>
         <button type="button" onClick={onAddCamera}>
           <Camera size={16} />
-          Add Camera
+          {t("topbar.addCamera")}
         </button>
         <button type="button" onClick={onImportObj}>
           <Box size={16} />
-          Import OBJ
+          {t("topbar.importObj")}
         </button>
         <button type="button" className="primary-action" onClick={onTogglePlayback}>
           {isPlaying ? <Square size={16} /> : <Play size={16} />}
-          {isPlaying ? "Pause" : "Play"}
+          {isPlaying ? t("topbar.pause") : t("topbar.play")}
         </button>
         <button type="button" onClick={onOpenSettings}>
           <Settings size={16} />
-          Settings
+          {t("topbar.settings")}
         </button>
         <button type="button" onClick={onOpenPlugins}>
           <Plug size={16} />
-          Plugins
+          {t("topbar.plugins")}
         </button>
         <button type="button" onClick={onOpenCommands}>
           <Command size={16} />
-          Commands
+          {t("topbar.commands")}
         </button>
         <button type="button" onClick={onOpenExport}>
           <Download size={16} />
-          Export
+          {t("topbar.export")}
         </button>
         <button type="button" onClick={onOpenRigStudio}>
           <UserPlus size={16} />
-          Rig Studio
+          {t("topbar.rigStudio")}
         </button>
         <button type="button" onClick={onOpenLightingStudio}>
           <Sun size={16} />
-          Lighting
+          {t("topbar.lighting")}
         </button>
         <button type="button" onClick={onOpenVfxWorkspace}>
           <Sparkles size={16} />
-          VFX Studio
+          {t("topbar.vfxStudio")}
         </button>
         <button type="button" onClick={onOpenHelp}>
           <HelpCircle size={16} />
-          Help
+          {t("topbar.help")}
         </button>
         <button type="button" onClick={onToggleRenderPreview}>
           <Video size={16} />
-          {renderPreviewEnabled ? "Viewport" : "Render Preview"}
+          {renderPreviewEnabled ? t("topbar.viewport") : t("topbar.renderPreview")}
         </button>
       </nav>
     </header>

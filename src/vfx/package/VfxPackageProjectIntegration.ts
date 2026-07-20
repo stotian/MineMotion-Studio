@@ -6,6 +6,7 @@ import { VFX_CUSTOM_RECIPE_VERSION } from "../core/VfxInstance";
 import { generateVfxDescriptorPreviewDataUrl } from "../library/VfxPresetPreviewCache";
 import { synchronizeLegacyEffectNativeVfx } from "../serialization/VfxProjectMigration";
 import type { InstalledVfxPackage, VfxPackageRegistry } from "./VfxPackageRegistry";
+import { resolveVfxPackagePresentation } from "./VfxPackageLocalization";
 
 export interface InstalledCustomVfxPreset {
   packageId: string;
@@ -26,7 +27,8 @@ export type InstalledVfxSourceStatus =
   | "version-mismatch";
 
 export function listEnabledInstalledVfxPresets(
-  registry: VfxPackageRegistry
+  registry: VfxPackageRegistry,
+  locale = "en"
 ): readonly InstalledCustomVfxPreset[] {
   return Object.freeze(
     registry.packages
@@ -37,18 +39,19 @@ export function listEnabledInstalledVfxPresets(
           throw new Error(`Installed VFX package ${entry.id} no longer compiles.`);
         }
         const { manifest, document } = entry.archive;
+        const presentation = resolveVfxPackagePresentation(entry.archive, locale);
         return Object.freeze({
           packageId: entry.id,
           packageVersion: entry.version,
-          displayName: manifest.displayName,
-          description: manifest.description,
+          displayName: presentation.displayName,
+          description: presentation.description,
           author: manifest.author,
           license: manifest.license,
           space: document.space,
           durationFrames: document.durationFrames,
           previewDataUrl: generateVfxDescriptorPreviewDataUrl(
             compilation.value.descriptors,
-            manifest.displayName,
+            presentation.displayName,
             `${entry.id}:${entry.version}`
           )
         });

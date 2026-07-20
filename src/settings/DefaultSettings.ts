@@ -3,6 +3,7 @@ import type { AppSettings } from "./SettingsTypes";
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   schemaVersion: 1,
   general: {
+    language: "system",
     autosaveEnabled: true,
     autosaveIntervalSeconds: 30,
     defaultProjectDurationFrames: 300,
@@ -46,4 +47,3 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     disabledPluginIds: []
   }
 };
-

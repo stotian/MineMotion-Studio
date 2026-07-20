@@ -40,6 +40,7 @@ import { SKY_PRESETS, type SkyPresetId } from "../../renderer/SkySystem";
 import { getRigDefinition, MINECRAFT_RIG_PRESETS } from "../../rigs/MinecraftRigPresets";
 import { parseRigBoneSelection } from "../../rigs/RigSelection";
 import type { RigPresetId } from "../../rigs/RigTypes";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface InspectorPanelProps {
   project: MineMotionProject;
@@ -101,6 +102,8 @@ export function InspectorPanel({
   onResetSkin,
   onChangeRigPreset
 }: InspectorPanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const boneSelection = parseRigBoneSelection(selectedObjectId);
   const lookup = findObject(project, boneSelection?.characterId ?? selectedObjectId);
   const selectedCharacter =
@@ -114,15 +117,15 @@ export function InspectorPanel({
   return (
     <aside className="panel panel-right">
       <div className="panel-header">
-        <h2>Inspector</h2>
+        <h2>{t("inspector.title")}</h2>
       </div>
       <section className="inspector-section">
         <h3>
           <Palette size={15} />
-          Sky
+          {t("inspector.sky")}
         </h3>
         <label>
-          Preset
+          {t("inspector.preset")}
           <select
             value={project.sky.preset}
             onChange={(event) =>
@@ -137,7 +140,7 @@ export function InspectorPanel({
           </select>
         </label>
         <label>
-          Custom Color
+          {t("inspector.customColor")}
           <input
             type="color"
             value={project.sky.customColor}
@@ -200,7 +203,7 @@ export function InspectorPanel({
           onChangeRigPreset={onChangeRigPreset}
         />
       ) : (
-        <p className="empty-note">Select an object to edit its transform.</p>
+        <p className="empty-note">{t("inspector.selectPrompt")}</p>
       )}
     </aside>
   );
@@ -221,6 +224,8 @@ function BoneInspector({
   onResetPose: () => void;
   onMirrorPose: () => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const definition = getRigDefinition(character.rigPreset);
   const bone = definition.bones.find((candidate) => candidate.id === boneId);
   const rotation = character.boneRotations[boneId] ?? [0, 0, 0];
@@ -231,26 +236,26 @@ function BoneInspector({
         <Bone size={15} />
         {bone?.label ?? boneId}
       </h3>
-      <InfoRow label="Character" value={character.name} />
-      <InfoRow label="Rig" value={definition.name} />
-      <InfoRow label="Bone ID" value={boneId} />
+      <InfoRow label={t("inspector.character")} value={character.name} />
+      <InfoRow label={t("inspector.rig")} value={definition.name} />
+      <InfoRow label={t("inspector.boneId")} value={boneId} />
       <VectorEditor
-        label="Bone Rotation"
+        label={t("inspector.boneRotation")}
         value={rotation}
         onChange={onUpdateBoneRotation}
       />
       <div className="inspector-actions">
         <button type="button" onClick={onAddBoneKeyframe}>
           <KeyRound size={15} />
-          Add Bone Keyframe
+          {t("inspector.addBoneKey")}
         </button>
         <button type="button" onClick={onMirrorPose}>
           <FlipHorizontal size={15} />
-          Mirror Pose
+          {t("rig.mirrorPose")}
         </button>
         <button type="button" onClick={onResetPose}>
           <RefreshCw size={15} />
-          Reset Pose
+          {t("rig.resetPose")}
         </button>
       </div>
     </section>
@@ -264,11 +269,13 @@ function PostProcessingInspector({
   settings: PostProcessingSettings;
   onUpdate: (settings: Partial<PostProcessingSettings>) => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   return (
     <section className="inspector-section">
       <h3>
         <Film size={15} />
-        Post
+        {t("inspector.post")}
       </h3>
       <label className="checkbox-label">
         <input
@@ -276,10 +283,10 @@ function PostProcessingInspector({
           checked={settings.enabled}
           onChange={(event) => onUpdate({ enabled: event.target.checked })}
         />
-        Enable post-processing
+        {t("inspector.enablePost")}
       </label>
       <NumberField
-        label="Bloom"
+        label={t("inspector.bloom")}
         value={settings.bloomIntensity}
         min={0}
         max={1}
@@ -287,7 +294,7 @@ function PostProcessingInspector({
         onChange={(bloomIntensity) => onUpdate({ bloomIntensity })}
       />
       <NumberField
-        label="Vignette"
+        label={t("inspector.vignette")}
         value={settings.vignetteAmount}
         min={0}
         max={1}
@@ -295,7 +302,7 @@ function PostProcessingInspector({
         onChange={(vignetteAmount) => onUpdate({ vignetteAmount })}
       />
       <NumberField
-        label="Saturation"
+        label={t("inspector.saturation")}
         value={settings.saturation}
         min={0}
         max={2}
@@ -303,7 +310,7 @@ function PostProcessingInspector({
         onChange={(saturation) => onUpdate({ saturation })}
       />
       <NumberField
-        label="Contrast"
+        label={t("inspector.contrast")}
         value={settings.contrast}
         min={0.2}
         max={2}
@@ -311,7 +318,7 @@ function PostProcessingInspector({
         onChange={(contrast) => onUpdate({ contrast })}
       />
       <NumberField
-        label="Grain"
+        label={t("inspector.grain")}
         value={settings.grainAmount}
         min={0}
         max={1}
@@ -319,7 +326,7 @@ function PostProcessingInspector({
         onChange={(grainAmount) => onUpdate({ grainAmount })}
       />
       <NumberField
-        label="Pixelate"
+        label={t("inspector.pixelate")}
         value={settings.pixelationAmount}
         min={0}
         max={1}
@@ -341,10 +348,12 @@ function EffectInspector({
   onUpdate: (patch: EffectTimelineEditablePatch) => string | null;
   onDelete: () => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const parameterModel = createEffectParameterInspectorModel(effect);
   const commitParameter = (control: VfxParameterControl, value: unknown) => {
     const patch = createVfxParameterPatch(control, value);
-    if (!patch.ok) return patch.errors[0]?.message ?? "Parameter value is invalid.";
+    if (!patch.ok) return t("inspector.invalidParameter");
     const nextValue = patch.value[control.id];
     if (
       control.source !== "invalid-legacy" &&
@@ -363,17 +372,17 @@ function EffectInspector({
         <Sparkles size={15} />
         {effect.name}
       </h3>
-      <InfoRow label="Type" value={effect.type} />
+      <InfoRow label={t("inspector.type")} value={effect.type} />
       <label className="checkbox-label">
         <input
           type="checkbox"
           checked={effect.enabled}
           onChange={(event) => onUpdate({ enabled: event.target.checked })}
         />
-        Enabled
+        {t("common.enabled")}
       </label>
       <CommittedNumberField
-        label="Start"
+        label={t("inspector.start")}
         value={effect.startFrame}
         min={0}
         max={Math.max(0, timelineDurationFrames - effect.durationFrames)}
@@ -381,7 +390,7 @@ function EffectInspector({
         onCommit={(startFrame) => onUpdate({ startFrame })}
       />
       <CommittedNumberField
-        label="Duration"
+        label={t("inspector.duration")}
         value={effect.durationFrames}
         min={1}
         max={Math.max(1, timelineDurationFrames - effect.startFrame)}
@@ -389,7 +398,7 @@ function EffectInspector({
         onCommit={(durationFrames) => onUpdate({ durationFrames })}
       />
       <CommittedVectorEditor
-        label="Position"
+        label={t("inspector.position")}
         value={effect.position}
         step={0.1}
         onCommit={(position) => onUpdate({ position })}
@@ -403,13 +412,13 @@ function EffectInspector({
         />
       ) : (
         <p className="parameter-control-error">
-          {parameterModel.errors[0]?.message ?? "Parameter controls are unavailable."}
+          {t("inspector.parametersUnavailable")}
         </p>
       )}
       <div className="inspector-actions">
         <button type="button" onClick={onDelete}>
           <Trash2 size={15} />
-          Delete Effect
+          {t("inspector.deleteEffect")}
         </button>
       </div>
     </section>
@@ -427,6 +436,8 @@ function GeneratedParameterControls({
   unknownParameters: readonly { id: string; value: string | number | boolean }[];
   onCommit: (control: VfxParameterControl, value: unknown) => string | null;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const groups = new Map<string, VfxParameterControl[]>();
   for (const control of controls) {
     const group = groups.get(control.category) ?? [];
@@ -437,7 +448,7 @@ function GeneratedParameterControls({
   return (
     <div className="generated-parameter-controls">
       <p className="parameter-control-note">
-        Values come from the effect schema. Parameter keyframes require schema 10.
+        {t("inspector.parameterNote")}
       </p>
       {[...groups.entries()].map(([category, categoryControls]) => (
         <fieldset key={category} className="vfx-parameter-group">
@@ -454,7 +465,7 @@ function GeneratedParameterControls({
       {unknownParameters.length > 0 && (
         <details className="legacy-parameter-list">
           <summary>
-            Preserved legacy parameters ({unknownParameters.length})
+            {t("inspector.legacyParameters", { count: unknownParameters.length })}
           </summary>
           <ul>
             {unknownParameters.map((parameter) => (
@@ -587,6 +598,7 @@ function GeneratedColorControl({
   control: Extract<VfxParameterControl, { kind: "color" }>;
   onCommit: (control: VfxParameterControl, value: unknown) => string | null;
 }) {
+  const localization = useLocalization();
   const [draft, setDraft] = useState(control.value);
   const [error, setError] = useState<string | null>(control.validationMessage ?? null);
   const canUsePicker = /^#[0-9a-fA-F]{6}$/.test(draft);
@@ -631,7 +643,7 @@ function GeneratedColorControl({
             <input
               type="color"
               value={draft}
-              aria-label={`${control.displayName} picker`}
+              aria-label={localization.t("inspector.colorPicker", { name: control.displayName })}
               onChange={(event) => setDraft(event.target.value)}
               onBlur={(event) => commit(event.currentTarget.value)}
             />
@@ -654,6 +666,7 @@ function GeneratedEnumControl({
   control: Extract<VfxParameterControl, { kind: "enum" }>;
   onCommit: (control: VfxParameterControl, value: unknown) => string | null;
 }) {
+  const localization = useLocalization();
   const [error, setError] = useState<string | null>(control.validationMessage ?? null);
   const hasInvalidStoredValue =
     control.source === "invalid-legacy" && !control.options.includes(control.value);
@@ -673,7 +686,7 @@ function GeneratedEnumControl({
         >
           {hasInvalidStoredValue && (
             <option value={control.value} disabled>
-              Invalid legacy value: {control.value}
+              {localization.t("inspector.invalidLegacy", { value: control.value })}
             </option>
           )}
           {control.options.map((option) => (
@@ -703,48 +716,50 @@ function ParameterControlMetadata({
   error: string | null;
   onRestoreDefault: () => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const defaultValue = String(control.defaultValue);
   const numericMetadata =
     control.kind === "number" || control.kind === "integer"
       ? [
-          control.min === undefined ? null : `min ${control.min}`,
-          control.max === undefined ? null : `max ${control.max}`,
-          control.step === undefined ? null : `step ${control.step}`,
+          control.min === undefined ? null : t("inspector.minimum", { value: control.min }),
+          control.max === undefined ? null : t("inspector.maximum", { value: control.max }),
+          control.step === undefined ? null : t("inspector.stepValue", { value: control.step }),
           control.unit
         ]
           .filter((value): value is string => Boolean(value))
           .join(" · ")
       : "";
   const supportLabel: Record<VfxParameterRuntimeSupport, string> = {
-    "live-preview": "Live preview",
-    "export-only": "Offline export only",
-    "stored-only": "Stored only (render support pending)"
+    "live-preview": t("inspector.runtime.live"),
+    "export-only": t("inspector.runtime.export"),
+    "stored-only": t("inspector.runtime.stored")
   };
 
   return (
     <div className="parameter-control-metadata">
       <small>
-        Default: {defaultValue}
+        {t("inspector.defaultValue", { value: defaultValue })}
         {numericMetadata ? ` · ${numericMetadata}` : ""}
       </small>
       <small className={`parameter-runtime-${control.runtimeSupport}`}>
         {supportLabel[control.runtimeSupport]}
       </small>
       {control.animatable && (
-        <small>Keyframes unavailable until schema 10.</small>
+        <small>{t("inspector.keyframesSchema10")}</small>
       )}
       {control.description && <small>{control.description}</small>}
       {control.source === "invalid-legacy" && (
         <>
           <small className="parameter-control-error">
-            Stored legacy value: {String(control.storedValue)}
+            {t("inspector.storedLegacy", { value: String(control.storedValue) })}
           </small>
           <button
             type="button"
             className="parameter-restore-default"
             onClick={onRestoreDefault}
           >
-            Restore valid default
+            {t("inspector.restoreDefault")}
           </button>
         </>
       )}
@@ -754,26 +769,28 @@ function ParameterControlMetadata({
 }
 
 function WorldInspector({ project }: { project: MineMotionProject }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const world = project.world;
   return (
     <section className="inspector-section">
-      <h3>World</h3>
+      <h3>{t("inspector.world")}</h3>
       {world ? (
         <>
-          <InfoRow label="Source" value={world.sourceName} />
-          {world.levelName && <InfoRow label="Level" value={world.levelName} />}
-          <InfoRow label="level.dat" value={world.levelDatFound ? "found" : "missing"} />
-          {world.spawn && <InfoRow label="Spawn" value={world.spawn.join(", ")} />}
+          <InfoRow label={t("inspector.source")} value={world.sourceName} />
+          {world.levelName && <InfoRow label={t("inspector.level")} value={world.levelName} />}
+          <InfoRow label="level.dat" value={t(world.levelDatFound ? "inspector.found" : "inspector.missing")} />
+          {world.spawn && <InfoRow label={t("inspector.spawn")} value={world.spawn.join(", ")} />}
           <InfoRow
-            label="Dimension"
+            label={t("inspector.dimension")}
             value={world.selectedDimension ?? "overworld"}
           />
           <InfoRow
-            label="Chunks"
+            label={t("inspector.chunks")}
             value={String(world.importedChunks?.length ?? 0)}
           />
           <InfoRow
-            label="Blocks"
+            label={t("inspector.blocks")}
             value={String(
               world.performanceEstimate?.importedBlocks ??
                 world.importedChunks?.reduce(
@@ -784,14 +801,14 @@ function WorldInspector({ project }: { project: MineMotionProject }) {
             )}
           />
           <InfoRow
-            label="Unknown"
+            label={t("inspector.unknown")}
             value={String(world.unknownBlockCount ?? 0)}
           />
           {world.dimensions.map((dimension) => (
             <InfoRow
               key={dimension.id}
               label={dimension.label}
-              value={`${dimension.regionFiles.length} region files`}
+              value={localization.plural({ one: "inspector.regionFiles.one", other: "inspector.regionFiles.other" }, dimension.regionFiles.length)}
             />
           ))}
           {world.notes.length > 0 && (
@@ -804,7 +821,7 @@ function WorldInspector({ project }: { project: MineMotionProject }) {
         </>
       ) : (
         <p className="empty-note">
-          Demo terrain is active until a Minecraft world folder is scanned.
+          {t("inspector.demoTerrain")}
         </p>
       )}
     </section>
@@ -850,6 +867,8 @@ function EntityInspector({
   onResetSkin: (characterId: string) => void;
   onChangeRigPreset: (characterId: string, presetId: RigPresetId) => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const relevantAnimationPresets = animationPresets.filter((preset) =>
     preset.targetTypes.includes(entity.type === "camera" ? "camera" : "character")
   );
@@ -859,28 +878,28 @@ function EntityInspector({
     <section className="inspector-section">
       <h3>{entity.name}</h3>
       <label>
-        Name
+        {t("inspector.name")}
         <input
           value={entity.name}
           onChange={(event) => onRenameObject(event.target.value)}
         />
       </label>
-      <InfoRow label="Type" value={entity.type} />
+      <InfoRow label={t("inspector.type")} value={entity.type} />
       <div className="inspector-actions">
         <button
           type="button"
           onClick={() => onToggleVisibility(!entity.visible)}
         >
           {entity.visible ? <Eye size={15} /> : <EyeOff size={15} />}
-          {entity.visible ? "Visible" : "Hidden"}
+          {t(entity.visible ? "inspector.visible" : "inspector.hidden")}
         </button>
         <button type="button" onClick={() => onToggleLocked(!entity.locked)}>
           {entity.locked ? <Lock size={15} /> : <Unlock size={15} />}
-          {entity.locked ? "Locked" : "Unlocked"}
+          {t(entity.locked ? "inspector.locked" : "inspector.unlocked")}
         </button>
       </div>
       <VectorEditor
-        label="Position"
+        label={t("inspector.position")}
         value={entity.transform.position}
         disabled={entity.locked}
         onChange={(position) =>
@@ -888,7 +907,7 @@ function EntityInspector({
         }
       />
       <VectorEditor
-        label="Rotation"
+        label={t("inspector.rotation")}
         value={entity.transform.rotation}
         disabled={entity.locked}
         onChange={(rotation) =>
@@ -896,7 +915,7 @@ function EntityInspector({
         }
       />
       <VectorEditor
-        label="Scale"
+        label={t("inspector.scale")}
         value={entity.transform.scale}
         step={0.1}
         min={0.01}
@@ -906,20 +925,20 @@ function EntityInspector({
       <div className="inspector-actions">
         <button type="button" onClick={onAddKeyframe}>
           <KeyRound size={15} />
-          Add Keyframe
+          {t("inspector.addKeyframe")}
         </button>
         {entity.type === "camera" && (
           <button type="button" onClick={onLookThroughCamera}>
             <Camera size={15} />
-            Look Through
+            {t("inspector.lookThrough")}
           </button>
         )}
       </div>
       {entity.type === "camera" && (
         <PresetButtonGroup
-          title="Camera Presets"
+          title={t("inspector.cameraPresets")}
           presets={cameraPresets}
-          actionLabel="Add Camera Preset"
+          actionLabel={t("inspector.addCameraPreset")}
           onApply={onApplyCameraPreset}
         />
       )}
@@ -934,18 +953,18 @@ function EntityInspector({
             onChangeRigPreset={onChangeRigPreset}
           />
           <PresetButtonGroup
-            title="Pose Library"
+            title={t("inspector.poseLibrary")}
             presets={rigPosePresets}
-            actionLabel="Apply Pose"
+            actionLabel={t("inspector.applyPose")}
             onApply={onApplyRigPosePreset}
           />
         </>
       )}
       {(entity.type === "character" || entity.type === "camera") && (
         <PresetButtonGroup
-          title="Animation Presets"
+          title={t("inspector.animationPresets")}
           presets={relevantAnimationPresets}
-          actionLabel="Apply Animation Preset"
+          actionLabel={t("inspector.applyAnimation")}
           onApply={onApplyAnimationPreset}
         />
       )}
@@ -968,14 +987,16 @@ function CharacterRigInspector({
   onMirrorPose: (characterId: string) => void;
   onChangeRigPreset: (characterId: string, presetId: RigPresetId) => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const definition = getRigDefinition(character.rigPreset);
   const skin = character.skin;
 
   return (
     <div className="preset-group">
-      <h4>Rig And Skin</h4>
+      <h4>{t("inspector.rigSkin")}</h4>
       <label>
-        Rig Preset
+        {t("inspector.rigPreset")}
         <select
           value={definition.id}
           onChange={(event) =>
@@ -985,42 +1006,42 @@ function CharacterRigInspector({
           {MINECRAFT_RIG_PRESETS.map((preset) => (
             <option key={preset.id} value={preset.id}>
               {preset.name}
-              {preset.status === "placeholder" ? " (placeholder)" : ""}
+              {preset.status === "placeholder" ? ` (${t("inspector.placeholder")})` : ""}
             </option>
           ))}
         </select>
       </label>
-      <InfoRow label="Bones" value={String(definition.bones.length)} />
-      <InfoRow label="Arms" value={`${definition.armWidthPixels}px`} />
+      <InfoRow label={t("inspector.bones")} value={String(definition.bones.length)} />
+      <InfoRow label={t("inspector.arms")} value={`${definition.armWidthPixels}px`} />
       {skin ? (
         <>
-          <InfoRow label="Skin" value={skin.name} />
+          <InfoRow label={t("inspector.skin")} value={skin.name} />
           <InfoRow
-            label="Resolution"
+            label={t("inspector.resolution")}
             value={`${skin.metadata.width}x${skin.metadata.height}`}
           />
-          <InfoRow label="Model" value={skin.metadata.modelType} />
-          <InfoRow label="Valid" value={skin.metadata.valid ? "yes" : "no"} />
+          <InfoRow label={t("inspector.model")} value={skin.metadata.modelType} />
+          <InfoRow label={t("inspector.valid")} value={t(skin.metadata.valid ? "inspector.yes" : "inspector.no")} />
         </>
       ) : (
-        <InfoRow label="Skin" value="fallback colors" />
+        <InfoRow label={t("inspector.skin")} value={t("inspector.fallbackColors")} />
       )}
       <div className="inspector-actions">
         <button type="button" onClick={() => onImportSkin(character.id)}>
           <Upload size={15} />
-          Import Skin
+          {t("rig.importSkin")}
         </button>
         <button type="button" onClick={() => onResetSkin(character.id)}>
           <RefreshCw size={15} />
-          Reset Skin
+          {t("rig.resetSkin")}
         </button>
         <button type="button" onClick={() => onMirrorPose(character.id)}>
           <FlipHorizontal size={15} />
-          Mirror Pose
+          {t("rig.mirrorPose")}
         </button>
         <button type="button" onClick={() => onResetPose(character.id)}>
           <RefreshCw size={15} />
-          Reset Pose
+          {t("rig.resetPose")}
         </button>
       </div>
     </div>
@@ -1219,6 +1240,7 @@ function PresetButtonGroup({
   actionLabel: string;
   onApply: (presetId: string) => void;
 }) {
+  const localization = useLocalization();
   if (presets.length === 0) return null;
 
   return (
@@ -1232,7 +1254,7 @@ function PresetButtonGroup({
             title={preset.description}
             onClick={() => onApply(preset.id)}
           >
-            {actionLabel}: {preset.name}
+            {localization.t("inspector.presetAction", { action: actionLabel, name: preset.name })}
           </button>
         ))}
       </div>

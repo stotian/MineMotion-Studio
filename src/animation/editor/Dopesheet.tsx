@@ -12,6 +12,7 @@ import {
   toggleKeyframeSelection,
   type KeyframeSelectionState
 } from "./KeyframeSelection";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface DopesheetProps {
   project: MineMotionProject;
@@ -28,15 +29,17 @@ export function Dopesheet({
   onSetFrame,
   onMoveKeyframes
 }: DopesheetProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const groups = buildTrackHierarchy(project);
   const duration = Math.max(1, project.animation.durationFrames);
 
   if (groups.length === 0) {
-    return <p className="timeline-empty">Add keyframes to populate the dopesheet.</p>;
+    return <p className="timeline-empty">{t("dopesheet.empty")}</p>;
   }
 
   return (
-    <div className="dopesheet" role="grid" aria-label="Animation dopesheet">
+    <div className="dopesheet" role="grid" aria-label={t("dopesheet.ariaLabel")}>
       {groups.map((group) => (
         <section key={group.targetId} className="dopesheet-group">
           <header>

@@ -1,5 +1,6 @@
 import { Plug } from "lucide-react";
 import type { RegisteredPlugin } from "../../plugins/PluginRegistry";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface PluginManagerPanelProps {
   open: boolean;
@@ -14,6 +15,8 @@ export function PluginManagerPanel({
   onClose,
   onTogglePlugin
 }: PluginManagerPanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   if (!open) return null;
 
   return (
@@ -22,22 +25,20 @@ export function PluginManagerPanel({
         className="modal-panel plugin-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Plugin manager"
+        aria-label={t("plugins.ariaLabel")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
           <h2>
             <Plug size={18} />
-            Plugin Manager
+            {t("plugins.title")}
           </h2>
           <button type="button" onClick={onClose}>
-            Close
+            {t("common.close")}
           </button>
         </div>
         <p className="warning-note">
-          External plugin JavaScript execution is disabled in this build. Built-in
-          plugins are bundled TypeScript modules; external manifests should not
-          be executed without a future sandbox.
+          {t("plugins.securityNotice")}
         </p>
         <div className="plugin-list">
           {plugins.map((plugin) => (
@@ -47,7 +48,7 @@ export function PluginManagerPanel({
                 <span>{plugin.manifest.description}</span>
                 <small>
                   {plugin.manifest.id} - v{plugin.manifest.version} -{" "}
-                  {plugin.manifest.builtin ? "built-in" : "external manifest"}
+                  {plugin.manifest.builtin ? t("plugins.builtin") : t("plugins.externalManifest")}
                 </small>
               </div>
               <div className="plugin-meta">
@@ -60,7 +61,7 @@ export function PluginManagerPanel({
                       onTogglePlugin(plugin.manifest.id, event.target.checked)
                     }
                   />
-                  Enabled
+                  {t("common.enabled")}
                 </label>
               </div>
               {plugin.validationErrors.length > 0 && (

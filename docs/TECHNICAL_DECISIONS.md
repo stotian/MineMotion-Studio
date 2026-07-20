@@ -327,3 +327,22 @@ a versioned closed acyclic schema, bounded deterministic compilation/work
 accounting, migration/downgrade rules, accessibility/repair behavior, and
 preview/export/adversarial evidence. Its first prototype must project or compile
 into the existing path, never create a second project effect authority.
+
+## TD-027 - Localize through one typed service outside project state
+
+Status: Accepted and completed in Phase 18.
+
+Use one flat typed key contract with English as the complete fallback catalog
+and require French exact key/placeholder parity. The service owns system locale
+resolution, interpolation, plural rules, number/date/duration/timecode formats,
+and pseudolocalization; React panels consume it through one context.
+
+Persist only `system`/`en`/`fr` in existing app settings. Never translate or
+mutate project serialization values, technical IDs, error codes, file paths, or
+user-authored content. Future community/content catalogs must be validated data
+extensions of this boundary, not new localization engines or executable code.
+
+Package localization remains a narrower untrusted-data boundary: a validated,
+bounded `minemotion-localization` asset may supply only `package.displayName`
+and `package.description`. Locale matching is deterministic and falls back to
+the manifest. Package keys cannot override application catalogs or project data.

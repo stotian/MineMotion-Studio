@@ -1,6 +1,7 @@
 import { Play, Trash2, X } from "lucide-react";
 import { formatLabel } from "../ExportValidation";
 import type { RenderQueueState } from "./RenderJob";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 export function RenderQueuePanel({
   queue,
@@ -13,17 +14,19 @@ export function RenderQueuePanel({
   onRemove: (jobId: string) => void;
   onClearFinished: () => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   return (
     <div className="render-queue">
       <div className="render-queue-header">
-        <strong>{queue.jobs.length} jobs</strong>
+        <strong>{localization.plural({ one: "queue.jobs.one", other: "queue.jobs.other" }, queue.jobs.length)}</strong>
         <button type="button" onClick={onClearFinished} disabled={queue.jobs.length === 0}>
           <Trash2 size={14} />
-          Clear finished
+          {t("queue.clearFinished")}
         </button>
       </div>
       {queue.jobs.length === 0 ? (
-        <p className="empty-note">The render queue is empty.</p>
+        <p className="empty-note">{t("queue.empty")}</p>
       ) : (
         <div className="render-job-list">
           {queue.jobs.map((job) => {
@@ -39,7 +42,7 @@ export function RenderQueuePanel({
                 <div className="render-job-actions">
                   <button
                     type="button"
-                    title="Run render job"
+                    title={t("queue.run")}
                     disabled={running || queue.activeJobId !== null}
                     onClick={() => onRun(job.id)}
                   >
@@ -47,7 +50,7 @@ export function RenderQueuePanel({
                   </button>
                   <button
                     type="button"
-                    title="Remove render job"
+                    title={t("queue.remove")}
                     disabled={running}
                     onClick={() => onRemove(job.id)}
                   >

@@ -12,6 +12,7 @@ import {
   prepareProjectVfxFrame,
   shouldIncludeProjectVfx
 } from "../vfx/runtime/VfxProjectFrame";
+import { useLocalization } from "../localization/LocalizationContext";
 
 interface ViewportProps {
   project: MineMotionProject;
@@ -32,6 +33,8 @@ export function Viewport({
   focusWorldRequest,
   viewportSettings
 }: ViewportProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<SceneRenderer | null>(null);
 
@@ -226,26 +229,27 @@ export function Viewport({
   return (
     <section
       className={`viewport-shell ${project.renderSettings.renderPreviewEnabled ? "render-preview" : ""}`}
-      aria-label="3D viewport"
+      aria-label={t("viewport.ariaLabel")}
     >
       <div className="viewport-toolbar">
         <span>
           {project.renderSettings.renderPreviewEnabled
-            ? "Render Preview"
-            : "Perspective"}
+            ? t("status.renderPreview")
+            : t("viewport.perspective")}
         </span>
         {project.renderSettings.renderPreviewEnabled && (
           <span>
-            Active camera:{" "}
-            {project.scene.cameras.find((camera) => camera.id === project.activeCameraId)?.name ??
-              "none"}
+            {t("viewport.activeCamera", {
+              name: project.scene.cameras.find((camera) => camera.id === project.activeCameraId)?.name ??
+                t("common.none")
+            })}
           </span>
         )}
-        <span>Orbit: drag</span>
-        <span>Pan: right drag</span>
-        <span>Zoom: wheel</span>
+        <span>{t("viewport.orbit")}</span>
+        <span>{t("viewport.pan")}</span>
+        <span>{t("viewport.zoom")}</span>
         {project.world?.importedChunks?.length ? (
-          <span>{project.world.importedChunks.length} imported chunks</span>
+          <span>{localization.plural({ one: "viewport.importedChunks.one", other: "viewport.importedChunks.other" }, project.world.importedChunks.length)}</span>
         ) : null}
       </div>
       <div

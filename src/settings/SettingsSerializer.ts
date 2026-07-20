@@ -1,5 +1,12 @@
 import { DEFAULT_APP_SETTINGS } from "./DefaultSettings";
 import type { AppSettings } from "./SettingsTypes";
+import type { AppLanguagePreference } from "../localization/LocalizationTypes";
+
+function languagePreference(value: unknown): AppLanguagePreference {
+  return value === "en" || value === "fr" || value === "system"
+    ? value
+    : DEFAULT_APP_SETTINGS.general.language;
+}
 
 export class SettingsSerializer {
   static serialize(settings: AppSettings): string {
@@ -17,6 +24,7 @@ export class SettingsSerializer {
       general: {
         ...DEFAULT_APP_SETTINGS.general,
         ...settings.general,
+        language: languagePreference(settings.general?.language),
         recentProjects:
           settings.general?.recentProjects?.slice(0, 10) ??
           DEFAULT_APP_SETTINGS.general.recentProjects
@@ -43,4 +51,3 @@ export class SettingsSerializer {
     };
   }
 }
-

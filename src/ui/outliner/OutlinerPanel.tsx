@@ -11,6 +11,7 @@ import {
 import type { CharacterEntity, MineMotionProject, SceneEntity } from "../../project/ProjectFile";
 import { getRigDefinition } from "../../rigs/MinecraftRigPresets";
 import { makeBoneObjectId } from "../../rigs/RigSelection";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface OutlinerPanelProps {
   project: MineMotionProject;
@@ -23,52 +24,59 @@ export function OutlinerPanel({
   selectedObjectId,
   onSelectObject
 }: OutlinerPanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   return (
     <aside className="panel panel-left">
       <div className="panel-header">
-        <h2>Outliner</h2>
+        <h2>{t("outliner.title")}</h2>
       </div>
       <div className="outliner-tree">
-        <Section title="Scene">
+        <Section title={t("outliner.scene")}>
           <OutlinerItem
             icon={<Cuboid size={15} />}
             id="world"
-            name={project.world ? project.world.sourceName : "Demo World"}
+            name={project.world ? project.world.sourceName : t("outliner.demoWorld")}
             selected={selectedObjectId === "world"}
             meta={
               project.world?.importedChunks?.length
-                ? `${project.world.importedChunks.length} chunks`
+                ? localization.plural(
+                    { one: "outliner.chunks.one", other: "outliner.chunks.other" },
+                    project.world.importedChunks.length
+                  )
                 : project.world
-                  ? "scanned world"
-                  : "generated terrain"
+                  ? t("outliner.world.scanned")
+                  : t("outliner.world.generated")
             }
             onSelect={onSelectObject}
           />
         </Section>
-        <Section title="Characters">
+        <Section title={t("outliner.characters")}>
           {project.scene.characters.map((entity) => (
             <CharacterItem
               key={entity.id}
               entity={entity}
               selectedObjectId={selectedObjectId}
+              boneLabel={t("outliner.bone")}
               onSelect={onSelectObject}
             />
           ))}
         </Section>
-        <Section title="Cameras">
+        <Section title={t("outliner.cameras")}>
           {project.scene.cameras.map((entity) => (
             <EntityItem
               key={entity.id}
               entity={entity}
               selected={selectedObjectId === entity.id}
               icon={<Camera size={15} />}
+              typeLabel={t("outliner.entity.camera")}
               onSelect={onSelectObject}
             />
           ))}
         </Section>
-        <Section title="OBJ Assets">
+        <Section title={t("outliner.objAssets")}>
           {project.scene.importedObjects.length === 0 ? (
-            <p className="empty-note">No OBJ objects imported.</p>
+            <p className="empty-note">{t("outliner.noObj")}</p>
           ) : (
             project.scene.importedObjects.map((entity) => (
               <EntityItem
@@ -76,18 +84,20 @@ export function OutlinerPanel({
                 entity={entity}
                 selected={selectedObjectId === entity.id}
                 icon={<Box size={15} />}
+                typeLabel={t("outliner.entity.object")}
                 onSelect={onSelectObject}
               />
             ))
           )}
         </Section>
-        <Section title="Lights">
+        <Section title={t("outliner.lights")}>
           {project.scene.lights.map((entity) => (
             <EntityItem
               key={entity.id}
               entity={entity}
               selected={selectedObjectId === entity.id}
               icon={<Lightbulb size={15} />}
+              typeLabel={t("outliner.entity.light")}
               onSelect={onSelectObject}
             />
           ))}
@@ -100,10 +110,12 @@ export function OutlinerPanel({
 function CharacterItem({
   entity,
   selectedObjectId,
+  boneLabel,
   onSelect
 }: {
   entity: CharacterEntity;
   selectedObjectId: string | null;
+  boneLabel: string;
   onSelect: (objectId: string | null) => void;
 }) {
   const definition = getRigDefinition(entity.rigPreset);
@@ -113,6 +125,7 @@ function CharacterItem({
         entity={entity}
         selected={selectedObjectId === entity.id}
         icon={<User size={15} />}
+        typeLabel={undefined}
         onSelect={onSelect}
       />
       <div className="outliner-bones">
@@ -127,7 +140,7 @@ function CharacterItem({
                 name={bone.label}
                 icon={<GitBranch size={13} />}
                 selected={selectedObjectId === objectId}
-                meta="bone"
+                meta={boneLabel}
                 onSelect={onSelect}
               />
             );
@@ -159,11 +172,13 @@ function EntityItem({
   entity,
   selected,
   icon,
+  typeLabel,
   onSelect
 }: {
   entity: SceneEntity;
   selected: boolean;
   icon: React.ReactNode;
+  typeLabel?: string;
   onSelect: (objectId: string | null) => void;
 }) {
   return (
@@ -172,7 +187,7 @@ function EntityItem({
       name={entity.name}
       icon={icon}
       selected={selected}
-      meta={entity.type}
+      meta={typeLabel ?? entity.type}
       onSelect={onSelect}
     />
   );

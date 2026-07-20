@@ -5,6 +5,9 @@ import type {
 } from "../../minecraft/import/WorldImportManager";
 import type { WorldImportProgress } from "../../minecraft/import/WorldImportProgress";
 import type { MineMotionProject } from "../../project/ProjectFile";
+import { useLocalization } from "../../localization/LocalizationContext";
+import type { TranslationKey } from "../../localization/LocalizationTypes";
+import { formatLocalizedDiagnostic } from "../../localization/LocalizationDiagnostics";
 
 interface WorldImportPanelProps {
   open: boolean;
@@ -37,6 +40,8 @@ export function WorldImportPanel({
   onFocusWorld,
   onUnloadWorld
 }: WorldImportPanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   if (!open) return null;
 
   const world = project.world;
@@ -60,61 +65,60 @@ export function WorldImportPanel({
         className="modal-panel world-import-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="World import"
+        aria-label={t("world.ariaLabel")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
           <h2>
             <Cuboid size={18} />
-            World Import
+            {t("world.title")}
           </h2>
           <button type="button" onClick={onClose}>
-            Close
+            {t("common.close")}
           </button>
         </div>
 
         <div className="world-import-layout">
           <section>
-            <h3>World Folder</h3>
+            <h3>{t("world.folder")}</h3>
             <div className="world-import-actions">
               <button type="button" className="primary-action" onClick={onChooseWorldFolder}>
                 <FolderOpen size={16} />
-                Choose Folder
+                {t("world.chooseFolder")}
               </button>
               <button type="button" onClick={onFocusWorld} disabled={!world?.importedChunks?.length}>
                 <Crosshair size={16} />
-                Focus World
+                {t("world.focus")}
               </button>
               <button type="button" onClick={onUnloadWorld} disabled={!world}>
                 <Trash2 size={16} />
-                Unload
+                {t("world.unload")}
               </button>
             </div>
             {scan ? (
               <div className="world-summary">
-                <Info label="Folder" value={scan.sourceName} />
-                <Info label="Level" value={scan.level.levelName || "unknown"} />
+                <Info label={t("world.info.folder")} value={scan.sourceName} />
+                <Info label={t("world.info.level")} value={scan.level.levelName || t("world.unknown")} />
                 <Info
-                  label="Data version"
-                  value={scan.level.dataVersion?.toString() ?? "unknown"}
+                  label={t("world.info.dataVersion")}
+                  value={scan.level.dataVersion?.toString() ?? t("world.unknown")}
                 />
                 <Info
-                  label="Spawn"
-                  value={scan.level.spawn ? scan.level.spawn.join(", ") : "unknown"}
+                  label={t("world.info.spawn")}
+                  value={scan.level.spawn ? scan.level.spawn.join(", ") : t("world.unknown")}
                 />
               </div>
             ) : (
               <p className="empty-note">
-                Select a Minecraft world folder to scan `level.dat` and `.mca`
-                region files.
+                {t("world.scanPrompt")}
               </p>
             )}
           </section>
 
           <section>
-            <h3>Import Selection</h3>
+            <h3>{t("world.selection")}</h3>
             <label>
-              Dimension
+              {t("world.dimension")}
               <select
                 value={options.dimension}
                 onChange={(event) =>
@@ -123,45 +127,45 @@ export function WorldImportPanel({
                   })
                 }
               >
-                <option value="overworld">Overworld</option>
-                <option value="nether">Nether</option>
-                <option value="end">End</option>
+                <option value="overworld">{t("world.dimension.overworld")}</option>
+                <option value="nether">{t("world.dimension.nether")}</option>
+                <option value="end">{t("world.dimension.end")}</option>
               </select>
             </label>
             <div className="export-grid-2">
               <NumberField
-                label="Center chunk X"
+                label={t("world.centerX")}
                 value={options.centerChunkX}
                 onChange={(centerChunkX) => updateOptions({ centerChunkX })}
               />
               <NumberField
-                label="Center chunk Z"
+                label={t("world.centerZ")}
                 value={options.centerChunkZ}
                 onChange={(centerChunkZ) => updateOptions({ centerChunkZ })}
               />
               <NumberField
-                label="Radius"
+                label={t("world.radius")}
                 value={options.radiusChunks}
                 min={0}
                 max={16}
                 onChange={(radiusChunks) => updateOptions({ radiusChunks })}
               />
               <NumberField
-                label="Max chunks"
+                label={t("world.maxChunks")}
                 value={options.maxChunks}
                 min={1}
                 max={256}
                 onChange={(maxChunks) => updateOptions({ maxChunks })}
               />
               <NumberField
-                label="Max regions"
+                label={t("world.maxRegions")}
                 value={options.maxRegionFiles}
                 min={1}
                 max={16}
                 onChange={(maxRegionFiles) => updateOptions({ maxRegionFiles })}
               />
               <NumberField
-                label="Max sections"
+                label={t("world.maxSections")}
                 value={options.maxVerticalSections}
                 min={1}
                 max={32}
@@ -178,7 +182,7 @@ export function WorldImportPanel({
                   updateOptions({ showChunkBorders: event.target.checked })
                 }
               />
-              Show chunk borders
+              {t("world.showBorders")}
             </label>
             <label className="checkbox-label">
               <input
@@ -188,7 +192,7 @@ export function WorldImportPanel({
                   updateOptions({ showWorldOrigin: event.target.checked })
                 }
               />
-              Show world origin
+              {t("world.showOrigin")}
             </label>
             <label className="checkbox-label">
               <input
@@ -198,12 +202,12 @@ export function WorldImportPanel({
                   updateOptions({ embedImportedChunkCache: event.target.checked })
                 }
               />
-              Embed imported chunk cache in project
+              {t("world.embedCache")}
             </label>
           </section>
 
           <section>
-            <h3>Dimensions</h3>
+            <h3>{t("world.dimensions")}</h3>
             {scan ? (
               <div className="world-dimension-list">
                 {scan.dimensions.map((dimension) => (
@@ -214,23 +218,23 @@ export function WorldImportPanel({
                     onClick={() => updateOptions({ dimension: dimension.id })}
                   >
                     <strong>{dimension.label}</strong>
-                    <span>{dimension.regionFiles.length} regions</span>
-                    <small>{dimension.estimatedChunks} estimated chunks</small>
+                    <span>{localization.plural({ one: "world.regions.one", other: "world.regions.other" }, dimension.regionFiles.length)}</span>
+                    <small>{localization.plural({ one: "world.estimatedChunks.one", other: "world.estimatedChunks.other" }, dimension.estimatedChunks)}</small>
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="empty-note">No folder scanned yet.</p>
+              <p className="empty-note">{t("world.noScan")}</p>
             )}
             {selectedDimension && (
               <p className="empty-note">
-                Selected dimension has {selectedDimension.regionFiles.length} region files.
+                {localization.plural({ one: "world.selectedRegions.one", other: "world.selectedRegions.other" }, selectedDimension.regionFiles.length)}
               </p>
             )}
           </section>
 
           <section>
-            <h3>Run Import</h3>
+            <h3>{t("world.runImport")}</h3>
             <div className="world-import-actions">
               <button
                 type="button"
@@ -239,33 +243,33 @@ export function WorldImportPanel({
                 onClick={onImportChunks}
               >
                 <RefreshCw size={16} />
-                Import Chunks
+                {t("world.importChunks")}
               </button>
               <button type="button" disabled={!isImporting} onClick={onCancelImport}>
                 <Square size={16} />
-                Cancel
+                {t("world.cancel")}
               </button>
             </div>
             <div className="export-progress">
-              <strong>{progress.status}</strong>
-              <span>{progress.message}</span>
+              <strong>{t(`world.status.${progress.status}` as TranslationKey)}</strong>
+              <span>{t(`world.progress.${progress.status}` as TranslationKey)}</span>
               {progress.total > 0 && (
                 <progress value={progress.current} max={progress.total} />
               )}
-              {progress.error && <small>{progress.error}</small>}
+              {progress.error && <small>{formatLocalizedDiagnostic(localization, "WORLD_IMPORT_FAILED", "app.worldImportFailed")}</small>}
             </div>
             {world?.performanceEstimate && (
               <div className="world-summary">
                 <Info
-                  label="Chunks"
+                  label={t("world.chunks")}
                   value={String(world.performanceEstimate.importedChunks)}
                 />
                 <Info
-                  label="Blocks"
+                  label={t("world.blocks")}
                   value={String(world.performanceEstimate.importedBlocks)}
                 />
                 <Info
-                  label="Unknown"
+                  label={t("world.unknownBlocks")}
                   value={String(world.unknownBlockCount ?? 0)}
                 />
               </div>
@@ -275,7 +279,7 @@ export function WorldImportPanel({
 
         {warnings.length > 0 && (
           <div className="warning-note">
-            <strong>Warnings</strong>
+            <strong>{t("world.warnings")}</strong>
             <ul>
               {[...new Set(warnings)].slice(0, 12).map((warning) => (
                 <li key={warning}>{warning}</li>

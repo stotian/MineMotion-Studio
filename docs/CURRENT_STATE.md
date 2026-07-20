@@ -150,6 +150,15 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - The complete author/import/lifecycle/security guide is published. Node-graph
   research defers a second editor/runtime until a bounded versioned graph can
   prove a capability unavailable in the ordered stack.
+- One localization service owns typed English/French catalogs, system or
+  explicit locale resolution, fallback, interpolation, plurals, date/number/
+  duration/timecode formatting, pseudolocalization, and parity validation.
+- App language is a persisted `system`/`en`/`fr` preference outside project
+  state. Primary production workflows, diagnostics, shortcuts, and help switch
+  live; raw-string and long/small-layout regression gates protect coverage.
+- Validated package localization data may override only VFX package display name
+  and description. Exact/language matching falls back to immutable manifest
+  content and never executes or changes project data.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -163,13 +172,13 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Phase 17 is complete. Phase 18 English/French localization is next.
-- Full localization, advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance, and collaboration.
+- Advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance,
+  collaboration, and additional community locale data files.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 84 frontend test files and 384 passing tests.
+- 88 frontend test files and 396 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -231,3 +240,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 17.8 ships deterministic examples and documentation while retaining the
   ordered stack as the sole authoring authority. A future graph must compile
   into the current Primitive V1/runtime path and meet explicit entry criteria.
+- Phase 18 keeps locale preference in app settings and all translation logic in
+  one service/context. Project schema, stable error codes, technical identifiers,
+  paths, and user-authored content remain unchanged by locale selection.

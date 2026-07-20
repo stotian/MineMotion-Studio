@@ -2,6 +2,8 @@ import type { SkyPresetId } from "../renderer/SkySystem";
 import type { EffectType } from "../effects/EffectTypes";
 import type { PostProcessingPresetId } from "../rendering/postprocessing/PostProcessingTypes";
 import type { Command } from "./Command";
+import type { LocalizationService } from "../localization/LocalizationService";
+import type { TranslationKey } from "../localization/LocalizationTypes";
 
 export interface BuiltinCommandActions {
   newProject: () => void;
@@ -31,174 +33,180 @@ export interface BuiltinCommandActions {
   redo: () => void;
 }
 
-export function createBuiltinCommands(actions: BuiltinCommandActions): Command[] {
+export function createBuiltinCommands(
+  actions: BuiltinCommandActions,
+  localization: LocalizationService
+): Command[] {
+  const t = localization.t.bind(localization);
   return [
     {
       id: "project.new",
-      title: "New Project",
+      title: t("commands.newProject"),
       group: "Project",
       run: actions.newProject
     },
     {
       id: "project.save",
-      title: "Save Project",
+      title: t("commands.saveProject"),
       group: "Project",
       shortcut: "Ctrl+S",
       run: actions.saveProject
     },
     {
       id: "project.load",
-      title: "Load Project",
+      title: t("commands.loadProject"),
       group: "Project",
       run: actions.loadProject
     },
     {
       id: "project.savePackage",
-      title: "Save .minemotion Package",
+      title: t("commands.savePackage"),
       group: "Project",
       shortcut: "Ctrl+S",
       run: actions.savePackage
     },
     {
       id: "project.exportLegacy",
-      title: "Export Legacy .mmsproj",
+      title: t("commands.exportLegacy"),
       group: "Project",
       run: actions.exportLegacyProject
     },
     {
       id: "scene.addCharacter",
-      title: "Add Character",
+      title: t("commands.addCharacter"),
       group: "Scene",
       run: actions.addCharacter
     },
     {
       id: "scene.addCamera",
-      title: "Add Camera",
+      title: t("commands.addCamera"),
       group: "Scene",
       run: actions.addCamera
     },
     {
       id: "scene.importObj",
-      title: "Import OBJ",
+      title: t("commands.importObj"),
       group: "Scene",
       run: actions.importObj
     },
     {
       id: "scene.duplicateSelected",
-      title: "Duplicate Selected Object",
+      title: t("commands.duplicateSelected"),
       group: "Scene",
       shortcut: "Ctrl+D",
       run: actions.duplicateSelected
     },
     {
       id: "scene.deleteSelected",
-      title: "Delete Selected Object",
+      title: t("commands.deleteSelected"),
       group: "Scene",
       shortcut: "Delete",
       run: actions.deleteSelected
     },
     {
       id: "settings.open",
-      title: "Open Settings",
+      title: t("commands.openSettings"),
       group: "Settings",
       run: actions.openSettings
     },
     {
       id: "plugins.open",
-      title: "Open Plugin Manager",
+      title: t("commands.openPlugins"),
       group: "Plugins",
       run: actions.openPluginManager
     },
     ...(["Day", "Sunset", "Night"] as SkyPresetId[]).map((sky) => ({
       id: `view.sky.${sky}`,
-      title: `Apply Sky: ${sky}`,
+      title: t("commands.applySky", {
+        sky: t(`commands.sky.${sky.toLowerCase()}` as TranslationKey)
+      }),
       group: "View" as const,
       run: () => actions.applySky(sky)
     })),
     {
       id: "timeline.toggle",
-      title: "Play/Pause Timeline",
+      title: t("commands.toggleTimeline"),
       group: "Timeline",
       shortcut: "Space",
       run: actions.togglePlayback
     },
     {
       id: "view.resetCamera",
-      title: "Reset Viewport Camera",
+      title: t("commands.resetCamera"),
       group: "View",
       run: actions.resetViewportCamera
     },
     {
       id: "timeline.addKeyframe",
-      title: "Add Keyframe",
+      title: t("commands.addKeyframe"),
       group: "Timeline",
       run: actions.addKeyframe
     },
     ...([
-      ["lightningStrike", "Add Lightning Strike"],
-      ["impactFrame", "Add Impact Frame"],
-      ["cameraShake", "Add Camera Shake"],
-      ["flash", "Add Flash"],
-      ["speedLines", "Add Speed Lines"],
-      ["shockwave", "Add Shockwave"],
-      ["glowBurst", "Add Glow Burst"]
-    ] as Array<[EffectType, string]>).map(([type, title]) => ({
+      ["lightningStrike", "commands.effect.lightningStrike"],
+      ["impactFrame", "commands.effect.impactFrame"],
+      ["cameraShake", "commands.effect.cameraShake"],
+      ["flash", "commands.effect.flash"],
+      ["speedLines", "commands.effect.speedLines"],
+      ["shockwave", "commands.effect.shockwave"],
+      ["glowBurst", "commands.effect.glowBurst"]
+    ] as Array<[EffectType, TranslationKey]>).map(([type, titleKey]) => ({
       id: `effects.${type}`,
-      title,
+      title: t(titleKey),
       group: "Effects" as const,
       run: () => actions.addEffect(type)
     })),
     {
       id: "render.togglePreview",
-      title: "Toggle Render Preview",
+      title: t("commands.togglePreview"),
       group: "Render",
       run: actions.toggleRenderPreview
     },
     {
       id: "render.toggleBars",
-      title: "Toggle Cinematic Bars",
+      title: t("commands.toggleBars"),
       group: "Render",
       run: actions.toggleCinematicBars
     },
     {
       id: "render.openExport",
-      title: "Open Export Panel",
+      title: t("commands.openExport"),
       group: "Render",
       run: actions.openExportPanel
     },
     {
       id: "render.exportFrame",
-      title: "Export Current Frame PNG",
+      title: t("commands.exportFrame"),
       group: "Render",
       run: actions.exportCurrentFrame
     },
     {
       id: "render.exportSequence",
-      title: "Export PNG Sequence ZIP",
+      title: t("commands.exportSequence"),
       group: "Render",
       run: actions.exportPngSequence
     },
     ...([
-      ["cinematic-warm", "Post: Cinematic Warm"],
-      ["dark-horror", "Post: Dark Horror"],
-      ["anime-impact", "Post: Anime Impact"],
-      ["retro-pixel", "Post: Retro Pixel"]
-    ] as Array<[PostProcessingPresetId, string]>).map(([presetId, title]) => ({
+      ["cinematic-warm", "commands.post.cinematicWarm"],
+      ["dark-horror", "commands.post.darkHorror"],
+      ["anime-impact", "commands.post.animeImpact"],
+      ["retro-pixel", "commands.post.retroPixel"]
+    ] as Array<[PostProcessingPresetId, TranslationKey]>).map(([presetId, titleKey]) => ({
       id: `post.${presetId}`,
-      title,
+      title: t(titleKey),
       group: "Post" as const,
       run: () => actions.applyPostPreset(presetId)
     })),
     {
       id: "history.undo",
-      title: "Undo",
+      title: t("commands.undo"),
       group: "Project",
       shortcut: "Ctrl+Z",
       run: actions.undo
     },
     {
       id: "history.redo",
-      title: "Redo",
+      title: t("commands.redo"),
       group: "Project",
       shortcut: "Ctrl+Y",
       run: actions.redo

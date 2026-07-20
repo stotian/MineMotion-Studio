@@ -234,11 +234,12 @@ export function uninstallVfxPackage(
 
 export function inspectInstalledVfxPackage(
   registry: VfxPackageRegistry,
-  packageId: string
+  packageId: string,
+  requestedLocale?: string
 ): VfxPackageInspectionReport {
   const entry = registry.packages.find((item) => item.id === packageId);
   if (!entry) throw new VfxPackageRegistryError(`Package ${packageId} is not installed.`);
-  return inspectVfxPackage(entry.archive, enabledVersions(registry, entry.id));
+  return inspectVfxPackage(entry.archive, enabledVersions(registry, entry.id), requestedLocale);
 }
 
 export function saveVfxPackageRegistry(

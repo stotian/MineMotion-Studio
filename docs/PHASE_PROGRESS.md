@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-Phase 17 - VFX Authoring and Portable Packages (complete)
+Phase 18 - Localization and Internationalization (complete)
 
 ## Current Milestone
 
-17.8 - Safe examples, author documentation, and node-graph research
+18.12 - Production string audit and Phase 18 closure
 
 ## Status
 
-COMPLETE - all Phase 17 tasks and acceptance criteria are implemented.
+COMPLETE - all Phase 18 tasks and acceptance criteria are implemented.
 
 ## Completed
 
@@ -170,18 +170,33 @@ COMPLETE - all Phase 17 tasks and acceptance criteria are implemented.
 - Node-graph research keeps the stable ordered stack authoritative and records
   strict schema/compiler/security/accessibility evidence required before a
   future graph can be considered.
+- Phase 18 ships one typed English/French localization contract with system or
+  explicit locale selection, English fallback, interpolation, plurals, date/
+  number/duration/timecode formatting, and runtime pseudolocalization.
+- Menus, shell/status, Settings, Inspector, Outliner, viewport, timeline,
+  Dopesheet/Graph, Effects Library, VFX Studio, export/render queue, world and
+  rig workflows, lighting, templates, plugins, commands, shortcuts, and help
+  consume the same service. Stable diagnostic codes survive translation.
+- App language persists outside project data. English/French/pseudolocale
+  switching is regression-tested not to mutate projects or schema 10 data.
+- Safe package-owned localization JSON can override only VFX package display
+  name and description for an exact or language-compatible locale; validated
+  manifest content remains the deterministic fallback and no code executes.
+- Automatic catalog parity, missing/extra key, placeholder, raw production
+  string, pseudolocale length, French overflow, and small-window CSS gates run
+  through `npm run verify:locales`.
 
 ## In Progress
 
-- Phase 18 English/French localization will start from the active phase file.
+- None. Phase 19 is the next READY phase.
 
 ## Not Started
 
-- Phases 18-35.
+- Phases 19-35.
 
 ## Blockers
 
-- None for current Phase 17 TypeScript work.
+- None for current Phase 18 TypeScript work.
 - Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -190,23 +205,23 @@ COMPLETE - all Phase 17 tasks and acceptance criteria are implemented.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 17.8 is the validated checkpoint containing this document; Git history
+- Phase 18 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
-- `npm install`: PASS - 108 packages audited, 0 vulnerabilities
+- `npm install`: PASS - 110 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Deterministic example drift gate: PASS - 1 file, 1 test
-- Focused Phase 17.8 tests: PASS - 8 files, 33 tests
-- `npm test`: PASS - 84 files, 384 tests
-- `npm run build`: PASS - 1,814 modules; existing large-chunk warning only
+- `npm run verify:locales`: PASS - 4 files, 11 tests
+- Focused VFX localization/package regression: PASS - 3 files, 11 tests
+- `npm test`: PASS - 88 files, 396 tests
+- `npm run build`: PASS - 1,823 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 17.8 changes examples/scripts/docs only.
+- Native checks: not rerun because Phase 18 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Load only `completion-pack/phases/18_LOCALIZATION.md`, inventory current user-
-facing strings/localization hooks, and start the first uncompleted Phase 18 task.
+Read only `completion-pack/phases/19_RIGGING_AND_CONSTRAINTS.md`, reconcile it
+with repository reality, and implement the first READY Phase 19 milestone.

@@ -35,6 +35,7 @@ import type {
   InstalledCustomVfxPreset,
   InstalledVfxSourceStatus
 } from "../../vfx/package/VfxPackageProjectIntegration";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface EffectsLibraryPanelProps {
   presets: readonly BuiltinVfxPreset[];
@@ -77,6 +78,8 @@ export function EffectsLibraryPanel({
   onImportAudio,
   onAddBuiltinSfx
 }: EffectsLibraryPanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const [search, setSearch] = useState(DEFAULT_VFX_LIBRARY_FILTERS.search);
   const [category, setCategory] = useState(DEFAULT_VFX_LIBRARY_FILTERS.category);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -141,13 +144,13 @@ export function EffectsLibraryPanel({
   return (
     <aside className="panel effects-panel">
       <div className="panel-header">
-        <h2>Effects</h2>
+        <h2>{t("effects.title")}</h2>
       </div>
 
       <section className="effects-section">
         <h3>
           <Sparkles size={15} />
-          Library
+          {t("effects.library")}
         </h3>
         <div className="effect-library-tools">
           <label className="effect-search">
@@ -155,12 +158,12 @@ export function EffectsLibraryPanel({
             <input
               type="search"
               value={search}
-              placeholder="Search VFX"
-              aria-label="Search VFX presets"
+              placeholder={t("effects.search")}
+              aria-label={t("effects.searchAria")}
               onChange={(event) => setSearch(event.target.value)}
             />
           </label>
-          <div className="effect-source-tabs" aria-label="VFX preset source">
+          <div className="effect-source-tabs" aria-label={t("effects.sourceAria")}>
             {(["all", "builtin", "custom"] as const).map((value) => (
               <button
                 key={value}
@@ -169,22 +172,26 @@ export function EffectsLibraryPanel({
                 aria-pressed={source === value}
                 onClick={() => setSource(value)}
               >
-                {value === "all" ? `All ${presets.length + customPresets.length}` : value === "builtin" ? `Built-in ${presets.length}` : `Custom ${customPresets.length}`}
+                {value === "all"
+                  ? t("effects.source.all", { count: presets.length + customPresets.length })
+                  : value === "builtin"
+                    ? t("effects.source.builtin", { count: presets.length })
+                    : t("effects.source.custom", { count: customPresets.length })}
               </button>
             ))}
           </div>
           <div className="effect-filter-row">
             <select
               value={category}
-              aria-label="Filter VFX category"
+              aria-label={t("effects.categoryAria")}
               onChange={(event) => setCategory(event.target.value as typeof category)}
             >
-              <option value="all">All categories</option>
+              <option value="all">{t("effects.allCategories")}</option>
               {categories.map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
             <select
               value=""
-              aria-label="Add VFX tag filter"
+              aria-label={t("effects.tagAria")}
               onChange={(event) => {
                 const tag = event.target.value;
                 if (tag && !selectedTags.includes(tag)) {
@@ -192,7 +199,7 @@ export function EffectsLibraryPanel({
                 }
               }}
             >
-              <option value="">Add tag</option>
+              <option value="">{t("effects.addTag")}</option>
               {tags.filter((tag) => !selectedTags.includes(tag)).map((tag) => (
                 <option key={tag} value={tag}>{tag}</option>
               ))}
@@ -203,11 +210,11 @@ export function EffectsLibraryPanel({
               aria-pressed={favoritesOnly}
               onClick={() => setFavoritesOnly((value) => !value)}
             >
-              <Star size={13} fill={favoritesOnly ? "currentColor" : "none"} /> Favorites
+              <Star size={13} fill={favoritesOnly ? "currentColor" : "none"} /> {t("effects.favorites")}
             </button>
           </div>
           {selectedTags.length > 0 && (
-            <div className="effect-tag-filters" aria-label="Active VFX tag filters">
+            <div className="effect-tag-filters" aria-label={t("effects.activeTagsAria")}>
               {selectedTags.map((tag) => (
                 <button key={tag} type="button" onClick={() => setSelectedTags((current) => current.filter((value) => value !== tag))}>
                   {tag} ×
@@ -217,7 +224,7 @@ export function EffectsLibraryPanel({
           )}
           {recentPresets.length > 0 && source !== "custom" && (
             <div className="effect-recents">
-              <span><Clock3 size={12} /> Recent</span>
+              <span><Clock3 size={12} /> {t("effects.recent")}</span>
               {recentPresets.slice(0, 5).map((preset) => (
                 <button key={preset.metadata.id} type="button" onClick={() => addPreset(preset)}>
                   {preset.localizedName}
@@ -226,7 +233,10 @@ export function EffectsLibraryPanel({
             </div>
           )}
           <small className="effect-result-count">
-            {filteredPresets.length + filteredCustomPresets.length} result{filteredPresets.length + filteredCustomPresets.length === 1 ? "" : "s"}
+            {localization.plural(
+              { one: "effects.results.one", other: "effects.results.other" },
+              filteredPresets.length + filteredCustomPresets.length
+            )}
           </small>
         </div>
         <div className="effect-library-list">
@@ -254,20 +264,20 @@ export function EffectsLibraryPanel({
                   {previewUrl ? (
                     <img className="effect-preview" src={previewUrl} alt="" />
                   ) : (
-                    <span className="effect-preview effect-preview-pending" aria-label="Preview pending">
+                    <span className="effect-preview effect-preview-pending" aria-label={t("effects.previewPending")}>
                       <Sparkles size={18} />
                     </span>
                   )}
                   <strong>{preset.localizedName}</strong>
                   <span>{preset.metadata.category} / {preset.definition.space}</span>
                   <small>{preset.definition.description}</small>
-                  <small>Built-in / {preset.metadata.compatibility.maturity}</small>
+                  <small>{t("effects.builtinMaturity", { maturity: preset.metadata.compatibility.maturity })}</small>
                   <Plus size={14} />
                 </button>
                 <button
                   type="button"
                   className="effect-favorite"
-                  aria-label={`${favorite ? "Remove" : "Add"} ${preset.localizedName} ${favorite ? "from" : "to"} favorites`}
+                  aria-label={t(favorite ? "effects.favorite.remove" : "effects.favorite.add", { name: preset.localizedName })}
                   aria-pressed={favorite}
                   onClick={() => setPreferences((current) => toggleVfxLibraryFavorite(current, preset.metadata.id))}
                 >
@@ -281,7 +291,7 @@ export function EffectsLibraryPanel({
               <button type="button" className="effect-card-main" onClick={() => onAddCustomEffect(preset.packageId)}>
                 <img className="effect-preview" src={preset.previewDataUrl} alt="" />
                 <strong>{preset.displayName}</strong>
-                <span>Custom / {preset.space}</span>
+                <span>{t("effects.customSpace", { space: preset.space })}</span>
                 <small>{preset.description}</small>
                 <small>{preset.packageId} / {preset.packageVersion}</small>
                 <Plus size={14} />
@@ -290,7 +300,7 @@ export function EffectsLibraryPanel({
           ))}
           {filteredPresets.length + filteredCustomPresets.length === 0 && (
             <span className="empty-note">
-              {source === "custom" ? "No custom VFX packages are installed." : "No VFX presets match these filters."}
+              {t(source === "custom" ? "effects.emptyCustom" : "effects.emptyFiltered")}
             </span>
           )}
         </div>
@@ -299,12 +309,15 @@ export function EffectsLibraryPanel({
       <section className="effects-section">
         <h3>
           <Layers size={15} />
-          Scene Effects
+          {t("effects.scene")}
         </h3>
         <p className="empty-note">
-          {effectInstances.length} effect{effectInstances.length === 1 ? "" : "s"} in this project.
+          {localization.plural(
+            { one: "effects.projectCount.one", other: "effects.projectCount.other" },
+            effectInstances.length
+          )}
         </p>
-        <div className="scene-effect-list" aria-label="Scene effects">
+        <div className="scene-effect-list" aria-label={t("effects.sceneAria")}>
           {effectInstances.map((effect) => (
             <button
               key={effect.id}
@@ -319,16 +332,16 @@ export function EffectsLibraryPanel({
               </span>
               <small>{(() => {
                 const sourceStatus = getCustomSourceStatus(effect);
-                const state = effect.enabled ? "Enabled" : "Disabled";
-                if (sourceStatus === "missing") return `${state} / source package missing (embedded recipe kept)`;
-                if (sourceStatus === "disabled") return `${state} / source package disabled (embedded recipe kept)`;
-                if (sourceStatus === "version-mismatch") return `${state} / source package version changed (embedded recipe kept)`;
-                return effect.enabled ? "Enabled" : "Disabled";
+                const state = t(effect.enabled ? "common.enabled" : "common.disabled");
+                if (sourceStatus === "missing") return t("effects.sourceMissing", { state });
+                if (sourceStatus === "disabled") return t("effects.sourceDisabled", { state });
+                if (sourceStatus === "version-mismatch") return t("effects.sourceVersionChanged", { state });
+                return state;
               })()}</small>
             </button>
           ))}
           {effectInstances.length === 0 && (
-            <span className="empty-note">Add an effect from the library.</span>
+            <span className="empty-note">{t("effects.addFromLibrary")}</span>
           )}
         </div>
       </section>
@@ -336,7 +349,7 @@ export function EffectsLibraryPanel({
       <section className="effects-section">
         <h3>
           <Film size={15} />
-          Post
+          {t("effects.post")}
         </h3>
         <select
           value={activePostPresetId}
@@ -358,14 +371,14 @@ export function EffectsLibraryPanel({
       <section className="effects-section">
         <h3>
           <Clapperboard size={15} />
-          Render Preview
+          {t("effects.renderPreview")}
         </h3>
         <div className="stacked-actions">
           <button type="button" onClick={onToggleRenderPreview}>
-            {renderSettings.renderPreviewEnabled ? "Leave Preview" : "Enter Preview"}
+            {t(renderSettings.renderPreviewEnabled ? "effects.leavePreview" : "effects.enterPreview")}
           </button>
           <button type="button" onClick={onToggleCinematicBars}>
-            {renderSettings.cinematicBarsEnabled ? "Hide Bars" : "Show Bars"}
+            {t(renderSettings.cinematicBarsEnabled ? "effects.hideBars" : "effects.showBars")}
           </button>
         </div>
         <p className="empty-note">
@@ -376,10 +389,10 @@ export function EffectsLibraryPanel({
       <section className="effects-section">
         <h3>
           <AudioWaveform size={15} />
-          SFX
+          {t("effects.sfx")}
         </h3>
         <button type="button" onClick={onImportAudio}>
-          Import SFX
+          {t("effects.importSfx")}
         </button>
         <div className="sfx-list">
           {builtinSfx.map((sfx) => (
@@ -394,7 +407,10 @@ export function EffectsLibraryPanel({
           ))}
         </div>
         <p className="empty-note">
-          {audioClips.length} audio clip{audioClips.length === 1 ? "" : "s"} on timeline.
+          {localization.plural(
+            { one: "effects.audioCount.one", other: "effects.audioCount.other" },
+            audioClips.length
+          )}
         </p>
       </section>
     </aside>

@@ -7,6 +7,7 @@ import {
   locateKeyframe,
   type KeyframeRef
 } from "./KeyframeModel";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface GraphEditorProps {
   tracks: AnimationTrack[];
@@ -27,11 +28,13 @@ export function GraphEditor({
   durationFrames,
   onSetInterpolation
 }: GraphEditorProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const located = selection[0] ? locateKeyframe(tracks, selection[0]) : null;
   const track = located?.track ?? null;
 
   if (!track || track.keyframes.length === 0) {
-    return <p className="timeline-empty">Select a keyframe to inspect its property curves.</p>;
+    return <p className="timeline-empty">{t("graph.empty")}</p>;
   }
 
   const bounds = valueBounds(track);
@@ -41,19 +44,19 @@ export function GraphEditor({
       <div className="graph-toolbar">
         <strong>{track.property}</strong>
         <label>
-          Interpolation
+          {t("graph.interpolation")}
           <select
             value={interpolation}
             onChange={(event) =>
               onSetInterpolation(event.target.value as KeyframeInterpolation)
             }
           >
-            <option value="constant">Constant</option>
-            <option value="linear">Linear</option>
-            <option value="ease-in">Ease In</option>
-            <option value="ease-out">Ease Out</option>
-            <option value="ease-in-out">Ease In Out</option>
-            <option value="bezier">Bezier Placeholder</option>
+            <option value="constant">{t("timeline.interpolation.constant")}</option>
+            <option value="linear">{t("timeline.interpolation.linear")}</option>
+            <option value="ease-in">{t("timeline.interpolation.easeIn")}</option>
+            <option value="ease-out">{t("timeline.interpolation.easeOut")}</option>
+            <option value="ease-in-out">{t("timeline.interpolation.easeInOut")}</option>
+            <option value="bezier">{t("graph.bezierPlaceholder")}</option>
           </select>
         </label>
         <div className="graph-legend">
@@ -68,7 +71,7 @@ export function GraphEditor({
         className="graph-canvas"
         viewBox="0 0 1000 180"
         role="img"
-        aria-label={`${track.property} animation curves`}
+        aria-label={t("graph.curvesAria", { property: track.property })}
       >
         <path d="M0 45 H1000 M0 90 H1000 M0 135 H1000" className="graph-grid" />
         {CHANNELS.map((channel) => (

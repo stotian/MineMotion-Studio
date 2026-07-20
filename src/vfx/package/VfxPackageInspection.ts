@@ -4,6 +4,7 @@ import type {
   VfxPackageArchive,
   VfxPackagePermission
 } from "./VfxPackageTypes";
+import { resolveVfxPackagePresentation } from "./VfxPackageLocalization";
 
 export interface InstalledVfxPackageVersion {
   id: string;
@@ -99,7 +100,8 @@ export function satisfiesVfxPackageVersion(version: string, range: string): bool
 
 export function inspectVfxPackage(
   archive: VfxPackageArchive,
-  installed: readonly InstalledVfxPackageVersion[] = []
+  installed: readonly InstalledVfxPackageVersion[] = [],
+  requestedLocale?: string
 ): VfxPackageInspectionReport {
   const installedById = new Map(installed.map((entry) => [entry.id, entry.version]));
   const dependencies = archive.manifest.dependencies.map((dependency) => {
@@ -113,11 +115,14 @@ export function inspectVfxPackage(
   });
   const compilation = compileVfxAuthoringDocument(archive.document);
   if (!compilation.ok) throw new Error(compilation.errors.map((entry) => entry.message).join(" "));
+  const presentation = requestedLocale
+    ? resolveVfxPackagePresentation(archive, requestedLocale)
+    : archive.manifest;
   const requiredDependenciesReady = dependencies.every((dependency) => dependency.optional || dependency.status === "satisfied");
   return Object.freeze({
     packageId: archive.manifest.id,
     packageVersion: archive.manifest.packageVersion,
-    displayName: archive.manifest.displayName,
+    displayName: presentation.displayName,
     author: archive.manifest.author,
     license: archive.manifest.license,
     compatible: true,
@@ -130,6 +135,6 @@ export function inspectVfxPackage(
     primitiveCount: compilation.value.descriptors.length,
     particles: compilation.value.work.particles,
     segments: compilation.value.work.segments,
-    previewDataUrl: generateVfxDescriptorPreviewDataUrl(compilation.value.descriptors, archive.manifest.displayName, archive.manifest.id)
+    previewDataUrl: generateVfxDescriptorPreviewDataUrl(compilation.value.descriptors, presentation.displayName, archive.manifest.id)
   });
 }

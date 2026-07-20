@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 18 localization after reading only its active completion-pack file.
-Phase 17 is complete.
+Start Phase 19 from its active completion-pack file. Phase 18 is complete and
+its full TypeScript gate is green.
 
 ## Completed Work
 
@@ -36,24 +36,29 @@ Phase 17 is complete.
   source-status diagnostics, and explicit schema 9 refusal are regression-tested.
 - Two deterministic safe example packages, checksum/drift verification, the
   complete author/import guide, and the node-graph research decision are shipped.
+- Typed English/French catalogs, system/explicit locale selection, fallback,
+  interpolation/plurals/formats, pseudolocalization, and parity validation exist.
+- Primary editor, animation, VFX, export, import, settings, plugin, help, and
+  shortcut surfaces switch live without mutating project data.
+- Stable localized diagnostics, safe package-owned display translations, raw
+  string detection, and long French/small-window layout gates are active.
 
 ## Unfinished Work
 
-- Phase 18 and later roadmap phases remain.
+- Phases 19-35 remain.
 
 ## Next Implementation Step
 
-Read `completion-pack/phases/18_LOCALIZATION.md`, inventory existing English/
-French support and hard-coded user-facing strings, then implement the first
-stable localization milestone without broad unrelated rewrites.
+Read only `completion-pack/phases/19_RIGGING_AND_CONSTRAINTS.md`, inventory the
+existing rig/constraint reality, and implement its first stable milestone without
+creating a parallel rig or animation authority.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npm run verify:vfx-examples
-npx vitest run src/vfx src/effects
+npm run verify:locales
 npm test
 npm run build
-npm audit --audit-level=high
+npm audit
 ```

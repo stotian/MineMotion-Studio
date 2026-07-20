@@ -121,6 +121,14 @@ import type {
 import { renderViewportFrameToPng } from "./rendering/export/OfflineFrameRenderer";
 import { createFinalCameraFrame } from "./rendering/export/FinalCameraRenderer";
 import { sampleProjectAnimationWithVfxTiming } from "./vfx/runtime/VfxAnimationSampling";
+import { LocalizationProvider } from "./localization/LocalizationContext";
+import { createLocalizationService } from "./localization/LocalizationService";
+import type { TranslationKey, TranslationValues } from "./localization/LocalizationTypes";
+import {
+  formatLocalizedDiagnostic,
+  type LocalizationDiagnosticCode
+} from "./localization/LocalizationDiagnostics";
+import { localizeExportValidationMessage } from "./localization/LocalizationDomainMessages";
 import { createRenderStateSnapshot } from "./rendering/export/RenderStateSnapshot";
 import { restoreRenderState } from "./rendering/export/RenderStateRestore";
 import { type SkyPresetId } from "./renderer/SkySystem";
@@ -161,6 +169,32 @@ export function App() {
   const [settings, setSettings] = useState<AppSettings>(() =>
     SettingsStore.load()
   );
+  const localization = useMemo(
+    () =>
+      createLocalizationService({
+        preference: settings.general.language,
+        pseudolocalization:
+          typeof window !== "undefined" &&
+          new URLSearchParams(window.location.search).get("locale") === "qps-ploc",
+        systemLanguages:
+          typeof navigator === "undefined"
+            ? []
+            : [...navigator.languages, navigator.language]
+      }),
+    [settings.general.language]
+  );
+  const localizationRef = useRef(localization);
+  localizationRef.current = localization;
+  const tr = useCallback(
+    (key: TranslationKey, values: TranslationValues = {}) =>
+      localizationRef.current.t(key, values),
+    []
+  );
+  const diagnostic = useCallback(
+    (code: LocalizationDiagnosticCode, key: TranslationKey, values: TranslationValues = {}) =>
+      formatLocalizedDiagnostic(localizationRef.current, code, key, values),
+    []
+  );
   const [project, setProjectState] = useState<MineMotionProject>(() =>
     createInitialProject(settings)
   );
@@ -168,9 +202,7 @@ export function App() {
     project.scene.characters[0]?.id ?? null
   );
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
-  const [status, setStatus] = useState(
-    "Ready. Professional animation, resource-pack, and lighting systems loaded."
-  );
+  const [status, setStatus] = useState(() => localization.t("app.ready"));
   const [isDirty, setIsDirty] = useState(false);
   const [lookThroughCameraRequest, setLookThroughCameraRequest] = useState(0);
   const [resetCameraRequest, setResetCameraRequest] = useState(0);
@@ -232,7 +264,11 @@ export function App() {
     void loadVfxPackageRegistry(window.localStorage).then((loaded) => {
       if (cancelled) return;
       setVfxPackageRegistry(loaded.registry);
-      if (loaded.warnings.length > 0) setStatus(loaded.warnings.join(" "));
+      if (loaded.warnings.length > 0) {
+        setStatus(diagnostic("VFX_PACKAGE_REGISTRY_WARNING", "app.vfxRegistryWarnings", {
+          count: loaded.warnings.length
+        }));
+      }
     });
     return () => {
       cancelled = true;
@@ -287,9 +323,7 @@ export function App() {
   useEffect(() => {
     if (!hasProjectAutosave(window.localStorage)) return;
 
-    const shouldRestore = window.confirm(
-      "A MineMotion autosave was found in this browser. Restore it?"
-    );
+    const shouldRestore = window.confirm(tr("app.confirmAutosave"));
     if (!shouldRestore) return;
 
     try {
@@ -300,16 +334,12 @@ export function App() {
       setSelectedObjectId(restored.scene.characters[0]?.id ?? null);
       setStatus(
         recovered.source === "backup"
-          ? "Primary autosave was invalid; the retained backup was restored."
-          : "Autosaved project restored from browser storage."
+          ? tr("app.autosaveBackupRestored")
+          : tr("app.autosaveRestored")
       );
       setIsDirty(true);
     } catch (error) {
-      setStatus(
-        error instanceof Error
-          ? `${error.message} Stored recovery data was retained.`
-          : "Autosave recovery failed; stored recovery data was retained."
-      );
+      setStatus(diagnostic("AUTOSAVE_RECOVERY_FAILED", "app.recoveryFailed"));
     }
   }, []);
 
@@ -319,13 +349,9 @@ export function App() {
     const interval = window.setInterval(() => {
       try {
         saveProjectAutosave(window.localStorage, project);
-        setStatus(`Autosaved ${project.projectName} to browser storage.`);
+        setStatus(tr("app.autosaved", { name: project.projectName }));
       } catch (error) {
-        setStatus(
-          error instanceof Error
-            ? `Autosave failed: ${error.message}`
-            : "Autosave failed."
-        );
+        setStatus(diagnostic("AUTOSAVE_SAVE_FAILED", "app.autosaveFailed"));
       }
     }, settings.general.autosaveIntervalSeconds * 1000);
 
@@ -424,7 +450,7 @@ export function App() {
 
   const confirmDiscardChanges = useCallback(() => {
     if (!isDirty) return true;
-    return window.confirm("Current project has unsaved changes. Continue?");
+    return window.confirm(tr("app.confirmDiscard"));
   }, [isDirty]);
 
   const handleSelectObject = useCallback((objectId: string | null) => {
@@ -439,14 +465,14 @@ export function App() {
 
   const handleNewProject = useCallback(() => {
     if (!confirmDiscardChanges()) return;
-    replaceProject(createInitialProject(settings), "New project created.");
+    replaceProject(createInitialProject(settings), tr("app.newProject"));
   }, [confirmDiscardChanges, replaceProject, settings]);
 
   const handleNewProjectFromTemplate = useCallback(
     (templateId: string) => {
       if (!confirmDiscardChanges()) return;
       const nextProject = templateRegistry.createProject(templateId, settings);
-      replaceProject(nextProject, `Template loaded: ${nextProject.projectName}.`);
+      replaceProject(nextProject, tr("app.templateLoaded", { name: nextProject.projectName }));
       setTemplatesOpen(false);
     },
     [confirmDiscardChanges, replaceProject, settings]
@@ -469,7 +495,7 @@ export function App() {
       })
     );
     setIsDirty(false);
-    setStatus(`Project saved as ${filename}.`);
+    setStatus(tr("app.projectSaved", { filename }));
   }, []);
 
   const handleExportLegacyProject = useCallback(() => {
@@ -482,13 +508,9 @@ export function App() {
       const blob = new Blob([raw], { type: "application/json" });
       const filename = `${sanitizeOutputName(currentProject.projectName)}.mmsproj`;
       downloadBlob(blob, filename);
-      setStatus(`Legacy schema 9 project exported as ${filename}.`);
+      setStatus(tr("app.legacyExported", { filename }));
     } catch (error) {
-      setStatus(
-        error instanceof Error
-          ? error.message
-          : "Project contains native VFX data that schema 9 cannot represent."
-      );
+      setStatus(diagnostic("PROJECT_SCHEMA9_VFX_UNSUPPORTED", "app.legacyVfxUnsupported"));
     }
   }, []);
 
@@ -525,9 +547,9 @@ export function App() {
           storageHint: "browser"
         })
       );
-      setStatus(`Loaded project ${loadedProject.projectName}.`);
+      setStatus(tr("app.projectLoaded", { name: loadedProject.projectName }));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not load project.");
+      setStatus(diagnostic("PROJECT_LOAD_FAILED", "app.projectLoadFailed"));
     }
   };
 
@@ -551,7 +573,7 @@ export function App() {
       setWorldImportProgress(
         createWorldImportProgress({
           status: "scanning",
-          message: "Scanning Minecraft world folder."
+          message: tr("app.worldScanning")
         })
       );
       const scan = await WorldImportManager.scan(files);
@@ -593,17 +615,16 @@ export function App() {
             (sum, dimension) => sum + dimension.regionFiles.length,
             0
           ),
-          message: `Scanned ${scan.sourceName}.`
+          message: tr("app.worldScanned", { name: scan.sourceName })
         })
       );
       setStatus(
-        `World scan complete: ${scan.sourceName}, ${scan.dimensions
+        tr("app.worldScanComplete", { name: scan.sourceName, dimensions: scan.dimensions
           .map((dimension) => `${dimension.label} ${dimension.regionFiles.length}`)
-          .join(", ")} region files.`
+          .join(", ") })
       );
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Could not scan world folder.";
+      const message = diagnostic("WORLD_SCAN_FAILED", "app.worldScanFailed");
       setWorldImportProgress(
         createWorldImportProgress({
           status: "error",
@@ -651,7 +672,7 @@ export function App() {
 
   const handleImportWorldChunks = useCallback(async () => {
     if (!worldScan) {
-      setStatus("Choose a Minecraft world folder before importing chunks.");
+      setStatus(tr("app.chooseWorld"));
       return;
     }
 
@@ -659,7 +680,7 @@ export function App() {
     setWorldImportProgress(
       createWorldImportProgress({
         status: "reading-regions",
-        message: "Preparing chunk import."
+        message: tr("app.worldPreparing")
       })
     );
 
@@ -693,12 +714,11 @@ export function App() {
       setSelectedObjectId("world");
       setFocusWorldRequest((value) => value + 1);
       setStatus(
-        `Imported ${result.chunks.length} chunks and ${result.estimate.importedBlocks} blocks from ${result.world.sourceName}.`
+        tr("app.worldImported", { chunks: result.chunks.length, blocks: result.estimate.importedBlocks, name: result.world.sourceName })
       );
     } catch (error) {
       const cancelled = worldImportCancelledRef.current;
-      const message =
-        error instanceof Error ? error.message : "Minecraft chunk import failed.";
+      const message = diagnostic("WORLD_IMPORT_FAILED", "app.worldImportFailed");
       setWorldImportProgress(
         createWorldImportProgress({
           status: cancelled ? "cancelled" : "error",
@@ -715,15 +735,15 @@ export function App() {
     setWorldImportProgress(
       createWorldImportProgress({
         status: "cancelled",
-        message: "World import cancellation requested."
+        message: tr("app.worldCancel")
       })
     );
-    setStatus("World import cancellation requested.");
+    setStatus(tr("app.worldCancel"));
   }, []);
 
   const handleFocusWorld = useCallback(() => {
     setFocusWorldRequest((value) => value + 1);
-    setStatus("Viewport focused on imported world.");
+    setStatus(tr("app.worldFocused"));
   }, []);
 
   const handleUnloadWorld = useCallback(() => {
@@ -743,7 +763,7 @@ export function App() {
     );
     setWorldScan(null);
     setSelectedObjectId(null);
-    setStatus("Imported world unloaded; demo terrain restored.");
+    setStatus(tr("app.worldUnloaded"));
   }, [commitProject]);
 
   const handleAddCharacter = useCallback(() => {
@@ -762,7 +782,7 @@ export function App() {
       "Add character"
     );
     setSelectedObjectId(character.id);
-    setStatus(`Added ${character.name}.`);
+    setStatus(tr("app.addedEntity", { name: character.name }));
   }, [commitProject, project.scene.characters.length]);
 
   const handleAddCamera = useCallback(() => {
@@ -778,7 +798,7 @@ export function App() {
       "Add camera"
     );
     setSelectedObjectId(camera.id);
-    setStatus(`Added ${camera.name}.`);
+    setStatus(tr("app.addedEntity", { name: camera.name }));
   }, [commitProject, project.scene.cameras.length]);
 
   const handleImportObj = useCallback(() => {
@@ -821,11 +841,11 @@ export function App() {
       setSelectedObjectId(createdObjectId);
       setStatus(
         imported.warnings.length
-          ? `Imported OBJ with warning: ${imported.warnings.join(" ")}`
-          : `Imported OBJ ${imported.name}.`
+          ? tr("app.objImportedWarnings", { name: imported.name, count: imported.warnings.length })
+          : tr("app.objImported", { name: imported.name })
       );
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not import OBJ.");
+      setStatus(diagnostic("OBJ_IMPORT_FAILED", "app.objFailed"));
     }
   };
 
@@ -845,7 +865,7 @@ export function App() {
       skinTargetCharacterIdRef.current ?? getSelectedCharacterId(selectedObjectId);
     skinTargetCharacterIdRef.current = null;
     if (!targetCharacterId) {
-      setStatus("Select a character before importing a skin.");
+      setStatus(tr("app.selectCharacterSkin"));
       return;
     }
 
@@ -878,11 +898,11 @@ export function App() {
       setSelectedObjectId(targetCharacterId);
       setStatus(
         skin.metadata.valid
-          ? `Imported skin ${skin.name} (${skin.metadata.width}x${skin.metadata.height}, ${skin.metadata.modelType}).`
-          : `Skin ${skin.name} imported but invalid; fallback colors remain active.`
+          ? tr("app.skinImported", { name: skin.name, width: skin.metadata.width, height: skin.metadata.height, model: skin.metadata.modelType })
+          : tr("app.skinInvalid", { name: skin.name })
       );
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not import skin.");
+      setStatus(diagnostic("SKIN_IMPORT_FAILED", "app.skinFailed"));
     }
   };
 
@@ -900,7 +920,7 @@ export function App() {
         }),
         "Reset character skin"
       );
-      setStatus("Skin reset to fallback Minecraft colors.");
+      setStatus(tr("app.skinReset"));
     },
     [commitProject]
   );
@@ -945,12 +965,10 @@ export function App() {
       setSelectedObjectId(createdObjectId);
       setRigStudioOpen(true);
       setStatus(
-        `Imported Blockbench model ${imported.asset.name}: ${imported.asset.elementCount} cubes, ${imported.asset.groupCount} groups.`
+        tr("app.blockbenchImported", { name: imported.asset.name, cubes: imported.asset.elementCount, groups: imported.asset.groupCount })
       );
     } catch (error) {
-      setStatus(
-        error instanceof Error ? error.message : "Could not import Blockbench model."
-      );
+      setStatus(diagnostic("BLOCKBENCH_IMPORT_FAILED", "app.blockbenchFailed"));
     }
   };
 
@@ -958,7 +976,7 @@ export function App() {
     (objectId: string, transform: TransformData) => {
       const lookup = findObject(project, objectId);
       if (lookup?.entity.locked) {
-        setStatus(`${lookup.entity.name} is locked.`);
+        setStatus(tr("app.entityLocked", { name: lookup.entity.name }));
         return;
       }
       commitProject(
@@ -977,7 +995,7 @@ export function App() {
       const remainingFrames =
         currentProject.animation.durationFrames - startFrame;
       if (remainingFrames < 1) {
-        setStatus("Move before the final project frame to add an effect.");
+        setStatus(tr("app.effectFinalFrame"));
         return;
       }
       const spawnedEffect = spawnEffectAtFrame(
@@ -997,7 +1015,7 @@ export function App() {
         effect
       });
       if (!result.ok) {
-        setStatus(result.errors[0]?.message ?? "Could not add cinematic effect.");
+        setStatus(diagnostic("EFFECT_ADD_FAILED", "app.effectAddFailed"));
         return;
       }
       if (result.value.changed) {
@@ -1005,7 +1023,7 @@ export function App() {
       }
       setSelectedEffectId(result.value.selectedEffectId);
       setSelectedObjectId(null);
-      setStatus(`Added effect ${effect.name} at frame ${effect.startFrame}.`);
+      setStatus(tr("app.effectAdded", { name: effect.name, frame: effect.startFrame }));
     },
     [commitProject, selectedObjectId]
   );
@@ -1016,14 +1034,14 @@ export function App() {
         (candidate) => candidate.id === packageId && candidate.enabled
       );
       if (!entry) {
-        setStatus(`Custom VFX package ${packageId} is missing or disabled.`);
+        setStatus(tr("app.customVfxUnavailable", { id: packageId }));
         return;
       }
       const currentProject = projectRef.current;
       const startFrame = currentProject.animation.currentFrame;
       const remainingFrames = currentProject.animation.durationFrames - startFrame;
       if (remainingFrames < 1) {
-        setStatus("Move before the final project frame to add an effect.");
+        setStatus(tr("app.effectFinalFrame"));
         return;
       }
       try {
@@ -1041,36 +1059,35 @@ export function App() {
           effect
         });
         if (!result.ok) {
-          setStatus(result.errors[0]?.message ?? "Could not add custom VFX.");
+          setStatus(diagnostic("VFX_ADD_FAILED", "app.customVfxAddFailed"));
           return;
         }
         if (result.value.changed) commitProject(result.value.project, result.value.historyLabel);
         setSelectedEffectId(result.value.selectedEffectId);
         setSelectedObjectId(null);
-        setStatus(`Added custom VFX ${effect.name} at frame ${effect.startFrame}.`);
+        setStatus(tr("app.customVfxAdded", { name: effect.name, frame: effect.startFrame }));
       } catch (error) {
-        setStatus(error instanceof Error ? error.message : "Could not add custom VFX.");
+        setStatus(diagnostic("VFX_ADD_FAILED", "app.customVfxAddFailed"));
       }
     },
     [commitProject, selectedObjectId, vfxPackageRegistry]
   );
 
   const customVfxPresets = useMemo(
-    () => listEnabledInstalledVfxPresets(vfxPackageRegistry),
-    [vfxPackageRegistry]
+    () => listEnabledInstalledVfxPresets(vfxPackageRegistry, localization.language),
+    [localization.language, vfxPackageRegistry]
   );
 
   const handleEffectTimelineCommand = useCallback(
     (command: EffectTimelineCommand) => {
       const result = applyEffectTimelineCommand(projectRef.current, command);
       if (!result.ok) {
-        const message =
-          result.errors[0]?.message ?? "Effect timeline edit failed.";
+        const message = diagnostic("EFFECT_EDIT_FAILED", "app.effectEditFailed");
         setStatus(message);
         return message;
       }
       if (!result.value.changed) {
-        setStatus("Effect timeline already has that value.");
+        setStatus(tr("app.effectUnchanged"));
         return null;
       }
 
@@ -1107,7 +1124,7 @@ export function App() {
         }),
         "Apply post-processing preset"
       );
-      setStatus(`Post-processing preset applied: ${preset.name}.`);
+      setStatus(tr("app.postPreset", { name: preset.name }));
     },
     [commitProject]
   );
@@ -1124,7 +1141,7 @@ export function App() {
         }),
         "Edit post-processing"
       );
-      setStatus("Post-processing updated.");
+      setStatus(tr("app.postUpdated"));
     },
     [commitProject]
   );
@@ -1141,7 +1158,7 @@ export function App() {
       }),
       "Toggle render preview"
     );
-    setStatus("Render preview toggled.");
+    setStatus(tr("app.previewToggled"));
   }, [commitProject]);
 
   const handleToggleCinematicBars = useCallback(() => {
@@ -1156,7 +1173,7 @@ export function App() {
       }),
       "Toggle cinematic bars"
     );
-    setStatus("Cinematic bars toggled.");
+    setStatus(tr("app.barsToggled"));
   }, [commitProject]);
 
   const handleExportSettingsChange = useCallback((settings: ExportSettings) => {
@@ -1178,7 +1195,7 @@ export function App() {
           nativeRuntime: ffmpegDetection.nativeRuntime,
           executable: nextSettings.executablePath,
           version: "",
-          message: "FFmpeg executable changed. Run detection again."
+          message: tr("app.ffmpegChanged")
         });
       }
       setProject((currentProject) => ({
@@ -1191,7 +1208,7 @@ export function App() {
   );
 
   const handleDetectFfmpeg = useCallback(async () => {
-    setStatus("Detecting FFmpeg...");
+    setStatus(tr("app.ffmpegDetecting"));
     const result = await detectFfmpeg(project.ffmpegSettings);
     setFfmpegDetection(result);
     setStatus(result.message);
@@ -1212,7 +1229,7 @@ export function App() {
       renderQueue: enqueueRenderJob(currentProject.renderQueue, job)
     }));
     setIsDirty(true);
-    setStatus(`Added ${job.name} to the render queue.`);
+    setStatus(tr("app.jobAdded", { name: job.name }));
   }, [ffmpegDetection.available, project]);
 
   const handleRemoveRenderJob = useCallback((jobId: string) => {
@@ -1329,19 +1346,23 @@ export function App() {
   const validateCurrentExport = useCallback(() => {
     const validation = validateExportSettings(project.exportSettings, project);
     if (!validation.valid) {
-      const message = validation.errors.join(" ");
+      const message = validation.errors
+        .map((entry) => localizeExportValidationMessage(localizationRef.current, entry))
+        .join(" ");
       setStatus(message);
       setExportProgress(
         createExportProgress({
           status: "error",
-          message: "Export settings are invalid.",
+          message: diagnostic("EXPORT_SETTINGS_INVALID", "app.exportInvalid"),
           error: message
         })
       );
       return false;
     }
     if (validation.warnings.length > 0) {
-      setStatus(validation.warnings.join(" "));
+      setStatus(validation.warnings
+        .map((entry) => localizeExportValidationMessage(localizationRef.current, entry))
+        .join(" "));
     }
     return true;
   }, [project]);
@@ -1354,7 +1375,7 @@ export function App() {
     setExportProgress(
       createExportProgress({
         status: "preparing",
-        message: "Capturing current viewport frame."
+        message: tr("app.captureFrame")
       })
     );
 
@@ -1377,12 +1398,12 @@ export function App() {
           status: "complete",
           currentFrame: 1,
           totalFrames: 1,
-          message: `Exported ${result.filename}.`
+          message: tr("app.exported", { filename: result.filename })
         })
       );
-      setStatus(`Exported ${result.filename}.`);
+      setStatus(tr("app.exported", { filename: result.filename }));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "PNG export failed.";
+      const message = diagnostic("EXPORT_PNG_FAILED", "app.pngFailed");
       setExportProgress(
         createExportProgress({
           status: "error",
@@ -1404,7 +1425,7 @@ export function App() {
     setExportProgress(
       createExportProgress({
         status: "preparing",
-        message: "Preparing PNG sequence export."
+        message: tr("app.sequencePreparing")
       })
     );
 
@@ -1439,13 +1460,12 @@ export function App() {
           status: "complete",
           currentFrame: settings.endFrame - settings.startFrame + 1,
           totalFrames: settings.endFrame - settings.startFrame + 1,
-          message: `Exported ${result.filename}.`
+          message: tr("app.exported", { filename: result.filename })
         })
       );
-      setStatus(`Exported ${result.filename}.`);
+      setStatus(tr("app.exported", { filename: result.filename }));
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "PNG sequence export failed.";
+      const message = diagnostic("EXPORT_SEQUENCE_FAILED", "app.sequenceFailed");
       setExportProgress(
         createExportProgress({
           status: exportCancelledRef.current ? "cancelled" : "error",
@@ -1469,7 +1489,7 @@ export function App() {
       createExportProgress({
         status: "preparing",
         totalFrames,
-        message: "Recording viewport canvas as WebM."
+        message: tr("app.webmRecording")
       })
     );
 
@@ -1500,7 +1520,7 @@ export function App() {
               status: "rendering",
               currentFrame: index,
               totalFrames,
-              message: `Recording frame ${index} of ${totalFrames}.`
+              message: tr("app.recordingFrame", { frame: index, total: totalFrames })
             })
           );
         }
@@ -1512,12 +1532,12 @@ export function App() {
           status: "complete",
           currentFrame: totalFrames,
           totalFrames,
-          message: `Exported ${filename}.`
+          message: tr("app.exported", { filename })
         })
       );
-      setStatus(`Exported ${filename} at ${settings.width}x${settings.height}.`);
+      setStatus(tr("app.exportedSize", { filename, width: settings.width, height: settings.height }));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "WebM export failed.";
+      const message = diagnostic("EXPORT_WEBM_FAILED", "app.webmFailed");
       setExportProgress(
         createExportProgress({
           status: exportCancelledRef.current ? "cancelled" : "error",
@@ -1536,7 +1556,7 @@ export function App() {
     setExportProgress(
       createExportProgress({
         status: "encoding",
-        message: "Mixing project audio to WAV."
+        message: tr("app.wavMixing")
       })
     );
 
@@ -1552,12 +1572,12 @@ export function App() {
           status: "complete",
           currentFrame: 1,
           totalFrames: 1,
-          message: `Exported ${filename}.`
+          message: tr("app.exported", { filename })
         })
       );
-      setStatus(`Exported ${filename}.`);
+      setStatus(tr("app.exported", { filename }));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "WAV export failed.";
+      const message = diagnostic("EXPORT_WAV_FAILED", "app.wavFailed");
       setExportProgress(
         createExportProgress({
           status: "error",
@@ -1575,10 +1595,10 @@ export function App() {
     setExportProgress(
       createExportProgress({
         status: "cancelled",
-        message: "Export cancellation requested."
+        message: tr("app.exportCancel")
       })
     );
-    setStatus("Export cancellation requested.");
+    setStatus(tr("app.exportCancel"));
   }, []);
 
   const handleAudioSelected = async (
@@ -1588,7 +1608,7 @@ export function App() {
     event.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("audio/")) {
-      setStatus("Unsupported SFX file type. Use wav, mp3, or ogg audio.");
+      setStatus(tr("app.sfxUnsupported"));
       return;
     }
 
@@ -1607,9 +1627,9 @@ export function App() {
           }),
         "Import SFX"
       );
-      setStatus(`Imported SFX ${clip.name}.`);
+      setStatus(tr("app.sfxImported", { name: clip.name }));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not import SFX.");
+      setStatus(diagnostic("AUDIO_IMPORT_FAILED", "app.sfxFailed"));
     }
   };
 
@@ -1628,7 +1648,7 @@ export function App() {
           }),
         "Add builtin SFX"
       );
-      setStatus(`Added placeholder SFX ${clip.name}.`);
+      setStatus(tr("app.sfxAdded", { name: clip.name }));
     },
     [commitProject, project.animation.currentFrame]
   );
@@ -1668,11 +1688,11 @@ export function App() {
     if (!selectedObjectId) return;
     const lookup = findObject(project, selectedObjectId);
     if (!lookup) {
-      setStatus("Select an object before duplicating.");
+      setStatus(tr("app.selectDuplicate"));
       return;
     }
     if (lookup.entity.locked) {
-      setStatus(`${lookup.entity.name} is locked.`);
+      setStatus(tr("app.entityLocked", { name: lookup.entity.name }));
       return;
     }
 
@@ -1707,14 +1727,14 @@ export function App() {
     );
     setSelectedObjectId(duplicate.id);
     setSelectedEffectId(null);
-    setStatus(`Duplicated ${lookup.entity.name}.`);
+    setStatus(tr("app.duplicated", { name: lookup.entity.name }));
   }, [commitProject, project, selectedObjectId]);
 
   const handleUpdateBoneRotation = useCallback(
     (characterId: string, boneId: string, rotation: [number, number, number]) => {
       const character = project.scene.characters.find((item) => item.id === characterId);
       if (character?.locked) {
-        setStatus(`${character.name} is locked.`);
+        setStatus(tr("app.entityLocked", { name: character.name }));
         return;
       }
       commitProject(
@@ -1722,7 +1742,7 @@ export function App() {
           updateProjectBoneRotation(currentProject, characterId, boneId, rotation),
         "Edit bone rotation"
       );
-      setStatus(`Updated ${boneId} rotation.`);
+      setStatus(tr("app.boneUpdated", { bone: boneId }));
     },
     [commitProject, project.scene.characters]
   );
@@ -1741,7 +1761,7 @@ export function App() {
           ),
         "Add bone keyframe"
       );
-      setStatus(`Bone keyframe added for ${boneId} at frame ${project.animation.currentFrame}.`);
+      setStatus(tr("app.boneKey", { bone: boneId, frame: project.animation.currentFrame }));
     },
     [commitProject, project.animation.currentFrame]
   );
@@ -1760,7 +1780,7 @@ export function App() {
         }),
         "Reset rig pose"
       );
-      setStatus("Rig pose reset.");
+      setStatus(tr("app.poseReset"));
     },
     [commitProject]
   );
@@ -1779,7 +1799,7 @@ export function App() {
         }),
         "Mirror rig pose"
       );
-      setStatus("Rig pose mirrored left/right.");
+      setStatus(tr("app.poseMirrored"));
     },
     [commitProject]
   );
@@ -1788,7 +1808,7 @@ export function App() {
     (characterId: string) => {
       const character = project.scene.characters.find((item) => item.id === characterId);
       if (!character) return;
-      const name = window.prompt("Pose name", `${character.name} Pose`);
+      const name = window.prompt(tr("app.posePrompt"), tr("app.poseDefault", { name: character.name }));
       if (!name) return;
       const pose = savePoseFromCharacter(character, name);
       commitProject(
@@ -1801,7 +1821,7 @@ export function App() {
         }),
         "Save current pose"
       );
-      setStatus(`Saved pose ${pose.name}.`);
+      setStatus(tr("app.poseSaved", { name: pose.name }));
     },
     [commitProject, project.scene.characters]
   );
@@ -1831,7 +1851,7 @@ export function App() {
         }),
         "Change rig preset"
       );
-      setStatus(`Rig preset changed to ${definition.name}.`);
+      setStatus(tr("app.rigChanged", { name: definition.name }));
     },
     [commitProject]
   );
@@ -1840,11 +1860,11 @@ export function App() {
     if (!selectedObjectId) return;
     const lookup = findObject(project, selectedObjectId);
     if (!lookup) {
-      setStatus("Select an object before deleting.");
+      setStatus(tr("app.selectDelete"));
       return;
     }
     if (lookup.entity.locked) {
-      setStatus(`${lookup.entity.name} is locked.`);
+      setStatus(tr("app.entityLocked", { name: lookup.entity.name }));
       return;
     }
 
@@ -1882,7 +1902,7 @@ export function App() {
       "Delete object"
     );
     setSelectedObjectId(null);
-    setStatus(`Deleted ${lookup.entity.name}.`);
+    setStatus(tr("app.deleted", { name: lookup.entity.name }));
   }, [commitProject, project, selectedObjectId]);
 
   const handleAddKeyframe = useCallback(() => {
@@ -1893,13 +1913,13 @@ export function App() {
     }
 
     if (!selectedObjectId || selectedObjectId === "world") {
-      setStatus("Select a character, camera, light, or OBJ before keyframing.");
+      setStatus(tr("app.selectKeyframe"));
       return;
     }
 
     const lookup = findObject(project, selectedObjectId);
     if (!lookup) {
-      setStatus("Selected object is not keyframeable.");
+      setStatus(tr("app.notKeyframeable"));
       return;
     }
 
@@ -1913,7 +1933,7 @@ export function App() {
       "Add keyframe"
     );
     setStatus(
-      `Transform keyframe added for ${lookup.entity.name} at frame ${project.animation.currentFrame}.`
+      tr("app.transformKey", { name: lookup.entity.name, frame: project.animation.currentFrame })
     );
   }, [commitProject, handleAddBoneKeyframe, project, selectedObjectId]);
 
@@ -1935,7 +1955,7 @@ export function App() {
           ),
         "Change sky"
       );
-      setStatus(`Sky preset set to ${preset}.`);
+      setStatus(tr("app.skyChanged", { preset }));
     },
     [commitProject]
   );
@@ -1966,7 +1986,7 @@ export function App() {
         }),
         "Apply lighting mood"
       );
-      setStatus(`Lighting mood applied: ${preset.name}.`);
+      setStatus(tr("app.lightingMood", { name: preset.name }));
     },
     [commitProject]
   );
@@ -1983,7 +2003,7 @@ export function App() {
         }),
         "Edit lighting"
       );
-      setStatus("Lighting updated.");
+      setStatus(tr("app.lightingUpdated"));
     },
     [commitProject]
   );
@@ -1997,7 +2017,7 @@ export function App() {
         }),
         "Edit Minecraft materials"
       );
-      setStatus("Minecraft material settings updated.");
+      setStatus(tr("app.materialsUpdated"));
     },
     [commitProject]
   );
@@ -2034,14 +2054,10 @@ export function App() {
       );
       setLightingStudioOpen(true);
       setStatus(
-        `Imported resource pack ${pack.name}: ${pack.textures.length} block textures.`
+        tr("app.resourcePackImported", { name: pack.name, count: pack.textures.length })
       );
     } catch (error) {
-      setStatus(
-        error instanceof Error
-          ? error.message
-          : "Could not import resource pack ZIP."
-      );
+      setStatus(diagnostic("RESOURCE_PACK_ZIP_FAILED", "app.resourceZipFailed"));
     }
   };
 
@@ -2069,14 +2085,10 @@ export function App() {
       );
       setLightingStudioOpen(true);
       setStatus(
-        `Imported resource pack ${pack.name}: ${pack.textures.length} block textures.`
+        tr("app.resourcePackImported", { name: pack.name, count: pack.textures.length })
       );
     } catch (error) {
-      setStatus(
-        error instanceof Error
-          ? error.message
-          : "Could not import resource pack folder."
-      );
+      setStatus(diagnostic("RESOURCE_PACK_FOLDER_FAILED", "app.resourceFolderFailed"));
     }
   };
 
@@ -2092,7 +2104,7 @@ export function App() {
         }),
         "Change active resource pack"
       );
-      setStatus(packId ? "Resource pack applied." : "Resource pack textures reset.");
+      setStatus(tr(packId ? "app.resourceApplied" : "app.resourceReset"));
     },
     [commitProject]
   );
@@ -2118,7 +2130,7 @@ export function App() {
         }),
         "Remove resource pack"
       );
-      setStatus("Resource pack removed.");
+      setStatus(tr("app.resourceRemoved"));
     },
     [commitProject]
   );
@@ -2137,7 +2149,7 @@ export function App() {
       "Add environment keyframe"
     );
     setStatus(
-      `Environment keyframe added at frame ${project.animation.currentFrame}.`
+      tr("app.environmentKey", { frame: project.animation.currentFrame })
     );
   }, [commitProject, project.animation.currentFrame]);
 
@@ -2147,7 +2159,7 @@ export function App() {
         (currentProject) => updateProjectSettings(currentProject, projectSettings),
         "Change project settings"
       );
-      setStatus("Project settings updated.");
+      setStatus(tr("app.projectSettingsUpdated"));
     },
     [commitProject]
   );
@@ -2204,16 +2216,16 @@ export function App() {
 
   const handleLookThroughCamera = useCallback(() => {
     if (findObject(project, selectedObjectId)?.entity.type !== "camera") {
-      setStatus("Select a scene camera first.");
+      setStatus(tr("app.selectCamera"));
       return;
     }
     setLookThroughCameraRequest((value) => value + 1);
-    setStatus("Viewport moved to selected camera position.");
+    setStatus(tr("app.cameraMoved"));
   }, [project, selectedObjectId]);
 
   const handleResetViewportCamera = useCallback(() => {
     setResetCameraRequest((value) => value + 1);
-    setStatus("Viewport camera reset to the first scene camera.");
+    setStatus(tr("app.cameraReset"));
   }, []);
 
   const handleApplyCameraPreset = useCallback(
@@ -2235,7 +2247,7 @@ export function App() {
         }),
         "Apply camera preset"
       );
-      setStatus(`Camera preset applied: ${preset.name}.`);
+      setStatus(tr("app.cameraPreset", { name: preset.name }));
     },
     [commitProject, selectedObjectId]
   );
@@ -2263,7 +2275,7 @@ export function App() {
         }),
         "Apply rig pose preset"
       );
-      setStatus(`Pose applied: ${preset.name}.`);
+      setStatus(tr("app.poseApplied", { name: preset.name }));
     },
     [commitProject, project.rigs.savedPoses, project.scene.characters, selectedObjectId]
   );
@@ -2279,7 +2291,7 @@ export function App() {
         (currentProject) => syncCinematicTimeline(preset.apply(currentProject, targetId)),
         "Apply animation preset"
       );
-      setStatus(`Animation preset applied: ${preset.name}.`);
+      setStatus(tr("app.animationPreset", { name: preset.name }));
     },
     [commitProject, project.scene.characters, selectedObjectId]
   );
@@ -2287,23 +2299,23 @@ export function App() {
   const handleUndo = useCallback(() => {
     const previousProject = historyRef.current.undo(projectRef.current);
     if (!previousProject) {
-      setStatus("Nothing to undo.");
+      setStatus(tr("app.nothingUndo"));
       return;
     }
     setProject(previousProject);
     setIsDirty(true);
-    setStatus("Undo.");
+    setStatus(tr("app.undo"));
   }, [setProject]);
 
   const handleRedo = useCallback(() => {
     const nextProject = historyRef.current.redo(projectRef.current);
     if (!nextProject) {
-      setStatus("Nothing to redo.");
+      setStatus(tr("app.nothingRedo"));
       return;
     }
     setProject(nextProject);
     setIsDirty(true);
-    setStatus("Redo.");
+    setStatus(tr("app.redo"));
   }, [setProject]);
 
   const handleTogglePlugin = useCallback(
@@ -2321,7 +2333,7 @@ export function App() {
             : [...new Set([...currentSettings.plugins.disabledPluginIds, pluginId])]
         }
       }));
-      setStatus(`${enabled ? "Enabled" : "Disabled"} plugin ${pluginId}.`);
+      setStatus(tr("app.pluginState", { state: tr(enabled ? "common.enabled" : "common.disabled"), id: pluginId }));
     },
     []
   );
@@ -2359,7 +2371,7 @@ export function App() {
         applyPostPreset: handleApplyPostPreset,
         undo: handleUndo,
         redo: handleRedo
-      }),
+      }, localization),
     [
       handleAddCamera,
       handleAddCharacter,
@@ -2382,6 +2394,7 @@ export function App() {
       handleSkyChange,
       handleTogglePlayback,
       handleUndo,
+      localization,
       project.sky.customColor
     ]
   );
@@ -2467,21 +2480,30 @@ export function App() {
   ]);
 
   const statusDetails = [
-    `Selected: ${selectedObjectLabel(project, selectedObjectId, selectedObject?.name)}`,
-    `Frame: ${project.animation.currentFrame}`,
-    `FPS: ${project.animation.fps}`,
-    isDirty ? "Unsaved" : "Saved",
-    `Post: ${project.postProcessing.presetId}`,
-    `Lighting: ${project.lighting.presetId}`,
-    `FX: ${project.effects.instances.length}`,
-    `SFX: ${project.audio.clips.length}`,
-    `Export: ${project.exportSettings.width}x${project.exportSettings.height}`,
-    project.renderSettings.renderPreviewEnabled ? "Render Preview" : "Viewport",
-    project.world ? `World: ${project.world.sourceName}` : "World: demo"
+    localization.t("status.selected", { name: selectedObjectLabel(
+      project,
+      selectedObjectId,
+      selectedObject?.name,
+      localization.t("status.character"),
+      localization.t("common.none")
+    ) }),
+    localization.t("status.frame", { frame: localization.formatNumber(project.animation.currentFrame) }),
+    localization.t("status.fps", { fps: localization.formatNumber(project.animation.fps) }),
+    localization.t(isDirty ? "status.unsaved" : "status.saved"),
+    localization.t("status.post", { preset: project.postProcessing.presetId }),
+    localization.t("status.lighting", { preset: project.lighting.presetId }),
+    localization.t("status.effects", { count: localization.formatNumber(project.effects.instances.length) }),
+    localization.t("status.audio", { count: localization.formatNumber(project.audio.clips.length) }),
+    localization.t("status.export", { width: project.exportSettings.width, height: project.exportSettings.height }),
+    localization.t(project.renderSettings.renderPreviewEnabled ? "status.renderPreview" : "status.viewport"),
+    project.world
+      ? localization.t("status.world", { name: project.world.sourceName })
+      : localization.t("status.worldDemo")
   ].join(" | ");
 
   return (
-    <main className="app-shell">
+    <LocalizationProvider service={localization}>
+    <main className="app-shell" lang={localization.language}>
       <TopBar
         projectName={project.projectName}
         isPlaying={project.animation.isPlaying}
@@ -2765,6 +2787,7 @@ export function App() {
         onChange={handleResourcePackFolderSelected}
       />
     </main>
+    </LocalizationProvider>
   );
 }
 
@@ -2791,16 +2814,18 @@ function downloadBlob(blob: Blob, filename: string): void {
 function selectedObjectLabel(
   project: MineMotionProject,
   selectedObjectId: string | null,
-  fallback?: string
+  fallback: string | undefined,
+  characterLabel: string,
+  noneLabel: string
 ): string {
   const boneSelection = parseRigBoneSelection(selectedObjectId);
   if (boneSelection) {
     const character = project.scene.characters.find(
       (item) => item.id === boneSelection.characterId
     );
-    return `${character?.name ?? "Character"} / ${boneSelection.boneId}`;
+    return `${character?.name ?? characterLabel} / ${boneSelection.boneId}`;
   }
-  return fallback ?? "none";
+  return fallback ?? noneLabel;
 }
 
 function waitForNextPaint(): Promise<void> {

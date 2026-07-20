@@ -1,4 +1,5 @@
 import type { SkyPresetId } from "../renderer/SkySystem";
+import type { AppLanguagePreference } from "../localization/LocalizationTypes";
 
 export type ThemeId = "dark" | "light";
 export type RenderQuality = "low" | "medium" | "high";
@@ -13,6 +14,7 @@ export interface RecentProjectEntry {
 }
 
 export interface GeneralSettings {
+  language: AppLanguagePreference;
   autosaveEnabled: boolean;
   autosaveIntervalSeconds: number;
   defaultProjectDurationFrames: number;
@@ -68,4 +70,3 @@ export interface AppSettings {
   minecraft: MinecraftSettings;
   plugins: PluginSettings;
 }
-

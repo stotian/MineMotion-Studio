@@ -54,6 +54,7 @@ import {
 import { addClipToNla, updateNlaClip } from "../../animation/editor/NlaTracks";
 import { Dopesheet } from "../../animation/editor/Dopesheet";
 import { GraphEditor } from "../../animation/editor/GraphEditor";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 const EFFECT_TIMELINE_DRAG_TYPE = "application/x-minemotion-effect-timeline";
 
@@ -97,6 +98,8 @@ export function TimelinePanel({
   onEditEffectTimeline,
   onUpdateAnimation
 }: TimelinePanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const { animation } = project;
   const [editor, setEditor] = useState(createAnimationEditorState);
   const [selectedClipId, setSelectedClipId] = useState("");
@@ -161,11 +164,11 @@ export function TimelinePanel({
         animation.durationFrames
       );
     }
-    commitTracks(tracks, "Move keyframes", { selected: refs, anchor: refs[0] ?? null });
+    commitTracks(tracks, t("history.moveKeys"), { selected: refs, anchor: refs[0] ?? null });
   };
 
   const addMarker = () => {
-    const name = window.prompt("Marker name", `Marker ${animation.markers.length + 1}`);
+    const name = window.prompt(t("timeline.markerPrompt"), t("timeline.markerDefault", { count: animation.markers.length + 1 }));
     if (!name) return;
     onUpdateAnimation(
       {
@@ -175,12 +178,12 @@ export function TimelinePanel({
           createTimelineMarker(name, animation.currentFrame)
         )
       },
-      "Add timeline marker"
+      t("history.addMarker")
     );
   };
 
   const saveClip = () => {
-    const name = window.prompt("Animation clip name", "Reusable Clip");
+    const name = window.prompt(t("timeline.clipPrompt"), t("timeline.clipDefault"));
     if (!name) return;
     const entity = selectedTargetId ? findObject(project, selectedTargetId)?.entity : null;
     const targetType: ReusableAnimationClip["targetType"] =
@@ -198,7 +201,7 @@ export function TimelinePanel({
     if (!nextClip) return;
     onUpdateAnimation(
       { ...animation, clips: [...animation.clips, nextClip] },
-      "Save animation clip"
+      t("history.saveClip")
     );
     setSelectedClipId(nextClip.id);
   };
@@ -212,7 +215,7 @@ export function TimelinePanel({
         selectedTargetId,
         animation.currentFrame
       ),
-      "Apply animation clip",
+      t("history.applyClip"),
       EMPTY_KEYFRAME_SELECTION
     );
   };
@@ -229,7 +232,7 @@ export function TimelinePanel({
           animation.currentFrame
         )
       },
-      "Add NLA clip"
+      t("history.addNla")
     );
     setEditor((current) => ({ ...current, view: "nla" }));
   };
@@ -251,55 +254,55 @@ export function TimelinePanel({
   return (
     <footer className="timeline-panel">
       <div className="timeline-controls">
-        <div className="timeline-view-tabs" aria-label="Animation editor view">
+        <div className="timeline-view-tabs" aria-label={t("timeline.editorAria")}>
           <ViewButton
             active={editor.view === "timeline"}
-            label="Timeline"
+            label={t("timeline.timeline")}
             icon={<ListTree size={14} />}
             onClick={() => setEditor((current) => ({ ...current, view: "timeline" }))}
           />
           <ViewButton
             active={editor.view === "dopesheet"}
-            label="Dopesheet"
+            label={t("timeline.dopesheet")}
             icon={<DiamondPlus size={14} />}
             onClick={() => setEditor((current) => ({ ...current, view: "dopesheet" }))}
           />
           <ViewButton
             active={editor.view === "graph"}
-            label="Graph"
+            label={t("timeline.graph")}
             icon={<ChartSpline size={14} />}
             onClick={() => setEditor((current) => ({ ...current, view: "graph" }))}
           />
           <ViewButton
             active={editor.view === "nla"}
-            label="NLA"
+            label={t("timeline.nla")}
             icon={<Layers3 size={14} />}
             onClick={() => setEditor((current) => ({ ...current, view: "nla" }))}
           />
         </div>
 
-        <button type="button" onClick={() => onSetFrame(0)} title="Go to start">
+        <button type="button" onClick={() => onSetFrame(0)} title={t("timeline.goStart")}>
           <SkipBack size={15} />
         </button>
-        <button type="button" onClick={() => goRelativeKey(-1)} title="Previous keyframe">
+        <button type="button" onClick={() => goRelativeKey(-1)} title={t("timeline.previousKey")}>
           <StepBack size={15} />
         </button>
         <button type="button" className="primary-action" onClick={onTogglePlayback}>
           {animation.isPlaying ? <Pause size={15} /> : <Play size={15} />}
-          {animation.isPlaying ? "Pause" : "Play"}
+          {t(animation.isPlaying ? "topbar.pause" : "topbar.play")}
         </button>
-        <button type="button" onClick={() => goRelativeKey(1)} title="Next keyframe">
+        <button type="button" onClick={() => goRelativeKey(1)} title={t("timeline.nextKey")}>
           <StepForward size={15} />
         </button>
         <button
           type="button"
           onClick={() => onSetFrame(animation.durationFrames)}
-          title="Go to end"
+          title={t("timeline.goEnd")}
         >
           <SkipForward size={15} />
         </button>
         <label>
-          Frame
+          {t("timeline.frame")}
           <input
             type="number"
             min={0}
@@ -309,7 +312,7 @@ export function TimelinePanel({
           />
         </label>
         <label>
-          FPS
+          {t("timeline.fps")}
           <input
             type="number"
             min={1}
@@ -318,9 +321,9 @@ export function TimelinePanel({
             onChange={(event) => onSetFps(Number(event.target.value))}
           />
         </label>
-        <button type="button" onClick={addMarker}>Add Marker</button>
+        <button type="button" onClick={addMarker}>{t("timeline.addMarker")}</button>
         <button type="button" disabled={!selectedObjectId} onClick={onAddKeyframe}>
-          Add Key
+          {t("timeline.addKey")}
         </button>
       </div>
 
@@ -328,7 +331,7 @@ export function TimelinePanel({
         <button
           type="button"
           disabled={editor.selection.selected.length === 0}
-          title="Copy selected keyframes"
+          title={t("timeline.copyKeys")}
           onClick={() =>
             setEditor((current) => ({
               ...current,
@@ -341,14 +344,14 @@ export function TimelinePanel({
         <button
           type="button"
           disabled={editor.clipboard.entries.length === 0}
-          title="Paste keyframes at playhead"
+          title={t("timeline.pasteKeys")}
           onClick={() => {
             const result = pasteKeyframes(
               animation.tracks,
               editor.clipboard,
               animation.currentFrame
             );
-            commitTracks(result.tracks, "Paste keyframes", {
+            commitTracks(result.tracks, t("history.pasteKeys"), {
               selected: result.selection,
               anchor: result.selection[0] ?? null
             });
@@ -359,7 +362,7 @@ export function TimelinePanel({
         <button
           type="button"
           disabled={editor.selection.selected.length === 0}
-          title="Duplicate selected keyframes"
+          title={t("timeline.duplicateKeys")}
           onClick={() => {
             const result = duplicateSelectedKeyframes(
               animation.tracks,
@@ -367,7 +370,7 @@ export function TimelinePanel({
               editor.snapInterval,
               animation.durationFrames
             );
-            commitTracks(result.tracks, "Duplicate keyframes", {
+            commitTracks(result.tracks, t("history.duplicateKeys"), {
               selected: result.selection,
               anchor: result.selection[0] ?? null
             });
@@ -378,11 +381,11 @@ export function TimelinePanel({
         <button
           type="button"
           disabled={editor.selection.selected.length === 0}
-          title="Delete selected keyframes"
+          title={t("timeline.deleteKeys")}
           onClick={() =>
             commitTracks(
               deleteSelectedKeyframes(animation.tracks, editor.selection.selected),
-              "Delete keyframes",
+              t("history.deleteKeys"),
               EMPTY_KEYFRAME_SELECTION
             )
           }
@@ -407,7 +410,7 @@ export function TimelinePanel({
                 animation.currentFrame,
                 animation.durationFrames
               ),
-              "Compress keyframe timing"
+              t("history.compressKeys")
             )
           }
         >
@@ -425,7 +428,7 @@ export function TimelinePanel({
                 animation.currentFrame,
                 animation.durationFrames
               ),
-              "Expand keyframe timing"
+              t("history.expandKeys")
             )
           }
         >
@@ -439,10 +442,10 @@ export function TimelinePanel({
               setEditor((current) => ({ ...current, snapEnabled: event.target.checked }))
             }
           />
-          Snap
+          {t("timeline.snap")}
         </label>
         <label className="compact-control">
-          Step
+          {t("timeline.step")}
           <input
             type="number"
             min={1}
@@ -457,7 +460,7 @@ export function TimelinePanel({
           />
         </label>
         <select
-          aria-label="Selected keyframe interpolation"
+          aria-label={t("timeline.interpolationAria")}
           disabled={!editor.selection.selected.length}
           defaultValue="linear"
           onChange={(event) =>
@@ -467,26 +470,26 @@ export function TimelinePanel({
                 editor.selection.selected,
                 event.target.value as KeyframeInterpolation
               ),
-              "Set keyframe interpolation"
+              t("history.setInterpolation")
             )
           }
         >
-          <option value="constant">Constant</option>
-          <option value="linear">Linear</option>
-          <option value="ease-in">Ease In</option>
-          <option value="ease-out">Ease Out</option>
-          <option value="ease-in-out">Ease In Out</option>
-          <option value="bezier">Bezier</option>
+          <option value="constant">{t("timeline.interpolation.constant")}</option>
+          <option value="linear">{t("timeline.interpolation.linear")}</option>
+          <option value="ease-in">{t("timeline.interpolation.easeIn")}</option>
+          <option value="ease-out">{t("timeline.interpolation.easeOut")}</option>
+          <option value="ease-in-out">{t("timeline.interpolation.easeInOut")}</option>
+          <option value="bezier">{t("timeline.interpolation.bezier")}</option>
         </select>
         <button type="button" disabled={!editor.selection.selected.length} onClick={saveClip}>
-          Save Clip
+          {t("timeline.saveClip")}
         </button>
         <select
-          aria-label="Reusable animation clip"
+          aria-label={t("timeline.clipAria")}
           value={selectedClipId}
           onChange={(event) => setSelectedClipId(event.target.value)}
         >
-          <option value="">Animation Clips</option>
+          <option value="">{t("timeline.clips")}</option>
           {animation.clips.map((candidate) => (
             <option key={candidate.id} value={candidate.id}>
               {candidate.name}
@@ -494,18 +497,18 @@ export function TimelinePanel({
           ))}
         </select>
         <button type="button" disabled={!clipCompatible} onClick={applyClip}>
-          Apply Clip
+          {t("timeline.applyClip")}
         </button>
         <button type="button" disabled={!clipCompatible} onClick={addNlaClip}>
-          Add To NLA
+          {t("timeline.addNla")}
         </button>
         <span className="effect-command-label">
-          FX: {selectedEffect?.name ?? "none"}
+          {t("timeline.effectSelected", { name: selectedEffect?.name ?? t("common.none") })}
         </span>
         <button
           type="button"
           disabled={!selectedEffect || selectedEffect.startFrame < editor.snapInterval}
-          title="Move selected effect earlier"
+          title={t("timeline.moveEffectEarlier")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -526,7 +529,7 @@ export function TimelinePanel({
               selectedEffect.durationFrames >
               animation.durationFrames
           }
-          title="Move selected effect later"
+          title={t("timeline.moveEffectLater")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -546,7 +549,7 @@ export function TimelinePanel({
             animation.currentFrame + selectedEffect.durationFrames >
               animation.durationFrames
           }
-          title="Move selected effect to the playhead"
+          title={t("timeline.moveEffectPlayhead")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -556,7 +559,7 @@ export function TimelinePanel({
             })
           }
         >
-          Move @
+          {t("timeline.moveAt")}
         </button>
         <button
           type="button"
@@ -566,7 +569,7 @@ export function TimelinePanel({
               selectedEffect.startFrame + selectedEffect.durationFrames ||
             animation.currentFrame === selectedEffect.startFrame
           }
-          title="Trim the selected effect start to the playhead"
+          title={t("timeline.trimStart")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -576,7 +579,7 @@ export function TimelinePanel({
             })
           }
         >
-          Trim L
+          {t("timeline.trimLeft")}
         </button>
         <button
           type="button"
@@ -586,7 +589,7 @@ export function TimelinePanel({
             animation.currentFrame ===
               selectedEffect.startFrame + selectedEffect.durationFrames
           }
-          title="Trim the selected effect end to the playhead"
+          title={t("timeline.trimEnd")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -596,7 +599,7 @@ export function TimelinePanel({
             })
           }
         >
-          Trim R
+          {t("timeline.trimRight")}
         </button>
         <button
           type="button"
@@ -605,7 +608,7 @@ export function TimelinePanel({
             selectedEffect.startFrame + 1 + selectedEffect.durationFrames >
               animation.durationFrames
           }
-          title="Duplicate selected effect"
+          title={t("timeline.duplicateEffect")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -621,7 +624,7 @@ export function TimelinePanel({
         <button
           type="button"
           disabled={!selectedEffect}
-          title="Copy selected effect"
+          title={t("timeline.copyEffect")}
           onClick={copySelectedEffect}
         >
           <Copy size={14} /> FX
@@ -634,7 +637,7 @@ export function TimelinePanel({
               (effectClipboard?.effect.durationFrames ?? 0) >
               animation.durationFrames
           }
-          title="Paste copied effect at the playhead"
+          title={t("timeline.pasteEffect")}
           onClick={() =>
             effectClipboard &&
             onEditEffectTimeline({
@@ -650,7 +653,7 @@ export function TimelinePanel({
         <button
           type="button"
           disabled={!selectedEffect}
-          title={selectedEffect?.enabled ? "Disable selected effect" : "Enable selected effect"}
+          title={t(selectedEffect?.enabled ? "timeline.disableEffect" : "timeline.enableEffect")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -660,12 +663,12 @@ export function TimelinePanel({
             })
           }
         >
-          {selectedEffect?.enabled ? "Disable FX" : "Enable FX"}
+          {t(selectedEffect?.enabled ? "timeline.disableFx" : "timeline.enableFx")}
         </button>
         <button
           type="button"
           disabled={!selectedEffect || selectedEffectIndex <= 0}
-          title="Move selected effect earlier in persisted priority order"
+          title={t("timeline.priorityEarlier")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -675,7 +678,7 @@ export function TimelinePanel({
             })
           }
         >
-          Priority -
+          {t("timeline.priorityMinus")}
         </button>
         <button
           type="button"
@@ -683,7 +686,7 @@ export function TimelinePanel({
             !selectedEffect ||
             selectedEffectIndex >= project.effects.instances.length - 1
           }
-          title="Move selected effect later in persisted priority order"
+          title={t("timeline.priorityLater")}
           onClick={() =>
             selectedEffect &&
             onEditEffectTimeline({
@@ -693,15 +696,19 @@ export function TimelinePanel({
             })
           }
         >
-          Priority +
+          {t("timeline.priorityPlus")}
         </button>
         {effectClipboard && (
           <span className="effect-clipboard-note">
-            Copied: {effectClipboard.effect.name}
+            {t("timeline.copied", { name: effectClipboard.effect.name })}
           </span>
         )}
         <span className="timeline-summary">
-          {editor.selection.selected.length} selected / {animation.markers.length} markers / {animation.clips.length} clips
+          {t("timeline.summary", {
+            selected: editor.selection.selected.length,
+            markers: animation.markers.length,
+            clips: animation.clips.length
+          })}
         </span>
       </div>
 
@@ -739,7 +746,7 @@ export function TimelinePanel({
                   editor.selection.selected,
                   interpolation
                 ),
-                "Set graph interpolation"
+                t("history.setGraphInterpolation")
               )
             }
           />
@@ -754,7 +761,7 @@ export function TimelinePanel({
                   ...animation,
                   nlaTracks: updateNlaClip(animation.nlaTracks, instanceId, { muted })
                 },
-                "Toggle NLA clip"
+                t("history.toggleNla")
               )
             }
           />
@@ -798,6 +805,8 @@ function TimelineView({
   onSelectEffect: (effectId: string) => void;
   onEditEffectTimeline: (command: EffectTimelineCommand) => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const { animation } = project;
   const duration = Math.max(1, animation.durationFrames);
   const markerFrames = new Set(
@@ -814,7 +823,7 @@ function TimelineView({
   return (
     <div className="timeline-track professional-timeline">
       <input
-        aria-label="Timeline scrubber"
+        aria-label={t("timeline.scrubberAria")}
         type="range"
         min={0}
         max={duration}
@@ -831,7 +840,7 @@ function TimelineView({
             type="button"
             className="keyframe-marker"
             style={{ left: `${(frame / duration) * 100}%` }}
-            title={`Frame ${frame}`}
+            title={t("timeline.frameTitle", { frame })}
             onClick={() => onSetFrame(frame)}
           />
         ))}
@@ -877,8 +886,10 @@ function NlaView({
   onSetFrame: (frame: number) => void;
   onToggleMute: (instanceId: string, muted: boolean) => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   if (project.animation.nlaTracks.length === 0) {
-    return <p className="timeline-empty">Save a clip, select it, then add it to NLA.</p>;
+    return <p className="timeline-empty">{t("timeline.nlaEmpty")}</p>;
   }
   const duration = Math.max(1, project.animation.durationFrames);
   return (
@@ -898,11 +909,11 @@ function NlaView({
                     left: `${(instance.startFrame / duration) * 100}%`,
                     width: `${Math.max(2, (instance.durationFrames / duration) * 100)}%`
                   }}
-                  title={`${source?.name ?? "Missing clip"} @ ${instance.startFrame}`}
+                  title={`${source?.name ?? t("timeline.missingClip")} @ ${instance.startFrame}`}
                   onClick={() => onSetFrame(instance.startFrame)}
                   onDoubleClick={() => onToggleMute(instance.id, !instance.muted)}
                 >
-                  {source?.name ?? "Missing"}
+                  {source?.name ?? t("timeline.missing")}
                 </button>
               );
             })}
@@ -934,6 +945,8 @@ function TimelineBlockLane({
   onSelectEffect: (effectId: string) => void;
   onEditEffectTimeline: (command: EffectTimelineCommand) => void;
 }) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   const laneRef = useRef<HTMLDivElement>(null);
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     if (!acceptsEffectDrop) return;
@@ -986,7 +999,7 @@ function TimelineBlockLane({
   };
 
   return (
-    <div className="timeline-block-lane" aria-label={`${label} lane`}>
+    <div className="timeline-block-lane" aria-label={t("timeline.laneAria", { label })}>
       <span>{label}</span>
       <div
         ref={laneRef}
@@ -1004,7 +1017,7 @@ function TimelineBlockLane({
         {items.map((item) => {
           const effectId = acceptsEffectDrop ? item.effectId : undefined;
           const className = `timeline-block ${effectId === selectedEffectId ? "selected" : ""} ${effectId && disabledEffectIds.has(effectId) ? "disabled-effect" : ""} ${item.type}`;
-          const title = `${item.label} @ ${item.startFrame}${effectId && disabledEffectIds.has(effectId) ? " (disabled)" : ""}`;
+          const title = `${item.label} @ ${item.startFrame}${effectId && disabledEffectIds.has(effectId) ? ` (${t("timeline.disabledSuffix")})` : ""}`;
           const style = {
             left: `${(item.startFrame / durationFrames) * 100}%`,
             width: `${Math.max(1, (item.durationFrames / durationFrames) * 100)}%`
@@ -1039,7 +1052,7 @@ function TimelineBlockLane({
               <button
                 type="button"
                 className={className}
-                title={`${title}. Drag to move.`}
+                title={t("timeline.dragMove", { title })}
                 draggable
                 onDragStart={(event) => {
                   const bounds = laneRef.current?.getBoundingClientRect();
@@ -1066,8 +1079,8 @@ function TimelineBlockLane({
               <button
                 type="button"
                 className="timeline-trim-handle start"
-                aria-label={`Trim ${item.label} start`}
-                title="Drag to trim effect start"
+                aria-label={t("timeline.trimItemStart", { name: item.label })}
+                title={t("timeline.dragTrimStart")}
                 draggable
                 onClick={(event) => event.stopPropagation()}
                 onDragStart={(event) => {
@@ -1081,8 +1094,8 @@ function TimelineBlockLane({
               <button
                 type="button"
                 className="timeline-trim-handle end"
-                aria-label={`Trim ${item.label} end`}
-                title="Drag to trim effect end"
+                aria-label={t("timeline.trimItemEnd", { name: item.label })}
+                title={t("timeline.dragTrimEnd")}
                 draggable
                 onClick={(event) => event.stopPropagation()}
                 onDragStart={(event) => {

@@ -1287,17 +1287,28 @@ p.parameter-control-error {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
   padding: 0.8rem 0.95rem;
   background: #161b24;
   border-bottom: 1px solid #303948;
 }
 
 .modal-header h2 {
+  min-width: 0;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 0.45rem;
   font-size: 0.98rem;
+}
+
+.modal-panel button,
+.command-palette button,
+.modal-panel label,
+.modal-panel h2,
+.modal-panel h3,
+.modal-panel h4 {
+  overflow-wrap: anywhere;
 }
 
 .settings-grid,
@@ -2159,7 +2170,10 @@ p.parameter-control-error {
   .template-grid,
   .plugin-row,
   .export-layout,
-  .render-job-list {
+  .render-job-list,
+  .world-import-layout,
+  .rig-studio-layout,
+  .vfx-workspace-layout {
     grid-template-columns: 1fr;
   }
 

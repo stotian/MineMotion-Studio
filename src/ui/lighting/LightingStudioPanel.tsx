@@ -27,6 +27,7 @@ import type {
   ResourcePackAsset
 } from "../../minecraft/resources/ResourcePackTypes";
 import type { PostProcessingSettings } from "../../rendering/postprocessing/PostProcessingTypes";
+import { useLocalization } from "../../localization/LocalizationContext";
 
 interface LightingStudioPanelProps {
   open: boolean;
@@ -65,6 +66,8 @@ export function LightingStudioPanel({
   onRemoveResourcePack,
   onAddEnvironmentKeyframe
 }: LightingStudioPanelProps) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
   if (!open) return null;
 
   const updateBiomePreset = (presetId: BiomeTintPresetId) => {
@@ -84,15 +87,15 @@ export function LightingStudioPanel({
         className="modal-panel lighting-studio-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="Lighting Studio"
+        aria-label={t("lighting.title")}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
           <h2>
             <Sun size={18} />
-            Lighting Studio
+            {t("lighting.title")}
           </h2>
-          <button type="button" onClick={onClose} aria-label="Close Lighting Studio">
+          <button type="button" onClick={onClose} aria-label={t("lighting.closeAria")}>
             <X size={16} />
           </button>
         </div>
@@ -101,7 +104,7 @@ export function LightingStudioPanel({
           <section className="lighting-wide-section">
             <h3>
               <Sparkles size={15} />
-              Mood Presets
+              {t("lighting.moods")}
             </h3>
             <div className="lighting-preset-grid">
               {LIGHTING_MOOD_PRESETS.map((preset) => (
@@ -122,10 +125,10 @@ export function LightingStudioPanel({
           <section>
             <h3>
               <Sun size={15} />
-              Sun & Ambient
+              {t("lighting.sunAmbient")}
             </h3>
             <SliderField
-              label="Sun intensity"
+              label={t("lighting.sunIntensity")}
               value={lighting.sunIntensity}
               min={0}
               max={3}
@@ -133,7 +136,7 @@ export function LightingStudioPanel({
               onChange={(sunIntensity) => onUpdateLighting({ sunIntensity })}
             />
             <SliderField
-              label="Ambient intensity"
+              label={t("lighting.ambientIntensity")}
               value={lighting.ambientIntensity}
               min={0}
               max={2}
@@ -141,17 +144,17 @@ export function LightingStudioPanel({
               onChange={(ambientIntensity) => onUpdateLighting({ ambientIntensity })}
             />
             <ColorField
-              label="Sun color"
+              label={t("lighting.sunColor")}
               value={lighting.sunColor}
               onChange={(sunColor) => onUpdateLighting({ sunColor })}
             />
             <ColorField
-              label="Ambient color"
+              label={t("lighting.ambientColor")}
               value={lighting.ambientColor}
               onChange={(ambientColor) => onUpdateLighting({ ambientColor })}
             />
             <VectorField
-              label="Sun direction"
+              label={t("lighting.sunDirection")}
               value={lighting.sunDirection}
               onChange={(sunDirection) => onUpdateLighting({ sunDirection })}
             />
@@ -163,22 +166,22 @@ export function LightingStudioPanel({
                   onUpdateLighting({ shadowsEnabled: event.target.checked })
                 }
               />
-              Shadows
+              {t("lighting.shadows")}
             </label>
           </section>
 
           <section>
             <h3>
               <CloudFog size={15} />
-              Atmosphere
+              {t("lighting.atmosphere")}
             </h3>
             <ColorField
-              label="Fog color"
+              label={t("lighting.fogColor")}
               value={lighting.fogColor}
               onChange={(fogColor) => onUpdateLighting({ fogColor })}
             />
             <SliderField
-              label="Fog density"
+              label={t("lighting.fogDensity")}
               value={lighting.fogDensity}
               min={0}
               max={0.08}
@@ -186,7 +189,7 @@ export function LightingStudioPanel({
               onChange={(fogDensity) => onUpdateLighting({ fogDensity })}
             />
             <SliderField
-              label="Time of day"
+              label={t("lighting.timeOfDay")}
               value={lighting.timeOfDay}
               min={0}
               max={24}
@@ -201,10 +204,10 @@ export function LightingStudioPanel({
                   onUpdateLighting({ animateTimeOfDay: event.target.checked })
                 }
               />
-              Animate time of day
+              {t("lighting.animateTime")}
             </label>
             <NumberField
-              label="Day length (frames)"
+              label={t("lighting.dayLength")}
               value={lighting.dayLengthFrames}
               min={1}
               step={1}
@@ -215,16 +218,16 @@ export function LightingStudioPanel({
             <div className="lighting-keyframe-row">
               <button type="button" onClick={onAddEnvironmentKeyframe}>
                 <KeyRound size={15} />
-                Keyframe at {currentFrame}
+                {t("lighting.keyframeAt", { frame: currentFrame })}
               </button>
-              <span>{lighting.keyframes.length} environment keys</span>
+              <span>{localization.plural({ one: "lighting.environmentKeys.one", other: "lighting.environmentKeys.other" }, lighting.keyframes.length)}</span>
             </div>
           </section>
 
           <section>
             <h3>
               <Sparkles size={15} />
-              Shader & Post
+              {t("lighting.shaderPost")}
             </h3>
             <label className="checkbox-label">
               <input
@@ -234,10 +237,10 @@ export function LightingStudioPanel({
                   onUpdatePostProcessing({ enabled: event.target.checked })
                 }
               />
-              Enable post-processing
+              {t("lighting.enablePost")}
             </label>
             <SliderField
-              label="Bloom"
+              label={t("lighting.bloom")}
               value={postProcessing.bloomIntensity}
               min={0}
               max={1}
@@ -247,7 +250,7 @@ export function LightingStudioPanel({
               }
             />
             <SliderField
-              label="Vignette"
+              label={t("lighting.vignette")}
               value={postProcessing.vignetteAmount}
               min={0}
               max={1}
@@ -257,7 +260,7 @@ export function LightingStudioPanel({
               }
             />
             <SliderField
-              label="Grain"
+              label={t("lighting.grain")}
               value={postProcessing.grainAmount}
               min={0}
               max={1}
@@ -265,7 +268,7 @@ export function LightingStudioPanel({
               onChange={(grainAmount) => onUpdatePostProcessing({ grainAmount })}
             />
             <SliderField
-              label="Chromatic aberration"
+              label={t("lighting.chromatic")}
               value={postProcessing.chromaticAberrationAmount}
               min={0}
               max={1}
@@ -275,7 +278,7 @@ export function LightingStudioPanel({
               }
             />
             <SliderField
-              label="Exposure"
+              label={t("lighting.exposure")}
               value={postProcessing.exposure}
               min={0.2}
               max={2.5}
@@ -283,7 +286,7 @@ export function LightingStudioPanel({
               onChange={(exposure) => onUpdatePostProcessing({ exposure })}
             />
             <SliderField
-              label="Contrast"
+              label={t("lighting.contrast")}
               value={postProcessing.contrast}
               min={0.2}
               max={2.5}
@@ -295,10 +298,10 @@ export function LightingStudioPanel({
           <section>
             <h3>
               <Palette size={15} />
-              Minecraft Materials
+              {t("lighting.materials")}
             </h3>
             <label>
-              Texture filtering
+              {t("lighting.filtering")}
               <select
                 value={resources.textureFiltering}
                 onChange={(event) =>
@@ -308,12 +311,12 @@ export function LightingStudioPanel({
                   })
                 }
               >
-                <option value="nearest">Nearest (Minecraft)</option>
-                <option value="linear">Linear</option>
+                <option value="nearest">{t("lighting.nearest")}</option>
+                <option value="linear">{t("lighting.linear")}</option>
               </select>
             </label>
             <label>
-              Default material
+              {t("lighting.defaultMaterial")}
               <select
                 value={resources.materials.defaultPresetId}
                 onChange={(event) =>
@@ -347,10 +350,10 @@ export function LightingStudioPanel({
                   })
                 }
               />
-              Biome color tint
+              {t("lighting.biomeTint")}
             </label>
             <label>
-              Biome tint preset
+              {t("lighting.biomePreset")}
               <select
                 value={resources.biomeTint.presetId}
                 onChange={(event) =>
@@ -366,7 +369,7 @@ export function LightingStudioPanel({
             </label>
             <div className="export-grid-2">
               <ColorField
-                label="Grass"
+                label={t("lighting.grass")}
                 value={resources.biomeTint.grassColor}
                 onChange={(grassColor) =>
                   onUpdateResources({
@@ -380,7 +383,7 @@ export function LightingStudioPanel({
                 }
               />
               <ColorField
-                label="Foliage"
+                label={t("lighting.foliage")}
                 value={resources.biomeTint.foliageColor}
                 onChange={(foliageColor) =>
                   onUpdateResources({
@@ -394,7 +397,7 @@ export function LightingStudioPanel({
                 }
               />
               <ColorField
-                label="Water"
+                label={t("lighting.water")}
                 value={resources.biomeTint.waterColor}
                 onChange={(waterColor) =>
                   onUpdateResources({
@@ -413,28 +416,28 @@ export function LightingStudioPanel({
           <section className="lighting-wide-section">
             <h3>
               <Upload size={15} />
-              Resource Packs
+              {t("lighting.resourcePacks")}
             </h3>
             <div className="world-import-actions">
               <button type="button" onClick={onChooseResourcePackZip}>
                 <Upload size={15} />
-                Import ZIP
+                {t("lighting.importZip")}
               </button>
               <button type="button" onClick={onChooseResourcePackFolder}>
                 <FolderOpen size={15} />
-                Import Folder
+                {t("lighting.importFolder")}
               </button>
               <button
                 type="button"
                 disabled={!resources.activeResourcePackId}
                 onClick={() => onSetActiveResourcePack(null)}
               >
-                Reset Textures
+                {t("lighting.resetTextures")}
               </button>
             </div>
             <div className="resource-pack-list">
               {resourcePacks.length === 0 ? (
-                <p className="empty-note">No resource pack imported.</p>
+                <p className="empty-note">{t("lighting.noResourcePack")}</p>
               ) : (
                 resourcePacks.map((pack) => (
                   <article
@@ -449,7 +452,7 @@ export function LightingStudioPanel({
                       <strong>{pack.name}</strong>
                       <span>{pack.metadata.description}</span>
                       <small>
-                        pack_format {pack.metadata.packFormat ?? "unknown"} / {pack.textures.length} block textures / {pack.sourceKind}
+                        {t("lighting.packSummary", { format: pack.metadata.packFormat ?? t("world.unknown"), count: pack.textures.length, source: pack.sourceKind })}
                       </small>
                       {pack.warnings.map((warning) => (
                         <small key={warning} className="warning-text">
@@ -462,12 +465,12 @@ export function LightingStudioPanel({
                         type="button"
                         onClick={() => onSetActiveResourcePack(pack.id)}
                       >
-                        Apply
+                        {t("lighting.apply")}
                       </button>
                       <button
                         type="button"
                         onClick={() => onRemoveResourcePack(pack.id)}
-                        aria-label={`Remove ${pack.name}`}
+                        aria-label={t("lighting.removePack", { name: pack.name })}
                       >
                         <Trash2 size={15} />
                       </button>
