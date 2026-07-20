@@ -17,4 +17,14 @@ export interface IKSolveResult {
   solved: boolean;
   rotations: Record<string, RigVector3Tuple>;
   warnings: string[];
+  reachedTarget?: boolean;
+  clamped?: boolean;
+  jointPosition?: RigVector3Tuple;
+  endPosition?: RigVector3Tuple;
+}
+
+export interface TwoBoneIKOptions {
+  rootPosition?: RigVector3Tuple;
+  poleDirection?: RigVector3Tuple;
+  influence?: number;
 }

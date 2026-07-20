@@ -164,6 +164,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Global `animation.tracks` are authoritative for bone motion. Legacy character
   `boneKeyframes` migrate missing frames and remain a regenerated compatibility
   projection across JSON, schema 9, packages, autosave, and history.
+- The pure two-bone IK solver handles reachable and clamped-unreachable targets,
+  deterministic pole fallback, per-joint component limits, and influence. It
+  reports finite analytic joint/end positions and hierarchical rotations.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -183,7 +186,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 90 frontend test files and 401 passing tests.
+- 91 frontend test files and 405 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -251,3 +254,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 19.1 keeps schema 10 unchanged and designates the existing global
   animation timeline as the sole bone-animation authority. The per-character
   track array survives only as a synchronized legacy projection.
+- Phase 19.2 keeps IK evaluation pure and renderer-neutral. Production controls
+  and bake must target the consolidated timeline in 19.3.

@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.1 - Rig contract and persistence consolidation
+19.2 - Deterministic two-bone IK solver
 
 ## Status
 
-IN_PROGRESS - Phase 18 is complete; Phase 19.1 is implemented and validated.
+IN_PROGRESS - Phase 19.1 and 19.2 are implemented and validated.
 
 ## Completed
 
@@ -195,15 +195,21 @@ IN_PROGRESS - Phase 18 is complete; Phase 19.1 is implemented and validated.
   character vectors, attachments, and saved poses are bounded and sanitized.
 - JSON, schema 9 rollback/reopen, project packages, autosave, history, rig lane,
   and Animator sampling preserve reconciled bones, attachments, and poses.
+- Phase 19.2 replaces the registered IK placeholder with a pure analytic two-bone
+  solver. It computes exact joint/end positions, hierarchical local rotations,
+  deterministic pole fallback, influence, component limits, and explicit reach.
+- Too-far and too-close targets clamp to physical reach with stable warnings;
+  invalid lengths, joint counts, target vectors, and root-coincident targets fail
+  without NaN/Infinity. Three.js quaternion reconstruction verifies rotations.
 
 ## In Progress
 
-- Phase 19.2 will replace the registered placeholder with deterministic two-bone
-  arm and leg IK math over the consolidated contract.
+- Phase 19.3 will add production hand/foot targets, pole controls, enable/
+  influence state, and bake solved limb rotations to existing timeline tracks.
 
 ## Not Started
 
-- Phase 19.2-19.15 and phases 20-35.
+- Phase 19.3-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -223,8 +229,8 @@ IN_PROGRESS - Phase 18 is complete; Phase 19.1 is implemented and validated.
 
 - `npm install`: PASS - 110 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- Focused Phase 19.1 tests: PASS - 7 files, 35 tests
-- `npm test`: PASS - 90 files, 401 tests
+- Focused Phase 19.2 tests: PASS - 1 file, 4 tests
+- `npm test`: PASS - 91 files, 405 tests
 - `npm run build`: PASS - 1,824 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
 - Native checks: not rerun because Phase 19.1 changes TypeScript/docs only.
@@ -233,5 +239,5 @@ IN_PROGRESS - Phase 18 is complete; Phase 19.1 is implemented and validated.
 
 ## Next Exact Action
 
-Implement deterministic two-bone IK for existing arm/leg chains with explicit
-reachable/unreachable behavior, limits, pole direction, and focused math tests.
+Add hand/foot targets, pole controls, enable/influence state, and deterministic
+bake-to-keyframes through the existing global bone animation tracks.

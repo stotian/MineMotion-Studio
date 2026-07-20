@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.2 with deterministic two-bone arm/leg IK. Phase 19.1 rig
-contract and persistence consolidation is complete and green.
+Continue Phase 19.3 with production IK controls and bake-to-keyframes. Phase
+19.2 analytic two-bone IK is complete and green.
 
 ## Completed Work
 
@@ -46,16 +46,18 @@ contract and persistence consolidation is complete and green.
   and saved poses are repaired or rejected without changing schema 10.
 - Global bone tracks are authoritative and legacy per-character tracks are a
   synchronized compatibility projection across all persistence paths.
+- Pure two-bone IK now returns finite analytic positions and hierarchical
+  rotations for reachable/clamped targets, pole fallback, limits, and influence.
 
 ## Unfinished Work
 
-- Phase 19.2-19.15 and phases 20-35 remain.
+- Phase 19.3-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Replace the current `solveTwoBoneIK` placeholder with pure deterministic math for
-arm and leg chains. Define reachable/unreachable, degenerate, limits, influence,
-and pole behavior before connecting controls or persistence.
+Define bounded IK control state for hand/foot targets and poles, connect it to
+existing Minecraft rig definitions, and bake evaluated upper/lower rotations to
+the authoritative timeline with one history checkpoint.
 
 ## Tests To Run
 

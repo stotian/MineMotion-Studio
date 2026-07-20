@@ -38,7 +38,8 @@ still required before changing code.
 | LIM-029 | Localization service and Top Bar were live, but remaining panels/status/errors/help still contained English production strings during Phase 18 migration | Yes | P4 | 18 | RESOLVED |
 | LIM-030 | English and French are complete; additional community locales still require reviewed catalog data and registration | Yes | P5 | Future/community | OPEN |
 | LIM-031 | Bone motion existed in both global timeline tracks and per-character `boneKeyframes` without deterministic reconciliation | Yes | P1 | 19.1 | RESOLVED |
-| LIM-032 | Two-bone IK types are registered but the current solver intentionally returns an unsolved placeholder | Yes | P1 | 19.2 | IN_PROGRESS |
+| LIM-032 | Two-bone IK types were registered but the solver intentionally returned an unsolved placeholder | Yes | P1 | 19.2 | RESOLVED |
+| LIM-033 | Two-bone IK math is validated, but production hand/foot controls and bake-to-timeline are not connected yet | Yes | P1 | 19.3 | IN_PROGRESS |
 
 ## Phase 15.1 Outcome
 

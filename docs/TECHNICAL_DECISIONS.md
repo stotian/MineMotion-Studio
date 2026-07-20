@@ -360,3 +360,15 @@ projection deterministically.
 Do not add a parallel IK, constraint, procedural, or layer timeline. Future Phase
 19 systems must evaluate into or bake to the existing global track contract.
 Schema 10 remains unchanged for this consolidation milestone.
+
+## TD-029 - Keep two-bone IK analytic, pure, and timeline-neutral
+
+Status: Accepted in Phase 19.2.
+
+Solve two positive-length segments from explicit root, target, pole direction,
+limits, and influence inputs. The solver returns plain finite joint/end positions
+and hierarchical XYZ-degree rotations. Reach violations clamp to physical bounds
+with stable warnings; malformed or degenerate input fails explicitly.
+
+The solver owns no persistent state and edits no project. Phase 19.3 controls
+must bake its output through the existing global `bone.rotation.*` tracks.
