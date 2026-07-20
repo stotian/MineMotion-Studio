@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-Phase 18 - Localization and Internationalization (complete)
+Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-18.12 - Production string audit and Phase 18 closure
+19.1 - Rig contract and persistence consolidation
 
 ## Status
 
-COMPLETE - all Phase 18 tasks and acceptance criteria are implemented.
+IN_PROGRESS - Phase 18 is complete; Phase 19.1 is implemented and validated.
 
 ## Completed
 
@@ -185,18 +185,29 @@ COMPLETE - all Phase 18 tasks and acceptance criteria are implemented.
 - Automatic catalog parity, missing/extra key, placeholder, raw production
   string, pseudolocale length, French overflow, and small-window CSS gates run
   through `npm run verify:locales`.
+- Phase 19.1 adds a versioned bounded rig contract over the existing Steve,
+  Alex, generic, mob-placeholder, bone, attachment, pose, and track types.
+- The global animation timeline is now explicitly authoritative for bone motion.
+  Legacy per-character `boneKeyframes` migrate into missing global frames and are
+  regenerated as a compatibility projection on every persistence boundary.
+- Existing track values win deterministic conflicts. Rig definitions reject
+  duplicate/missing/cyclic bones, bad vectors, and invalid attachment points;
+  character vectors, attachments, and saved poses are bounded and sanitized.
+- JSON, schema 9 rollback/reopen, project packages, autosave, history, rig lane,
+  and Animator sampling preserve reconciled bones, attachments, and poses.
 
 ## In Progress
 
-- None. Phase 19 is the next READY phase.
+- Phase 19.2 will replace the registered placeholder with deterministic two-bone
+  arm and leg IK math over the consolidated contract.
 
 ## Not Started
 
-- Phases 19-35.
+- Phase 19.2-19.15 and phases 20-35.
 
 ## Blockers
 
-- None for current Phase 18 TypeScript work.
+- None for current Phase 19 TypeScript work.
 - Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -205,23 +216,22 @@ COMPLETE - all Phase 18 tasks and acceptance criteria are implemented.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 18 is the validated checkpoint containing this document; Git history
+- Phase 19.1 is the validated checkpoint containing this document; Git history
   remains the source of truth for its resulting commit hash.
 
 ## Last Validation
 
 - `npm install`: PASS - 110 packages audited, 0 vulnerabilities
 - `npm run typecheck`: PASS
-- `npm run verify:locales`: PASS - 4 files, 11 tests
-- Focused VFX localization/package regression: PASS - 3 files, 11 tests
-- `npm test`: PASS - 88 files, 396 tests
-- `npm run build`: PASS - 1,823 modules; existing large-chunk warning only
+- Focused Phase 19.1 tests: PASS - 7 files, 35 tests
+- `npm test`: PASS - 90 files, 401 tests
+- `npm run build`: PASS - 1,824 modules; existing large-chunk warning only
 - `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 18 changes TypeScript/docs only.
+- Native checks: not rerun because Phase 19.1 changes TypeScript/docs only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process`; automated characterization passes.
 
 ## Next Exact Action
 
-Read only `completion-pack/phases/19_RIGGING_AND_CONSTRAINTS.md`, reconcile it
-with repository reality, and implement the first READY Phase 19 milestone.
+Implement deterministic two-bone IK for existing arm/leg chains with explicit
+reachable/unreachable behavior, limits, pole direction, and focused math tests.

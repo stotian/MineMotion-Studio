@@ -37,6 +37,8 @@ still required before changing code.
 | LIM-028 | Custom package source updates are not automatically rebased into already embedded project recipes; projects keep the inserted version and show a version-change warning | Yes | P4 | 17/future | OPEN_SAFE_DEFAULT |
 | LIM-029 | Localization service and Top Bar were live, but remaining panels/status/errors/help still contained English production strings during Phase 18 migration | Yes | P4 | 18 | RESOLVED |
 | LIM-030 | English and French are complete; additional community locales still require reviewed catalog data and registration | Yes | P5 | Future/community | OPEN |
+| LIM-031 | Bone motion existed in both global timeline tracks and per-character `boneKeyframes` without deterministic reconciliation | Yes | P1 | 19.1 | RESOLVED |
+| LIM-032 | Two-bone IK types are registered but the current solver intentionally returns an unsolved placeholder | Yes | P1 | 19.2 | IN_PROGRESS |
 
 ## Phase 15.1 Outcome
 

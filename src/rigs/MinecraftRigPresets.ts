@@ -1,6 +1,7 @@
 import type { RigBone } from "./Bone";
 import type { RigDefinition, RigAttachmentPoint } from "./RigDefinition";
 import type { RigPresetId } from "./RigTypes";
+import { validateRigDefinition, type RigContractIssue } from "./RigContract";
 
 function playerBones(armWidth: 3 | 4, includeCape = true): RigBone[] {
   const armSize = armWidth === 3 ? 0.3 : 0.4;
@@ -182,6 +183,20 @@ export const MINECRAFT_RIG_PRESETS: RigDefinition[] = [
   mobPlaceholder("creeper", "Creeper", "Creeper placeholder mapped to core bones."),
   mobPlaceholder("enderman", "Enderman", "Enderman placeholder mapped to core bones.")
 ];
+
+export function validateMinecraftRigPresetCatalog(): readonly RigContractIssue[] {
+  return Object.freeze(MINECRAFT_RIG_PRESETS.flatMap((definition) =>
+    validateRigDefinition(definition).map((entry) => ({
+      ...entry,
+      path: `${definition.id}.${entry.path}`
+    }))
+  ));
+}
+
+const RIG_CATALOG_ISSUES = validateMinecraftRigPresetCatalog();
+if (RIG_CATALOG_ISSUES.length > 0) {
+  throw new Error(RIG_CATALOG_ISSUES.map((entry) => `[${entry.code}] ${entry.path}`).join(" "));
+}
 
 export function normalizeRigPresetId(presetId: string | undefined): RigPresetId {
   if (presetId === "default_steve") return "steve";

@@ -3,6 +3,12 @@ import { getDefaultBoneRotations } from "./RigDefinition";
 import { getRigDefinition, normalizeRigPresetId } from "./MinecraftRigPresets";
 import { createDefaultCharacterAttachments } from "./RigInstance";
 import type { RigProjectData, RigVector3Tuple } from "./RigTypes";
+import {
+  RIG_CONTRACT_LIMITS,
+  sanitizeRigAttachments,
+  sanitizeRigPose,
+  sanitizeRigVector
+} from "./RigContract";
 
 export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntity {
   const rigPreset = normalizeRigPresetId(character.rigPreset);
@@ -10,12 +16,9 @@ export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntit
   const defaults = getDefaultBoneRotations(definition);
   const boneRotations: Record<string, RigVector3Tuple> = { ...defaults };
 
-  for (const [boneId, rotation] of Object.entries(character.boneRotations ?? {})) {
-    boneRotations[boneId] = [
-      Number(rotation?.[0] ?? 0),
-      Number(rotation?.[1] ?? 0),
-      Number(rotation?.[2] ?? 0)
-    ];
+  for (const [boneId, rotation] of Object.entries(character.boneRotations ?? {}).slice(0, RIG_CONTRACT_LIMITS.bones)) {
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(boneId)) continue;
+    boneRotations[boneId] = sanitizeRigVector(rotation, defaults[boneId]);
   }
 
   return {
@@ -28,7 +31,11 @@ export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntit
         : "body",
     boneRotations,
     skin: character.skin ?? null,
-    attachments: character.attachments ?? createDefaultCharacterAttachments(),
+    attachments: sanitizeRigAttachments(
+      character.attachments,
+      definition,
+      createDefaultCharacterAttachments()
+    ),
     boneKeyframes: character.boneKeyframes ?? []
   };
 }
@@ -37,7 +44,12 @@ export function sanitizeRigProjectData(
   rigs: Partial<RigProjectData> | undefined
 ): RigProjectData {
   return {
-    savedPoses: Array.isArray(rigs?.savedPoses) ? rigs.savedPoses : [],
+    savedPoses: Array.isArray(rigs?.savedPoses)
+      ? rigs.savedPoses
+          .slice(0, RIG_CONTRACT_LIMITS.poses)
+          .map((pose, index) => sanitizeRigPose(pose, index))
+          .filter((pose): pose is NonNullable<typeof pose> => pose !== null)
+      : [],
     animationClips: Array.isArray(rigs?.animationClips) ? rigs.animationClips : [],
     blockbenchModels: Array.isArray(rigs?.blockbenchModels)
       ? rigs.blockbenchModels

@@ -20,6 +20,7 @@ import {
   sanitizeCharacterRig,
   sanitizeRigProjectData
 } from "../rigs/RigSerializer";
+import { reconcileRigAnimation } from "../rigs/RigContract";
 import type {
   MineMotionProject,
   TimelineItem,
@@ -77,11 +78,39 @@ export class ProjectSerializer {
   }
 
   static toSerializableProject(project: MineMotionProject): MineMotionProject {
-    const normalized: MineMotionProject = {
+    const sanitizedCharacters = project.scene.characters.map(sanitizeCharacterRig);
+    const reconciledRigAnimation = reconcileRigAnimation(
+      sanitizedCharacters,
+      project.animation.tracks,
+      project.animation.durationFrames
+    );
+    const normalizedTracks = ensureKeyframeMetadata(reconciledRigAnimation.tracks);
+    const normalizedBase: MineMotionProject = {
       ...project,
       schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
+      scene: {
+        ...project.scene,
+        characters: reconciledRigAnimation.characters
+      },
+      rigs: sanitizeRigProjectData(project.rigs),
+      animation: {
+        ...project.animation,
+        tracks: normalizedTracks
+      },
       effects: {
         instances: normalizeEffectsForSchema10(project.effects.instances)
+      }
+    };
+    const rigItems = getRigTimelineItems(normalizedBase);
+    const normalized: MineMotionProject = {
+      ...normalizedBase,
+      animation: {
+        ...normalizedBase.animation,
+        timelineTracks: normalizedBase.animation.timelineTracks.map((lane) =>
+          lane.id === "track_rig_main"
+            ? { ...lane, type: "rig", items: rigItems }
+            : lane
+        )
       }
     };
     ProjectSerializer.assertValidProject(normalized);
@@ -173,7 +202,7 @@ export class ProjectSerializer {
     const timelineTracks = sanitizeTimelineTracks(
       project.animation?.timelineTracks
     );
-    const characters = (project.scene?.characters ?? []).map((entity) =>
+    const initialCharacters = (project.scene?.characters ?? []).map((entity) =>
       sanitizeCharacterRig({
         ...entity,
         locked: entity.locked ?? false,
@@ -198,6 +227,12 @@ export class ProjectSerializer {
         project.animation?.durationFrames ??
         settingsDefaults.durationFrames
     };
+    const reconciledRigAnimation = reconcileRigAnimation(
+      initialCharacters,
+      project.animation?.tracks ?? [],
+      projectSettings.durationFrames
+    );
+    const characters = reconciledRigAnimation.characters;
 
     return {
       ...(project as MineMotionProject),
@@ -294,7 +329,7 @@ export class ProjectSerializer {
         durationFrames: projectSettings.durationFrames,
         currentFrame: project.animation?.currentFrame ?? 0,
         isPlaying: project.animation?.isPlaying ?? false,
-        tracks: ensureKeyframeMetadata(project.animation?.tracks ?? []),
+        tracks: ensureKeyframeMetadata(reconciledRigAnimation.tracks),
         timelineTracks: ProjectSerializer.withTimelineDefaults(
           {
             ...(project as MineMotionProject),

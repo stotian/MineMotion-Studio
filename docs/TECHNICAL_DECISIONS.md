@@ -346,3 +346,17 @@ Package localization remains a narrower untrusted-data boundary: a validated,
 bounded `minemotion-localization` asset may supply only `package.displayName`
 and `package.description`. Locale matching is deterministic and falls back to
 the manifest. Package keys cannot override application catalogs or project data.
+
+## TD-028 - Make global animation tracks authoritative for rig motion
+
+Status: Accepted in Phase 19.1.
+
+The existing `animation.tracks` collection is the sole runtime/editing authority
+for `bone.rotation.*`. The older `character.boneKeyframes` array is a compatibility
+projection: missing legacy frames migrate into the global track, an existing
+global value wins a same-frame conflict, and serialization regenerates the
+projection deterministically.
+
+Do not add a parallel IK, constraint, procedural, or layer timeline. Future Phase
+19 systems must evaluate into or bake to the existing global track contract.
+Schema 10 remains unchanged for this consolidation milestone.

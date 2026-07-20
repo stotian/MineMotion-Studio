@@ -159,6 +159,11 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Validated package localization data may override only VFX package display name
   and description. Exact/language matching falls back to immutable manifest
   content and never executes or changes project data.
+- A versioned bounded rig contract validates the existing preset hierarchies and
+  sanitizes current character vectors, attachments, and saved poses.
+- Global `animation.tracks` are authoritative for bone motion. Legacy character
+  `boneKeyframes` migrate missing frames and remain a regenerated compatibility
+  projection across JSON, schema 9, packages, autosave, and history.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -178,7 +183,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 88 frontend test files and 396 passing tests.
+- 90 frontend test files and 401 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -243,3 +248,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 18 keeps locale preference in app settings and all translation logic in
   one service/context. Project schema, stable error codes, technical identifiers,
   paths, and user-authored content remain unchanged by locale selection.
+- Phase 19.1 keeps schema 10 unchanged and designates the existing global
+  animation timeline as the sole bone-animation authority. The per-character
+  track array survives only as a synchronized legacy projection.

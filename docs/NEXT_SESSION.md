@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 19 from its active completion-pack file. Phase 18 is complete and
-its full TypeScript gate is green.
+Continue Phase 19.2 with deterministic two-bone arm/leg IK. Phase 19.1 rig
+contract and persistence consolidation is complete and green.
 
 ## Completed Work
 
@@ -42,22 +42,26 @@ its full TypeScript gate is green.
   shortcut surfaces switch live without mutating project data.
 - Stable localized diagnostics, safe package-owned display translations, raw
   string detection, and long French/small-window layout gates are active.
+- Existing rig definitions are bounded/validated; invalid vectors, attachments,
+  and saved poses are repaired or rejected without changing schema 10.
+- Global bone tracks are authoritative and legacy per-character tracks are a
+  synchronized compatibility projection across all persistence paths.
 
 ## Unfinished Work
 
-- Phases 19-35 remain.
+- Phase 19.2-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Read only `completion-pack/phases/19_RIGGING_AND_CONSTRAINTS.md`, inventory the
-existing rig/constraint reality, and implement its first stable milestone without
-creating a parallel rig or animation authority.
+Replace the current `solveTwoBoneIK` placeholder with pure deterministic math for
+arm and leg chains. Define reachable/unreachable, degenerate, limits, influence,
+and pole behavior before connecting controls or persistence.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npm run verify:locales
+npx vitest run src/rigs
 npm test
 npm run build
 npm audit
