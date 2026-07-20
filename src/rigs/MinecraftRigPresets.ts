@@ -37,43 +37,91 @@ function playerBones(armWidth: 3 | 4, includeCape = true): RigBone[] {
     },
     {
       id: "leftArm",
-      label: "Left Arm",
+      label: "Left Upper Arm",
       parentId: "body",
-      size: [armSize, 1.2, 0.4],
-      pivot: [0, 0.48, 0],
-      offset: [-shoulderOffset, 0.12, 0],
+      size: [armSize, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [-shoulderOffset, 1.2, 0],
       skinPart: "leftArm",
+      skinSegment: "upper",
       mirrorOf: "rightArm"
     },
     {
+      id: "leftForearm",
+      label: "Left Forearm",
+      parentId: "leftArm",
+      size: [armSize, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [0, -0.6, 0],
+      skinPart: "leftArm",
+      skinSegment: "lower",
+      mirrorOf: "rightForearm"
+    },
+    {
       id: "rightArm",
-      label: "Right Arm",
+      label: "Right Upper Arm",
       parentId: "body",
-      size: [armSize, 1.2, 0.4],
-      pivot: [0, 0.48, 0],
-      offset: [shoulderOffset, 0.12, 0],
+      size: [armSize, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [shoulderOffset, 1.2, 0],
       skinPart: "rightArm",
+      skinSegment: "upper",
       mirrorOf: "leftArm"
     },
     {
+      id: "rightForearm",
+      label: "Right Forearm",
+      parentId: "rightArm",
+      size: [armSize, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [0, -0.6, 0],
+      skinPart: "rightArm",
+      skinSegment: "lower",
+      mirrorOf: "leftForearm"
+    },
+    {
       id: "leftLeg",
-      label: "Left Leg",
+      label: "Left Upper Leg",
       parentId: "root",
-      size: [0.4, 1.2, 0.4],
-      pivot: [0, 0.5, 0],
-      offset: [-0.2, 0.02, 0],
+      size: [0.4, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [-0.2, 1.12, 0],
       skinPart: "leftLeg",
+      skinSegment: "upper",
       mirrorOf: "rightLeg"
     },
     {
+      id: "leftLowerLeg",
+      label: "Left Lower Leg",
+      parentId: "leftLeg",
+      size: [0.4, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [0, -0.6, 0],
+      skinPart: "leftLeg",
+      skinSegment: "lower",
+      mirrorOf: "rightLowerLeg"
+    },
+    {
       id: "rightLeg",
-      label: "Right Leg",
+      label: "Right Upper Leg",
       parentId: "root",
-      size: [0.4, 1.2, 0.4],
-      pivot: [0, 0.5, 0],
-      offset: [0.2, 0.02, 0],
+      size: [0.4, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [0.2, 1.12, 0],
       skinPart: "rightLeg",
+      skinSegment: "upper",
       mirrorOf: "leftLeg"
+    },
+    {
+      id: "rightLowerLeg",
+      label: "Right Lower Leg",
+      parentId: "rightLeg",
+      size: [0.4, 0.6, 0.4],
+      pivot: [0, -0.3, 0],
+      offset: [0, -0.6, 0],
+      skinPart: "rightLeg",
+      skinSegment: "lower",
+      mirrorOf: "leftLowerLeg"
     },
     ...(includeCape
       ? [
@@ -96,15 +144,15 @@ const PLAYER_ATTACHMENT_POINTS: RigAttachmentPoint[] = [
   {
     id: "rightHand",
     label: "Right Hand",
-    boneId: "rightArm",
-    offset: [0, -0.18, -0.08],
+    boneId: "rightForearm",
+    offset: [0, -0.66, -0.08],
     rotation: [0, 0, 0]
   },
   {
     id: "leftHand",
     label: "Left Hand",
-    boneId: "leftArm",
-    offset: [0, -0.18, -0.08],
+    boneId: "leftForearm",
+    offset: [0, -0.66, -0.08],
     rotation: [0, 0, 0]
   },
   {

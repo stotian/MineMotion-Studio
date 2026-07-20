@@ -75,7 +75,8 @@ function createBoneObject(bone: RigBone, character: CharacterEntity): THREE.Grou
       geometry,
       skinPart,
       character.skin.metadata.modelType,
-      character.skin.metadata.legacy
+      character.skin.metadata.legacy,
+      bone.skinSegment
     );
   }
 
@@ -111,8 +112,8 @@ function materialForBone(bone: RigBone, character: CharacterEntity): THREE.Mater
   if (bone.id === "body") return MATERIALS.body;
   if (bone.id === "head") return MATERIALS.head;
   if (bone.id === "cape") return MATERIALS.cape;
-  if (bone.id.includes("Arm")) return MATERIALS.arm;
-  if (bone.id.includes("Leg")) return MATERIALS.leg;
+  if (bone.id.toLowerCase().includes("arm")) return MATERIALS.arm;
+  if (bone.id.toLowerCase().includes("leg")) return MATERIALS.leg;
   return MATERIALS.body;
 }
 

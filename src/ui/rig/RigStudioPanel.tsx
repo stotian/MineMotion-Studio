@@ -1,9 +1,12 @@
-import { Bone, Box, Film, RefreshCw, Upload, X } from "lucide-react";
+import { useState } from "react";
+import { Bone, Box, Film, RefreshCw, SlidersHorizontal, Upload, X } from "lucide-react";
 import type { AnimationPreset } from "../../presets/AnimationPresets";
 import type { RigPosePreset } from "../../presets/RigPosePresets";
 import type { CharacterEntity, MineMotionProject } from "../../project/ProjectFile";
 import { getSelectedCharacterId } from "../../rigs/RigSelection";
 import { useLocalization } from "../../localization/LocalizationContext";
+import type { RigIKControl } from "../../rigs/IK/IKControl";
+import type { RigVector3Tuple } from "../../rigs/RigTypes";
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -11,6 +14,8 @@ interface RigStudioPanelProps {
   selectedObjectId: string | null;
   posePresets: RigPosePreset[];
   animationPresets: AnimationPreset[];
+  ikControls: readonly RigIKControl[];
+  ikWarnings: readonly string[];
   onClose: () => void;
   onImportSkin: (characterId: string) => void;
   onResetSkin: (characterId: string) => void;
@@ -20,6 +25,8 @@ interface RigStudioPanelProps {
   onResetPose: (characterId: string) => void;
   onApplyAnimation: (presetId: string) => void;
   onImportBlockbench: () => void;
+  onUpdateIKControl: (controlId: string, patch: Partial<RigIKControl>) => void;
+  onBakeIKControl: (controlId: string) => void;
 }
 
 export function RigStudioPanel({
@@ -28,6 +35,8 @@ export function RigStudioPanel({
   selectedObjectId,
   posePresets,
   animationPresets,
+  ikControls,
+  ikWarnings,
   onClose,
   onImportSkin,
   onResetSkin,
@@ -36,10 +45,13 @@ export function RigStudioPanel({
   onMirrorPose,
   onResetPose,
   onApplyAnimation,
-  onImportBlockbench
+  onImportBlockbench,
+  onUpdateIKControl,
+  onBakeIKControl
 }: RigStudioPanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
+  const [selectedIKControlId, setSelectedIKControlId] = useState("ik:leftArm");
   if (!open) return null;
 
   const selectedCharacterId = getSelectedCharacterId(selectedObjectId);
@@ -50,6 +62,7 @@ export function RigStudioPanel({
   const rigAnimations = animationPresets.filter((preset) =>
     preset.targetTypes.includes("character")
   );
+  const selectedIKControl = ikControls.find((control) => control.id === selectedIKControlId) ?? ikControls[0] ?? null;
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -130,6 +143,72 @@ export function RigStudioPanel({
           </section>
           <section>
             <h3>
+              <SlidersHorizontal size={15} />
+              {t("rig.ik.title")}
+            </h3>
+            {selectedIKControl ? (
+              <div className="rig-ik-controls">
+                <div className="info-row">
+                  <label htmlFor="rig-ik-limb">{t("rig.ik.target")}</label>
+                  <select
+                    id="rig-ik-limb"
+                    value={selectedIKControl.id}
+                    onChange={(event) => setSelectedIKControlId(event.target.value)}
+                  >
+                    {ikControls.map((control) => (
+                      <option key={control.id} value={control.id}>{control.targetLabel}</option>
+                    ))}
+                  </select>
+                </div>
+                <label className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={selectedIKControl.enabled}
+                    onChange={(event) => onUpdateIKControl(selectedIKControl.id, { enabled: event.target.checked })}
+                  />
+                  {t("rig.ik.enabled")}
+                </label>
+                <label>
+                  <span>{t("rig.ik.influence")}: {localization.formatNumber(selectedIKControl.influence)}</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={selectedIKControl.influence}
+                    onChange={(event) => onUpdateIKControl(selectedIKControl.id, { influence: Number(event.target.value) })}
+                  />
+                </label>
+                <VectorEditor
+                  label={t("rig.ik.position")}
+                  value={selectedIKControl.targetPosition}
+                  onChange={(targetPosition) => onUpdateIKControl(selectedIKControl.id, { targetPosition })}
+                />
+                <VectorEditor
+                  label={t("rig.ik.pole")}
+                  value={selectedIKControl.poleDirection}
+                  onChange={(poleDirection) => onUpdateIKControl(selectedIKControl.id, { poleDirection })}
+                />
+                <div className="info-row">
+                  <span>{t("rig.ik.frame")}</span>
+                  <strong>{localization.formatNumber(project.animation.currentFrame)}</strong>
+                </div>
+                <button
+                  type="button"
+                  disabled={!selectedIKControl.enabled}
+                  onClick={() => onBakeIKControl(selectedIKControl.id)}
+                >
+                  {t("rig.ik.bake")}
+                </button>
+                <small className="empty-note">{t("rig.ik.sessionNote")}</small>
+                {ikWarnings.map((warning) => <small key={warning} className="warning-text">{warning}</small>)}
+              </div>
+            ) : (
+              <p className="empty-note">{character ? t("rig.ik.unsupported") : t("rig.selectPrompt")}</p>
+            )}
+          </section>
+          <section>
+            <h3>
               <Box size={15} />
               {t("rig.blockbench")}
             </h3>
@@ -155,6 +234,39 @@ export function RigStudioPanel({
         </div>
       </div>
     </div>
+  );
+}
+
+function VectorEditor({
+  label,
+  value,
+  onChange
+}: {
+  label: string;
+  value: RigVector3Tuple;
+  onChange: (value: RigVector3Tuple) => void;
+}) {
+  return (
+    <fieldset className="rig-vector-editor">
+      <legend>{label}</legend>
+      {(["X", "Y", "Z"] as const).map((axis, index) => (
+        <label key={axis}>
+          <span>{axis}</span>
+          <input
+            type="number"
+            min={-10_000}
+            max={10_000}
+            step={0.05}
+            value={value[index]}
+            onChange={(event) => {
+              const next = [...value] as RigVector3Tuple;
+              next[index] = Number(event.target.value);
+              onChange(next);
+            }}
+          />
+        </label>
+      ))}
+    </fieldset>
   );
 }
 

@@ -80,7 +80,6 @@ import type {
 import { pluginRegistry } from "./plugins/PluginRegistry";
 import { applyCameraPreset } from "./presets/CameraPresets";
 import { presetRegistry } from "./presets/PresetRegistry";
-import { applyRigPosePreset } from "./presets/RigPosePresets";
 import { syncCinematicTimeline } from "./project/CinematicTimeline";
 import { PackageReader } from "./project/package/PackageReader";
 import { PackageWriter } from "./project/package/PackageWriter";
@@ -134,20 +133,11 @@ import { restoreRenderState } from "./rendering/export/RenderStateRestore";
 import { type SkyPresetId } from "./renderer/SkySystem";
 import { Viewport } from "./renderer/Viewport";
 import { BlockbenchImporter } from "./rigs/blockbench/BlockbenchImporter";
-import { getDefaultBoneRotations } from "./rigs/RigDefinition";
-import { getRigDefinition } from "./rigs/MinecraftRigPresets";
 import { MinecraftSkinImporter } from "./rigs/MinecraftSkinImporter";
-import {
-  addBoneRotationKeyframe,
-  updateProjectBoneRotation
-} from "./rigs/RigController";
-import {
-  mirrorCurrentPose,
-  resetRigPose,
-  savePoseFromCharacter
-} from "./rigs/RigInstance";
 import { getSelectedCharacterId, parseRigBoneSelection } from "./rigs/RigSelection";
-import type { RigPresetId } from "./rigs/RigTypes";
+import { previewRigIKControls } from "./rigs/IK/RigIKController";
+import { useRigIKSession } from "./rigs/IK/useRigIKSession";
+import { useRigWorkspaceController } from "./rigs/RigWorkspaceController";
 import { SettingsStore, type AppSettings } from "./settings/AppSettings";
 import { templateRegistry } from "./templates/TemplateRegistry";
 import { TopBar } from "./ui/TopBar";
@@ -290,6 +280,7 @@ export function App() {
     () => findObject(project, selectedObjectId)?.entity ?? null,
     [project, selectedObjectId]
   );
+  const rigIKSession = useRigIKSession(project, selectedObjectId);
 
   useEffect(() => {
     if (
@@ -300,7 +291,7 @@ export function App() {
     }
   }, [project.effects.instances, selectedEffectId]);
 
-  const displayProject = useMemo(() => {
+  const animatedProject = useMemo(() => {
     const timelineFrame = project.animation.currentFrame;
     const sampled = sampleProjectAnimationWithVfxTiming(project, timelineFrame);
     return sampleEnvironmentProject(
@@ -311,6 +302,11 @@ export function App() {
       timelineFrame
     );
   }, [project]);
+  const rigIKPreview = useMemo(
+    () => previewRigIKControls(animatedProject, rigIKSession.characterId, rigIKSession.controls),
+    [animatedProject, rigIKSession.characterId, rigIKSession.controls]
+  );
+  const displayProject = rigIKPreview.project;
 
   useEffect(() => {
     SettingsStore.save(settings);
@@ -438,6 +434,14 @@ export function App() {
     },
     [setProject]
   );
+  const rigWorkspace = useRigWorkspaceController({
+    project,
+    selectedObjectId,
+    ikSession: rigIKSession,
+    commitProject,
+    setStatus,
+    tr
+  });
 
   const replaceProject = useCallback((nextProject: MineMotionProject, label: string) => {
     historyRef.current.clear();
@@ -1730,132 +1734,6 @@ export function App() {
     setStatus(tr("app.duplicated", { name: lookup.entity.name }));
   }, [commitProject, project, selectedObjectId]);
 
-  const handleUpdateBoneRotation = useCallback(
-    (characterId: string, boneId: string, rotation: [number, number, number]) => {
-      const character = project.scene.characters.find((item) => item.id === characterId);
-      if (character?.locked) {
-        setStatus(tr("app.entityLocked", { name: character.name }));
-        return;
-      }
-      commitProject(
-        (currentProject) =>
-          updateProjectBoneRotation(currentProject, characterId, boneId, rotation),
-        "Edit bone rotation"
-      );
-      setStatus(tr("app.boneUpdated", { bone: boneId }));
-    },
-    [commitProject, project.scene.characters]
-  );
-
-  const handleAddBoneKeyframe = useCallback(
-    (characterId: string, boneId: string) => {
-      commitProject(
-        (currentProject) =>
-          syncCinematicTimeline(
-            addBoneRotationKeyframe(
-              currentProject,
-              characterId,
-              boneId,
-              currentProject.animation.currentFrame
-            )
-          ),
-        "Add bone keyframe"
-      );
-      setStatus(tr("app.boneKey", { bone: boneId, frame: project.animation.currentFrame }));
-    },
-    [commitProject, project.animation.currentFrame]
-  );
-
-  const handleResetPose = useCallback(
-    (characterId: string) => {
-      commitProject(
-        (currentProject) => ({
-          ...currentProject,
-          scene: {
-            ...currentProject.scene,
-            characters: currentProject.scene.characters.map((character) =>
-              character.id === characterId ? resetRigPose(character) : character
-            )
-          }
-        }),
-        "Reset rig pose"
-      );
-      setStatus(tr("app.poseReset"));
-    },
-    [commitProject]
-  );
-
-  const handleMirrorPose = useCallback(
-    (characterId: string) => {
-      commitProject(
-        (currentProject) => ({
-          ...currentProject,
-          scene: {
-            ...currentProject.scene,
-            characters: currentProject.scene.characters.map((character) =>
-              character.id === characterId ? mirrorCurrentPose(character) : character
-            )
-          }
-        }),
-        "Mirror rig pose"
-      );
-      setStatus(tr("app.poseMirrored"));
-    },
-    [commitProject]
-  );
-
-  const handleSaveCurrentPose = useCallback(
-    (characterId: string) => {
-      const character = project.scene.characters.find((item) => item.id === characterId);
-      if (!character) return;
-      const name = window.prompt(tr("app.posePrompt"), tr("app.poseDefault", { name: character.name }));
-      if (!name) return;
-      const pose = savePoseFromCharacter(character, name);
-      commitProject(
-        (currentProject) => ({
-          ...currentProject,
-          rigs: {
-            ...currentProject.rigs,
-            savedPoses: [...currentProject.rigs.savedPoses, pose]
-          }
-        }),
-        "Save current pose"
-      );
-      setStatus(tr("app.poseSaved", { name: pose.name }));
-    },
-    [commitProject, project.scene.characters]
-  );
-
-  const handleChangeRigPreset = useCallback(
-    (characterId: string, presetId: RigPresetId) => {
-      const definition = getRigDefinition(presetId);
-      commitProject(
-        (currentProject) => ({
-          ...currentProject,
-          scene: {
-            ...currentProject.scene,
-            characters: currentProject.scene.characters.map((character) =>
-              character.id === characterId
-                ? {
-                    ...character,
-                    rigPreset: definition.id,
-                    modelType: definition.modelType,
-                    boneRotations: {
-                      ...getDefaultBoneRotations(definition),
-                      ...character.boneRotations
-                    }
-                  }
-                : character
-            )
-          }
-        }),
-        "Change rig preset"
-      );
-      setStatus(tr("app.rigChanged", { name: definition.name }));
-    },
-    [commitProject]
-  );
-
   const handleDeleteSelectedObject = useCallback(() => {
     if (!selectedObjectId) return;
     const lookup = findObject(project, selectedObjectId);
@@ -1908,7 +1786,7 @@ export function App() {
   const handleAddKeyframe = useCallback(() => {
     const boneSelection = parseRigBoneSelection(selectedObjectId);
     if (boneSelection) {
-      handleAddBoneKeyframe(boneSelection.characterId, boneSelection.boneId);
+      rigWorkspace.addBoneKeyframe(boneSelection.characterId, boneSelection.boneId);
       return;
     }
 
@@ -1935,7 +1813,7 @@ export function App() {
     setStatus(
       tr("app.transformKey", { name: lookup.entity.name, frame: project.animation.currentFrame })
     );
-  }, [commitProject, handleAddBoneKeyframe, project, selectedObjectId]);
+  }, [commitProject, project, rigWorkspace.addBoneKeyframe, selectedObjectId]);
 
   const handleSkyChange = useCallback(
     (preset: SkyPresetId, customColor: string) => {
@@ -2252,50 +2130,6 @@ export function App() {
     [commitProject, selectedObjectId]
   );
 
-  const handleApplyRigPosePreset = useCallback(
-    (presetId: string) => {
-      const characterId =
-        getSelectedCharacterId(selectedObjectId) ?? project.scene.characters[0]?.id;
-      if (!characterId) return;
-      const preset =
-        presetRegistry.getRigPosePreset(presetId) ??
-        project.rigs.savedPoses.find((candidate) => candidate.id === presetId);
-      if (!preset) return;
-      commitProject(
-        (currentProject) => ({
-          ...currentProject,
-          scene: {
-            ...currentProject.scene,
-            characters: currentProject.scene.characters.map((character) =>
-              character.id === characterId
-                ? applyRigPosePreset(character, preset)
-                : character
-            )
-          }
-        }),
-        "Apply rig pose preset"
-      );
-      setStatus(tr("app.poseApplied", { name: preset.name }));
-    },
-    [commitProject, project.rigs.savedPoses, project.scene.characters, selectedObjectId]
-  );
-
-  const handleApplyAnimationPreset = useCallback(
-    (presetId: string) => {
-      const targetId =
-        getSelectedCharacterId(selectedObjectId) ?? project.scene.characters[0]?.id;
-      if (!targetId) return;
-      const preset = presetRegistry.getAnimationPreset(presetId);
-      if (!preset) return;
-      commitProject(
-        (currentProject) => syncCinematicTimeline(preset.apply(currentProject, targetId)),
-        "Apply animation preset"
-      );
-      setStatus(tr("app.animationPreset", { name: preset.name }));
-    },
-    [commitProject, project.scene.characters, selectedObjectId]
-  );
-
   const handleUndo = useCallback(() => {
     const previousProject = historyRef.current.undo(projectRef.current);
     if (!previousProject) {
@@ -2583,15 +2417,15 @@ export function App() {
           rigPosePresets={rigPosePresets}
           animationPresets={presets.animation}
           onApplyCameraPreset={handleApplyCameraPreset}
-          onApplyRigPosePreset={handleApplyRigPosePreset}
-          onApplyAnimationPreset={handleApplyAnimationPreset}
-          onUpdateBoneRotation={handleUpdateBoneRotation}
-          onAddBoneKeyframe={handleAddBoneKeyframe}
-          onResetPose={handleResetPose}
-          onMirrorPose={handleMirrorPose}
+          onApplyRigPosePreset={rigWorkspace.applyPose}
+          onApplyAnimationPreset={rigWorkspace.applyAnimation}
+          onUpdateBoneRotation={rigWorkspace.updateBoneRotation}
+          onAddBoneKeyframe={rigWorkspace.addBoneKeyframe}
+          onResetPose={rigWorkspace.resetPose}
+          onMirrorPose={rigWorkspace.mirrorPose}
           onImportSkin={handleImportSkin}
           onResetSkin={handleResetSkin}
-          onChangeRigPreset={handleChangeRigPreset}
+          onChangeRigPreset={rigWorkspace.changeRigPreset}
         />
       </div>
       <TimelinePanel
@@ -2667,15 +2501,19 @@ export function App() {
         selectedObjectId={selectedObjectId}
         posePresets={rigPosePresets}
         animationPresets={presets.animation}
+        ikControls={rigIKSession.controls}
+        ikWarnings={rigIKPreview.warnings}
         onClose={() => setRigStudioOpen(false)}
         onImportSkin={handleImportSkin}
         onResetSkin={handleResetSkin}
-        onApplyPose={handleApplyRigPosePreset}
-        onSavePose={handleSaveCurrentPose}
-        onMirrorPose={handleMirrorPose}
-        onResetPose={handleResetPose}
-        onApplyAnimation={handleApplyAnimationPreset}
+        onApplyPose={rigWorkspace.applyPose}
+        onSavePose={rigWorkspace.saveCurrentPose}
+        onMirrorPose={rigWorkspace.mirrorPose}
+        onResetPose={rigWorkspace.resetPose}
+        onApplyAnimation={rigWorkspace.applyAnimation}
         onImportBlockbench={handleImportBlockbench}
+        onUpdateIKControl={rigIKSession.updateControl}
+        onBakeIKControl={rigWorkspace.bakeIK}
       />
       <LightingStudioPanel
         open={lightingStudioOpen}

@@ -75,10 +75,11 @@ export function applySkinUvToBoxGeometry(
   geometry: THREE.BoxGeometry,
   part: MinecraftSkinPart,
   modelType: MinecraftSkinModelType,
-  legacy = false
+  legacy = false,
+  segment?: "upper" | "lower"
 ): THREE.BoxGeometry {
   const uv = geometry.getAttribute("uv") as THREE.BufferAttribute;
-  const regions = getSkinUvRegions(part, modelType, legacy);
+  const regions = segmentSkinUvRegions(getSkinUvRegions(part, modelType, legacy), segment);
   FACE_ORDER.forEach((face, faceIndex) => {
     const rect = normalizeRegion(regions[face], 64, legacy ? 32 : 64);
     const vertexIndex = faceIndex * 4;
@@ -89,6 +90,22 @@ export function applySkinUvToBoxGeometry(
   });
   uv.needsUpdate = true;
   return geometry;
+}
+
+function segmentSkinUvRegions(
+  regions: SkinUvRegionMap,
+  segment?: "upper" | "lower"
+): SkinUvRegionMap {
+  if (!segment) return regions;
+  return Object.fromEntries(Object.entries(regions).map(([face, region]) => {
+    if (face === "top" || face === "bottom") return [face, region];
+    const height = region.height / 2;
+    return [face, {
+      ...region,
+      y: segment === "lower" ? region.y + height : region.y,
+      height
+    }];
+  })) as SkinUvRegionMap;
 }
 
 function cuboidRegions(

@@ -37,4 +37,15 @@ describe("MinecraftSkinMapper", () => {
     expect(uv.getX(0)).toBeGreaterThanOrEqual(0);
     expect(uv.getY(0)).toBeLessThanOrEqual(1);
   });
+
+  it("maps upper and lower limb segments to different vertical skin halves", () => {
+    const upper = new THREE.BoxGeometry(1, 1, 1);
+    const lower = new THREE.BoxGeometry(1, 1, 1);
+    applySkinUvToBoxGeometry(upper, "rightArm", "steve", false, "upper");
+    applySkinUvToBoxGeometry(lower, "rightArm", "steve", false, "lower");
+    const upperUv = upper.getAttribute("uv");
+    const lowerUv = lower.getAttribute("uv");
+    expect(upperUv.getY(16)).toBeGreaterThan(lowerUv.getY(16));
+    expect(upperUv.getX(16)).toBe(lowerUv.getX(16));
+  });
 });

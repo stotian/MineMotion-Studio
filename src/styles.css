@@ -1366,6 +1366,48 @@ p.parameter-control-error {
   font-size: 0.78rem;
 }
 
+.rig-studio-panel {
+  width: min(1120px, 97vw);
+  max-height: min(92vh, 940px);
+}
+
+.rig-ik-controls {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.rig-ik-controls label {
+  display: grid;
+  gap: 0.35rem;
+  color: #9ca8ba;
+  font-size: 0.78rem;
+}
+
+.rig-ik-controls .checkbox-row {
+  display: flex;
+  align-items: center;
+}
+
+.rig-vector-editor {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.55rem;
+  border: 1px solid #2b3443;
+  border-radius: 6px;
+}
+
+.rig-vector-editor legend {
+  padding: 0 0.25rem;
+  color: #9ca8ba;
+  font-size: 0.75rem;
+}
+
+.rig-vector-editor input {
+  width: 100%;
+}
+
 .lighting-studio-panel {
   width: min(1120px, 97vw);
   max-height: min(90vh, 900px);

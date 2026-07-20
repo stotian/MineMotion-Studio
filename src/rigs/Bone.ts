@@ -15,6 +15,7 @@ export interface RigBone {
     | "leftLeg"
     | "rightLeg"
     | "cape";
+  skinSegment?: "upper" | "lower";
   mirrorOf?: string;
   selectable?: boolean;
 }

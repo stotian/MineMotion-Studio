@@ -38,6 +38,14 @@ export function bakeRigIKControl(
     influence: control.influence
   });
   if (!solve.solved) return { ...failure(project, solve.warnings[0] ?? "IK_SOLVE_FAILED: IK solve failed."), solve };
+  if (
+    hasRotation(character.boneRotations[control.upperBoneId], solve.rotations[control.upperBoneId]) &&
+    hasRotation(character.boneRotations[control.lowerBoneId], solve.rotations[control.lowerBoneId]) &&
+    hasGlobalKeyframe(project, characterId, control.upperBoneId, frame, solve.rotations[control.upperBoneId]) &&
+    hasGlobalKeyframe(project, characterId, control.lowerBoneId, frame, solve.rotations[control.lowerBoneId])
+  ) {
+    return { ok: true, changed: false, project, solve, error: null };
+  }
   let next = updateProjectBoneRotation(project, characterId, control.upperBoneId, solve.rotations[control.upperBoneId]);
   next = updateProjectBoneRotation(next, characterId, control.lowerBoneId, solve.rotations[control.lowerBoneId]);
   next = addBoneRotationKeyframe(next, characterId, control.upperBoneId, frame);
@@ -47,4 +55,23 @@ export function bakeRigIKControl(
 
 function failure(project: MineMotionProject, error: string): RigIKBakeResult {
   return { ok: false, changed: false, project, solve: null, error };
+}
+
+function hasGlobalKeyframe(
+  project: MineMotionProject,
+  characterId: string,
+  boneId: string,
+  frame: number,
+  rotation: readonly number[]
+): boolean {
+  return project.animation.tracks.some((track) =>
+    track.targetId === characterId &&
+    track.property === `bone.rotation.${boneId}` &&
+    track.keyframes.some((keyframe) => keyframe.frame === frame && hasRotation(keyframe.value, rotation))
+  );
+}
+
+function hasRotation(left: readonly number[] | undefined, right: readonly number[]): boolean {
+  return Boolean(left) && left!.length === 3 && right.length === 3 &&
+    left!.every((value, index) => Math.abs(value - right[index]) < 1e-9);
 }

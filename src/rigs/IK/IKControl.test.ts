@@ -34,4 +34,18 @@ describe("rig IK controls", () => {
       influence: 1
     }]);
   });
+
+  it("rejects sparse vectors, inherited records, and accessors without invoking them", () => {
+    let accessed = false;
+    const accessor = Object.defineProperty({}, "limb", {
+      enumerable: true,
+      get() { accessed = true; return "leftArm"; }
+    });
+    const inherited = Object.create({ limb: "leftArm" });
+    Object.assign(inherited, { upperBoneId: "upper", lowerBoneId: "lower" });
+    const sparse = { limb: "leftArm", upperBoneId: "upper", lowerBoneId: "lower", targetPosition: [1, , 3] };
+    expect(sanitizeRigIKControls([accessor, inherited])).toEqual([]);
+    expect(accessed).toBe(false);
+    expect(sanitizeRigIKControls([sparse])[0].targetPosition).toEqual([0, 0, 0]);
+  });
 });
