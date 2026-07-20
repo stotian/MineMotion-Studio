@@ -24,9 +24,10 @@ describe("solveTwoBoneIK", () => {
     expect(first.solved).toBe(true);
     expect(first.reachedTarget).toBe(true);
     expect(first.clamped).toBe(false);
-    expect(first.endPosition).toEqual(target.position);
-    expect(distance([0, 0, 0], first.jointPosition!)).toBeCloseTo(1, 8);
-    expect(distance(first.jointPosition!, first.endPosition!)).toBeCloseTo(1, 8);
+    expect(first.idealEndPosition).toEqual(target.position);
+    expect(distance(first.evaluatedEndPosition!, target.position)).toBeLessThan(1e-8);
+    expect(distance([0, 0, 0], first.evaluatedJointPosition!)).toBeCloseTo(1, 8);
+    expect(distance(first.evaluatedJointPosition!, first.evaluatedEndPosition!)).toBeCloseTo(1, 8);
     expect(Object.values(first.rotations).flat().every(Number.isFinite)).toBe(true);
     const upperRotation = first.rotations.rightArm;
     const lowerRotation = first.rotations.rightForearm;
@@ -42,11 +43,11 @@ describe("solveTwoBoneIK", () => {
     const solvedLowerDirection = new THREE.Vector3(0, -1, 0).applyQuaternion(
       upperQuaternion.clone().multiply(lowerLocalQuaternion)
     );
-    const expectedUpperDirection = new THREE.Vector3(...first.jointPosition!).normalize();
+    const expectedUpperDirection = new THREE.Vector3(...first.evaluatedJointPosition!).normalize();
     const expectedLowerDirection = new THREE.Vector3(
-      first.endPosition![0] - first.jointPosition![0],
-      first.endPosition![1] - first.jointPosition![1],
-      first.endPosition![2] - first.jointPosition![2]
+      first.evaluatedEndPosition![0] - first.evaluatedJointPosition![0],
+      first.evaluatedEndPosition![1] - first.evaluatedJointPosition![1],
+      first.evaluatedEndPosition![2] - first.evaluatedJointPosition![2]
     ).normalize();
     expect(solvedUpperDirection.distanceTo(expectedUpperDirection)).toBeLessThan(1e-6);
     expect(solvedLowerDirection.distanceTo(expectedLowerDirection)).toBeLessThan(1e-6);
@@ -57,11 +58,11 @@ describe("solveTwoBoneIK", () => {
     expect(far.solved).toBe(true);
     expect(far.reachedTarget).toBe(false);
     expect(far.clamped).toBe(true);
-    expect(distance([0, 0, 0], far.endPosition!)).toBeCloseTo(2, 5);
+    expect(distance([0, 0, 0], far.idealEndPosition!)).toBeCloseTo(2, 5);
     expect(far.warnings).toContain("IK_TARGET_TOO_FAR: Target was clamped to maximum reach.");
 
     const close = solveTwoBoneIK(chain(2, 1), { id: "close", label: "Close", position: [0, -0.1, 0] });
-    expect(distance([0, 0, 0], close.endPosition!)).toBeCloseTo(1, 5);
+    expect(distance([0, 0, 0], close.idealEndPosition!)).toBeCloseTo(1, 5);
     expect(close.warnings).toContain("IK_TARGET_TOO_CLOSE: Target was clamped to minimum reach.");
   });
 
@@ -89,5 +90,38 @@ describe("solveTwoBoneIK", () => {
     ]));
     expect(result.rotations.rightArm.every((value) => value >= -10 && value <= 10)).toBe(true);
     expect(result.reachedTarget).toBe(false);
+    expect(result.evaluatedJointPosition).toBeDefined();
+    expect(result.evaluatedEndPosition).toBeDefined();
+    expect(result.evaluatedEndPosition).not.toEqual(result.idealEndPosition);
+  });
+
+  it.each([0, 0.25, 0.5, 1])("uses quaternion influence %s and reports matching evaluated positions", (influence) => {
+    const result = solveTwoBoneIK(chain(), { id: "hand", label: "Hand", position: [0.4, 0.2, 1.4] }, {
+      poleDirection: [0, 0, 1],
+      influence
+    });
+    const upper = new THREE.Quaternion().setFromEuler(new THREE.Euler(
+      ...result.rotations.rightArm.map(THREE.MathUtils.degToRad) as RigVector3Tuple,
+      "XYZ"
+    ));
+    const lower = new THREE.Quaternion().setFromEuler(new THREE.Euler(
+      ...result.rotations.rightForearm.map(THREE.MathUtils.degToRad) as RigVector3Tuple,
+      "XYZ"
+    ));
+    const joint = new THREE.Vector3(0, -1, 0).applyQuaternion(upper);
+    const end = joint.clone().add(new THREE.Vector3(0, -1, 0).applyQuaternion(upper.clone().multiply(lower)));
+    result.evaluatedJointPosition!.forEach((value, index) => expect(value).toBeCloseTo(joint.getComponent(index), 8));
+    result.evaluatedEndPosition!.forEach((value, index) => expect(value).toBeCloseTo(end.getComponent(index), 8));
+    expect(result.reachedTarget).toBe(influence === 1);
+  });
+
+  it("takes the shortest quaternion path near the 180 degree boundary without a sign jump", () => {
+    const left = solveTwoBoneIK(chain(), { id: "left", label: "Left", position: [0.001, 1.9, 0] }, { influence: 0.5 });
+    const right = solveTwoBoneIK(chain(), { id: "right", label: "Right", position: [-0.001, 1.9, 0] }, { influence: 0.5 });
+    expect(Object.values(left.rotations).flat().every(Number.isFinite)).toBe(true);
+    expect(Object.values(right.rotations).flat().every(Number.isFinite)).toBe(true);
+    expect(distance(left.evaluatedEndPosition!, right.evaluatedEndPosition!)).toBeLessThan(0.01);
+    expect(JSON.stringify(solveTwoBoneIK(chain(), { id: "left", label: "Left", position: [0.001, 1.9, 0] }, { influence: 0.5 })))
+      .toBe(JSON.stringify(left));
   });
 });
