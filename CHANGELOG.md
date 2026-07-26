@@ -26,6 +26,9 @@
   blending, no-op-aware mirror/reset, and localized Rig Studio controls.
 - Added validated rig attachment controls, parent-bone animation coverage, and
   real imported OBJ rendering through the shared preview/export scene path.
+- Improved Blockbench import with bounded current outliners, nested pivots and
+  rotations, deterministic static OBJ output, preserved texture/clip metadata,
+  reconciled persistence, and localized capability reports.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

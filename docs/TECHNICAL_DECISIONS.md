@@ -551,3 +551,22 @@ Attachment commands mutate the existing character collection once per user
 action. Cross-record validation resolves rig points/bones and project OBJ asset
 references. The shared scene renderer resolves attached OBJ geometry so preview
 and offline rendering consume the same project asset.
+
+## TD-041 - Keep Blockbench source authoritative and report unsupported semantics
+
+Status: Accepted in Phase 19.12.
+
+`project.assets.blockbench` owns imported `.bbmodel` records. The historical
+`project.rigs.blockbenchModels` field remains only as a sanitized compatibility
+projection and is reconciled at migration and serialization boundaries. Reports
+are recomputed from bounded source JSON instead of trusting stale stored counts.
+
+Static OBJ conversion consumes current outliners or legacy groups and bakes
+cube/group pivots and rotations deterministically. Texture and animation
+metadata remain in the original asset and in the import report, but the preview
+must not claim textured materials or mapped clips until their dedicated
+consumers exist.
+
+Phase 19.13 may add mapping metadata and commands, but mapped animation must
+still target the existing global tracks and history path rather than introduce
+a Blockbench-specific timeline.

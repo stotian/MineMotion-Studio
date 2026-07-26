@@ -11,7 +11,8 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 - React/Three.js editor shell, viewport, inspector, outliner, timeline, settings, templates, commands, autosave, and undo/redo.
 - Minecraft Java world import MVP with bounded modern palette chunks.
-- Steve/Alex rigs, skins, poses, bone tracks, animation presets, attachments, and static Blockbench geometry import.
+- Steve/Alex rigs, skins, poses, bone tracks, animation presets, attachments,
+  and bounded hierarchy-aware static Blockbench geometry import.
 - Resource pack/material/lighting studio MVP with atmosphere and environment keys.
 - Timeline, Dopesheet, Graph view, markers, reusable clips, and ordered NLA
   animation layers.
@@ -226,7 +227,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 113 frontend test files and 511 passing tests.
+- 114 frontend test files and 516 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -313,3 +314,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
   pose operations atomically through the existing whole-project history.
 - Phase 19.11 derives attachment motion from sampled parent bones and keeps
   authoring in the existing bounded character attachment collection.
+- Phase 19.12 parses current Blockbench outliners and legacy groups, then bakes
+  bounded cube/group pivots and rotations into deterministic static OBJ output.
+  Texture and clip metadata are reported honestly, while one authoritative
+  Blockbench asset collection is reconciled across all persistence boundaries.

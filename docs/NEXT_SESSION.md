@@ -2,9 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 19.12 by auditing the existing Blockbench parser, static OBJ
-conversion, stored model contract, rendering, reports, and unsupported-feature
-warnings.
+Start Phase 19.13 by auditing Blockbench group/bone naming, clip animator
+references, MineMotion rig definitions, and existing UI/history boundaries.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -108,16 +107,24 @@ Preserve the local commits and push normally once authentication is restored.
   while stable diagnostics reject broken records.
 - The shared preview/export renderer resolves attached OBJ assets instead of a
   generic cube. Phase 19.11 is complete at implementation commit `462e232`.
+- Current Blockbench outliners and legacy groups are bounded and parsed.
+  Deterministic static OBJ output bakes cube/group pivots and rotations,
+  inflation, enabled faces, and nested group names.
+- Texture and animation metadata are preserved with explicit unsupported
+  warnings and a localized import report. Project serialization reconciles one
+  authoritative Blockbench asset collection across every persistence path.
+  Phase 19.12 is complete at implementation commit `d0bb6e5`.
 
 ## Unfinished Work
 
-- Phase 19.12-19.15 and phases 20-35 remain.
+- Phase 19.13-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Inspect `BlockbenchParser`, `BlockbenchImporter`, `BlockbenchTypes`, current
-fixtures, Rig Studio reporting, and actual renderer consumers. Reconcile what
-is already supported before changing the stored model or schema.
+Inspect current outliner group names and animation animator keys against every
+supported rig definition. Automatically map only unambiguous exact/alias
+matches; expose an atomic manual mapping command for all remaining groups and
+retain one authoritative global animation timeline.
 
 ## Tests To Run
 

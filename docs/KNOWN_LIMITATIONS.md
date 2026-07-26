@@ -23,7 +23,7 @@ still required before changing code.
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
 | LIM-015 | Static scene data and imported OBJ resources are rebuilt/reparsed on project updates | Yes | P3 | 20 | OPEN |
 | LIM-016 | IK is not connected to the production character workflow | Yes | P4 | 19 | RESOLVED |
-| LIM-017 | Blockbench import is static geometry without automatic rig/texture mapping | Yes | P4 | 19 | OPEN |
+| LIM-017 | Blockbench import now preserves bounded hierarchy, pivot, texture, and clip metadata, but automatic/manual rig mapping and textured preview remain incomplete | Yes | P4 | 19.13/21 | PARTIALLY_RESOLVED |
 | LIM-018 | Animated resource-pack textures are detected but not played | Yes | P4 | 21 | OPEN |
 | LIM-019 | Per-face resource-pack rendering remains incomplete | Yes | P4 | 21 | OPEN |
 | LIM-020 | World import is intentionally bounded and older pre-flattening/decompression cases remain limited | Yes | P4 | 21 | OPEN |
