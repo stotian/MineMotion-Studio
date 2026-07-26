@@ -209,6 +209,10 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
+- The production viewport reports bounded live FPS/frame percentiles, dropped
+  frames, Three.js calls/geometry/texture counters, project object/chunk/effect
+  counts, renderer startup, and optional Chromium heap usage. Diagnostics remain
+  session-only and outside render capture and project persistence.
 
 ## Partial Systems
 
@@ -228,7 +232,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 117 frontend test files and 526 passing tests.
+- 119 frontend test files and 530 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -327,3 +331,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
   settings leave standard skin geometry unchanged.
 - Phase 19.15 closes advanced rigging with a composite persistence/history/
   timeline/preview/export regression while retaining all specialized tests.
+- Phase 20.1 samples the existing render loop and `renderer.info` at a bounded
+  UI cadence. It adds no alternate profiler, project fields, or render path.

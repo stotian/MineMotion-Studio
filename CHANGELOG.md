@@ -36,6 +36,8 @@
   confidence, surprise, and fear through the shared character renderer.
 - Added a composite advanced-rigging acceptance regression across persistence,
   history, timeline synchronization, production preview, and export sampling.
+- Added bounded live viewport telemetry for startup, frame percentiles, WebGL
+  calls/resources, scene/chunk/effect complexity, and optional browser heap.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

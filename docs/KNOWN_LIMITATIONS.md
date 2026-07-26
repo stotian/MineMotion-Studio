@@ -52,6 +52,7 @@ still required before changing code.
 | LIM-043 | Pose mirror/reset existed, but there was no session copy/paste or bounded blend workflow | Yes | P4 | 19.10 | RESOLVED |
 | LIM-044 | Attachments lacked authoring diagnostics/tests and OBJ attachments rendered as generic cubes | Yes | P2/P4 | 19.11 | RESOLVED |
 | LIM-045 | Character expression overlays are static character settings rather than discrete timeline-keyframe properties | Yes | P5 | Future | OPEN_HONEST_UI |
+| LIM-046 | JavaScript heap telemetry depends on Chromium's non-standard `performance.memory`; other runtimes report it as unavailable | Yes | P5 | 20 | OPEN_HONEST_UI |
 
 ## Phase 15.1 Outcome
 

@@ -27,10 +27,18 @@ import {
 import type { VfxPrimitiveEvaluation } from "../vfx/primitives/VfxPrimitiveTypes";
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import { createMotionPathObject } from "./MotionPathRenderer";
+import { PerformanceMonitor } from "../performance/PerformanceMonitor";
+import {
+  collectProjectComplexityMetrics,
+  readBrowserHeapMetrics,
+  sanitizeRendererFrameInfo,
+  type RendererMetricsSnapshot
+} from "../performance/RendererMetrics";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
   onSelectObject: (objectId: string | null) => void;
+  onMetrics?: (metrics: RendererMetricsSnapshot) => void;
 }
 
 export class SceneRenderer {
@@ -51,6 +59,11 @@ export class SceneRenderer {
   private selectedObjectId: string | null = null;
   private project: MineMotionProject | null = null;
   private readonly objLoader = new OBJLoader();
+  private readonly performanceMonitor = new PerformanceMonitor();
+  private readonly startedAt = performance.now();
+  private startupMs: number | null = null;
+  private lastMetricsAt = Number.NEGATIVE_INFINITY;
+  private activeEffectCount = 0;
 
   constructor(private readonly options: SceneRendererOptions) {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -132,6 +145,7 @@ export class SceneRenderer {
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer.domElement.remove();
+    this.performanceMonitor.reset();
     this.project = null;
   }
 
@@ -205,6 +219,7 @@ export class SceneRenderer {
         : "preview"
     });
     const preparedEffects = prepared.ok ? prepared.value.effects : [];
+    this.activeEffectCount = preparedEffects.length;
     for (const effect of preparedEffects) {
       if (effect.primitives.length > 0) {
         if (effect.evaluation.inputs.renderLayer !== "world") continue;
@@ -564,10 +579,47 @@ export class SceneRenderer {
 
   private animate = (): void => {
     this.animationFrame = requestAnimationFrame(this.animate);
+    const now = performance.now();
+    const frame = this.performanceMonitor.sample(now);
     this.controller.update();
     if (this.project) {
       this.updateSelectionBox();
     }
     this.renderer.render(this.scene, this.controller.camera);
+    if (this.project && this.options.onMetrics &&
+      (this.startupMs === null || now - this.lastMetricsAt >= 500)) {
+      if (this.startupMs === null) {
+        this.startupMs = Math.max(0, now - this.startedAt);
+      }
+      let sceneObjects = 0;
+      this.sceneRoot.traverse(() => {
+        sceneObjects += 1;
+      });
+      const info = this.renderer.info;
+      const runtimePerformance = performance as Performance & {
+        memory?: unknown;
+      };
+      this.options.onMetrics({
+        startupMs: this.startupMs,
+        elapsedMs: Math.max(0, now - this.startedAt),
+        frame,
+        renderer: sanitizeRendererFrameInfo({
+          calls: info.render.calls,
+          triangles: info.render.triangles,
+          points: info.render.points,
+          lines: info.render.lines,
+          geometries: info.memory.geometries,
+          textures: info.memory.textures,
+          programs: info.programs?.length ?? 0
+        }),
+        heap: readBrowserHeapMetrics(runtimePerformance.memory),
+        project: collectProjectComplexityMetrics(
+          this.project,
+          sceneObjects,
+          this.activeEffectCount
+        )
+      });
+      this.lastMetricsAt = now;
+    }
   };
 }

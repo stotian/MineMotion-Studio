@@ -2,8 +2,10 @@
 
 ## Exact Current Task
 
-Start Phase 20.1 by auditing renderer telemetry, benchmark fixtures, resource
-tracking, scene/chunk/effect counters, and reproducible measurement entrypoints.
+Implement Phase 20.2 by defining typed Minimum, Recommended, Draft, High, and
+Final performance budgets over the Phase 20.1 measurement contract. Add pure
+deterministic evaluation before connecting any recommendations or quality
+changes.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -129,23 +131,26 @@ Preserve the local commits and push normally once authentication is restored.
   package, autosave, history, rig lanes, production sampling, preview rig
   construction, and final-export frame preparation. Phase 19 is complete at
   acceptance commit `83241fa`.
+- Phase 20.1 now measures viewport startup, rolling frame percentiles, dropped
+  frames, Three.js calls/resources, scene/chunk/effect complexity, and optional
+  Chromium heap through bounded session-only snapshots. The localized overlay
+  uses the existing diagnostics switch and is excluded from render capture.
 
 ## Unfinished Work
 
-- Phase 20 tasks 1-17 and phases 21-35 remain.
+- Phase 20 tasks 2-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Inspect existing `SceneRenderer`, Three.js renderer ownership, resource
-disposal, benchmark projects, and performance-monitoring utilities. Measure
-before selecting thresholds or optimizations; do not infer budgets from the
-large-bundle warning alone.
+Define the five performance profile budgets in a renderer-neutral module.
+Evaluate measured snapshots without hidden state, distinguish hard limits from
+recommendations, and keep quality selection explicit and non-destructive.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npx vitest run src/rigs
+npx vitest run src/performance
 npm test
 npm run build
 npm audit

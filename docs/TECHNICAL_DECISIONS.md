@@ -628,3 +628,18 @@ export-frame preparation.
 
 This gate verifies integration ownership without creating a Phase 19-specific
 serializer, timeline, renderer, or broad duplicate test suite.
+
+## TD-045 - Measure the production viewport without persisting telemetry
+
+Status: Accepted in Phase 20.1.
+
+Use the existing `SceneRenderer` animation loop and Three.js `renderer.info` as
+the renderer source of truth. Keep rolling frame statistics and project
+complexity collection in pure bounded modules, and update React diagnostics at
+most every 500 ms rather than on every animation frame.
+
+Measurements remain session-only callback data. Do not add them to schema 10,
+history, autosave, canvas capture, or exports. Treat Chromium
+`performance.memory` as optional and display an honest unavailable state in
+other runtimes. Define budgets in Phase 20.2 before using these measurements to
+drive quality changes or optimization recommendations.

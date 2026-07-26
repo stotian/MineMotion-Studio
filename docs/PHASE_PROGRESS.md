@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.1 - Measure startup, frame, memory, calls, triangles, textures, chunks, and effects
+20.2 - Define Minimum, Recommended, Draft, High, and Final performance budgets
 
 ## Status
 
-IN_PROGRESS - Phase 19 and the prior consolidation checkpoints are implemented and validated.
+IN_PROGRESS - Phase 20.1 renderer measurement is implemented and validated.
 
 ## Completed
 
@@ -290,19 +290,26 @@ IN_PROGRESS - Phase 19 and the prior consolidation checkpoints are implemented a
 - The complete Phase 19 gate passes with every specialized rig test retained;
   no duplicate timeline, per-frame history stream, or alternate renderer was
   introduced.
+- Phase 20.1 instruments the actual viewport render loop with rolling FPS and
+  best/average/p95/worst frame time, dropped frames, Three.js render/memory
+  counters, project scene/chunk/effect counts, viewport startup, and optional
+  Chromium heap usage.
+- Metrics are bounded session-only plain data, emitted at most every 500 ms, and
+  shown through the existing diagnostics setting without entering project
+  schema, history, autosave, canvas capture, or final renders.
 
 ## In Progress
 
-- Audit existing renderer telemetry and benchmark infrastructure before Phase
-  20.1 measurement work.
+- Define explicit Phase 20.2 Minimum, Recommended, Draft, High, and Final
+  performance budgets over the measured contract.
 
 ## Not Started
 
-- Phase 20 tasks 1-17 and phases 21-35.
+- Phase 20 tasks 2-17 and phases 21-35.
 
 ## Blockers
 
-- None for current Phase 19 TypeScript work.
+- None for current Phase 20 TypeScript work.
 - Publishing local milestone commits is pending because this environment has no
   authenticated GitHub credential and no `gh` executable; `origin/main` remains
   readable and no history rewrite or force push was attempted.
@@ -314,19 +321,19 @@ IN_PROGRESS - Phase 19 and the prior consolidation checkpoints are implemented a
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: `83241fa` (publication pending
-  external GitHub authentication).
+- Latest validated implementation checkpoint: Phase 20.1 working tree
+  (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 19 composite acceptance tests: PASS - 1 file, 2 tests
-- `npm test`: PASS - 117 files, 526 tests
+- Focused Phase 20.1 performance tests: PASS - 2 files, 4 tests
+- `npm test`: PASS - 119 files, 530 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,674/2,839 lines
-- `npm run build`: PASS - 1,871 modules; 1,516.64 kB known large chunk
+- `npm run build`: PASS - 1,874 modules; 1,521.63 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -336,6 +343,6 @@ IN_PROGRESS - Phase 19 and the prior consolidation checkpoints are implemented a
 
 ## Next Exact Action
 
-Inspect existing performance/resource telemetry, renderer info access, benchmark
-fixtures, and scene/chunk/effect counters. Establish reproducible measurement
-inputs before defining or optimizing against budgets.
+Define typed Minimum, Recommended, Draft, High, and Final budgets over the
+measured startup/frame/memory/renderer/scene counters, with deterministic
+evaluation and honest diagnostics before any optimization is selected.

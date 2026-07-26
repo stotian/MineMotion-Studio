@@ -1,4 +1,11 @@
-import { type CSSProperties, useEffect, useMemo, useRef } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import type { CameraEntity, MineMotionProject } from "../project/ProjectFile";
 import type { ViewportSettings } from "../settings/AppSettings";
 import { findObject } from "../project/ProjectStore";
@@ -14,6 +21,7 @@ import {
 } from "../vfx/runtime/VfxProjectFrame";
 import { useLocalization } from "../localization/LocalizationContext";
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
+import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
 
 interface ViewportProps {
   project: MineMotionProject;
@@ -40,6 +48,10 @@ export function Viewport({
   const t = localization.t.bind(localization);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<SceneRenderer | null>(null);
+  const [metrics, setMetrics] = useState<RendererMetricsSnapshot | null>(null);
+  const handleMetrics = useCallback((snapshot: RendererMetricsSnapshot) => {
+    setMetrics(snapshot);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current || rendererRef.current) {
@@ -48,14 +60,15 @@ export function Viewport({
 
     rendererRef.current = new SceneRenderer({
       container: containerRef.current,
-      onSelectObject
+      onSelectObject,
+      onMetrics: handleMetrics
     });
 
     return () => {
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
-  }, [onSelectObject]);
+  }, [handleMetrics, onSelectObject]);
 
   useEffect(() => {
     rendererRef.current?.renderProject(
@@ -269,6 +282,46 @@ export function Viewport({
           ...shakeStyle
         }}
       />
+      {project.performanceSettings.showDiagnostics &&
+        !project.renderSettings.renderPreviewEnabled &&
+        metrics && (
+          <div className="viewport-performance-metrics" aria-live="off">
+            <span>
+              {t("viewport.metrics.frame", {
+                fps: localization.formatNumber(roundOne(metrics.frame.fps)),
+                average: localization.formatNumber(
+                  roundOne(metrics.frame.averageFrameMs)
+                ),
+                p95: localization.formatNumber(
+                  roundOne(metrics.frame.p95FrameMs)
+                )
+              })}
+            </span>
+            <span>
+              {t("viewport.metrics.renderer", {
+                calls: localization.formatNumber(metrics.renderer.calls),
+                triangles: localization.formatNumber(metrics.renderer.triangles),
+                textures: localization.formatNumber(metrics.renderer.textures)
+              })}
+            </span>
+            <span>
+              {t("viewport.metrics.scene", {
+                objects: localization.formatNumber(metrics.project.sceneObjects),
+                chunks: localization.formatNumber(metrics.project.importedChunks),
+                active: localization.formatNumber(metrics.project.activeEffects),
+                effects: localization.formatNumber(metrics.project.effects)
+              })}
+            </span>
+            <span>
+              {t("viewport.metrics.startupMemory", {
+                startup: localization.formatNumber(roundOne(metrics.startupMs)),
+                memory: metrics.heap
+                  ? formatMegabytes(metrics.heap.usedBytes, localization.formatNumber)
+                  : t("viewport.metrics.unavailable")
+              })}
+            </span>
+          </div>
+        )}
       <div className="post-bloom-overlay" style={bloomStyle} />
       <div className="post-chromatic-overlay" style={glitchStyle} />
       <div className="fog-overlay" style={fogStyle} />
@@ -282,4 +335,15 @@ export function Viewport({
       </div>
     </section>
   );
+}
+
+function roundOne(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function formatMegabytes(
+  bytes: number,
+  formatNumber: (value: number) => string
+): string {
+  return `${formatNumber(roundOne(bytes / (1024 * 1024)))} MB`;
 }
