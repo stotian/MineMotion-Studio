@@ -424,7 +424,9 @@ active preset. Imported chunks take precedence and queries use bounded vertical
 windows. Air and water are not foot supports.
 
 Foot locks are session-derived inclusive frame ranges with a fixed world anchor
-placed on sampled ground. They do not add project fields, constraint tracks, or
-per-frame history entries. Future bake integration must convert each fixed world
-sample into the existing local two-bone IK contract and write all resulting
-global bone keys in one atomic project commit.
+placed on sampled ground. Each frame uses the existing animation sampler,
+renderer-matched forward kinematics, world-to-parent-local conversion, and the
+existing analytic two-bone solver. Any unreachable frame rejects the whole
+operation. A successful range writes its two global leg tracks in one project
+and history commit; no project fields, constraint tracks, or per-frame undo
+entries are added.

@@ -55,6 +55,13 @@ future pass.
 
 ## IK
 
-The `src/rigs/IK` folder contains the data model for IK chains, targets, and a
-two-bone solver placeholder. It validates chain shape but does not fake solved
-rotations yet.
+The `src/rigs/IK` folder owns the pure analytic two-bone solver, bounded
+Steve/Alex hand/foot session controls, deterministic live preview, and atomic
+bake-to-keyframes through global `bone.rotation.*` tracks.
+
+Left and right foot controls can also bake an inclusive planted range. The
+runtime samples embedded imported chunks or the active terrain preset, fixes
+one ground-aligned world anchor, converts it back to leg-local IK space for each
+sampled frame, and writes the complete range through one history operation.
+Missing ground, invalid transforms, and unreachable frames fail without partial
+keys. Foot-lock settings are session tools and add no serialized authority.

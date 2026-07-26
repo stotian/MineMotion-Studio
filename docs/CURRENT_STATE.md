@@ -171,7 +171,8 @@ preview/export budgets, and explicit renderer ownership now coexist.
   atomic bake-to-keyframes through the authoritative global bone tracks.
 - Renderer-neutral preset terrain data and an indexed runtime sampler resolve
   bounded supporting surfaces for imported chunks or active terrain presets.
-  Fixed-world foot-lock anchors are defined but range bake/UI remain in progress.
+  Fixed-world left/right foot anchors bake inclusive grounded ranges atomically,
+  reject unreachable frames without partial keys, and reduce root-motion slide.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -181,7 +182,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Known preset visuals still use a bounded compatibility map over prepared
   native frames; primitive V1 descriptors are not yet the visual renderer for
   every preset. This preserves appearance while runtime data is canonical.
-- Foot-lock range bake/UI, viewport IK gizmos, Blockbench auto-rigging, animated
+- Viewport IK gizmos, look-at constraints, Blockbench auto-rigging, animated
   resource textures, secure plugin execution, native dialogs, and full NLA
   blending are not implemented.
 
@@ -193,7 +194,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 98 frontend test files and 447 passing tests.
+- 100 frontend test files and 453 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -266,4 +267,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 19.3 keeps IK controls session-local and commits each successful
   two-track bake through the existing project/history path.
 - Phase 19.4 derives ground and fixed-anchor samples without adding project
-  fields or a second timeline. Range bake integration is the next action.
+  fields or a second timeline, then converts every fixed world target to local
+  leg IK and atomically bakes the reachable inclusive range.

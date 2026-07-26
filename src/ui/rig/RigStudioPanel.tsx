@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bone, Box, Film, RefreshCw, SlidersHorizontal, Upload, X } from "lucide-react";
 import type { AnimationPreset } from "../../presets/AnimationPresets";
 import type { RigPosePreset } from "../../presets/RigPosePresets";
@@ -27,6 +27,12 @@ interface RigStudioPanelProps {
   onImportBlockbench: () => void;
   onUpdateIKControl: (controlId: string, patch: Partial<RigIKControl>) => void;
   onBakeIKControl: (controlId: string) => void;
+  onBakeFootLock: (
+    controlId: string,
+    startFrame: number,
+    endFrame: number,
+    groundOffset: number
+  ) => void;
 }
 
 export function RigStudioPanel({
@@ -47,11 +53,27 @@ export function RigStudioPanel({
   onApplyAnimation,
   onImportBlockbench,
   onUpdateIKControl,
-  onBakeIKControl
+  onBakeIKControl,
+  onBakeFootLock
 }: RigStudioPanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const [selectedIKControlId, setSelectedIKControlId] = useState("ik:leftArm");
+  const [footLockStartFrame, setFootLockStartFrame] = useState(project.animation.currentFrame);
+  const [footLockEndFrame, setFootLockEndFrame] = useState(
+    Math.min(project.animation.currentFrame + 12, project.animation.durationFrames)
+  );
+  const [footLockGroundOffset, setFootLockGroundOffset] = useState(0);
+  const wasOpen = useRef(open);
+  useEffect(() => {
+    if (open && !wasOpen.current) {
+      setFootLockStartFrame(project.animation.currentFrame);
+      setFootLockEndFrame(
+        Math.min(project.animation.currentFrame + 12, project.animation.durationFrames)
+      );
+    }
+    wasOpen.current = open;
+  }, [open, project.animation.currentFrame, project.animation.durationFrames]);
   if (!open) return null;
 
   const selectedCharacterId = getSelectedCharacterId(selectedObjectId);
@@ -200,6 +222,56 @@ export function RigStudioPanel({
                 >
                   {t("rig.ik.bake")}
                 </button>
+                {(selectedIKControl.limb === "leftLeg" || selectedIKControl.limb === "rightLeg") && (
+                  <fieldset className="rig-foot-lock-controls">
+                    <legend>{t("rig.footLock.title")}</legend>
+                    <label>
+                      <span>{t("rig.footLock.start")}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={project.animation.durationFrames}
+                        step={1}
+                        value={footLockStartFrame}
+                        onChange={(event) => setFootLockStartFrame(Number(event.target.value))}
+                      />
+                    </label>
+                    <label>
+                      <span>{t("rig.footLock.end")}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={project.animation.durationFrames}
+                        step={1}
+                        value={footLockEndFrame}
+                        onChange={(event) => setFootLockEndFrame(Number(event.target.value))}
+                      />
+                    </label>
+                    <label>
+                      <span>{t("rig.footLock.offset")}</span>
+                      <input
+                        type="number"
+                        min={-4}
+                        max={4}
+                        step={0.01}
+                        value={footLockGroundOffset}
+                        onChange={(event) => setFootLockGroundOffset(Number(event.target.value))}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => onBakeFootLock(
+                        selectedIKControl.id,
+                        footLockStartFrame,
+                        footLockEndFrame,
+                        footLockGroundOffset
+                      )}
+                    >
+                      {t("rig.footLock.bake")}
+                    </button>
+                    <small className="empty-note">{t("rig.footLock.note")}</small>
+                  </fieldset>
+                )}
                 <small className="empty-note">{t("rig.ik.sessionNote")}</small>
                 {ikWarnings.map((warning) => <small key={warning} className="warning-text">{warning}</small>)}
               </div>

@@ -10,6 +10,7 @@ import { mirrorCurrentPose, resetRigPose, savePoseFromCharacter } from "./RigIns
 import { getRigDefinition } from "./MinecraftRigPresets";
 import { getSelectedCharacterId } from "./RigSelection";
 import type { RigPresetId } from "./RigTypes";
+import { bakeProjectFootLockRange } from "./IK/FootLockBakeController";
 import { bakeProjectRigIKControl } from "./IK/RigIKController";
 import type { RigIKSession } from "./IK/useRigIKSession";
 
@@ -167,6 +168,36 @@ export function useRigWorkspaceController({
     setStatus(tr("app.ikBaked", { target: control.targetLabel, frame: project.animation.currentFrame }));
   }, [commitProject, ikSession.characterId, ikSession.controls, project, setStatus, tr]);
 
+  const bakeFootLock = useCallback((
+    controlId: string,
+    startFrame: number,
+    endFrame: number,
+    groundOffset: number
+  ) => {
+    const control = ikSession.controls.find((entry) => entry.id === controlId);
+    if (!control || !ikSession.characterId ||
+      (control.limb !== "leftLeg" && control.limb !== "rightLeg")) {
+      setStatus(tr("app.footLockUnavailable"));
+      return;
+    }
+    const result = bakeProjectFootLockRange(project, ikSession.characterId, {
+      limb: control.limb,
+      startFrame,
+      endFrame,
+      groundOffset
+    });
+    if (!result.changed || !result.historyLabel) {
+      setStatus(result.error ?? tr("app.footLockUnchanged"));
+      return;
+    }
+    commitProject(result.project, result.historyLabel);
+    setStatus(tr("app.footLockBaked", {
+      target: control.targetLabel,
+      start: result.anchor!.startFrame,
+      end: result.anchor!.endFrame
+    }));
+  }, [commitProject, ikSession.characterId, ikSession.controls, project, setStatus, tr]);
+
   return {
     updateBoneRotation,
     addBoneKeyframe,
@@ -176,6 +207,7 @@ export function useRigWorkspaceController({
     changeRigPreset,
     applyPose,
     applyAnimation,
-    bakeIK
+    bakeIK,
+    bakeFootLock
   };
 }

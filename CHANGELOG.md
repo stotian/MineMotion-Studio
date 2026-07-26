@@ -7,6 +7,8 @@
   English/French localization.
 - Consolidated global rig animation authority and added deterministic Steve/Alex
   two-bone IK controls, live preview, and timeline baking.
+- Added deterministic imported/preset terrain sampling and atomic grounded
+  left/right foot-lock range baking.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

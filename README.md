@@ -77,6 +77,8 @@ contracts and evidence-based runtime capability reporting.
   - hand/head/back attachment point data
   - deterministic two-bone Steve/Alex arm and leg IK with numeric hand/foot
     targets, poles, influence, live preview, and bake-to-keyframes
+  - deterministic terrain-aware left/right foot locks with bounded inclusive
+    ranges, fixed world anchors, and one atomic timeline/history bake
 - Minecraft materials and lighting:
   - resource pack import from ZIP or browser folder selection
   - `pack.mcmeta` metadata and block PNG scanning
@@ -110,9 +112,9 @@ contracts and evidence-based runtime capability reporting.
   to all faces of each instanced block material.
 - Blockbench rig mapping is not automatic yet; Phase 5 imports static cube
   geometry as a preview object.
-- Production IK uses honest numeric local-space controls; interactive viewport
-  gizmos, foot lock, look-at constraints, and procedural rig tools remain later
-  Phase 19 milestones.
+- Production IK and foot locks use honest numeric controls; interactive viewport
+  gizmos, look-at constraints, and procedural rig tools remain later Phase 19
+  milestones.
 - Import is intentionally bounded by max region files, max chunks, and max
   vertical sections.
 - Tested assumptions target modern Java Edition Anvil worlds using palette-based

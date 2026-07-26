@@ -2514,6 +2514,7 @@ export function App() {
         onImportBlockbench={handleImportBlockbench}
         onUpdateIKControl={rigIKSession.updateControl}
         onBakeIKControl={rigWorkspace.bakeIK}
+        onBakeFootLock={rigWorkspace.bakeFootLock}
       />
       <LightingStudioPanel
         open={lightingStudioOpen}

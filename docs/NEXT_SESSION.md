@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.4 with atomic foot-lock range baking. Phase 19.3 production IK
-is complete and the first 19.4 ground/anchor contracts are implemented.
+Continue Phase 19.5 with a pure bounded look-at solve contract. Phase 19.4
+terrain-aware foot locking is complete and validated.
 
 ## Completed Work
 
@@ -52,16 +52,17 @@ is complete and the first 19.4 ground/anchor contracts are implemented.
   tracks in one history operation without adding persisted control state.
 - Preset terrain generation is renderer-neutral; imported/preset ground sampling
   and bounded fixed-world foot-lock anchors are deterministic and tested.
+- Left/right foot ranges sample current animation, transform one ground anchor
+  into local IK per frame, and bake atomically with no partial or duplicate keys.
 
 ## Unfinished Work
 
-- Phase 19.4 bake/UI integration, Phase 19.5-19.15, and phases 20-35 remain.
+- Phase 19.5-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Evaluate foot world positions from sampled character/leg transforms, convert a
-fixed ground anchor into local two-bone targets for each frame, and bake the
-whole bounded range to authoritative tracks with one history checkpoint.
+Inventory current head, camera, and object rotation sampling, then define the
+smallest pure look-at solve contract with limits and influence before UI/bake.
 
 ## Tests To Run
 

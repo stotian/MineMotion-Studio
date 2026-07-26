@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.4 - Foot lock, ground placement, and foot-slide reduction
+19.5 - Head, camera, and object look-at constraints
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -215,16 +215,26 @@ IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are imple
 - Rig/pose/IK orchestration moved out of `App.tsx`, reducing it from 2,839 to
   2,677 lines. A reviewed architecture ceiling, CI workflow, strict SemVer,
   version policy, risk/debt register, and manual smoke checklist are present.
+- Phase 19.4 extracts renderer-neutral terrain presets and deterministically
+  samples supporting surfaces from embedded imported chunks or active presets.
+- Bounded left/right foot anchors preserve one fixed ground-aligned world target
+  across an inclusive range. Frame sampling accounts for character transform,
+  root rotation, and both leg joints, with a Three.js hierarchy regression.
+- Every reachable range writes two authoritative global tracks in one history
+  operation. Missing ground, invalid/oversized ranges, zero scale, locked rigs,
+  and unreachable motion fail atomically; identical rebakes are no-ops.
+- Rig Studio exposes localized bounded start/end/ground-offset controls only for
+  feet. No persisted constraint state, parallel timeline, or per-frame undo is
+  introduced.
 
 ## In Progress
 
-- Phase 19.4 now has renderer-neutral preset terrain data, deterministic ground
-  sampling for embedded worlds/presets, and a bounded fixed-world foot-lock
-  sample contract. Bake and UI integration remain.
+- Phase 19.5 will add bounded head, camera, and object look-at constraints with
+  influence through existing transform/bone tracks.
 
 ## Not Started
 
-- Phase 19.5-19.15 and phases 20-35.
+- Phase 19.6-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -244,12 +254,12 @@ IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are imple
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused ground/foot-lock/IK tests: PASS - 3 files, 15 tests
-- `npm test`: PASS - 98 files, 447 tests
+- Focused ground/foot-lock/IK tests: PASS - 4 files, 18 tests
+- `npm test`: PASS - 100 files, 453 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
-- `npm run verify:architecture`: PASS - `App.tsx` 2,677/2,839 lines
-- `npm run build`: PASS - 1,834 modules; 1,388.66 kB known large chunk
+- `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
+- `npm run build`: PASS - 1,838 modules; 1,399.91 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because Phase 19.3 changes TypeScript/docs/CI only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -258,6 +268,6 @@ IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Evaluate natural foot world positions from sampled character/leg transforms,
-convert fixed lock anchors back to local IK targets, and bake one bounded range
-through the existing global tracks in one history operation.
+Inventory existing head, camera, and object orientation tracks and design the
+smallest pure bounded look-at solve contract before adding session UI or bake
+integration.

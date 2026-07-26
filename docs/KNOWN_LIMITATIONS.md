@@ -41,7 +41,7 @@ still required before changing code.
 | LIM-032 | Two-bone IK types were registered but the solver intentionally returned an unsolved placeholder | Yes | P1 | 19.2 | RESOLVED |
 | LIM-033 | Two-bone IK math is validated, but production hand/foot controls and bake-to-timeline are not connected yet | Yes | P1 | 19.3 | RESOLVED |
 | LIM-034 | IK controls are numeric session tools; viewport gizmos are not implemented | Yes | P4 | 19/future | OPEN_HONEST_UI |
-| LIM-035 | Pure ground and fixed-anchor samples exist, but foot-lock bake/UI integration is not implemented | Yes | P2/P4 | 19.4 | PARTIALLY_RESOLVED |
+| LIM-035 | Foot lock, ground placement, and foot-slide reduction were not implemented | Yes | P2/P4 | 19.4 | RESOLVED |
 
 ## Phase 15.1 Outcome
 

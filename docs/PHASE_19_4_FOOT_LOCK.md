@@ -25,7 +25,19 @@ frame range, and the sampled ground height. Every in-range sample reuses the
 same world target and reports the correction and prevented horizontal slide.
 Outside the range the natural sample passes through unchanged.
 
-This first checkpoint intentionally adds no UI and writes no keyframes. The next
-checkpoint must evaluate character/leg forward kinematics, convert the fixed
-world anchor to the existing local two-bone IK contract at every frame, and
-commit the whole bake as one history operation.
+## Completed bake path
+
+- Forward kinematics matches the rendered Three.js hierarchy for character
+  transform, root rotation, upper leg, and lower leg.
+- Each frame samples the existing animation timeline, converts the fixed world
+  anchor into parent-local IK space, and requires an exact reachable solve.
+- A successful inclusive range writes two global leg tracks and commits once.
+- Missing ground, invalid transforms, locked characters, oversized ranges, and
+  unreachable frames return the original project without partial keys.
+- Repeating an identical bake is a no-op; history, serialization, timeline
+  synchronization, preview, and export continue through existing paths.
+- Rig Studio exposes bounded start/end/ground-offset inputs only for foot
+  controls, with English/French coverage.
+
+Phase 19.4 is complete. Viewport foot gizmos remain part of the honest future
+gizmo limitation rather than being implied by this numeric range workflow.

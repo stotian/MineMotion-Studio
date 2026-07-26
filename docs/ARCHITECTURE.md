@@ -179,11 +179,13 @@ Rig Studio numeric controls (session-only)
 ```
 
 `App.tsx` is a composition root for this flow. Rig/pose/IK callbacks live in
-`RigWorkspaceController`; pure solve, mapping, preview, and bake behavior lives
-under `src/rigs/IK`. No project store, animation authority, or event bus was
-added. The measured Phase 19.3 baseline was 2,839 lines and the post-extraction
-size is 2,677 lines. `npm run verify:architecture` enforces the reviewed 2,839
-line ceiling without encouraging compressed formatting.
+`RigWorkspaceController`; pure solve, mapping, preview, foot kinematics, ground
+anchors, and atomic bake behavior lives under `src/rigs/IK`. Ground sampling
+derives an indexed runtime view from renderer-neutral preset data or embedded
+imported chunks. No project store, animation authority, constraint track, or
+event bus was added. The measured Phase 19.3 baseline was 2,839 lines and the
+current size remains below that reviewed ceiling, enforced by
+`npm run verify:architecture`.
 
 VFX frame evaluation is counter-addressed rather than stateful. A versioned
 typed seed composition produces root and local-frame seeds; sample indices can
