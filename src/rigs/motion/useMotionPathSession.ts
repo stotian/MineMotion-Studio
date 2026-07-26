@@ -56,6 +56,8 @@ export function useMotionPathSession(
     [
       project.animation.durationFrames,
       project.animation.fps,
+      project.animation.clips,
+      project.animation.nlaTracks,
       project.animation.tracks,
       project.scene.cameras,
       project.scene.characters

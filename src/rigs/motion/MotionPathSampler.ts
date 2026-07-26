@@ -10,6 +10,11 @@ import type {
 } from "../../project/ProjectFile";
 import { getRigDefinition } from "../MinecraftRigPresets";
 import {
+  evaluateAnimationLayers,
+  isPropertyAllowedForAnimationLayer
+} from "../../animation/layers/AnimationLayerEvaluator";
+import { getTargetAnimationLayers } from "../../animation/layers/AnimationLayerNlaAdapter";
+import {
   isFiniteRigVector,
   isValidRigTransform
 } from "../RigSpaceMath";
@@ -113,7 +118,20 @@ export function sampleProjectMotionPath(
     safeRequest.startFrame,
     safeRequest.endFrame
   );
-  const frameSet = new Set<number>(keyframeFrames);
+  const layerKeyframes = collectLayerKeyframeFrames(
+    project,
+    safeRequest.subjectId,
+    subject.properties,
+    safeRequest.startFrame,
+    safeRequest.endFrame
+  );
+  if (!layerKeyframes) {
+    return failure("MOTION_PATH_POINT_LIMIT: Layer keys exceed the path point limit.");
+  }
+  keyframeFrames.push(...layerKeyframes);
+  keyframeFrames.sort((left, right) => left - right);
+  const uniqueKeyframeFrames = [...new Set(keyframeFrames)];
+  const frameSet = new Set<number>(uniqueKeyframeFrames);
   for (let frame = safeRequest.startFrame; frame <= safeRequest.endFrame; frame += 1) {
     frameSet.add(frame);
   }
@@ -121,7 +139,7 @@ export function sampleProjectMotionPath(
   if (frames.length > MOTION_PATH_LIMITS.maximumPoints) {
     return failure("MOTION_PATH_POINT_LIMIT: Timeline keys exceed the path point limit.");
   }
-  const keyframeSet = new Set(keyframeFrames);
+  const keyframeSet = new Set(uniqueKeyframeFrames);
   const points: MotionPathPoint[] = [];
   for (const frame of frames) {
     const position = subject.sample(frame, tracks.tracks);
@@ -150,7 +168,7 @@ export function sampleProjectMotionPath(
         Math.max(1, project.animation.fps),
       distance: pathDistance(points),
       points,
-      keyframeFrames,
+      keyframeFrames: uniqueKeyframeFrames,
       bounds: pathBounds(points)
     },
     error: null
@@ -177,9 +195,39 @@ function resolveSubject(
     return {
       ok: true,
       name: camera.name,
-      properties: ["transform.position"],
-      sample: (frame, tracks) =>
-        sampleProperty(tracks, "transform.position", camera.transform.position, frame),
+      properties: [
+        "transform.position",
+        "transform.rotation",
+        "transform.scale"
+      ],
+      sample: (frame, tracks) => {
+        const baseValues = {
+          "transform.position": sampleProperty(
+            tracks,
+            "transform.position",
+            camera.transform.position,
+            frame
+          ),
+          "transform.rotation": sampleProperty(
+            tracks,
+            "transform.rotation",
+            camera.transform.rotation,
+            frame
+          ),
+          "transform.scale": sampleProperty(
+            tracks,
+            "transform.scale",
+            camera.transform.scale,
+            frame
+          )
+        };
+        return evaluateAnimationLayers(
+          getTargetAnimationLayers(project.animation.nlaTracks, camera.id),
+          project.animation.clips,
+          baseValues,
+          frame
+        ).values["transform.position"] ?? null;
+      },
       error: ""
     };
   }
@@ -219,7 +267,8 @@ function resolveSubject(
       boneId,
       localPoint,
       frame,
-      tracks
+      tracks,
+      project
     ),
     error: ""
   };
@@ -231,7 +280,8 @@ function sampleCharacterPoint(
   boneId: string,
   localPoint: RigVector3Tuple,
   frame: number,
-  tracks: PreparedMotionTrack[]
+  tracks: PreparedMotionTrack[],
+  project: MineMotionProject
 ): RigVector3Tuple | null {
   const transform: TransformData = {
     position: sampleProperty(
@@ -261,6 +311,27 @@ function sampleCharacterPoint(
       character.boneRotations[id] ?? [0, 0, 0],
       frame
     );
+  }
+  const baseValues: Record<string, RigVector3Tuple> = {
+    "transform.position": transform.position,
+    "transform.rotation": transform.rotation,
+    "transform.scale": transform.scale,
+    ...Object.fromEntries(Object.entries(boneRotations).map(([id, rotation]) => [
+      `bone.rotation.${id}`,
+      rotation
+    ]))
+  };
+  const layered = evaluateAnimationLayers(
+    getTargetAnimationLayers(project.animation.nlaTracks, character.id),
+    project.animation.clips,
+    baseValues,
+    frame
+  ).values;
+  transform.position = layered["transform.position"] ?? transform.position;
+  transform.rotation = layered["transform.rotation"] ?? transform.rotation;
+  transform.scale = layered["transform.scale"] ?? transform.scale;
+  for (const id of boneIds) {
+    boneRotations[id] = layered[`bone.rotation.${id}`] ?? boneRotations[id];
   }
   const evaluated = evaluateRigPointWorld(
     getRigDefinition(character.rigPreset),
@@ -329,6 +400,45 @@ function collectKeyframeFrames(
         : []
     )
   ))].sort((left, right) => left - right);
+}
+
+function collectLayerKeyframeFrames(
+  project: MineMotionProject,
+  targetId: string,
+  properties: AnimatableProperty[],
+  startFrame: number,
+  endFrame: number
+): number[] | null {
+  const propertySet = new Set(properties);
+  const clipById = new Map(project.animation.clips.map((clip) => [clip.id, clip]));
+  const frames = new Set<number>();
+  for (const layer of getTargetAnimationLayers(project.animation.nlaTracks, targetId)) {
+    if (layer.muted || layer.weight <= 0 || layer.kind === "vfxSync") continue;
+    for (const instance of layer.clips) {
+      if (instance.muted || instance.weight <= 0) continue;
+      const clip = clipById.get(instance.clipId);
+      if (!clip) continue;
+      for (const track of clip.tracks) {
+        if (!propertySet.has(track.property) ||
+          !isPropertyAllowedForAnimationLayer(layer.kind, track.property) ||
+          track.keyframes.length > MOTION_PATH_LIMITS.maximumKeyframesPerTrack) {
+          continue;
+        }
+        for (const keyframe of track.keyframes) {
+          if (!Number.isFinite(keyframe.frame)) continue;
+          const globalFrame = instance.startFrame + keyframe.frame / instance.timeScale;
+          if (Number.isFinite(globalFrame) &&
+            globalFrame >= startFrame &&
+            globalFrame <= endFrame &&
+            globalFrame <= instance.startFrame + instance.durationFrames) {
+            frames.add(globalFrame);
+            if (frames.size > MOTION_PATH_LIMITS.maximumPoints) return null;
+          }
+        }
+      }
+    }
+  }
+  return [...frames];
 }
 
 function samplePreparedTrack(

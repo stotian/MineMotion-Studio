@@ -1,17 +1,16 @@
 import type { NlaClipInstance } from "../../project/ProjectFile";
 import { createDeterministicId } from "../../core/ids/Id";
+import type {
+  AnimationLayerBlendMode,
+  AnimationLayerKind
+} from "./AnimationLayerTypes";
 
 export const ANIMATION_LAYER_VERSION = 1 as const;
 
-export type AnimationLayerKind =
-  | "base"
-  | "upperBody"
-  | "headLook"
-  | "handAdjustment"
-  | "additiveMotion"
-  | "vfxSync";
-
-export type AnimationLayerBlendMode = "override" | "additive" | "metadata";
+export type {
+  AnimationLayerBlendMode,
+  AnimationLayerKind
+} from "./AnimationLayerTypes";
 
 export interface AnimationLayerData {
   version: typeof ANIMATION_LAYER_VERSION;

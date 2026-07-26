@@ -16,6 +16,11 @@ import { ensureKeyframeMetadata } from "../animation/editor/KeyframeModel";
 import { parseMarkers } from "../animation/editor/Markers";
 import { parseAnimationClip } from "../animation/editor/ClipSystem";
 import {
+  ANIMATION_LAYER_KINDS,
+  createAnimationLayer
+} from "../animation/layers/AnimationLayer";
+import type { AnimationLayerKind } from "../animation/layers/AnimationLayerTypes";
+import {
   getRigTimelineItems,
   sanitizeCharacterRig,
   sanitizeRigProjectData
@@ -496,10 +501,29 @@ export class ProjectSerializer {
     if (!Array.isArray(tracks)) return [];
     return tracks.flatMap((track, trackIndex) => {
       if (!track || typeof track !== "object") return [];
+      const layerKind = ANIMATION_LAYER_KINDS.includes(
+        track.layerKind as AnimationLayerKind
+      )
+        ? track.layerKind as AnimationLayerKind
+        : "base";
+      const layerDefaults = createAnimationLayer(
+        typeof track.targetId === "string" ? track.targetId : "",
+        layerKind
+      );
       return [{
         id: typeof track.id === "string" ? track.id : `nla_track_${trackIndex}`,
         name: typeof track.name === "string" ? track.name : "NLA Clips",
         targetId: typeof track.targetId === "string" ? track.targetId : "",
+        layerKind,
+        blendMode: layerDefaults.blendMode,
+        weight: finiteClampedNumber(track.weight, 0, 1, 1),
+        muted: track.muted === true,
+        vfxEffectIds: layerKind === "vfxSync" && Array.isArray(track.vfxEffectIds)
+          ? [...new Set(track.vfxEffectIds.filter((id) =>
+              typeof id === "string" &&
+              /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(id)
+            ).slice(0, 64))]
+          : [],
         clips: Array.isArray(track.clips)
           ? track.clips.flatMap((clip, clipIndex) => {
               if (!clip || typeof clip !== "object") return [];
@@ -510,7 +534,7 @@ export class ProjectSerializer {
                 startFrame: Math.max(0, Math.round(Number(clip.startFrame) || 0)),
                 durationFrames: Math.max(1, Math.round(Number(clip.durationFrames) || 1)),
                 timeScale: Math.max(0.01, Number(clip.timeScale) || 1),
-                weight: Math.min(1, Math.max(0, Number(clip.weight) || 1)),
+                weight: finiteClampedNumber(clip.weight, 0, 1, 1),
                 muted: clip.muted === true
               }];
             })
@@ -572,4 +596,16 @@ export class ProjectSerializer {
       throw new Error("Project file animation.timelineTracks must be an array.");
     }
   }
+}
+
+function finiteClampedNumber(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  fallback: number
+): number {
+  const numeric = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numeric)
+    ? Math.min(maximum, Math.max(minimum, numeric))
+    : fallback;
 }

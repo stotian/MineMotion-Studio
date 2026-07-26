@@ -7,7 +7,13 @@ import {
   parseAnimationClip,
   serializeAnimationClip
 } from "./ClipSystem";
-import { addClipToNla, updateNlaClip } from "./NlaTracks";
+import {
+  addClipToAnimationLayer,
+  addClipToNla,
+  ensureNlaLayer,
+  updateNlaClip,
+  updateNlaLayer
+} from "./NlaTracks";
 
 const track: AnimationTrack = {
   id: "hero:bone.rotation.rightArm",
@@ -53,5 +59,56 @@ describe("ClipSystem", () => {
 
     expect(muted[0].clips[0].muted).toBe(true);
     expect(muted[0].clips[0].weight).toBe(1);
+    const hostile = updateNlaClip(muted, muted[0].clips[0].id, {
+      startFrame: Number.NaN,
+      durationFrames: Number.POSITIVE_INFINITY,
+      timeScale: Number.NaN,
+      weight: Number.NaN
+    });
+    expect(hostile[0].clips[0]).toMatchObject({
+      startFrame: 50,
+      durationFrames: 1,
+      timeScale: 1,
+      weight: 1
+    });
+  });
+
+  it("keeps one bounded layer of each kind per target", () => {
+    const clip = createAnimationClip(
+      "Swing",
+      [track],
+      [{ trackId: track.id, keyframeId: "a" }],
+      "character"
+    )!;
+    const layered = addClipToAnimationLayer(
+      [],
+      clip,
+      "hero",
+      12,
+      "handAdjustment"
+    );
+    const withVfx = ensureNlaLayer(layered, "hero", "vfxSync");
+    const unchanged = ensureNlaLayer(withVfx, "hero", "vfxSync");
+    const updated = updateNlaLayer(unchanged, unchanged[1].id, {
+      weight: Number.POSITIVE_INFINITY,
+      muted: true,
+      vfxEffectIds: ["effect_1", "effect_1", "effect_2"]
+    });
+
+    expect(unchanged).toBe(withVfx);
+    expect(updated).toMatchObject([
+      {
+        layerKind: "handAdjustment",
+        blendMode: "override",
+        clips: [{ startFrame: 12 }]
+      },
+      {
+        layerKind: "vfxSync",
+        blendMode: "metadata",
+        weight: 1,
+        muted: true,
+        vfxEffectIds: ["effect_1", "effect_2"]
+      }
+    ]);
   });
 });

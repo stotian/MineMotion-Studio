@@ -1,4 +1,4 @@
-import { Animator } from "../../animation/Animator";
+import { sampleProjectWithAnimationLayers } from "../../animation/layers/ProjectAnimationLayerEvaluator";
 import type {
   MineMotionProject,
   TransformData
@@ -55,7 +55,7 @@ export function sampleFootKinematics(
     return failure("FOOT_LOCK_CHAIN_MISMATCH: Foot control and chain IDs do not match.");
   }
 
-  const sampledProject = Animator.sampleProject(project, frame);
+  const sampledProject = sampleProjectWithAnimationLayers(project, frame).project;
   const character = sampledProject.scene.characters.find((entry) => entry.id === characterId);
   if (!character) return failure("FOOT_LOCK_CHARACTER_MISSING: The target character does not exist.");
   const definition = getRigDefinition(character.rigPreset);

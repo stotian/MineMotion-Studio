@@ -1194,14 +1194,41 @@ p.parameter-control-error {
 
 .nla-row {
   display: grid;
-  grid-template-columns: 150px minmax(520px, 1fr);
+  grid-template-columns: 290px minmax(410px, 1fr);
   align-items: center;
-  min-height: 34px;
+  min-height: 46px;
   color: #9ca8ba;
   font-size: 0.7rem;
 }
 
-.nla-row > div {
+.nla-layer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  padding-right: 0.4rem;
+}
+
+.nla-layer-controls > span {
+  flex-basis: 100%;
+}
+
+.nla-layer-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nla-layer-controls input[type="number"] {
+  width: 3.5rem;
+}
+
+.nla-layer-controls select[multiple] {
+  max-width: 150px;
+  min-height: 2.4rem;
+}
+
+.nla-clip-lane {
   position: relative;
   height: 28px;
   overflow: hidden;

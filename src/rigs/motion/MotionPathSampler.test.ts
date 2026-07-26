@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import * as THREE from "three";
 import { Animator } from "../../animation/Animator";
+import { addClipToAnimationLayer } from "../../animation/editor/NlaTracks";
 import { createInitialProject } from "../../project/ProjectStore";
+import type { ReusableAnimationClip } from "../../project/ProjectFile";
 import { createDefaultSteveRig } from "../DefaultSteveRig";
 import { getRigDefinition } from "../MinecraftRigPresets";
 import { makeBoneObjectId } from "../RigSelection";
@@ -134,6 +136,53 @@ describe("motion path sampling", () => {
     ]);
     expect(first.path?.points.find((point) => point.frame === 2.5)?.keyframe)
       .toBe(true);
+  });
+
+  it("samples layered camera motion and exposes remapped layer keyframes", () => {
+    const project = createInitialProject();
+    const camera = project.scene.cameras[0];
+    camera.transform.position = [2, 3, 4];
+    const clip: ReusableAnimationClip = {
+      id: "camera_additive",
+      name: "Camera Additive",
+      description: "",
+      targetType: "camera",
+      durationFrames: 10,
+      tracks: [{
+        property: "transform.position",
+        keyframes: [
+          { frame: 0, value: [0, 0, 0] },
+          { frame: 5, value: [5, 0, 0] },
+          { frame: 10, value: [10, 0, 0] }
+        ]
+      }],
+      createdAt: "2026-01-01T00:00:00.000Z"
+    };
+    project.animation.clips.push(clip);
+    project.animation.nlaTracks = addClipToAnimationLayer(
+      [],
+      clip,
+      camera.id,
+      2,
+      "additiveMotion"
+    );
+    project.animation.nlaTracks[0].clips[0].timeScale = 2;
+
+    const result = sampleProjectMotionPath(project, {
+      kind: "camera",
+      subjectId: camera.id,
+      startFrame: 0,
+      endFrame: 7
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.path?.keyframeFrames).toEqual([2, 4.5, 7]);
+    expect(result.path?.points.find((point) => point.frame === 4.5)).toEqual({
+      frame: 4.5,
+      position: [7, 3, 4],
+      keyframe: true
+    });
+    expect(result.path?.points.at(-1)?.position).toEqual([12, 3, 4]);
   });
 
   it("rejects missing, oversized, excessive-track, and hostile requests without accessors", () => {

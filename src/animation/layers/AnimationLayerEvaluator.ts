@@ -81,7 +81,7 @@ export function evaluateAnimationLayers(
       );
       const influence = layer.weight * instance.weight;
       for (const track of clip.tracks) {
-        if (!propertyAllowed(layer.kind, track.property) ||
+        if (!isPropertyAllowedForAnimationLayer(layer.kind, track.property) ||
           !validClipTrack(track.property, track.keyframes)) {
           continue;
         }
@@ -110,7 +110,7 @@ export function evaluateAnimationLayers(
   };
 }
 
-function propertyAllowed(
+export function isPropertyAllowedForAnimationLayer(
   kind: AnimationLayerKind,
   property: AnimatableProperty
 ): boolean {

@@ -34,6 +34,10 @@ import type {
   TransformData,
   Vector3Tuple
 } from "../core/scene/SceneTypes";
+import type {
+  AnimationLayerBlendMode,
+  AnimationLayerKind
+} from "../animation/layers/AnimationLayerTypes";
 
 export type {
   SceneEntity,
@@ -227,6 +231,11 @@ export interface NlaTrackData {
   name: string;
   targetId: string;
   clips: NlaClipInstance[];
+  layerKind?: AnimationLayerKind;
+  blendMode?: AnimationLayerBlendMode;
+  weight?: number;
+  muted?: boolean;
+  vfxEffectIds?: string[];
 }
 
 export interface ProjectSettings {

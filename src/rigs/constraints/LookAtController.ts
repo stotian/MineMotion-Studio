@@ -1,4 +1,4 @@
-import { Animator } from "../../animation/Animator";
+import { sampleProjectWithAnimationLayers } from "../../animation/layers/ProjectAnimationLayerEvaluator";
 import { addTransformRotationKeyframe } from "../../animation/Timeline";
 import type { MineMotionProject, Vector3Tuple } from "../../project/ProjectFile";
 import { syncCinematicTimeline } from "../../project/CinematicTimeline";
@@ -84,7 +84,7 @@ export function bakeProjectLookAt(
     return failure(project, "LOOK_AT_SUBJECT_LOCKED: Unlock the subject before baking.");
   }
 
-  const sampled = Animator.sampleProject(project, frame);
+  const sampled = sampleProjectWithAnimationLayers(project, frame).project;
   const mapped = mapProjectLookAtControl(sampled, safeControl);
   if (!mapped.ok || !mapped.mapping) return failure(project, mapped.error);
   const solve = solveLookAtConstraint(mapped.mapping.solveInput);

@@ -51,12 +51,37 @@ import {
   createAnimationClip,
   isAnimationClipCompatible
 } from "../../animation/editor/ClipSystem";
-import { addClipToNla, updateNlaClip } from "../../animation/editor/NlaTracks";
+import {
+  addClipToAnimationLayer,
+  ensureNlaLayer,
+  updateNlaClip,
+  updateNlaLayer
+} from "../../animation/editor/NlaTracks";
+import type { AnimationLayerKind } from "../../animation/layers/AnimationLayer";
+import {
+  getNlaLayerKind,
+  isClipCompatibleWithLayer
+} from "../../animation/layers/AnimationLayerNlaAdapter";
 import { Dopesheet } from "../../animation/editor/Dopesheet";
 import { GraphEditor } from "../../animation/editor/GraphEditor";
 import { useLocalization } from "../../localization/LocalizationContext";
 
 const EFFECT_TIMELINE_DRAG_TYPE = "application/x-minemotion-effect-timeline";
+const CLIP_LAYER_KINDS: readonly AnimationLayerKind[] = [
+  "base",
+  "upperBody",
+  "headLook",
+  "handAdjustment",
+  "additiveMotion"
+];
+const ANIMATION_LAYER_TRANSLATION_KEYS = {
+  base: "timeline.layer.base",
+  upperBody: "timeline.layer.upperBody",
+  headLook: "timeline.layer.headLook",
+  handAdjustment: "timeline.layer.handAdjustment",
+  additiveMotion: "timeline.layer.additiveMotion",
+  vfxSync: "timeline.layer.vfxSync"
+} as const;
 
 interface EffectTimelineDragPayload {
   mode: "move" | "trim-start" | "trim-end";
@@ -103,6 +128,8 @@ export function TimelinePanel({
   const { animation } = project;
   const [editor, setEditor] = useState(createAnimationEditorState);
   const [selectedClipId, setSelectedClipId] = useState("");
+  const [selectedLayerKind, setSelectedLayerKind] =
+    useState<AnimationLayerKind>("base");
   const [effectClipboard, setEffectClipboard] =
     useState<EffectTimelineClipboardV1 | null>(null);
   const projectIdentity = project.metadata.createdAt;
@@ -132,8 +159,22 @@ export function TimelinePanel({
       : selectedEntity?.type === "camera"
         ? "camera"
         : "object";
-  const clipCompatible = Boolean(
-    clip && selectedTargetId && isAnimationClipCompatible(clip, selectedTargetType)
+  const clipTargetCompatible = Boolean(
+    clip &&
+    selectedTargetId &&
+    isAnimationClipCompatible(clip, selectedTargetType)
+  );
+  const clipLayerCompatible = Boolean(
+    clip &&
+    clipTargetCompatible &&
+    isClipCompatibleWithLayer(clip, selectedLayerKind)
+  );
+  const hasSelectedVfxSyncLayer = Boolean(
+    selectedTargetId &&
+    animation.nlaTracks.some((track) =>
+      track.targetId === selectedTargetId &&
+      getNlaLayerKind(track) === "vfxSync"
+    )
   );
 
   useEffect(() => {
@@ -225,14 +266,31 @@ export function TimelinePanel({
     onUpdateAnimation(
       {
         ...animation,
-        nlaTracks: addClipToNla(
+        nlaTracks: addClipToAnimationLayer(
           animation.nlaTracks,
           clip,
           selectedTargetId,
-          animation.currentFrame
+          animation.currentFrame,
+          selectedLayerKind
         )
       },
       t("history.addNla")
+    );
+    setEditor((current) => ({ ...current, view: "nla" }));
+  };
+
+  const addVfxSyncLayer = () => {
+    if (!selectedTargetId) return;
+    onUpdateAnimation(
+      {
+        ...animation,
+        nlaTracks: ensureNlaLayer(
+          animation.nlaTracks,
+          selectedTargetId,
+          "vfxSync"
+        )
+      },
+      t("history.addVfxSyncLayer")
     );
     setEditor((current) => ({ ...current, view: "nla" }));
   };
@@ -496,11 +554,31 @@ export function TimelinePanel({
             </option>
           ))}
         </select>
-        <button type="button" disabled={!clipCompatible} onClick={applyClip}>
+        <button type="button" disabled={!clipTargetCompatible} onClick={applyClip}>
           {t("timeline.applyClip")}
         </button>
-        <button type="button" disabled={!clipCompatible} onClick={addNlaClip}>
+        <select
+          aria-label={t("timeline.layerAria")}
+          value={selectedLayerKind}
+          onChange={(event) =>
+            setSelectedLayerKind(event.target.value as AnimationLayerKind)
+          }
+        >
+          {CLIP_LAYER_KINDS.map((kind) => (
+            <option key={kind} value={kind}>
+              {t(ANIMATION_LAYER_TRANSLATION_KEYS[kind])}
+            </option>
+          ))}
+        </select>
+        <button type="button" disabled={!clipLayerCompatible} onClick={addNlaClip}>
           {t("timeline.addNla")}
+        </button>
+        <button
+          type="button"
+          disabled={!selectedTargetId || hasSelectedVfxSyncLayer}
+          onClick={addVfxSyncLayer}
+        >
+          {t("timeline.addVfxSyncLayer")}
         </button>
         <span className="effect-command-label">
           {t("timeline.effectSelected", { name: selectedEffect?.name ?? t("common.none") })}
@@ -764,6 +842,19 @@ export function TimelinePanel({
                 t("history.toggleNla")
               )
             }
+            onUpdateLayer={(layerId, patch) =>
+              onUpdateAnimation(
+                {
+                  ...animation,
+                  nlaTracks: updateNlaLayer(
+                    animation.nlaTracks,
+                    layerId,
+                    patch
+                  )
+                },
+                t("history.updateNlaLayer")
+              )
+            }
           />
         )}
       </div>
@@ -880,11 +971,20 @@ function TimelineView({
 function NlaView({
   project,
   onSetFrame,
-  onToggleMute
+  onToggleMute,
+  onUpdateLayer
 }: {
   project: MineMotionProject;
   onSetFrame: (frame: number) => void;
   onToggleMute: (instanceId: string, muted: boolean) => void;
+  onUpdateLayer: (
+    layerId: string,
+    patch: {
+      muted?: boolean;
+      weight?: number;
+      vfxEffectIds?: string[];
+    }
+  ) => void;
 }) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
@@ -896,8 +996,66 @@ function NlaView({
     <div className="nla-editor">
       {project.animation.nlaTracks.map((track) => (
         <div key={track.id} className="nla-row">
-          <span>{findObject(project, track.targetId)?.entity.name ?? track.name}</span>
-          <div>
+          <div className="nla-layer-controls">
+            <span>
+              {findObject(project, track.targetId)?.entity.name ?? track.name}
+              {" · "}
+              <strong>
+                {t(ANIMATION_LAYER_TRANSLATION_KEYS[getNlaLayerKind(track)])}
+              </strong>
+            </span>
+            <label>
+              <input
+                type="checkbox"
+                checked={track.muted === true}
+                onChange={(event) =>
+                  onUpdateLayer(track.id, { muted: event.target.checked })
+                }
+              />
+              {t("timeline.layerMuted")}
+            </label>
+            {getNlaLayerKind(track) !== "vfxSync" && (
+              <label>
+                {t("timeline.layerWeight")}
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={track.weight ?? 1}
+                  onChange={(event) =>
+                    onUpdateLayer(track.id, {
+                      weight: event.target.valueAsNumber
+                    })
+                  }
+                />
+              </label>
+            )}
+            {getNlaLayerKind(track) === "vfxSync" && (
+              <label>
+                {t("timeline.layerEffects")}
+                <select
+                  multiple
+                  aria-label={t("timeline.layerEffectsAria")}
+                  value={track.vfxEffectIds ?? []}
+                  onChange={(event) =>
+                    onUpdateLayer(track.id, {
+                      vfxEffectIds: [...event.target.selectedOptions].map(
+                        (option) => option.value
+                      )
+                    })
+                  }
+                >
+                  {project.effects.instances.map((effect) => (
+                    <option key={effect.id} value={effect.id}>
+                      {effect.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+          <div className="nla-clip-lane">
             {track.clips.map((instance) => {
               const source = project.animation.clips.find((clip) => clip.id === instance.clipId);
               return (
