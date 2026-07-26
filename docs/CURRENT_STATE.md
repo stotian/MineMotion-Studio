@@ -181,6 +181,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
   from existing interpolated tracks. Rig Studio reports range, key points,
   duration, distance, and samples; disposed viewport overlays are excluded from
   render preview/export.
+- A pure bounded six-kind animation-layer contract/evaluator supports fixed
+  override, relative-additive, and VFX-metadata modes with scoped bones, mute,
+  combined weights, active clip ranges, and guarded inputs.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -192,8 +195,8 @@ preview/export budgets, and explicit renderer ownership now coexist.
   every preset. This preserves appearance while runtime data is canonical.
 - Viewport IK/look-at gizmos, separate eye expression overlays, Blockbench
   auto-rigging, animated resource textures, secure plugin execution, native
-  dialogs, direct path editing, and full animation-layer/NLA blending are not
-  implemented.
+  dialogs, direct path editing, and production animation-layer/NLA persistence,
+  UI, and sampling are not implemented.
 
 ## Absent Systems
 
@@ -203,7 +206,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 105 frontend test files and 473 passing tests.
+- 106 frontend test files and 478 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

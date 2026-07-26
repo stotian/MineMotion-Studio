@@ -467,3 +467,18 @@ introduce a path timeline. Viewport geometry consumes the derived result,
 disposes with the existing scene root, and is withheld whenever production
 render preview/export is active. Session memoization ignores current-frame-only
 updates so playback does not resample a static full-range path every tick.
+
+## TD-036 - Evolve the existing NLA skeleton into ordered animation layers
+
+Status: Accepted in Phase 19.7.
+
+Use six fixed layer kinds in the order Base Animation, Upper Body, Head Look,
+Hand Adjustment, Additive Motion, and VFX Synchronization. Mute and weight are
+layer properties; the existing clip instance mute/weight remains multiplicative.
+Override layers linearly blend their allowed values. Additive Motion applies the
+sample delta from the clip's first frame, so reusable absolute clips do not jump
+when activated.
+
+The existing `animation.nlaTracks` must become the persistence container; do not
+add a parallel layer collection. VFX synchronization stores bounded effect
+references only and never duplicates effect timing or parameters.

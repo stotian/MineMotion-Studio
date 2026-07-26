@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Begin Phase 19.7 with animation layers after the completed and validated
-root/hand/camera motion-path workflow.
+Continue Phase 19.7 by adapting existing NLA persistence and production sampling
+to the completed pure six-kind animation-layer contract.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -70,6 +70,9 @@ Preserve the local commits and push normally once authentication is restored.
   rendered-hand parity is covered without repeated whole-project cloning.
 - Localized session controls select a path/range and report statistics; the
   viewport polyline/key points dispose normally and never enter final renders.
+- A pure six-kind animation-layer contract now defines fixed override/additive/
+  metadata modes, scoped bones, mute, weight, relative additive motion, and
+  bounded VFX effect references.
 
 ## Unfinished Work
 
@@ -77,10 +80,9 @@ Preserve the local commits and push normally once authentication is restored.
 
 ## Next Implementation Step
 
-Inventory the current NLA clip skeleton, global track sampling, and VFX sync
-metadata, then define the smallest layer contract for Base Animation, Upper
-Body, Head Look, Hand Adjustment, Additive Motion, and VFX Synchronization with
-mute, weight, and basic blending.
+Map existing `animation.nlaTracks` to layer records without a parallel store,
+persist defaults compatibly, and sample layers after global tracks through the
+shared preview/export path. Add UI only after round-trip behavior is green.
 
 ## Tests To Run
 

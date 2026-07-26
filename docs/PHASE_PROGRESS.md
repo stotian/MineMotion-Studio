@@ -10,7 +10,7 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Status
 
-READY - Phase 19.1 through 19.6 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.6 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -247,7 +247,11 @@ READY - Phase 19.1 through 19.6 and the consolidation checkpoint are implemented
 
 ## In Progress
 
-- None. Phase 19.7 is the next safe READY milestone.
+- Phase 19.7 has a pure bounded six-kind layer contract and evaluator. It
+  supports fixed override/additive/metadata modes, mute, combined layer/clip
+  weight, scoped bones, relative additive samples, and VFX effect references.
+- Existing NLA persistence adaptation, production sampling, UI, and round-trip
+  validation remain.
 
 ## Not Started
 
@@ -274,8 +278,8 @@ READY - Phase 19.1 through 19.6 and the consolidation checkpoint are implemented
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused sampler/renderer/disposal tests: PASS - 3 files, 8 tests
-- `npm test`: PASS - 105 files, 473 tests
+- Focused layer/clip/interpolation tests: PASS - 3 files, 9 tests
+- `npm test`: PASS - 106 files, 478 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
@@ -289,5 +293,6 @@ READY - Phase 19.1 through 19.6 and the consolidation checkpoint are implemented
 
 ## Next Exact Action
 
-Inventory the NLA skeleton, global track evaluator, and VFX sync metadata, then
-define the smallest bounded animation-layer contract before persistence or UI.
+Adapt existing `animation.nlaTracks` into the six layer kinds, then evaluate
+them after authoritative global tracks in the shared playback/export sampling
+path before adding UI.

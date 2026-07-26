@@ -46,6 +46,7 @@ still required before changing code.
 | LIM-037 | Look-at uses numeric session controls; viewport target gizmos and separate eye overlays remain placeholders | Yes | P4 | 19/future | OPEN_HONEST_UI |
 | LIM-038 | Pure root/hand/camera path sampling existed without viewport paths and key points | Yes | P4 | 19.6 | RESOLVED |
 | LIM-039 | Motion paths are inspect-only; optional direct path editing is deferred until it can reuse global keyframe commands | Yes | P5 | 19/future | OPEN_OPTIONAL |
+| LIM-040 | Pure animation-layer blending exists, but NLA persistence, production sampling, and layer UI are not connected | Yes | P4 | 19.7 | PARTIALLY_RESOLVED |
 
 ## Phase 15.1 Outcome
 
