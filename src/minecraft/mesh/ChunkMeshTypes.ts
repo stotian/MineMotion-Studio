@@ -18,6 +18,15 @@ export interface ChunkMeshBuildResult {
   object: THREE.Group;
   visibleBlocks: number;
   chunkCount: number;
+  chunks: readonly ChunkRenderObject[];
+  helpers: THREE.Group | null;
+}
+
+export interface ChunkRenderObject {
+  object: THREE.Group;
+  chunkX: number;
+  chunkZ: number;
+  visibleBlocks: number;
 }
 
 export interface ChunkMeshBuildOptions {

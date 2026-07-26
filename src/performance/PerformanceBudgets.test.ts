@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_RENDER_STATS } from "./RenderStats";
 import type { RendererMetricsSnapshot } from "./RendererMetrics";
+import { EMPTY_RENDERER_CULLING_SUMMARY } from "../renderer/RendererCulling";
 import {
   evaluatePerformanceBudget,
   PERFORMANCE_BUDGET_IDS,
@@ -41,7 +42,8 @@ function snapshot(): RendererMetricsSnapshot {
       importedChunks: 2,
       effects: 4,
       activeEffects: 3
-    }
+    },
+    culling: EMPTY_RENDERER_CULLING_SUMMARY
   };
 }
 

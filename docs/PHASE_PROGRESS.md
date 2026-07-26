@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.5 - Implement measurable frustum, chunk, distance, and layer culling
+20.6 - Use instancing and caches where benchmarks justify them
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.4 measurement, budgets, layers, and disposal are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.5 measurement, budgets, layers, disposal, and culling are implemented and validated.
 
 ## Completed
 
@@ -316,15 +316,21 @@ IN_PROGRESS - Phase 20.1-20.4 measurement, budgets, layers, and disposal are imp
 - Audio elements/context/nodes, Blob URLs, WebM resources, callbacks, controls,
   listeners, RAF, render lists, and owned Three.js trees have characterized
   cleanup paths. Audio orchestration left `App.tsx`, reducing it to 2,642 lines.
+- Phase 20.5 adds bounded pure layer/distance/frustum sphere decisions with
+  editor selection override, fail-open invalid/overflow handling, and live
+  per-reason plus chunk visibility counters.
+- Imported blocks stay instanced by material inside independently cullable chunk
+  groups. Final distance equals camera far and no persistent object visibility
+  is changed.
 
 ## In Progress
 
-- Define measurable Phase 20.5 frustum, chunk, distance, and layer culling
-  inputs before changing visibility.
+- Benchmark Phase 20.6 draw-call/triangle/resource changes from current
+  instancing and caches before selecting new batching or reuse.
 
 ## Not Started
 
-- Phase 20 tasks 5-17 and phases 21-35.
+- Phase 20 tasks 6-17 and phases 21-35.
 
 ## Blockers
 
@@ -340,20 +346,20 @@ IN_PROGRESS - Phase 20.1-20.4 measurement, budgets, layers, and disposal are imp
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed checkpoint: `de1abfc` (Phase 20.3).
-- Latest validated implementation checkpoint: Phase 20.4 local milestone
+- Latest committed checkpoint: `70460e0` (Phase 20.4).
+- Latest validated implementation checkpoint: Phase 20.5 local milestone
   (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.4 lifecycle tests: PASS - 7 files, 17 tests
-- `npm test`: PASS - 126 files, 547 tests
+- Focused Phase 20.5 culling/metrics tests: PASS - 4 files, 10 tests
+- `npm test`: PASS - 128 files, 551 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,642/2,839 lines
-- `npm run build`: PASS - 1,878 modules; 1,525.58 kB known large chunk
+- `npm run build`: PASS - 1,880 modules; 1,531.08 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -363,6 +369,6 @@ IN_PROGRESS - Phase 20.1-20.4 measurement, budgets, layers, and disposal are imp
 
 ## Next Exact Action
 
-Define culling descriptors and counters independently of Three.js visibility
-mutation. Preserve selection/final-render correctness and make before/after
-work reduction measurable.
+Run reproducible small/all-visible/off-screen chunk and VFX scenes against the
+new calls/triangles/culling metrics. Change instancing/cache strategy only where
+the recorded tradeoff improves a named budget.

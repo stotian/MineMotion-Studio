@@ -226,6 +226,11 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Audio elements/context/nodes, WebM bitmaps/tracks/listeners, Blob URLs,
   scheduled callbacks, renderer controls/listeners/RAF, and owned Three.js
   resources have bounded cleanup paths.
+- Bounded pure culling classifies semantic layer, camera-distance, and frustum
+  sphere decisions for scene roots. Selected editor objects fail visible, final
+  distance equals camera far, and invalid/overflow work never disappears.
+- Imported block instances are grouped by material within independent chunk
+  roots; live telemetry reports visible/tested roots and chunks by cull reason.
 
 ## Partial Systems
 
@@ -245,7 +250,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 126 frontend test files and 547 passing tests.
+- 128 frontend test files and 551 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -355,3 +360,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 20.4 keeps explicitly shared GPU resources alive across ordinary scene
   rebuilds, then releases them only through their single renderer cache owner.
   This order prevents both premature disposal and progressive stale-cache growth.
+- Phase 20.5 keeps pure decisions separate from the Three.js adapter. Runtime
+  visibility is derived every frame and never becomes project visibility data.

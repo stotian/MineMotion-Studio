@@ -48,6 +48,7 @@ import {
   type RendererLayerVisibility
 } from "./RendererLayers";
 import { replaceOwnedObjMeshMaterials } from "./ObjMaterialOwnership";
+import { ThreeCullingAdapter } from "./ThreeCullingAdapter";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -66,6 +67,7 @@ export class SceneRenderer {
   private readonly controller: CameraController;
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
+  private readonly culling = new ThreeCullingAdapter();
   private readonly sceneRoot = new THREE.Group();
   private readonly gridFloor = createGridFloor();
   private readonly selectionBox = new THREE.BoxHelper(new THREE.Object3D(), 0xf7d56b);
@@ -134,6 +136,7 @@ export class SceneRenderer {
         !project.renderSettings.renderPreviewEnabled ||
         project.exportSettings.includeCinematicBars
     });
+    this.culling.setLayerVisibility(this.layerVisibility);
     if (viewportSettings) {
       this.applyViewportSettings(viewportSettings);
     }
@@ -186,6 +189,7 @@ export class SceneRenderer {
     this.renderer.forceContextLoss();
     this.renderer.domElement.remove();
     this.performanceMonitor.reset();
+    this.culling.reset();
     this.project = null;
   }
 
@@ -194,6 +198,7 @@ export class SceneRenderer {
     motionPath: SampledMotionPath | null
   ): void {
     disposeThreeObjectTree(this.sceneRoot);
+    this.culling.reset();
     const activeResourcePack = project.assets.resourcePacks.find(
       (pack) => pack.id === project.minecraftResources.activeResourcePackId
     );
@@ -232,8 +237,40 @@ export class SceneRenderer {
         }
       );
       imported.object.name = `Imported World: ${project.world?.sourceName ?? "Minecraft World"}`;
-      tagThreeObjectLayer(imported.object, "world");
       this.sceneRoot.add(imported.object);
+      imported.chunks.forEach((renderedChunk, index) => {
+        const source = importedChunks[index];
+        tagThreeObjectLayer(renderedChunk.object, "world");
+        const halfHeight = Math.max(
+          0.5,
+          ((source?.maxY ?? 0) - (source?.minY ?? 0) + 1) / 2
+        );
+        const logicalBounds = {
+          center: [
+            renderedChunk.chunkX * 16 + 8,
+            (source?.minY ?? 0) + halfHeight,
+            renderedChunk.chunkZ * 16 + 8
+          ] as const,
+          radius: Math.hypot(8, halfHeight, 8)
+        };
+        this.culling.register(renderedChunk.object, {
+          id: `chunk:${index}:${renderedChunk.chunkX},${renderedChunk.chunkZ}`,
+          selectionId: "world",
+          layer: "world",
+          chunk: [renderedChunk.chunkX, renderedChunk.chunkZ],
+          ...(renderedChunk.object.children.length === 0
+            ? logicalBounds
+            : {})
+        });
+      });
+      if (imported.helpers) {
+        tagThreeObjectLayer(imported.helpers, "helpers");
+        this.culling.register(imported.helpers, {
+          id: "world:helpers",
+          selectionId: "world",
+          layer: "helpers"
+        });
+      }
     } else {
       const terrainChunk = PresetChunkMeshBuilder.createChunkForPreset(
         project.projectSettings.terrainPreset
@@ -248,6 +285,10 @@ export class SceneRenderer {
           : `${project.projectSettings.terrainPreset} terrain`;
         tagThreeObjectLayer(terrain, "world");
         this.sceneRoot.add(terrain);
+        this.culling.register(terrain, {
+          id: "world",
+          layer: "world"
+        });
       }
     }
 
@@ -256,6 +297,10 @@ export class SceneRenderer {
       const object = this.createCharacterObject(project, character);
       tagThreeObjectLayer(object, "characters");
       this.sceneRoot.add(object);
+      this.culling.register(object, {
+        id: character.id,
+        layer: "characters"
+      });
     }
 
     if (this.layerVisibility.helpers) {
@@ -265,6 +310,11 @@ export class SceneRenderer {
         const object = this.createCameraObject(camera);
         tagThreeObjectLayer(object, "helpers");
         this.sceneRoot.add(object);
+        this.culling.register(object, {
+          id: `camera-helper:${camera.id}`,
+          selectionId: camera.id,
+          layer: "helpers"
+        });
       }
     }
 
@@ -273,12 +323,20 @@ export class SceneRenderer {
       const object = this.createObjObject(project, obj);
       tagThreeObjectLayer(object, "props");
       this.sceneRoot.add(object);
+      this.culling.register(object, {
+        id: obj.id,
+        layer: "props"
+      });
     }
     if (this.layerVisibility.helpers && motionPath) {
       const pathObject = createMotionPathObject(motionPath);
       if (pathObject) {
         tagThreeObjectLayer(pathObject, "helpers");
         this.sceneRoot.add(pathObject);
+        this.culling.register(pathObject, {
+          id: `motion-path:${motionPath.kind}`,
+          layer: "helpers"
+        });
       }
     }
 
@@ -303,6 +361,10 @@ export class SceneRenderer {
         if (group.children.length > 0) {
           tagThreeObjectLayer(group, "vfx");
           this.sceneRoot.add(group);
+          this.culling.register(group, {
+            id: effect.evaluation.instanceId,
+            layer: "vfx"
+          });
         }
         continue;
       }
@@ -322,6 +384,10 @@ export class SceneRenderer {
       if (object) {
         tagThreeObjectLayer(object, "vfx");
         this.sceneRoot.add(object);
+        this.culling.register(object, {
+          id: effect.evaluation.instanceId,
+          layer: "vfx"
+        });
       }
     }
   }
@@ -663,6 +729,11 @@ export class SceneRenderer {
     const frame = this.performanceMonitor.sample(now);
     this.controller.update();
     if (this.project) {
+      this.culling.update(
+        this.controller.camera,
+        this.selectedObjectId,
+        this.layerVisibility.helpers
+      );
       this.updateSelectionBox();
     }
     this.renderer.render(this.scene, this.controller.camera);
@@ -697,7 +768,8 @@ export class SceneRenderer {
           this.project,
           sceneObjects,
           this.activeEffectCount
-        )
+        ),
+        culling: this.culling.summary
       });
       this.lastMetricsAt = now;
     }

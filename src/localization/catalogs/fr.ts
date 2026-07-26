@@ -1066,6 +1066,7 @@ export const FR_TRANSLATIONS = Object.freeze({
   "viewport.metrics.frame": "{fps} IPS / {average} ms moy. / {p95} ms p95",
   "viewport.metrics.renderer": "{calls} appels / {triangles} triangles / {textures} textures",
   "viewport.metrics.scene": "{objects} objets / {chunks} chunks / {active}/{effects} effets",
+  "viewport.metrics.culling": "{visible}/{tested} visibles / masqués F {frustum}, D {distance}, C {layer} / chunks {chunksVisible}/{chunks}",
   "viewport.metrics.startupMemory": "{startup} ms démarrage / {memory} mémoire",
   "viewport.metrics.unavailable": "indisponible",
   "viewport.importedChunks.one": "{count} chunk importé",

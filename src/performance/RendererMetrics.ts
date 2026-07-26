@@ -1,5 +1,6 @@
 import type { MineMotionProject } from "../project/ProjectFile";
 import type { RenderStats } from "./RenderStats";
+import type { RendererCullingSummary } from "../renderer/RendererCulling";
 
 export interface RendererFrameInfo {
   calls: number;
@@ -33,6 +34,7 @@ export interface RendererMetricsSnapshot {
   renderer: RendererFrameInfo;
   heap: BrowserHeapMetrics | null;
   project: ProjectComplexityMetrics;
+  culling: RendererCullingSummary;
 }
 
 export function collectProjectComplexityMetrics(

@@ -15,46 +15,74 @@ export class ChunkMeshBuilder {
     group.userData.objectId = "world";
     group.userData.objectType = "world";
     const visibleBlocks = GreedyMesher.compactVisibleBlocks(chunks);
-    let cubeGeometry: THREE.BoxGeometry | null = null;
-
-    for (const blockId of listRenderableBlockIds()) {
-      const samples = visibleBlocks.filter((block) => block.id === blockId);
-      if (samples.length === 0) continue;
-      cubeGeometry ??= new THREE.BoxGeometry(1, 1, 1);
-      const mesh = new THREE.InstancedMesh(
-        cubeGeometry,
-        BlockMaterialResolver.resolve(blockId, options.materialContext),
-        samples.length
+    const renderedChunks = chunks.map((chunk) => {
+      const chunkObject = new THREE.Group();
+      chunkObject.name = `Chunk ${chunk.chunkX},${chunk.chunkZ}`;
+      chunkObject.userData.objectId = "world";
+      chunkObject.userData.objectType = "worldChunk";
+      chunkObject.userData.chunkX = chunk.chunkX;
+      chunkObject.userData.chunkZ = chunk.chunkZ;
+      const chunkBlocks = visibleBlocks.filter((block) =>
+        Math.floor(block.x / 16) === chunk.chunkX &&
+        Math.floor(block.z / 16) === chunk.chunkZ
       );
-      mesh.name = `imported_${blockId}`;
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      mesh.userData.objectId = "world";
-      mesh.userData.objectType = "world";
+      let cubeGeometry: THREE.BoxGeometry | null = null;
+      for (const blockId of listRenderableBlockIds()) {
+        const samples = chunkBlocks.filter((block) => block.id === blockId);
+        if (samples.length === 0) continue;
+        cubeGeometry ??= new THREE.BoxGeometry(1, 1, 1);
+        const mesh = new THREE.InstancedMesh(
+          cubeGeometry,
+          BlockMaterialResolver.resolve(blockId, options.materialContext),
+          samples.length
+        );
+        mesh.name = `imported_${blockId}`;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData.objectId = "world";
+        mesh.userData.objectType = "world";
 
-      const matrix = new THREE.Matrix4();
-      samples.forEach((block, index) => {
-        matrix.makeTranslation(block.x + 0.5, block.y + 0.5, block.z + 0.5);
-        mesh.setMatrixAt(index, matrix);
-      });
-      mesh.instanceMatrix.needsUpdate = true;
-      group.add(mesh);
-    }
+        const matrix = new THREE.Matrix4();
+        samples.forEach((block, index) => {
+          matrix.makeTranslation(
+            block.x + 0.5,
+            block.y + 0.5,
+            block.z + 0.5
+          );
+          mesh.setMatrixAt(index, matrix);
+        });
+        mesh.instanceMatrix.needsUpdate = true;
+        chunkObject.add(mesh);
+      }
+      group.add(chunkObject);
+      return {
+        object: chunkObject,
+        chunkX: chunk.chunkX,
+        chunkZ: chunk.chunkZ,
+        visibleBlocks: chunkBlocks.length
+      };
+    });
 
+    const helpers = new THREE.Group();
+    helpers.name = "Imported World Helpers";
+    helpers.userData.objectId = "world";
+    helpers.userData.objectType = "worldHelpers";
     if (options.showChunkBorders) {
       for (const chunk of chunks) {
-        group.add(createChunkBorder(chunk));
+        helpers.add(createChunkBorder(chunk));
       }
     }
-
     if (options.showWorldOrigin) {
-      group.add(createWorldOriginMarker());
+      helpers.add(createWorldOriginMarker());
     }
+    if (helpers.children.length > 0) group.add(helpers);
 
     return {
       object: group,
       visibleBlocks: visibleBlocks.length,
-      chunkCount: chunks.length
+      chunkCount: chunks.length,
+      chunks: renderedChunks,
+      helpers: helpers.children.length > 0 ? helpers : null
     };
   }
 }

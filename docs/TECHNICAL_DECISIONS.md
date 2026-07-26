@@ -700,3 +700,19 @@ tracks/listeners, Blob URLs, callbacks, controls, listeners, RAF, renderer lists
 and context all require explicit normal/error/cancel shutdown. If multiple
 renderers are introduced, move cache ownership from the current singleton
 lifecycle to instance-safe asset owners before enabling them.
+
+## TD-049 - Fail-open culling with camera-faithful final distance
+
+Status: Accepted in Phase 20.5.
+
+Evaluate semantic layer, distance, and six-plane frustum culling in one bounded
+renderer-neutral sphere contract. Invalid descriptors/inputs and work beyond
+4,096 roots remain visible. An editor selection may override geometric culling,
+but disabled layers remain disabled. Final distance is the active camera far
+plane, not an invented optimization radius.
+
+Keep project visibility immutable and apply derived object visibility again
+each frame. Imported blocks remain instanced by material within chunk-local
+groups so whole chunks can cull independently. This intentionally exposes a
+draw-call versus rejected-work tradeoff; Phase 20.6 must measure it before
+changing batch size or caches.

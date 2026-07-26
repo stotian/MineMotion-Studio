@@ -313,6 +313,25 @@ export function Viewport({
               })}
             </span>
             <span>
+              {t("viewport.metrics.culling", {
+                visible: localization.formatNumber(metrics.culling.visible),
+                tested: localization.formatNumber(metrics.culling.tested),
+                frustum: localization.formatNumber(
+                  metrics.culling.frustumCulled
+                ),
+                distance: localization.formatNumber(
+                  metrics.culling.distanceCulled
+                ),
+                layer: localization.formatNumber(metrics.culling.layerCulled),
+                chunksVisible: localization.formatNumber(
+                  metrics.culling.chunksVisible
+                ),
+                chunks: localization.formatNumber(
+                  metrics.culling.chunksTested
+                )
+              })}
+            </span>
+            <span>
               {t("viewport.metrics.startupMemory", {
                 startup: localization.formatNumber(roundOne(metrics.startupMs)),
                 memory: metrics.heap

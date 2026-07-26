@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.5 with measurable frustum, chunk, distance, and semantic
-layer culling. Define pure decisions/counters before mutating Three.js
-visibility, and preserve selection plus final-render correctness.
+Implement Phase 20.6 by benchmarking current per-chunk instancing and material/
+skin caches against small, all-visible, and off-screen scenes. Change batching
+or reuse only where calls, triangles, frame time, and memory justify it.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -143,16 +143,20 @@ Preserve the local commits and push normally once authentication is restored.
 - Phase 20.4 fixes material/skin cache ownership, stale material keys, parsed
   OBJ and temporary geometry disposal, empty-chunk allocation, audio lifecycle,
   and Blob URL cleanup. Existing WebM/listener/RAF/tree disposal was revalidated.
+- Phase 20.5 applies bounded fail-open semantic layer, camera-distance, frustum,
+  and independent chunk culling. Selection/final range remain correct and live
+  metrics expose every decision class.
 
 ## Unfinished Work
 
-- Phase 20 tasks 5-17 and phases 21-35 remain.
+- Phase 20 tasks 6-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Create renderer-neutral culling inputs/results for camera frustum, chunk bounds,
-distance ranges, and semantic layers. Count visible/culled work, then apply the
-decisions without deleting scene objects or changing persistent visibility.
+Build reproducible culling/instancing fixtures that estimate or render
+all-visible and mostly-off-screen chunk work. Compare the current pre-20.5
+global material batches with chunk-local batches before selecting a hybrid,
+cache, or reuse strategy.
 
 ## Tests To Run
 

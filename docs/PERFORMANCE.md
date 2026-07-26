@@ -65,3 +65,14 @@ OBJ parser materials are released when the renderer replaces them. Temporary
 helper/chunk geometries allocate only when attached or are disposed immediately.
 Audio playback, WebM bitmaps/tracks/listeners, scheduled callbacks, and Blob URLs
 all have explicit end/error/cancellation cleanup.
+
+## Culling
+
+World, character, prop, VFX, and helper roots use bounded sphere decisions
+against semantic layer visibility, camera distance, and six frustum planes.
+Selection overrides geometric culling in editor mode; final mode uses the
+camera's full far distance. Invalid or overflow entries fail open.
+
+Imported blocks remain instanced by material within independently cullable chunk
+groups. Live metrics report visible/tested roots, culling reasons, and
+visible/tested chunks so the Phase 20.6 batching tradeoff can be benchmarked.
