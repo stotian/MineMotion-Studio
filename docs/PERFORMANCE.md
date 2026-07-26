@@ -175,6 +175,28 @@ history state. The operation state remains session-only and adds no persistent
 data or per-chunk commits.
 
 The Phase 20.10 build emits 1,886 modules, a 1,542.64 kB main JavaScript chunk
-(421.39 kB gzip), and a 7.61 kB worker. The large-main-chunk warning is still
-open and is the evidence input for Phase 20.11 rather than being hidden by a
-warning-limit change.
+(421.39 kB gzip), and a 7.61 kB worker. This is the bundle-splitting baseline.
+
+## Deferred bundle boundaries
+
+Phase 20.11 defers ten panels that previously returned `null` while closed:
+settings, templates, plugins, command palette, help, export, Rig Studio,
+Lighting Studio, VFX Studio, and world import. A localized Suspense/error
+boundary invokes no loader while its panel is closed.
+
+Blockbench/resource-pack import, production render execution, PNG sequence ZIP,
+WebM recording, and WAV mixdown also load only inside their existing guarded
+user actions. Their import failures follow the same localized error path as
+workflow failures.
+
+| Artifact | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Main JavaScript | 1,542.64 kB | 1,439.60 kB | -103.04 kB (-6.68%) |
+| Main gzip | 421.39 kB | 397.66 kB | -23.73 kB (-5.63%) |
+| Worker JavaScript | 7.61 kB | 7.61 kB | unchanged |
+| Deferred JavaScript total | 0 kB | 110.64 kB | on demand |
+
+The build warning remains because the largest source-map contributors include
+startup-critical Three.js, React DOM, viewport/timeline/inspector, localization,
+and renderer code. Phase 20.11 neither raises the warning threshold nor invents
+a vendor split that would load the same bytes before the editor becomes usable.

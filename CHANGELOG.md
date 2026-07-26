@@ -58,6 +58,9 @@
 - Added abort-aware world scans/imports with monotonic operation IDs, active
   worker termination, stale progress/result suppression, and project-replacement
   cancellation; world-import orchestration now lives outside `App.tsx`.
+- Deferred ten closed panels plus Blockbench/resource-pack import and production
+  render/export workflows until invocation, with localized Suspense/error
+  fallbacks and measured main-bundle reduction.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

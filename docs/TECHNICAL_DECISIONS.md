@@ -801,3 +801,19 @@ state. Terminate active worker CPU work on abort, while keeping infrastructure
 failure on the deterministic main-thread fallback path. Own this orchestration
 in `useWorldImportOperations` so the protection is centralized and `App.tsx`
 shrinks rather than accumulating another async state machine.
+
+## TD-055 - Defer user-invoked surfaces, not the startup editor core
+
+Status: Accepted in Phase 20.11.
+
+Keep React, Three.js, localization, viewport, timeline, inspector, renderer, and
+core editing models on the startup path because the first usable editor frame
+requires them. Do not hide the chunk warning with a larger threshold or an
+arbitrary vendor chunk that is still fetched at startup.
+
+Defer the explicit panels that previously returned `null` while closed and the
+import/export workflow modules called only from guarded user actions. A closed
+panel must not invoke its loader. On open, use localized Suspense and error
+fallbacks; workflow imports remain inside the existing diagnostic boundary.
+Keep the surface/workflow lists closed and tested so new eager behavior is a
+reviewable decision.

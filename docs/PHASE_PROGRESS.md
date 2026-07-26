@@ -6,12 +6,12 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.11 - Evidence-based dynamic bundle splitting
+20.12 - Incremental App orchestration extraction
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.10 measurement, renderer optimization, worker
-extraction, and stale-safe cancellation are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.11 measurement, renderer optimization, worker/
+abort reliability, and measured bundle splitting are implemented and validated.
 
 ## Completed
 
@@ -357,15 +357,21 @@ extraction, and stale-safe cancellation are implemented and validated.
   unmounting invalidates old results before project/history writes. Active
   worker decode terminates promptly and `App.tsx` shrinks to 2,474 lines through
   the extracted `useWorldImportOperations` controller.
+- Phase 20.11 defers ten closed panels behind a localized Suspense/error
+  boundary and six guarded Blockbench/resource-pack/render/export workflow
+  families behind explicit dynamic imports.
+- The main bundle falls from 1,542.64/421.39 kB gzip to 1,439.60/397.66 kB,
+  while eighteen named deferred chunks total 110.64 kB. Startup-critical
+  React/Three.js/editor code remains static and the >500 kB warning is not hidden.
 
 ## In Progress
 
-- Implement Phase 20.11 evidence-based dynamic imports that reduce the measured
-  main bundle without changing startup-critical behavior or hiding warnings.
+- Implement Phase 20.12 by extracting the next cohesive App orchestration
+  boundary into existing domain controllers without a broad rewrite.
 
 ## Not Started
 
-- Phase 20 tasks 12-17 and phases 21-35.
+- Phase 20 tasks 13-17 and phases 21-35.
 
 ## Blockers
 
@@ -378,20 +384,21 @@ extraction, and stale-safe cancellation are implemented and validated.
 ## Last Validated Commit
 
 - Official verified ZIP baseline: `4c6213b`.
-- Latest committed and pushed implementation checkpoint: `53a394b`
-  (Phase 20.10 abort/stale protection).
-- Latest validated implementation checkpoint: Phase 20.10.
+- Latest committed and pushed implementation checkpoint: `ba46bfd`
+  (Phase 20.11 deferred panels/workflows).
+- Latest validated implementation checkpoint: Phase 20.11.
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.10 operation/world-import tests: PASS - 5 files, 17 tests
-- `npm test`: PASS - 138 files, 591 tests
+- Focused Phase 20.11 deferred contract tests: PASS - 1 file, 2 tests
+- `npm test`: PASS - 139 files, 593 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,474/2,839 lines
-- `npm run build`: PASS - 1,886 modules; 1,542.64 kB main plus 7.61 kB worker
+- `npm run build`: PASS - 1,890 modules; 1,439.60 kB main, 7.61 kB worker,
+  and eighteen deferred chunks
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -401,7 +408,6 @@ extraction, and stale-safe cancellation are implemented and validated.
 
 ## Next Exact Action
 
-Audit the production bundle from the measured Phase 20.10 build, identify
-non-startup-critical boundaries with real size impact, and split them through
-fallback-safe dynamic imports. Record before/after artifact sizes and retain
-behavioral tests.
+Characterize one remaining cohesive responsibility in `App.tsx`, prefer an
+existing controller/service boundary, extract state/commands without changing
+history or persistence behavior, and keep the architecture size gate decreasing.

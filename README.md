@@ -117,7 +117,8 @@ chunk decoding, and stale-safe cancellable world import.
   - `Delete` delete selected object/effect
 - Bounded live renderer telemetry and immutable device/workload budgets, plus
   semantic culling, renderer-owned material/skin/OBJ caches, VFX resource pools,
-  and explicit GPU/DOM/audio/worker disposal contracts.
+  explicit GPU/DOM/audio/worker disposal contracts, and deferred noncritical
+  panels/import/export workflows with localized loading/error fallbacks.
 
 ## Current Limits
 
@@ -144,6 +145,9 @@ chunk decoding, and stale-safe cancellable world import.
   runs to completion in the current MVP.
 - The final EffectComposer shader stack is represented by safe preview/export
   overlays, not a full offline compositor.
+- The startup bundle is smaller through measured dynamic boundaries, but the
+  startup-critical React/Three.js/editor core still exceeds Vite’s 500 kB
+  warning threshold.
 - External plugin JavaScript execution is still disabled.
 
 ## Install
@@ -248,6 +252,7 @@ time, missing targets warn safely, and disabling VFX excludes every VFX layer.
 - [Audio Export](docs/AUDIO_EXPORT.md)
 - [Performance](docs/PERFORMANCE.md)
 - [Phase 20.10 Operation Cancellation](docs/PHASE_20_10_OPERATION_CANCELLATION.md)
+- [Phase 20.11 Bundle Splitting](docs/PHASE_20_11_BUNDLE_SPLITTING.md)
 - [Asset Library](docs/ASSET_LIBRARY.md)
 - [Cinematic Effects](docs/CINEMATIC_EFFECTS.md)
 - [VFX Package Authoring](docs/VFX_PACKAGE_AUTHORING.md)

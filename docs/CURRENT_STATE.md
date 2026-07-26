@@ -3,7 +3,7 @@
 MineMotion Studio `0.8.2` uses project schema 10.
 
 Phase 14 architecture consolidation, the complete Phase 15 native VFX
-foundation, Phase 19 advanced rigging, and Phase 20.1-20.10 renderer/import
+foundation, Phase 19 advanced rigging, and Phase 20.1-20.11 renderer/import
 reliability work are finished. Low-level contracts have stable ownership under
 `src/core`, and typed deterministic VFX, editing, schema 10 persistence,
 preview/export budgets, explicit renderer ownership, and stale-safe cancellable
@@ -16,6 +16,9 @@ world import now coexist.
 - World import decodes clone-safe chunk work in a reusable module worker and
   uses abort signals plus monotonic operation IDs so only the latest scan/import
   can commit project/history state.
+- Ten noncritical panels and six import/export workflow families load only on
+  invocation with localized loading/error containment. The measured main bundle
+  is 103.04 kB smaller than the Phase 20.10 baseline.
 - Steve/Alex rigs, skins, poses, bone tracks, animation presets, attachments,
   and bounded hierarchy-aware static Blockbench geometry import.
 - Resource pack/material/lighting studio MVP with atmosphere and environment keys.
@@ -389,3 +392,7 @@ world import now coexist.
   rejects mismatched IDs, and cancels on project/world lifecycle changes.
   World-import orchestration is extracted from `App.tsx`, reducing it to 2,474
   lines without introducing persisted operation state.
+- Phase 20.11 defers closed panels and guarded Blockbench/resource-pack/render/
+  export workflows while leaving startup-critical React/Three.js/editor code
+  static. Main JavaScript falls from 1,542.64 to 1,439.60 kB; the remaining
+  >500 kB warning stays visible for later architecture work.

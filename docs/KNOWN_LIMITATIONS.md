@@ -29,7 +29,7 @@ still required before changing code.
 | LIM-020 | World import is intentionally bounded and older pre-flattening/decompression cases remain limited | Yes | P4 | 21 | OPEN |
 | LIM-021 | External executable plugins remain disabled; no permissioned sandbox or SDK exists | Yes | P4 | 23 | OPEN_SAFE_DEFAULT |
 | LIM-022 | Service interfaces exist, but concrete domain controllers remain largely inside `App.tsx` | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
-| LIM-023 | Main JavaScript bundle is about 1 MB and triggers a Vite chunk warning | Yes | P3 | 20 | OPEN |
+| LIM-023 | The main JavaScript bundle was reduced from 1,542.64 to 1,439.60 kB through measured dynamic boundaries, but startup-critical React/Three.js/editor code still triggers Vite’s 500 kB warning | Yes | P3 | 20.11/20.12-13 | PARTIALLY_RESOLVED_MEASURED |
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
 | LIM-026 | Primitive limits were per descriptor without a combined measured runtime stack budget | Yes | P3 | 15.8 | RESOLVED |

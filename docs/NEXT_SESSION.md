@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.11 by auditing the measured production bundle and adding
-evidence-based dynamic imports at non-startup-critical boundaries. Preserve
-fallback behavior and record before/after artifact sizes.
+Implement Phase 20.12 by characterizing and extracting the next cohesive
+orchestration responsibility from `App.tsx` into an existing domain boundary.
+Preserve history, persistence, localization, and runtime behavior.
 
 ## Completed Work
 
@@ -171,17 +171,22 @@ fallback behavior and record before/after artifact sizes.
   mismatched work cannot update project/history state. Project replacement,
   world unload, newer work, explicit cancel, and unmount all invalidate old
   operations. The extracted controller reduces `App.tsx` to 2,474 lines.
+- Phase 20.11 defers ten closed panels with localized Suspense/error containment
+  and six guarded Blockbench/resource-pack/render/export workflow families.
+- Main JavaScript falls from 1,542.64/421.39 kB gzip to
+  1,439.60/397.66 kB. Eighteen named deferred chunks total 110.64 kB; the
+  startup-critical React/Three.js/editor warning remains explicit.
 
 ## Unfinished Work
 
-- Phase 20 tasks 11-17 and phases 21-35 remain.
+- Phase 20 tasks 12-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Inspect the emitted module graph and source ownership behind the 1,542.64 kB
-main chunk. Select only lazy UI/workflow boundaries with measured impact, add
-fallback-safe dynamic imports, and verify startup-critical editor behavior is
-unchanged.
+Use characterization tests and current controller patterns to select one
+cohesive `App.tsx` responsibility. Move state/commands behind that boundary,
+avoid a mass rewrite, and verify the architecture line count decreases without
+altering project/history semantics.
 
 ## Tests To Run
 
