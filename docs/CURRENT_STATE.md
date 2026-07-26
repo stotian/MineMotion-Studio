@@ -372,3 +372,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
   buffers one bounded renderer owner. Dynamic line/ring geometry stays
   frame-owned, while owned and pooled instance attributes each have exactly one
   disposal path.
+- Phase 20.8 makes production material, texture, skin, and OBJ caches
+  renderer-owned. Visible consumers drive lazy OBJ/skin retention; persistent
+  project payloads remain authoritative and every cached GPU resource has one
+  invalidation/shutdown owner.

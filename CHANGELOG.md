@@ -50,6 +50,9 @@
   cube geometry across every imported chunk mesh.
 - Added bounded renderer-owned VFX geometry, material, and particle-buffer
   pools with deterministic frame reuse and complete overflow/shutdown disposal.
+- Made Minecraft material/texture, skin, and parsed OBJ caches renderer-owned;
+  OBJ templates now load lazily, clone safely, and prune with visible consumers.
+- Fixed replacement/delete/clear disposal in the dormant chunk mesh cache.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

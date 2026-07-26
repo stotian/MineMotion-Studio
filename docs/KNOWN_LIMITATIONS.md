@@ -21,7 +21,7 @@ still required before changing code.
 | LIM-012 | Entity/bone targets now resolve safely with warnings, but several registered parameters remain visually ignored by compatibility visuals | Yes | P4 | 16 | PARTIALLY_RESOLVED |
 | LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
-| LIM-015 | Static scene data and imported OBJ resources are rebuilt/reparsed on project updates | Yes | P3 | 20 | OPEN |
+| LIM-015 | Static scene nodes and world geometry are rebuilt on project updates; imported OBJ parsing/resources are now cached per active source | Yes | P3 | 20 | PARTIALLY_RESOLVED |
 | LIM-016 | IK is not connected to the production character workflow | Yes | P4 | 19 | RESOLVED |
 | LIM-017 | Blockbench rig mapping and numeric rotation clips are supported, but textured preview, position/scale channels, expressions, and advanced interpolation remain explicit unsupported features | Yes | P4 | 21/future | PARTIALLY_RESOLVED |
 | LIM-018 | Animated resource-pack textures are detected but not played | Yes | P4 | 21 | OPEN |
@@ -55,7 +55,7 @@ still required before changing code.
 | LIM-046 | JavaScript heap telemetry depends on Chromium's non-standard `performance.memory`; other runtimes report it as unavailable | Yes | P5 | 20 | OPEN_HONEST_UI |
 | LIM-047 | Version 1 performance thresholds are initial guardrails and still require named hardware benchmark calibration | Yes | P3 | 20.15/20.17 | OPEN_MEASUREMENT |
 | LIM-048 | CSS viewport post overlays and Canvas2D final capture share inputs but generic bloom, grain, chromatic aberration, and fog are not pixel-identical passes | Yes | P2/P4 | 20/future renderer | OPEN |
-| LIM-049 | Material and skin cache cleanup assumes the current single production SceneRenderer; concurrent renderer instances need instance-safe ownership | Yes | P3 | 20.8 | OPEN_ARCHITECTURE |
+| LIM-049 | Material and skin cache cleanup assumes the current single production SceneRenderer; concurrent renderer instances need instance-safe ownership | Yes | P3 | 20.8 | RESOLVED |
 | LIM-050 | Per-chunk instancing now has exact call/instance comparison, but named hardware frame-time validation remains required | Yes | P3 | 20.15 | PARTIALLY_RESOLVED |
 | LIM-051 | Dynamic VFX line/ring geometry remains frame-owned because evaluated vertices/topology change; its hardware allocation cost is not yet calibrated | Yes | P3 | 20.15 | OPEN_MEASUREMENT |
 

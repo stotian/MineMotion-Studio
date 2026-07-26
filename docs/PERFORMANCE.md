@@ -115,3 +115,22 @@ pulses, 16 dynamic mesh primitives, and 32 dynamic lines per frame:
 Dynamic line and ring geometries remain frame-owned because their evaluated
 vertices/topology change. Their browser/GPU cost belongs to the named Phase
 20.15 benchmarks rather than an unsafe mutable geometry pool.
+
+## Runtime asset ownership
+
+Each production `SceneRenderer` now owns its Minecraft material/texture cache,
+skin texture cache, and parsed OBJ template cache. Clearing or changing one
+renderer cannot release another renderer's GPU resources.
+
+Materials and skin textures remain lazy and prune on context or visible
+consumer changes. OBJ source stays authoritative in the project; the runtime
+parses an asset only when a visible scene object or visible character attachment
+references it. Rebuilds clone independent object nodes while sharing
+cache-owned immutable geometry and one renderer-owned material. Removing,
+hiding, or changing the last consumer disposes the old template resources.
+
+Persistent resource-pack, skin, OBJ, audio, world, and package payloads remain
+plain project data. Playback/capture operations own their temporary media
+objects, and scene/VFX owners manage GPU resources. The unused chunk mesh cache
+also disposes replaced, deleted, and cleared trees completely before any future
+runtime activation.

@@ -749,3 +749,22 @@ topology vary by frame. General tree disposal must emit `InstancedMesh`
 disposal for owned objects, while explicitly shared particle meshes remain
 alive until their pool owner releases them. Treat the pure allocation estimate
 as constructor-churn evidence only; Phase 20.15 still owns hardware timing.
+
+## TD-052 - Keep project payloads authoritative and runtime caches instance-owned
+
+Status: Accepted in Phase 20.8.
+
+Persist OBJ text, skin/resource-pack/audio data URLs, world chunks, and package
+records only in their existing project authorities. Give each `SceneRenderer`
+independent material/texture, skin, and parsed OBJ cache instances; module
+singletons remain compatibility defaults, not production ownership.
+
+Parse an OBJ only when a visible object or attachment consumes it. Cache an
+immutable template, return cloned mutable nodes, and share only explicitly
+cache-owned geometry/material resources. Prune after detaching the old scene,
+invalidate on exact source change, and dispose on renderer shutdown.
+
+Do not activate the dormant chunk-tree cache as a performance optimization
+without Phase 20 benchmark evidence. Its ownership contract must nevertheless
+dispose replacements/deletes/clear operations rather than merely detaching
+children.

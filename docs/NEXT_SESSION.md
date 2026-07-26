@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.8 by auditing asset creation, loading, cache ownership, and
-consumer lifecycles. Introduce instance-safe lazy/disposal boundaries without
-creating a second asset registry or weakening persistence.
+Implement Phase 20.9 by measuring NBT/MCA, chunk mesh, atlas, package, and
+thumbnail workloads, then moving the first justified structured-clone-safe
+boundary to a worker with deterministic fallback and error behavior.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -156,16 +156,22 @@ Preserve the local commits and push normally once authentication is restored.
 - Its bounded 120-frame fixture measures 15,360 to 5,762 geometry constructors,
   15,360 to 128 materials, and 7,680 to 64 particle buffers while leaving
   dynamic line/ring geometry honestly frame-owned.
+- Phase 20.8 gives each renderer independent Minecraft material/texture and
+  skin caches. Clearing one renderer no longer affects another.
+- Visible OBJ consumers drive one lazy parsed template per source revision;
+  clones share only cache-owned immutable resources, while hiding/removal/
+  replacement/shutdown prune them. Chunk cache replacement/delete/clear now
+  disposes full owned trees even though that cache remains inactive.
 
 ## Unfinished Work
 
-- Phase 20 tasks 8-17 and phases 21-35 remain.
+- Phase 20 tasks 9-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Map OBJ, skin, resource-pack, world, audio, and generated asset ownership from
-creation through consumers. Fix the highest-risk instance-sharing or eager-load
-boundary with focused lifecycle tests, preserving current project authorities.
+Profile the listed heavy pure operations and map input/output cloneability.
+Choose one workload with meaningful main-thread cost, add a worker protocol and
+fallback, and prove byte/data equivalence plus failure behavior before expanding.
 
 ## Tests To Run
 
