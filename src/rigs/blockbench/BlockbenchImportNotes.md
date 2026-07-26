@@ -15,8 +15,12 @@ Static viewport geometry supports:
 Texture and animation metadata remain embedded in the original `.bbmodel` and
 are summarized in the import report. Static OBJ preview deliberately uses the
 MineMotion material, so the report identifies texture preview as unsupported.
-Animation clips are named and counted, but they are not silently attached to a
-MineMotion rig before a reliable group-to-bone mapping exists.
+Animation clips are named and counted. Unique normalized bone names and a small
+reviewed alias table map automatically; conflicts and unknown names require a
+preset-scoped manual choice. Numeric rotation keys can be converted into
+deterministic reusable clips and applied through the existing global timeline.
+Position/scale channels, advanced interpolation, and executable expressions
+remain unsupported and produce stable warnings.
 
 `project.assets.blockbench` is the authoritative asset collection. The legacy
 `project.rigs.blockbenchModels` collection is sanitized and reconciled as a

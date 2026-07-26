@@ -570,3 +570,24 @@ consumers exist.
 Phase 19.13 may add mapping metadata and commands, but mapped animation must
 still target the existing global tracks and history path rather than introduce
 a Blockbench-specific timeline.
+
+## TD-042 - Auto-map Blockbench only with unique reviewed evidence
+
+Status: Accepted in Phase 19.13.
+
+Automatic group-to-bone mapping is restricted to unique normalized MineMotion
+bone IDs and a small reviewed alias table. Duplicate targets become conflicts;
+unknown names remain unmapped. Manual overrides are bounded, scoped to a rig
+preset, may explicitly disable an automatic choice, and persist on the existing
+Blockbench asset.
+
+Animation conversion resolves animator UUIDs first and unique names second. It
+accepts finite numeric or numeric-string rotation data only. It never evaluates
+Blockbench expressions. Unsupported channels, animator kinds, duplicate
+targets, and interpolation modes are skipped or approximated with stable
+warnings.
+
+Converted clips receive content-derived IDs, enter the existing reusable clip
+collection, and bake at the playhead through the global bone tracks and
+timeline synchronizer in one history operation. Reapplying an identical clip at
+the same frame is a no-op.

@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 19.13 by auditing Blockbench group/bone naming, clip animator
-references, MineMotion rig definitions, and existing UI/history boundaries.
+Start Phase 19.14 by auditing Minecraft skin materials, head geometry,
+pose/expression presets, and shared preview/export renderer ownership.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -114,17 +114,23 @@ Preserve the local commits and push normally once authentication is restored.
   warnings and a localized import report. Project serialization reconciles one
   authoritative Blockbench asset collection across every persistence path.
   Phase 19.12 is complete at implementation commit `d0bb6e5`.
+- Unique normalized names and reviewed aliases now map automatically, while
+  ambiguous or custom groups expose persistent preset-scoped manual mapping and
+  explicit unmapping in Rig Studio.
+- Supported numeric rotation keys convert to deterministic reusable clips and
+  apply atomically at the playhead through the authoritative global tracks.
+  Expressions and unsupported animation semantics are skipped with diagnostics.
+  Phase 19.13 is complete at implementation commit `fb99069`.
 
 ## Unfinished Work
 
-- Phase 19.13-19.15 and phases 20-35 remain.
+- Phase 19.14-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Inspect current outliner group names and animation animator keys against every
-supported rig definition. Automatically map only unambiguous exact/alias
-matches; expose an atomic manual mapping command for all remaining groups and
-retain one authoritative global animation timeline.
+Inspect the existing skin cache/material path, head bone rendering, expression
+pose placeholders, and serialization contracts. Keep expression overlays
+optional, bounded, and compatible with ordinary Steve/Alex skins.
 
 ## Tests To Run
 

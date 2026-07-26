@@ -227,7 +227,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 114 frontend test files and 516 passing tests.
+- 115 frontend test files and 520 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -318,3 +318,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
   bounded cube/group pivots and rotations into deterministic static OBJ output.
   Texture and clip metadata are reported honestly, while one authoritative
   Blockbench asset collection is reconciled across all persistence boundaries.
+- Phase 19.13 maps only unique exact/alias Blockbench groups automatically,
+  persists preset-scoped manual choices, and converts supported numeric rotation
+  animators into deterministic reusable clips on the global timeline.

@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.13 - Automatic Blockbench mapping where reliable, manual mapping otherwise
+19.14 - Optional Minecraft-style expression overlays
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.12 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.13 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -270,15 +270,22 @@ IN_PROGRESS - Phase 19.1 through 19.12 and the consolidation checkpoint are impl
   MineMotion's static material or rig mapping already consumes them. The
   authoritative asset collection is reconciled across JSON, schema 9, packages,
   autosave, and history, with a compatibility projection for legacy rig data.
+- Phase 19.13 resolves only unique normalized bone IDs and an explicit alias
+  table automatically. Ambiguous and unknown groups remain unmapped until the
+  user stores a preset-scoped manual target or explicit exclusion.
+- Bounded numeric Blockbench rotation keys convert to deterministic reusable
+  clips and apply through the existing global tracks, timeline synchronizer, and
+  one history operation. Expressions, unsupported channels/interpolation, and
+  unmapped animators are skipped with stable diagnostics.
 
 ## In Progress
 
-- Audit Blockbench group/bone naming, imported clip animator references, rig
-  definitions, and UI command boundaries before Phase 19.13 mapping.
+- Audit the existing skin/material renderer and expression placeholders before
+  adding optional Minecraft-style overlays in Phase 19.14.
 
 ## Not Started
 
-- Phase 19.13-19.15 and phases 20-35.
+- Phase 19.14-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -294,19 +301,19 @@ IN_PROGRESS - Phase 19.1 through 19.12 and the consolidation checkpoint are impl
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: `d0bb6e5` (publication pending
+- Latest validated implementation checkpoint: `fb99069` (publication pending
   external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Blockbench parser/contract/persistence tests: PASS - 3 files, 23 tests
-- `npm test`: PASS - 114 files, 516 tests
+- Focused Blockbench mapping/parser/contract/persistence tests: PASS - 4 files, 27 tests
+- `npm test`: PASS - 115 files, 520 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,676/2,839 lines
-- `npm run build`: PASS - 1,862 modules; 1,490.42 kB known large chunk
+- `npm run build`: PASS - 1,867 modules; 1,509.40 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -316,6 +323,6 @@ IN_PROGRESS - Phase 19.1 through 19.12 and the consolidation checkpoint are impl
 
 ## Next Exact Action
 
-Audit Phase 19.13 against the imported outliner and clip animator identifiers.
-Define deterministic confidence rules for automatic group-to-rig mapping and an
-atomic manual fallback without adding a second animation timeline.
+Audit existing Minecraft skin materials, head geometry, pose/expression presets,
+and renderer ownership for Phase 19.14. Add overlays only if they remain
+optional and cannot break normal skin rendering.

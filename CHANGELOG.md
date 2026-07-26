@@ -29,6 +29,9 @@
 - Improved Blockbench import with bounded current outliners, nested pivots and
   rotations, deterministic static OBJ output, preserved texture/clip metadata,
   reconciled persistence, and localized capability reports.
+- Added conservative automatic and preset-scoped manual Blockbench bone
+  mapping, plus deterministic numeric rotation clip conversion onto the
+  existing editable animation timeline.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

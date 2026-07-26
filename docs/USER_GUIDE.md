@@ -139,10 +139,16 @@ swing, hit reaction, camera-ready turn-around, head look around, and jump/land.
 1. Open **Rig Studio**.
 2. Click **Import Blockbench Model**.
 3. Select a `.bbmodel` or JSON file.
-4. MineMotion parses cube elements/groups/textures and creates a static OBJ
-   preview object.
+4. MineMotion parses bounded cube/group/pivot/texture/clip metadata and creates
+   a deterministic static OBJ preview.
+5. Review the automatic bone mappings in the model card. Choose target bones
+   for custom groups or explicitly leave them unmapped.
+6. Select a supported Blockbench clip and click **Apply mapped clip** to add
+   editable bone keys at the playhead.
 
-Automatic rig mapping is prepared but not implemented yet.
+Only unique exact names and reviewed aliases map automatically. Numeric rotation
+keys are supported; expressions, position/scale channels, advanced
+interpolation, and textured preview remain explicitly unsupported.
 
 ## Export
 
@@ -235,8 +241,9 @@ Projects using schemas v1 through v9 are migrated to schema v10 when opened.
 - Animated resource-pack textures are detected but not played yet.
 - Per-face atlas meshing is prepared but the MVP uses one texture per block
   material.
-- Blockbench rig mapping is not automatic yet.
-- IK solver math is not implemented yet.
+- Blockbench textured preview and advanced animation semantics are not
+  implemented yet.
+- IK uses numeric Rig Studio controls; viewport target gizmos remain deferred.
 - Older non-palette chunk formats are not fully decoded.
 - Browser decompression support is required for real compressed `level.dat` and
   `.mca` payloads.
