@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AssetManager } from "./assets/AssetManager";
 import { ObjImporter } from "./assets/ObjImporter";
-import { AudioManager } from "./audio/AudioManager";
 import { createBuiltinAudioClip, createImportedAudioClip } from "./audio/AudioClip";
-import { findClipsStartingAtFrame } from "./audio/AudioTimelineIntegration";
+import { useProjectAudioPlayback } from "./audio/useProjectAudioPlayback";
 import { BUILTIN_SFX, getBuiltinSfx } from "./audio/BuiltinSfxRegistry";
 import { exportProjectWav } from "./audio/export/AudioMixdown";
 import { addTransformKeyframes, setCurrentFrame } from "./animation/Timeline";
@@ -28,6 +27,7 @@ import {
   listEnabledInstalledVfxPresets
 } from "./vfx/package/VfxPackageProjectIntegration";
 import { exportCurrentFramePng } from "./export/FrameExporter";
+import { downloadBrowserBlob } from "./export/BrowserDownload";
 import {
   detectFfmpeg,
   WEB_FFMPEG_STATUS,
@@ -243,7 +243,6 @@ export function App() {
   const resourcePackZipInputRef = useRef<HTMLInputElement | null>(null);
   const resourcePackFolderInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
-  const audioManagerRef = useRef<AudioManager | null>(null);
   const lastPlaybackTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -262,7 +261,6 @@ export function App() {
       cancelled = true;
     };
   }, []);
-  const previousAudioFrameRef = useRef(0);
   const exportCancelledRef = useRef(false);
   const renderJobRunnerRef = useRef(new RenderJobRunner());
   const worldImportCancelledRef = useRef(false);
@@ -355,29 +353,7 @@ export function App() {
     settings.general.autosaveIntervalSeconds
   ]);
 
-  useEffect(() => {
-    audioManagerRef.current ??= new AudioManager();
-    if (!project.animation.isPlaying) {
-      previousAudioFrameRef.current = project.animation.currentFrame;
-      return;
-    }
-
-    const previousFrame = previousAudioFrameRef.current;
-    const currentFrame = project.animation.currentFrame;
-    const clips = findClipsStartingAtFrame(
-      project.audio.clips,
-      currentFrame,
-      previousFrame
-    );
-    for (const clip of clips) {
-      audioManagerRef.current.playClip(clip);
-    }
-    previousAudioFrameRef.current = currentFrame;
-  }, [
-    project.animation.currentFrame,
-    project.animation.isPlaying,
-    project.audio.clips
-  ]);
+  useProjectAudioPlayback(project);
 
   useEffect(() => {
     if (!project.animation.isPlaying) {
@@ -485,7 +461,7 @@ export function App() {
     }
     const currentProject = projectRef.current;
     const filename = `${sanitizeOutputName(currentProject.projectName)}.minemotion`;
-    downloadBlob(PackageWriter.write(currentProject), filename);
+    downloadBrowserBlob(PackageWriter.write(currentProject), filename);
 
     setSettings((currentSettings) =>
       SettingsStore.addRecentProject(currentSettings, {
@@ -508,7 +484,7 @@ export function App() {
       const raw = ProjectSerializer.serializeLegacyV9(currentProject);
       const blob = new Blob([raw], { type: "application/json" });
       const filename = `${sanitizeOutputName(currentProject.projectName)}.mmsproj`;
-      downloadBlob(blob, filename);
+      downloadBrowserBlob(blob, filename);
       setStatus(tr("app.legacyExported", { filename }));
     } catch (error) {
       setStatus(diagnostic("PROJECT_SCHEMA9_VFX_UNSUPPORTED", "app.legacyVfxUnsupported"));
@@ -1300,7 +1276,7 @@ export function App() {
               context,
               adapters: {
                 captureFrame,
-                download: downloadBlob
+                download: downloadBrowserBlob
               }
             }),
           (updatedJob) => {
@@ -1526,7 +1502,7 @@ export function App() {
         }
       });
       const filename = `${sanitizeOutputName(settings.outputName)}.webm`;
-      downloadBlob(blob, filename);
+      downloadBrowserBlob(blob, filename);
       setExportProgress(
         createExportProgress({
           status: "complete",
@@ -1566,7 +1542,7 @@ export function App() {
         endFrame: project.exportSettings.endFrame
       });
       const filename = `${sanitizeOutputName(project.exportSettings.outputName)}.wav`;
-      downloadBlob(blob, filename);
+      downloadBrowserBlob(blob, filename);
       setExportProgress(
         createExportProgress({
           status: "complete",
@@ -2635,15 +2611,7 @@ function getViewportShell(): HTMLElement {
 }
 
 function downloadExportResult(result: ExportResult): void {
-  downloadBlob(result.blob, result.filename);
-}
-
-function downloadBlob(blob: Blob, filename: string): void {
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  downloadBrowserBlob(result.blob, result.filename);
 }
 
 function selectedObjectLabel(

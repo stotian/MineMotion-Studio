@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.4 by auditing and fixing geometry, material, texture,
-render-target, listener, animation-loop, and cache disposal across rebuild,
-shutdown, repeated preview, and export lifecycles.
+Implement Phase 20.5 with measurable frustum, chunk, distance, and semantic
+layer culling. Define pure decisions/counters before mutating Three.js
+visibility, and preserve selection plus final-render correctness.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -140,16 +140,19 @@ Preserve the local commits and push normally once authentication is restored.
 - Phase 20.3 tags world/character/prop/VFX/helper ownership, treats transparency
   as cross-cutting, documents preview/export order, and prevents every known
   WebGL editor helper from leaking into the final canvas.
+- Phase 20.4 fixes material/skin cache ownership, stale material keys, parsed
+  OBJ and temporary geometry disposal, empty-chunk allocation, audio lifecycle,
+  and Blob URL cleanup. Existing WebM/listener/RAF/tree disposal was revalidated.
 
 ## Unfinished Work
 
-- Phase 20 tasks 4-17 and phases 21-35 remain.
+- Phase 20 tasks 5-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Audit the existing `ThreeResourceDisposal`, shared material/skin caches,
-renderer rebuild path, controls/listeners, animation frame, export bitmaps,
-recorders, and temporary canvases. Characterize repeated lifecycles first.
+Create renderer-neutral culling inputs/results for camera frustum, chunk bounds,
+distance ranges, and semantic layers. Count visible/culled work, then apply the
+decisions without deleting scene objects or changing persistent visibility.
 
 ## Tests To Run
 

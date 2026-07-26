@@ -57,6 +57,7 @@ import { useLocalization } from "../../localization/LocalizationContext";
 import type { TranslationKey } from "../../localization/LocalizationTypes";
 import { formatLocalizedDiagnostic } from "../../localization/LocalizationDiagnostics";
 import { resolveVfxPackagePresentation } from "../../vfx/package/VfxPackageLocalization";
+import { downloadBrowserBlob } from "../../export/BrowserDownload";
 
 interface VfxWorkspacePanelProps {
   open: boolean;
@@ -167,12 +168,7 @@ export function VfxWorkspacePanel({ open, presets, registry, onRegistryChange, o
         license: packageLicense
       });
       const result = await writeVfxPackageArchive({ manifest, document });
-      const url = URL.createObjectURL(result.blob);
-      const link = window.document.createElement("a");
-      link.href = url;
-      link.download = result.filename;
-      link.click();
-      URL.revokeObjectURL(url);
+      downloadBrowserBlob(result.blob, result.filename);
       setMessage(t("vfx.message.exported", { filename: result.filename }));
     } catch (error) {
       setMessage(formatLocalizedDiagnostic(localization, "VFX_PACKAGE_EXPORT_FAILED", "vfx.message.exportFailed"));

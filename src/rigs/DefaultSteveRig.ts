@@ -35,6 +35,24 @@ for (const material of Object.values(EXPRESSION_MATERIALS)) {
 
 const textureCache = new Map<string, THREE.Texture>();
 
+export function pruneSteveRigTextureCache(
+  activeDataUrls: readonly string[]
+): number {
+  const active = new Set(activeDataUrls);
+  let disposed = 0;
+  for (const [dataUrl, texture] of textureCache) {
+    if (active.has(dataUrl)) continue;
+    texture.dispose();
+    textureCache.delete(dataUrl);
+    disposed += 1;
+  }
+  return disposed;
+}
+
+export function clearSteveRigTextureCache(): number {
+  return pruneSteveRigTextureCache([]);
+}
+
 export type ObjAttachmentResolver = (
   assetId: string
 ) => THREE.Object3D | null;

@@ -59,12 +59,46 @@ export function getMaterialForBlock(
   return material;
 }
 
-export function clearMinecraftMaterialCache(): void {
+export interface MinecraftMaterialCacheDisposal {
+  materials: number;
+  textures: number;
+}
+
+export function clearMinecraftMaterialCache(): MinecraftMaterialCacheDisposal {
+  const textures = new Set<THREE.Texture>();
   for (const material of materialCache.values()) {
-    material.map?.dispose();
+    if (material.map) textures.add(material.map);
+  }
+  for (const texture of textures) {
+    texture.dispose();
+  }
+  for (const material of materialCache.values()) {
     material.dispose();
   }
+  const materials = materialCache.size;
   materialCache.clear();
+  return { materials, textures: textures.size };
+}
+
+export function createMinecraftMaterialContextSignature(
+  context: MinecraftMaterialContext
+): string {
+  const settings = context.settings;
+  const overrides = Object.entries(settings?.materials.overrides ?? {})
+    .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
+    .map(([blockId, presetId]) => `${blockId}=${presetId}`)
+    .join(",");
+  return [
+    context.resourcePack?.id ?? "fallback",
+    context.resourcePack?.importedAt ?? "",
+    settings?.textureFiltering ?? "nearest",
+    settings?.biomeTint.enabled ? settings.biomeTint.presetId : "no-tint",
+    settings?.biomeTint.grassColor ?? "",
+    settings?.biomeTint.foliageColor ?? "",
+    settings?.biomeTint.waterColor ?? "",
+    settings?.materials.defaultPresetId ?? "solid",
+    overrides
+  ].join(":");
 }
 
 export function createSolidMaterial(
@@ -103,15 +137,5 @@ function createCacheKey(
   blockId: BlockId,
   context: MinecraftMaterialContext
 ): string {
-  const settings = context.settings;
-  return [
-    blockId,
-    context.resourcePack?.id ?? "fallback",
-    settings?.textureFiltering ?? "nearest",
-    settings?.biomeTint.enabled ? settings.biomeTint.presetId : "no-tint",
-    settings?.biomeTint.grassColor ?? "",
-    settings?.biomeTint.foliageColor ?? "",
-    settings?.biomeTint.waterColor ?? "",
-    settings?.materials.overrides[blockId] ?? "auto"
-  ].join(":");
+  return `${blockId}:${createMinecraftMaterialContextSignature(context)}`;
 }

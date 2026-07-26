@@ -679,3 +679,24 @@ The current CSS preview and Canvas2D export composition orders are documented,
 including their non-identical generic post passes. Later renderer work may
 unify them, but semantic ownership must remain independent of a particular
 Three.js pass implementation.
+
+## TD-048 - Dispose caches only after releasing their owning scene
+
+Status: Accepted in Phase 20.4.
+
+The current production application owns one `SceneRenderer`. On rebuild, first
+dispose the detached object tree while preserving marked shared resources, then
+invalidate the Minecraft material cache only if its deterministic pack/filter/
+tint/material signature changed, and prune skin textures not used by the next
+scene. On renderer shutdown, clear both caches after the scene tree.
+
+OBJ parser materials are owned temporary inputs and must be disposed when one
+shared replacement material is assigned. Source geometry used only to derive
+edges must be disposed immediately; chunk cube geometry must be allocated only
+when attached to at least one mesh.
+
+Media elements and their sources, the app-owned audio context, WebM bitmaps/
+tracks/listeners, Blob URLs, callbacks, controls, listeners, RAF, renderer lists,
+and context all require explicit normal/error/cancel shutdown. If multiple
+renderers are introduced, move cache ownership from the current singleton
+lifecycle to instance-safe asset owners before enabling them.

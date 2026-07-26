@@ -217,8 +217,15 @@ preview/export budgets, and explicit renderer ownership now coexist.
   and Draft/High/Final workloads. Pure ordered evaluation separates advisory
   overruns from hard limits and never changes quality automatically.
 - Renderer objects carry semantic world/character/prop/VFX/helper ownership and
-  an opaque/container/transparent pass tag. Final presentation excludes every
-  editor helper while Three.js retains depth-based scene ordering.
+  an opaque/container/transparent pass tag. The final WebGL canvas excludes
+  editor helpers while Three.js retains depth-based scene ordering.
+- The production renderer invalidates material caches on deterministic context
+  changes, prunes inactive skin textures after old-root disposal, and clears
+  both caches at shutdown. Parsed OBJ replacements and temporary geometry have
+  explicit ownership.
+- Audio elements/context/nodes, WebM bitmaps/tracks/listeners, Blob URLs,
+  scheduled callbacks, renderer controls/listeners/RAF, and owned Three.js
+  resources have bounded cleanup paths.
 
 ## Partial Systems
 
@@ -238,7 +245,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 121 frontend test files and 537 passing tests.
+- 126 frontend test files and 547 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -345,3 +352,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 20.3 treats transparency as a cross-cutting material pass rather than a
   competing object owner. Semantic tags support later culling/diagnostics, but
   do not introduce fragile global render-order values or camera masks.
+- Phase 20.4 keeps explicitly shared GPU resources alive across ordinary scene
+  rebuilds, then releases them only through their single renderer cache owner.
+  This order prevents both premature disposal and progressive stale-cache growth.

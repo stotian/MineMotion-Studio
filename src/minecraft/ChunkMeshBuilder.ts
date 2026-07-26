@@ -39,7 +39,7 @@ export class ChunkMeshBuilder {
     group.userData.objectId = "world";
     group.userData.objectType = "world";
 
-    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+    let cubeGeometry: THREE.BoxGeometry | null = null;
     const renderableIds = listRenderableBlockIds();
 
     for (const blockId of renderableIds) {
@@ -47,6 +47,7 @@ export class ChunkMeshBuilder {
       if (blockSamples.length === 0) {
         continue;
       }
+      cubeGeometry ??= new THREE.BoxGeometry(1, 1, 1);
 
       const mesh = new THREE.InstancedMesh(
         cubeGeometry,

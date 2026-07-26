@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.4 - Audit and fix geometry, material, texture, render-target, listener, and loop disposal
+20.5 - Implement measurable frustum, chunk, distance, and layer culling
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.3 measurement, budgets, and renderer layers are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.4 measurement, budgets, layers, and disposal are implemented and validated.
 
 ## Completed
 
@@ -309,15 +309,22 @@ IN_PROGRESS - Phase 20.1-20.3 measurement, budgets, and renderer layers are impl
 - The final WebGL canvas now excludes grid/axes, selection, camera models, motion
   paths, chunk borders, and the world-origin marker while preserving editor
   preferences. Preview/export post-pipeline differences remain documented.
+- Phase 20.4 gives the single production renderer explicit material/skin cache
+  cleanup, fixes stale material identity, prunes inactive skins, disposes
+  parser-owned OBJ materials and temporary geometry, and lazily allocates chunk
+  geometry.
+- Audio elements/context/nodes, Blob URLs, WebM resources, callbacks, controls,
+  listeners, RAF, render lists, and owned Three.js trees have characterized
+  cleanup paths. Audio orchestration left `App.tsx`, reducing it to 2,642 lines.
 
 ## In Progress
 
-- Audit every geometry, material, texture, render target, listener, animation
-  loop, and cache owner for Phase 20.4.
+- Define measurable Phase 20.5 frustum, chunk, distance, and layer culling
+  inputs before changing visibility.
 
 ## Not Started
 
-- Phase 20 tasks 4-17 and phases 21-35.
+- Phase 20 tasks 5-17 and phases 21-35.
 
 ## Blockers
 
@@ -333,20 +340,20 @@ IN_PROGRESS - Phase 20.1-20.3 measurement, budgets, and renderer layers are impl
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed checkpoint: `f4951d3` (Phase 20.2).
-- Latest validated implementation checkpoint: Phase 20.3 local milestone
+- Latest committed checkpoint: `de1abfc` (Phase 20.3).
+- Latest validated implementation checkpoint: Phase 20.4 local milestone
   (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.3 renderer tests: PASS - 3 files, 7 tests
-- `npm test`: PASS - 121 files, 537 tests
+- Focused Phase 20.4 lifecycle tests: PASS - 7 files, 17 tests
+- `npm test`: PASS - 126 files, 547 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
-- `npm run verify:architecture`: PASS - `App.tsx` 2,674/2,839 lines
-- `npm run build`: PASS - 1,875 modules; 1,523.98 kB known large chunk
+- `npm run verify:architecture`: PASS - `App.tsx` 2,642/2,839 lines
+- `npm run build`: PASS - 1,878 modules; 1,525.58 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -356,5 +363,6 @@ IN_PROGRESS - Phase 20.1-20.3 measurement, budgets, and renderer layers are impl
 
 ## Next Exact Action
 
-Audit disposal ownership by layer and lifecycle. Add focused repeated-rebuild/
-dispose regressions before changing caches, pools, or scene reconstruction.
+Define culling descriptors and counters independently of Three.js visibility
+mutation. Preserve selection/final-render correctness and make before/after
+work reduction measurable.

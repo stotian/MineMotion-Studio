@@ -53,3 +53,15 @@ sections, and radius around spawn or manual chunk coordinates.
 Imported chunk rendering uses face culling and instanced meshes grouped by block
 material. Additional culling, caching, or mesh changes require reproducible
 Phase 20 benchmark evidence.
+
+## Resource lifecycle
+
+The production renderer disposes detached owned Three.js trees on rebuild and
+shutdown. Shared Minecraft materials/textures and skin textures are cache-owned:
+material-context changes invalidate the former, the next project scene prunes
+inactive skins, and renderer shutdown clears both.
+
+OBJ parser materials are released when the renderer replaces them. Temporary
+helper/chunk geometries allocate only when attached or are disposed immediately.
+Audio playback, WebM bitmaps/tracks/listeners, scheduled callbacks, and Blob URLs
+all have explicit end/error/cancellation cleanup.

@@ -15,11 +15,12 @@ export class ChunkMeshBuilder {
     group.userData.objectId = "world";
     group.userData.objectType = "world";
     const visibleBlocks = GreedyMesher.compactVisibleBlocks(chunks);
-    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+    let cubeGeometry: THREE.BoxGeometry | null = null;
 
     for (const blockId of listRenderableBlockIds()) {
       const samples = visibleBlocks.filter((block) => block.id === blockId);
       if (samples.length === 0) continue;
+      cubeGeometry ??= new THREE.BoxGeometry(1, 1, 1);
       const mesh = new THREE.InstancedMesh(
         cubeGeometry,
         BlockMaterialResolver.resolve(blockId, options.materialContext),

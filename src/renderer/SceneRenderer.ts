@@ -9,8 +9,16 @@ import type {
 } from "../project/ProjectFile";
 import { ChunkMeshBuilder as PresetChunkMeshBuilder } from "../minecraft/ChunkMeshBuilder";
 import { ChunkMeshBuilder as ImportedChunkMeshBuilder } from "../minecraft/mesh/ChunkMeshBuilder";
-import { createDefaultSteveRig } from "../rigs/DefaultSteveRig";
-import { createSolidMaterial } from "./MinecraftMaterialSystem";
+import {
+  clearSteveRigTextureCache,
+  createDefaultSteveRig,
+  pruneSteveRigTextureCache
+} from "../rigs/DefaultSteveRig";
+import {
+  clearMinecraftMaterialCache,
+  createMinecraftMaterialContextSignature,
+  createSolidMaterial
+} from "./MinecraftMaterialSystem";
 import { SkySystem } from "./SkySystem";
 import { createGridFloor } from "./GridFloor";
 import { CameraController } from "./CameraController";
@@ -39,6 +47,7 @@ import {
   tagThreeObjectLayer,
   type RendererLayerVisibility
 } from "./RendererLayers";
+import { replaceOwnedObjMeshMaterials } from "./ObjMaterialOwnership";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -70,6 +79,7 @@ export class SceneRenderer {
   private lastMetricsAt = Number.NEGATIVE_INFINITY;
   private activeEffectCount = 0;
   private gridRequestedVisible = true;
+  private materialContextSignature: string | null = null;
   private layerVisibility: RendererLayerVisibility =
     resolveRendererLayerVisibility({
       mode: "editor",
@@ -165,6 +175,9 @@ export class SceneRenderer {
     window.removeEventListener("resize", this.resize);
     this.controller.dispose();
     disposeThreeObjectTree(this.sceneRoot);
+    clearMinecraftMaterialCache();
+    clearSteveRigTextureCache();
+    this.materialContextSignature = null;
     disposeThreeObjectTree(this.gridFloor);
     disposeThreeObjectTree(this.selectionBox);
     this.scene.clear();
@@ -188,6 +201,17 @@ export class SceneRenderer {
       resourcePack: activeResourcePack,
       settings: project.minecraftResources
     };
+    const materialContextSignature =
+      createMinecraftMaterialContextSignature(materialContext);
+    if (materialContextSignature !== this.materialContextSignature) {
+      clearMinecraftMaterialCache();
+      this.materialContextSignature = materialContextSignature;
+    }
+    pruneSteveRigTextureCache(
+      project.scene.characters.flatMap((character) =>
+        character.skin?.metadata.valid ? [character.skin.dataUrl] : []
+      )
+    );
 
     const importedChunks = project.world?.importedChunks ?? [];
     if (importedChunks.length > 0) {
@@ -330,8 +354,11 @@ export class SceneRenderer {
     lens.rotation.x = Math.PI / 2;
     lens.position.z = -0.22;
 
+    const helperSource = new THREE.ConeGeometry(0.9, 1.4, 4);
+    const helperGeometry = new THREE.EdgesGeometry(helperSource);
+    helperSource.dispose();
     const helper = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.ConeGeometry(0.9, 1.4, 4)),
+      helperGeometry,
       new THREE.LineBasicMaterial({ color: "#8cc8ff" })
     );
     helper.rotation.y = Math.PI / 4;
@@ -366,13 +393,10 @@ export class SceneRenderer {
     const asset = project.assets.obj.find((item) => item.id === assetId);
     if (!asset) return null;
     const object = this.objLoader.parse(asset.rawObj);
-    object.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.material = createSolidMaterial("#aab2bd");
-        child.castShadow = true;
-        child.receiveShadow = true;
-      }
-    });
+    replaceOwnedObjMeshMaterials(
+      object,
+      () => createSolidMaterial("#aab2bd")
+    );
     return object;
   }
 
