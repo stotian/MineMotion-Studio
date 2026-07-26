@@ -3,15 +3,19 @@
 MineMotion Studio `0.8.2` uses project schema 10.
 
 Phase 14 architecture consolidation, the complete Phase 15 native VFX
-foundation, and Phase 19 advanced rigging are finished. Low-level contracts
-have stable ownership under
+foundation, Phase 19 advanced rigging, and Phase 20.1-20.10 renderer/import
+reliability work are finished. Low-level contracts have stable ownership under
 `src/core`, and typed deterministic VFX, editing, schema 10 persistence,
-preview/export budgets, and explicit renderer ownership now coexist.
+preview/export budgets, explicit renderer ownership, and stale-safe cancellable
+world import now coexist.
 
 ## Working Systems
 
 - React/Three.js editor shell, viewport, inspector, outliner, timeline, settings, templates, commands, autosave, and undo/redo.
 - Minecraft Java world import MVP with bounded modern palette chunks.
+- World import decodes clone-safe chunk work in a reusable module worker and
+  uses abort signals plus monotonic operation IDs so only the latest scan/import
+  can commit project/history state.
 - Steve/Alex rigs, skins, poses, bone tracks, animation presets, attachments,
   and bounded hierarchy-aware static Blockbench geometry import.
 - Resource pack/material/lighting studio MVP with atmosphere and environment keys.
@@ -380,3 +384,8 @@ preview/export budgets, and explicit renderer ownership now coexist.
   for decompression/NBT/palette decoding. The same pure decoder is the
   deterministic fallback; DOM, Three.js, bounded archive, and idle thumbnail
   paths stay on their justified owners.
+- Phase 20.10 gives scans/imports one latest-operation controller, propagates
+  abort through file/decode/yield boundaries, terminates active worker decoding,
+  rejects mismatched IDs, and cancels on project/world lifecycle changes.
+  World-import orchestration is extracted from `App.tsx`, reducing it to 2,474
+  lines without introducing persisted operation state.

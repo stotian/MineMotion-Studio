@@ -33,7 +33,9 @@ the worker boundary.
 - import completion/error disposes the client and terminates its worker;
 - explicit client disposal rejects pending requests.
 
-User-driven abort and stale top-level import protection remain Phase 20.10.
+User-driven abort and stale top-level import protection were assigned to Phase
+20.10 and are now implemented in
+[`PHASE_20_10_OPERATION_CANCELLATION.md`](PHASE_20_10_OPERATION_CANCELLATION.md).
 
 ## Required-workload audit
 

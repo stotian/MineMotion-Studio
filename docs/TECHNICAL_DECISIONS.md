@@ -783,3 +783,21 @@ failure, but do not retry a deterministic invalid-data response. Terminate the
 worker with its import owner. Do not move Three.js, DOM canvas/image work,
 bounded archives, or already-cancellable idle thumbnails without compatibility
 and measurement evidence.
+
+## TD-054 - Let only the latest world operation commit
+
+Status: Accepted in Phase 20.10.
+
+Use one session-only latest-operation controller for world scan and import.
+Starting new work aborts the old `AbortController`; project replacement, world
+unload, and editor teardown also cancel it. Thread the signal through file,
+decompression, region, chunk, browser-yield, and worker boundaries. Keep one
+public operation ID on progress/results and require the worker response to match
+both it and the internal request ID.
+
+Ignore late or mismatched results instead of attempting to merge them. Preserve
+the existing one-operation project/history commit and do not persist controller
+state. Terminate active worker CPU work on abort, while keeping infrastructure
+failure on the deterministic main-thread fallback path. Own this orchestration
+in `useWorldImportOperations` so the protection is centralized and `App.tsx`
+shrinks rather than accumulating another async state machine.

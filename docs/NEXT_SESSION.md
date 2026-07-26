@@ -2,13 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.10 by threading AbortSignal and public operation IDs through
-world scan/import and the worker client, terminating active work promptly, and
-proving stale asynchronous results cannot overwrite a newer operation.
-
-GitHub publication is externally blocked in this environment: the HTTPS remote
-is readable, but no authenticated credential or `gh` executable is available.
-Preserve the local commits and push normally once authentication is restored.
+Implement Phase 20.11 by auditing the measured production bundle and adding
+evidence-based dynamic imports at non-startup-critical boundaries. Preserve
+fallback behavior and record before/after artifact sizes.
 
 ## Completed Work
 
@@ -168,22 +164,30 @@ Preserve the local commits and push normally once authentication is restored.
   main-thread decoder.
 - The closed audit keeps fixed MCA headers bounded, Three.js/DOM work on safe
   owners, archives bounded, and thumbnails on their cancellable idle scheduler.
+- Phase 20.10 replaces the world-import cancellation flag with one monotonic
+  latest-operation controller. Abort signals cross scan, `level.dat`, region,
+  chunk, browser-yield, fallback, and active-worker boundaries.
+- Progress/results and worker messages carry public operation IDs; stale or
+  mismatched work cannot update project/history state. Project replacement,
+  world unload, newer work, explicit cancel, and unmount all invalidate old
+  operations. The extracted controller reduces `App.tsx` to 2,474 lines.
 
 ## Unfinished Work
 
-- Phase 20 tasks 10-17 and phases 21-35 remain.
+- Phase 20 tasks 11-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Add an abort-aware operation contract to world import and worker requests.
-Cancel/terminate active decoding, ignore mismatched/late replies, and integrate
-the App controller so only the latest operation may commit project/history state.
+Inspect the emitted module graph and source ownership behind the 1,542.64 kB
+main chunk. Select only lazy UI/workflow boundaries with measured impact, add
+fallback-safe dynamic imports, and verify startup-critical editor behavior is
+unchanged.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npx vitest run src/renderer src/performance
+npx vitest run src/performance
 npm test
 npm run build
 npm audit

@@ -6,11 +6,12 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.10 - Abort, operation IDs, and stale-result protection
+20.11 - Evidence-based dynamic bundle splitting
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.9 measurement, renderer optimization, asset ownership, and safe chunk worker extraction are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.10 measurement, renderer optimization, worker
+extraction, and stale-safe cancellation are implemented and validated.
 
 ## Completed
 
@@ -349,22 +350,26 @@ IN_PROGRESS - Phase 20.1-20.9 measurement, renderer optimization, asset ownershi
 - A typed audit keeps fixed MCA headers bounded on main, Three.js mesh work on
   the renderer, DOM atlas work deferred, archives bounded, and thumbnails on
   their existing cancellable idle scheduler.
+- Phase 20.10 threads abort through world scans, region/chunk import, browser
+  yields, and worker decode. Monotonic public operation IDs tag progress/results;
+  worker replies require matching request and operation IDs.
+- Starting newer work, replacing a project, unloading a world, cancelling, or
+  unmounting invalidates old results before project/history writes. Active
+  worker decode terminates promptly and `App.tsx` shrinks to 2,474 lines through
+  the extracted `useWorldImportOperations` controller.
 
 ## In Progress
 
-- Implement Phase 20.10 AbortSignal, public operation IDs, active-worker
-  cancellation, and stale-result suppression across asynchronous imports.
+- Implement Phase 20.11 evidence-based dynamic imports that reduce the measured
+  main bundle without changing startup-critical behavior or hiding warnings.
 
 ## Not Started
 
-- Phase 20 tasks 10-17 and phases 21-35.
+- Phase 20 tasks 12-17 and phases 21-35.
 
 ## Blockers
 
 - None for current Phase 20 TypeScript work.
-- Publishing local milestone commits is pending because this environment has no
-  authenticated GitHub credential and no `gh` executable; `origin/main` remains
-  readable and no history rewrite or force push was attempted.
 - Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -372,21 +377,21 @@ IN_PROGRESS - Phase 20.1-20.9 measurement, renderer optimization, asset ownershi
 
 ## Last Validated Commit
 
-- Official `origin/main` baseline: `4c6213b`.
-- Latest committed checkpoint: `c94d371` (Phase 20.9 worker extraction).
-- Latest validated implementation checkpoint: Phase 20.9 local milestone
-  (publication pending external GitHub authentication).
+- Official verified ZIP baseline: `4c6213b`.
+- Latest committed and pushed implementation checkpoint: `53a394b`
+  (Phase 20.10 abort/stale protection).
+- Latest validated implementation checkpoint: Phase 20.10.
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.9 worker/NBT/MCA tests: PASS - 5 files, 11 tests
-- `npm test`: PASS - 136 files, 582 tests
+- Focused Phase 20.10 operation/world-import tests: PASS - 5 files, 17 tests
+- `npm test`: PASS - 138 files, 591 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
-- `npm run verify:architecture`: PASS - `App.tsx` 2,642/2,839 lines
-- `npm run build`: PASS - 1,884 modules; 1,539.40 kB main plus 7.55 kB worker
+- `npm run verify:architecture`: PASS - `App.tsx` 2,474/2,839 lines
+- `npm run build`: PASS - 1,886 modules; 1,542.64 kB main plus 7.61 kB worker
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -396,6 +401,7 @@ IN_PROGRESS - Phase 20.1-20.9 measurement, renderer optimization, asset ownershi
 
 ## Next Exact Action
 
-Thread AbortSignal and a public operation ID through world scan/import and the
-worker client. Terminate active work promptly, reject stale replies, and ensure
-an older import can never overwrite a newer project result.
+Audit the production bundle from the measured Phase 20.10 build, identify
+non-startup-critical boundaries with real size impact, and split them through
+fallback-safe dynamic imports. Record before/after artifact sizes and retain
+behavioral tests.

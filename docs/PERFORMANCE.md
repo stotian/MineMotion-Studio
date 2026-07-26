@@ -159,3 +159,22 @@ The Phase 20.9 audit leaves these bounded paths unchanged:
   a worker threshold;
 - generated SVG thumbnails remain capped, cached, cancellable, and scheduled
   one at a time during idle work.
+
+## Abort and stale-result boundary
+
+World scans and imports now carry one monotonic public operation ID with an
+`AbortSignal`. Cancellation is checked around asynchronous file, decode,
+progress, and browser-yield boundaries. An active worker decode is terminated,
+and replies must match both the client request ID and public operation ID before
+they can settle.
+
+The React integration accepts progress and final results only while that ID is
+current. Starting another scan/import, replacing the project, unloading the
+world, or unmounting invalidates earlier work before it can mutate project or
+history state. The operation state remains session-only and adds no persistent
+data or per-chunk commits.
+
+The Phase 20.10 build emits 1,886 modules, a 1,542.64 kB main JavaScript chunk
+(421.39 kB gzip), and a 7.61 kB worker. The large-main-chunk warning is still
+open and is the evidence input for Phase 20.11 rather than being hidden by a
+warning-limit change.

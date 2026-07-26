@@ -55,6 +55,9 @@
 - Fixed replacement/delete/clear disposal in the dormant chunk mesh cache.
 - Added a reusable Minecraft chunk-decoding worker with transferable payloads,
   deterministic main-thread fallback, and a closed worker-workload audit.
+- Added abort-aware world scans/imports with monotonic operation IDs, active
+  worker termination, stale progress/result suppression, and project-replacement
+  cancellation; world-import orchestration now lives outside `App.tsx`.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

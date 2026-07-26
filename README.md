@@ -10,7 +10,10 @@ export preflight, browser PNG/WebM/WAV workflows, and a restricted desktop
 bridge for user-installed FFmpeg. Phase 8 adds user-supplied resource packs,
 Minecraft materials, biome tint, animated time of day, and Lighting Studio.
 Phase 14 establishes the long-term engine foundation with stable scene/time/ID
-contracts and evidence-based runtime capability reporting.
+contracts and evidence-based runtime capability reporting. Phases 15-20 add
+native deterministic VFX authoring, advanced rigging/animation workflows,
+renderer ownership and culling, bounded resource pools, worker-based Minecraft
+chunk decoding, and stale-safe cancellable world import.
 
 ## Current Version
 
@@ -36,6 +39,9 @@ contracts and evidence-based runtime capability reporting.
 - Cinematic effects library with lightning, impact frames, camera shake, flash,
   speed lines, shockwave, glow burst, fog, vignette, color grade, cinematic
   bars, and explosion flash.
+- Native schema 10 VFX with deterministic frame evaluation, 60 stable built-in
+  recipes, safe package authoring/import, localized library controls, and one
+  shared preview/export preparation path.
 - Render Preview mode with active camera label, post-processing overlays, and
   cinematic bars.
 - Timeline blocks for effects and audio clips.
@@ -64,6 +70,8 @@ contracts and evidence-based runtime capability reporting.
   - Anvil `.mca` region header parsing
   - selected chunk import around spawn or manual chunk coordinates
   - modern block state palette decoding
+  - transferable worker decoding with deterministic main-thread fallback
+  - abortable scans/imports, public operation IDs, and stale-result rejection
   - face-culling instanced mesh preview
   - chunk borders and world origin viewport helpers
 - Professional character rig MVP:
@@ -79,6 +87,9 @@ contracts and evidence-based runtime capability reporting.
     targets, poles, influence, live preview, and bake-to-keyframes
   - deterministic terrain-aware left/right foot locks with bounded inclusive
     ranges, fixed world anchors, and one atomic timeline/history bake
+  - bounded head/camera/object look-at, motion paths, six animation layer kinds,
+    ten procedural generators, key cleanup/smoothing/loop/reverse/mirror, pose
+    clipboard/blending, validated attachments, and Blockbench mapping/clip tools
 - Minecraft materials and lighting:
   - resource pack import from ZIP or browser folder selection
   - `pack.mcmeta` metadata and block PNG scanning
@@ -104,6 +115,9 @@ contracts and evidence-based runtime capability reporting.
   - `Space` play/pause
   - `Ctrl+D` duplicate selected object
   - `Delete` delete selected object/effect
+- Bounded live renderer telemetry and immutable device/workload budgets, plus
+  semantic culling, renderer-owned material/skin/OBJ caches, VFX resource pools,
+  and explicit GPU/DOM/audio/worker disposal contracts.
 
 ## Current Limits
 
@@ -112,9 +126,8 @@ contracts and evidence-based runtime capability reporting.
   to all faces of each instanced block material.
 - Blockbench rig mapping is not automatic yet; Phase 5 imports static cube
   geometry as a preview object.
-- Production IK, foot locks, and look-at constraints use honest numeric controls;
-  interactive viewport gizmos and procedural rig tools remain later Phase 19
-  milestones.
+- Production IK, foot locks, and look-at constraints use honest numeric
+  controls; optional interactive viewport target gizmos remain deferred.
 - Import is intentionally bounded by max region files, max chunks, and max
   vertical sections.
 - Tested assumptions target modern Java Edition Anvil worlds using palette-based
@@ -201,6 +214,10 @@ time, missing targets warn safely, and disabling VFX excludes every VFX layer.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Current State](docs/CURRENT_STATE.md)
+- [Next Session](docs/NEXT_SESSION.md)
+- [Known Limitations](docs/KNOWN_LIMITATIONS.md)
+- [Technical Decisions](docs/TECHNICAL_DECISIONS.md)
 - [Phase 14 Architecture Audit](docs/PHASE_14_ARCHITECTURE_AUDIT.md)
 - [Engine Contracts](docs/ENGINE_CONTRACTS.md)
 - [Phases 14-25 Roadmap](docs/MASTER_ROADMAP_PHASES_14_25.md)
@@ -230,6 +247,7 @@ time, missing targets warn safely, and disabling VFX excludes every VFX layer.
 - [Video Export](docs/VIDEO_EXPORT.md)
 - [Audio Export](docs/AUDIO_EXPORT.md)
 - [Performance](docs/PERFORMANCE.md)
+- [Phase 20.10 Operation Cancellation](docs/PHASE_20_10_OPERATION_CANCELLATION.md)
 - [Asset Library](docs/ASSET_LIBRARY.md)
 - [Cinematic Effects](docs/CINEMATIC_EFFECTS.md)
 - [VFX Package Authoring](docs/VFX_PACKAGE_AUTHORING.md)

@@ -59,7 +59,7 @@ still required before changing code.
 | LIM-050 | Per-chunk instancing now has exact call/instance comparison, but named hardware frame-time validation remains required | Yes | P3 | 20.15 | PARTIALLY_RESOLVED |
 | LIM-051 | Dynamic VFX line/ring geometry remains frame-owned because evaluated vertices/topology change; its hardware allocation cost is not yet calibrated | Yes | P3 | 20.15 | OPEN_MEASUREMENT |
 | LIM-052 | Visible-block mesh preparation remains coupled to synchronous renderer rebuilds, and atlas generation has no OffscreenCanvas compatibility gate | Yes | P3 | 20/future renderer | OPEN_ARCHITECTURE |
-| LIM-053 | World-import cancellation is observed between chunks, but an active worker decode has no AbortSignal/operation-level stale-result guard yet | Yes | P3 | 20.10 | OPEN |
+| LIM-053 | World-import cancellation is observed between chunks, but an active worker decode has no AbortSignal/operation-level stale-result guard yet | Yes | P3 | 20.10 | RESOLVED |
 
 ## Phase 15.1 Outcome
 
