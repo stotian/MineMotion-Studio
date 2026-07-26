@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.14 - Optional Minecraft-style expression overlays
+19.15 - Phase 19 save/load, history, migration, timeline, preview, and export gate
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.13 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.14 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -277,15 +277,21 @@ IN_PROGRESS - Phase 19.1 through 19.13 and the consolidation checkpoint are impl
   clips and apply through the existing global tracks, timeline synchronizer, and
   one history operation. Expressions, unsupported channels/interpolation, and
   unmapped animators are skipped with stable diagnostics.
+- Phase 19.14 adds six bounded optional pixel-expression presets over the head:
+  blink, anger, sadness, confidence, surprise, and fear. Absent, disabled,
+  invalid, or zero-intensity settings create no overlay geometry.
+- Expression descriptors are pure and renderer-neutral. Shared preview/export
+  head rendering owns the small overlay meshes, while project commands and
+  localized Rig Studio controls commit at most one history checkpoint.
 
 ## In Progress
 
-- Audit the existing skin/material renderer and expression placeholders before
-  adding optional Minecraft-style overlays in Phase 19.14.
+- Audit and complete the Phase 19.15 cross-system acceptance matrix for
+  save/load, history, migration, timeline, preview, and export.
 
 ## Not Started
 
-- Phase 19.14-19.15 and phases 20-35.
+- Phase 19.15 and phases 20-35.
 
 ## Blockers
 
@@ -301,19 +307,19 @@ IN_PROGRESS - Phase 19.1 through 19.13 and the consolidation checkpoint are impl
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: `fb99069` (publication pending
+- Latest validated implementation checkpoint: `32f8f53` (publication pending
   external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Blockbench mapping/parser/contract/persistence tests: PASS - 4 files, 27 tests
-- `npm test`: PASS - 115 files, 520 tests
+- Focused expression/rig/project persistence tests: PASS - 3 files, 22 tests
+- `npm test`: PASS - 116 files, 524 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
-- `npm run verify:architecture`: PASS - `App.tsx` 2,676/2,839 lines
-- `npm run build`: PASS - 1,867 modules; 1,509.40 kB known large chunk
+- `npm run verify:architecture`: PASS - `App.tsx` 2,674/2,839 lines
+- `npm run build`: PASS - 1,871 modules; 1,516.64 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -323,6 +329,6 @@ IN_PROGRESS - Phase 19.1 through 19.13 and the consolidation checkpoint are impl
 
 ## Next Exact Action
 
-Audit existing Minecraft skin materials, head geometry, pose/expression presets,
-and renderer ownership for Phase 19.14. Add overlays only if they remain
-optional and cannot break normal skin rendering.
+Reconcile the complete Phase 19 acceptance matrix with existing tests. Add only
+missing integration coverage for persistence, history, migration, timeline,
+production sampling, shared preview, and export before the final phase gate.

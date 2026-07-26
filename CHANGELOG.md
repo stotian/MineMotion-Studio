@@ -32,6 +32,8 @@
 - Added conservative automatic and preset-scoped manual Blockbench bone
   mapping, plus deterministic numeric rotation clip conversion onto the
   existing editable animation timeline.
+- Added optional bounded pixel-expression overlays for blink, anger, sadness,
+  confidence, surprise, and fear through the shared character renderer.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

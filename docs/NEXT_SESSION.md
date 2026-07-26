@@ -2,8 +2,9 @@
 
 ## Exact Current Task
 
-Start Phase 19.14 by auditing Minecraft skin materials, head geometry,
-pose/expression presets, and shared preview/export renderer ownership.
+Start Phase 19.15 by reconciling the complete advanced-rigging acceptance
+matrix against existing save/load, history, migration, timeline, preview, and
+export tests.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -121,16 +122,20 @@ Preserve the local commits and push normally once authentication is restored.
   apply atomically at the playhead through the authoritative global tracks.
   Expressions and unsupported animation semantics are skipped with diagnostics.
   Phase 19.13 is complete at implementation commit `fb99069`.
+- Six optional bounded pixel-expression presets now render above the existing
+  head skin through the shared preview/export rig path. Disabled, invalid, or
+  zero-intensity state creates no geometry; applying settings is atomic and
+  localized. Phase 19.14 is complete at implementation commit `32f8f53`.
 
 ## Unfinished Work
 
-- Phase 19.14-19.15 and phases 20-35 remain.
+- Phase 19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Inspect the existing skin cache/material path, head bone rendering, expression
-pose placeholders, and serialization contracts. Keep expression overlays
-optional, bounded, and compatible with ordinary Steve/Alex skins.
+Inventory focused evidence from Phases 19.1-19.14 and identify any missing
+cross-system regression. Do not duplicate already-proven paths; add a compact
+final acceptance fixture only where the matrix has a real gap.
 
 ## Tests To Run
 

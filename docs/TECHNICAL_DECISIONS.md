@@ -591,3 +591,22 @@ Converted clips receive content-derived IDs, enter the existing reusable clip
 collection, and bake at the playhead through the global bone tracks and
 timeline synchronizer in one history operation. Reapplying an identical clip at
 the same frame is a no-op.
+
+## TD-043 - Keep expression overlays optional and subordinate to skin rendering
+
+Status: Accepted in Phase 19.14.
+
+Expression state is one bounded optional character setting with six closed
+presets and a clamped intensity. Missing, disabled, invalid, or zero-intensity
+state yields no descriptors and no Three.js objects, preserving existing skin
+and fallback rendering by default.
+
+Pure descriptor generation defines small pixel bars only. The shared rig
+renderer attaches their owned geometry above the head face, uses explicitly
+shared materials, and excludes the overlay meshes from picking. Preview and
+offline export therefore consume the same result without a second renderer.
+
+Rig Studio keeps draft preset/intensity changes local until Apply, avoiding an
+undo entry per slider event. Enable, disable, and apply use one existing
+whole-project history checkpoint. Expression state is intentionally static; no
+parallel expression timeline or discrete keyframe system is introduced.

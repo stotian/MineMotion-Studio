@@ -150,6 +150,17 @@ Only unique exact names and reviewed aliases map automatically. Numeric rotation
 keys are supported; expressions, position/scale channels, advanced
 interpolation, and textured preview remain explicitly unsupported.
 
+## Character Expressions
+
+1. Select a character and open **Rig Studio**.
+2. Enable **Expression overlay**.
+3. Choose blink, anger, sadness, confidence, surprise, or fear.
+4. Adjust intensity, then click **Apply expression**.
+
+These pixel overlays are optional and render above the normal head skin in both
+preview and export. Disabling the option restores the standard skin unchanged.
+Expression settings are currently static rather than timeline-keyframed.
+
 ## Export
 
 Click **Export** in the top bar.

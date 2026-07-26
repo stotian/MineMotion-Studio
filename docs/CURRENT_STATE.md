@@ -227,7 +227,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 115 frontend test files and 520 passing tests.
+- 116 frontend test files and 524 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -321,3 +321,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 19.13 maps only unique exact/alias Blockbench groups automatically,
   persists preset-scoped manual choices, and converts supported numeric rotation
   animators into deterministic reusable clips on the global timeline.
+- Phase 19.14 adds optional bounded blink/anger/sadness/confidence/surprise/fear
+  pixel overlays as head children in the shared rig renderer. Missing or invalid
+  settings leave standard skin geometry unchanged.
