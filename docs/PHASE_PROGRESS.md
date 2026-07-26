@@ -10,7 +10,7 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Status
 
-READY - Phase 19.1 through 19.5 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.5 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -239,7 +239,11 @@ READY - Phase 19.1 through 19.5 and the consolidation checkpoint are implemented
 
 ## In Progress
 
-- None. Phase 19.6 is the next safe READY milestone.
+- Phase 19.6 has one pure bounded path sampler for character root, left/right
+  hand attachment points, and production cameras. It reports inclusive samples,
+  exact key points, duration, distance, and bounds through existing interpolation.
+- Session selection, viewport polylines/key points, disposal, and optional
+  existing-command editing remain.
 
 ## Not Started
 
@@ -266,8 +270,8 @@ READY - Phase 19.1 through 19.5 and the consolidation checkpoint are implemented
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused look-at/timeline/foot-space tests: PASS - 5 files, 19 tests
-- `npm test`: PASS - 103 files, 467 tests
+- Focused motion-path/interpolation tests: PASS - 2 files, 6 tests
+- `npm test`: PASS - 104 files, 471 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
@@ -280,6 +284,6 @@ READY - Phase 19.1 through 19.5 and the consolidation checkpoint are implemented
 
 ## Next Exact Action
 
-Inventory root, hand, and camera path sampling plus viewport overlay ownership,
-then define one renderer-neutral bounded motion-path sampling contract before
-adding key points or editing.
+Connect session-only subject/range/visibility controls to the pure sampler, then
+render disposed viewport polylines and keyframe points without project fields or
+a second animation authority.

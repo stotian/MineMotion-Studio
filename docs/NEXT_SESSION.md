@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Begin Phase 19.6 with root, limb, and camera motion paths after the completed
-and validated Phase 19.5 look-at constraints.
+Continue Phase 19.6 by connecting viewport motion-path controls and rendering
+after the completed pure root/hand/camera sampling checkpoint.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -64,6 +64,10 @@ Preserve the local commits and push normally once authentication is restored.
   target selection, deterministic live preview, and one-key atomic bake.
 - Numeric target/influence/maximum-angle controls are localized and session-only;
   existing bone/transform rotation tracks remain authoritative and persistent.
+- A bounded motion-path sampler evaluates root, left/right hand, and camera
+  points from existing tracks with exact keys, duration, distance, and bounds.
+- Relevant tracks are sorted once and sampled with existing interpolation;
+  rendered-hand parity is covered without repeated whole-project cloning.
 
 ## Unfinished Work
 
@@ -71,9 +75,9 @@ Preserve the local commits and push normally once authentication is restored.
 
 ## Next Implementation Step
 
-Inventory current root, hand, and camera sampling plus viewport overlay
-ownership, then define one renderer-neutral bounded motion-path sampling
-contract before adding key points or editing.
+Add session-only subject/range/visibility controls, pass the derived sampled path
+to the viewport, and render disposed polylines plus keyframe points. Keep editing
+deferred unless it reuses existing keyframe commands and the main timeline.
 
 ## Tests To Run
 

@@ -44,6 +44,7 @@ still required before changing code.
 | LIM-035 | Foot lock, ground placement, and foot-slide reduction were not implemented | Yes | P2/P4 | 19.4 | RESOLVED |
 | LIM-036 | Pure look-at math existed without head/camera/object preview and timeline bake integration | Yes | P4 | 19.5 | RESOLVED |
 | LIM-037 | Look-at uses numeric session controls; viewport target gizmos and separate eye overlays remain placeholders | Yes | P4 | 19/future | OPEN_HONEST_UI |
+| LIM-038 | Pure root/hand/camera path sampling exists, but viewport paths and key points are not connected | Yes | P4 | 19.6 | PARTIALLY_RESOLVED |
 
 ## Phase 15.1 Outcome
 

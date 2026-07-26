@@ -451,3 +451,17 @@ solving. Head conversion includes character transform, root, and body; a shared
 pure XYZ space-math module also retains the foot-lock coordinate behavior. One
 constraint workspace hook composes IK then look-at preview without adding lines
 to `App.tsx`.
+
+## TD-035 - Derive motion paths from existing tracks without project snapshots
+
+Status: Accepted in Phase 19.6.
+
+Motion paths are derived bounded views over the authoritative transform and bone
+tracks. Camera paths sample position; rig paths sample only the character
+transform and required root-to-point bone chain. Relevant tracks are sorted once
+and sampled with the production interpolation curves and binary search.
+
+Do not call `Animator.sampleProject` for every path point because it clones the
+broad project whenever tracks exist. Do not persist paths, duplicate keys, or
+introduce a path timeline. Viewport geometry must consume the derived result and
+dispose with the existing scene root.
