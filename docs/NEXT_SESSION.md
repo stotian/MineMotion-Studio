@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.7 by adapting existing NLA persistence and production sampling
-to the completed pure six-kind animation-layer contract.
+Begin Phase 19.8 by defining editable procedural animation generators over the
+existing reusable clip/global timeline contracts.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -73,16 +73,23 @@ Preserve the local commits and push normally once authentication is restored.
 - A pure six-kind animation-layer contract now defines fixed override/additive/
   metadata modes, scoped bones, mute, weight, relative additive motion, and
   bounded VFX effect references.
+- Existing NLA tracks persist those kinds with legacy Base defaults; global
+  tracks sample first and layers compose in playback, scrub, preview, export,
+  foot lock, look-at, and motion paths.
+- Localized NLA controls choose clip layers, edit layer mute/weight, preserve
+  clip-instance controls, and select bounded VFX synchronization references.
+- Schema 10, guarded schema 9, package, autosave, history, migrations, and
+  production sampling are regression-tested for layered animation.
 
 ## Unfinished Work
 
-- Phase 19.7-19.15 and phases 20-35 remain.
+- Phase 19.8-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Map existing `animation.nlaTracks` to layer records without a parallel store,
-persist defaults compatibly, and sample layers after global tracks through the
-shared preview/export path. Add UI only after round-trip behavior is green.
+Read the Phase 19 procedural-generator requirements, define one bounded pure
+generator result that produces editable reusable/global keyframes, and ship the
+first generator through the existing history and timeline paths.
 
 ## Tests To Run
 

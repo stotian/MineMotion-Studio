@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.7 - Animation layers with mute, weight, and additive behavior
+19.8 - Editable procedural animation generators
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.6 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -244,18 +244,17 @@ IN_PROGRESS - Phase 19.1 through 19.6 and the consolidation checkpoint are imple
   production render preview/export excludes all path helpers.
 - Paths remain session-only. Optional direct path editing is deferred until it
   can delegate to existing global keyframe commands.
+- Phase 19.7 reuses `animation.nlaTracks` for six fixed layer kinds, samples
+  them after global tracks in every production/tool path, exposes localized
+  mute/weight/VFX-reference controls, and passes all persistence/history gates.
 
 ## In Progress
 
-- Phase 19.7 has a pure bounded six-kind layer contract and evaluator. It
-  supports fixed override/additive/metadata modes, mute, combined layer/clip
-  weight, scoped bones, relative additive samples, and VFX effect references.
-- Existing NLA persistence adaptation, production sampling, UI, and round-trip
-  validation remain.
+- Phase 19.8 procedural animation generators is the next READY milestone.
 
 ## Not Started
 
-- Phase 19.7-19.15 and phases 20-35.
+- Phase 19.8-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -271,19 +270,19 @@ IN_PROGRESS - Phase 19.1 through 19.6 and the consolidation checkpoint are imple
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed local checkpoint: `2ed5222` (publication pending external
+- Latest committed local checkpoint: `189aac3` (publication pending external
   GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused layer/clip/interpolation tests: PASS - 3 files, 9 tests
-- `npm test`: PASS - 106 files, 478 tests
+- Focused layer/editor/motion/persistence tests: PASS - 4 files, 16 tests
+- `npm test`: PASS - 107 files, 484 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
-- `npm run build`: PASS - 1,849 modules; 1,432.58 kB known large chunk
+- `npm run build`: PASS - 1,853 modules; 1,445.14 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -293,6 +292,5 @@ IN_PROGRESS - Phase 19.1 through 19.6 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Adapt existing `animation.nlaTracks` into the six layer kinds, then evaluate
-them after authoritative global tracks in the shared playback/export sampling
-path before adding UI.
+Define the renderer-neutral procedural generator contract and implement the
+first editable, bakeable generator through existing clips/tracks and history.

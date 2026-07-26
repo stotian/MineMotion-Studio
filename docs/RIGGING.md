@@ -90,11 +90,24 @@ attachment, or production-camera path over an inclusive timeline range. The
 panel reports frame/second duration, traveled distance, sample count, and exact
 relevant key count.
 
-Paths sample only existing transform and bone tracks with the production
-interpolation curves. The viewport renders a colored polyline plus white
-keyframe points; both are owned and disposed by the normal scene root. Path
-controls and geometry are session-only and are hidden from render preview and
-export.
+Paths sample authoritative global tracks followed by existing NLA animation
+layers with the production interpolation curves. NLA-local keys are remapped
+through clip start and time scale. The viewport renders a colored polyline plus
+white keyframe points; both are owned and disposed by the normal scene root.
+Path controls and geometry are session-only and are hidden from render preview
+and export.
 
 Direct path editing remains optional and is deferred until it can delegate to
 the existing keyframe commands without creating another animation authority.
+
+## Animation Layers
+
+The timeline's existing NLA collection owns Base Animation, Upper Body, Head
+Look, Hand Adjustment, Additive Motion, and VFX Synchronization layers. Global
+tracks are sampled first; the six fixed kinds then blend in order using bounded
+layer and clip-instance weights. Each override layer has a fixed rig scope and
+Additive Motion uses the clip's first sample as its reference.
+
+Layer controls are localized and commit through existing project history.
+VFX Synchronization contains effect IDs only; the effects collection remains
+the single timing and parameter authority.

@@ -2,11 +2,11 @@
 
 ## Status
 
-IN_PROGRESS
+COMPLETE
 
-## Pure contract checkpoint
+## Implementation
 
-The first Phase 19.7 checkpoint defines six ordered bounded layer kinds:
+Phase 19.7 defines six ordered bounded layer kinds:
 
 1. Base Animation
 2. Upper Body
@@ -36,16 +36,34 @@ Layer and clip weights multiply. Muted/out-of-range instances do nothing;
 missing clips produce deterministic warnings. Inputs are bounded plain data and
 accessors are not invoked.
 
-## Remaining
+The existing `animation.nlaTracks` collection is the only persisted layer
+container. Missing layer fields from older projects migrate to a Base Animation
+layer, so schema 10 and guarded schema 9 remain compatible without introducing
+another project authority. Layer kind fixes blend mode; layer and clip edits
+are bounded, and a target has at most one layer of each kind.
 
-- adapt existing `animation.nlaTracks` as the persisted layer containers;
-- evaluate layers after global tracks in playback, scrub, preview, and export;
-- add localized layer mute/weight/additive UI over the current NLA surface;
-- persist and validate VFX references without duplicating effect timing;
-- cover schema 10, guarded schema 9, history, autosave, and package round trips.
+`sampleProjectWithAnimationLayers` evaluates the authoritative global tracks
+first and then composes the target's ordered NLA layers. The shared
+playback/scrub/preview/export path uses this sampler. Foot lock, look-at bake,
+and motion paths also use the same composition, preventing tool-preview drift.
+Motion paths remap clip-local keys through NLA start and time scale.
+
+The localized NLA surface can:
+
+- choose Base, Upper Body, Head Look, Hand Adjustment, or Additive Motion when
+  inserting a compatible reusable clip;
+- mute a layer and edit its bounded weight;
+- retain clip-instance mute/weight behavior;
+- create one VFX Synchronization layer and select bounded existing effect IDs.
+
+VFX synchronization remains metadata only. Effect start, duration, parameters,
+and timeline order continue to live in `effects.instances`.
 
 ## Validation
 
-- Focused layer/clip/interpolation tests: 3 files, 9 tests.
-- Full frontend suite: 106 files, 478 tests.
+- Focused layer/editor/motion/persistence tests: 4 files, 16 tests.
+- Schema 10, guarded schema 9, package, autosave, history undo/redo, preview,
+  export sampling, and fractional motion-path keys are covered.
+- Full frontend suite: 107 files, 484 tests.
 - Typecheck, locales, VFX examples, architecture, build, and audit pass.
+- `App.tsx` remains 2,678 lines.

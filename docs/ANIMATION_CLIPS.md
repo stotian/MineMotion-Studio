@@ -18,10 +18,24 @@ Select a compatible target, choose a clip, move the playhead, and click
 **Apply Clip**. MineMotion creates or updates matching property tracks starting
 at the playhead.
 
-## NLA Skeleton
+## Animation Layers
 
-Click **Add To NLA** to create a non-destructive clip instance. NLA instances
-store:
+Choose a compatible layer and click **Add To NLA** to create a non-destructive
+clip instance. MineMotion evaluates the existing global tracks first and then
+the ordered NLA layers:
+
+1. Base Animation
+2. Upper Body
+3. Head Look
+4. Hand Adjustment
+5. Additive Motion
+6. VFX Synchronization
+
+Override layers have fixed bone scopes. Additive Motion applies the change from
+the source clip's first sample, rather than replacing the current pose. Layer
+and clip-instance weights multiply.
+
+NLA instances store:
 
 - source clip and target
 - start and duration
@@ -29,10 +43,12 @@ store:
 - weight
 - mute state
 
-Double-click an NLA block to toggle mute. Phase 6 stores and edits the stack;
-full weighted NLA evaluation/blending is intentionally deferred.
+Double-click a block to toggle its instance mute state. The layer controls edit
+the layer mute and weight. A VFX Synchronization layer can reference existing
+effects, but it does not copy or replace their timeline timing or parameters.
 
 ## Serialization
 
-Clips, NLA tracks, markers, keyframe IDs, and interpolation modes are included
-in schema v10 project and `.minemotion` package data.
+Clips, animation-layer NLA tracks, markers, keyframe IDs, and interpolation
+modes are included in schema v10 project and `.minemotion` package data.
+Legacy NLA tracks without layer metadata load as Base Animation.

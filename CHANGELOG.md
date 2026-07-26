@@ -13,6 +13,9 @@
   selection and atomic bake to existing rotation tracks.
 - Added derived character root, left/right hand, and camera motion paths with
   timeline ranges, key points, statistics, and export-safe viewport overlays.
+- Evolved the existing NLA tracks into six bounded animation layers with scoped
+  override/additive blending, mute/weight controls, shared production sampling,
+  and VFX synchronization metadata.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

@@ -13,7 +13,8 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Minecraft Java world import MVP with bounded modern palette chunks.
 - Steve/Alex rigs, skins, poses, bone tracks, animation presets, attachments, and static Blockbench geometry import.
 - Resource pack/material/lighting studio MVP with atmosphere and environment keys.
-- Timeline, Dopesheet, Graph view, markers, reusable clips, and NLA skeleton.
+- Timeline, Dopesheet, Graph view, markers, reusable clips, and ordered NLA
+  animation layers.
 - Cinematic preset effects and post-processing preview/export overlays.
 - `.minemotion`/`.mmsproj` save/load and migrations from schemas 1-9 to 10.
 - Production render queue, validation, estimates, PNG/ZIP/WebM/WAV/package/metadata output, final camera, render logs, and native FFmpeg bridge.
@@ -178,12 +179,15 @@ preview/export budgets, and explicit renderer ownership now coexist.
   rotation tracks. The pure solver matches renderer `XYZ` and camera `YXZ`;
   head mapping accounts for character transform, root, body, and scale.
 - Session-only character root, left/right hand, and camera motion paths derive
-  from existing interpolated tracks. Rig Studio reports range, key points,
-  duration, distance, and samples; disposed viewport overlays are excluded from
-  render preview/export.
-- A pure bounded six-kind animation-layer contract/evaluator supports fixed
-  override, relative-additive, and VFX-metadata modes with scoped bones, mute,
-  combined weights, active clip ranges, and guarded inputs.
+  from global tracks and ordered NLA layers. Rig Studio reports range, remapped
+  key points, duration, distance, and samples; disposed viewport overlays are
+  excluded from render preview/export.
+- Existing NLA tracks persist six fixed animation-layer kinds. Bounded scoped
+  override, relative-additive, and VFX-metadata modes compose after global
+  tracks in playback, preview, export, IK, look-at, and motion paths.
+- Localized layer mute/weight/clip placement and VFX-reference controls reuse
+  project history. Schema 10, guarded schema 9, packages, autosave, and undo/
+  redo preserve the layer data without another timeline or effect authority.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -195,18 +199,18 @@ preview/export budgets, and explicit renderer ownership now coexist.
   every preset. This preserves appearance while runtime data is canonical.
 - Viewport IK/look-at gizmos, separate eye expression overlays, Blockbench
   auto-rigging, animated resource textures, secure plugin execution, native
-  dialogs, direct path editing, and production animation-layer/NLA persistence,
-  UI, and sampling are not implemented.
+  dialogs, and direct path editing are not implemented.
 
 ## Absent Systems
 
-- Advanced rig constraints, shot/take manager, plugin SDK/sandbox, AI assistance,
-  collaboration, and additional community locale data files.
+- Remaining procedural/keyframe/expression/Blockbench rigging milestones,
+  shot/take manager, plugin SDK/sandbox, AI assistance, collaboration, and
+  additional community locale data files.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 106 frontend test files and 478 passing tests.
+- 107 frontend test files and 484 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -281,3 +285,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 19.4 derives ground and fixed-anchor samples without adding project
   fields or a second timeline, then converts every fixed world target to local
   leg IK and atomically bakes the reachable inclusive range.
+- Phase 19.5 keeps look-at state session-only and bakes existing rotation tracks.
+- Phase 19.6 derives motion paths without persisted path data or render helpers.
+- Phase 19.7 reuses NLA persistence for ordered layers and centralizes sampling
+  after global tracks without adding a layer store or effect timing authority.

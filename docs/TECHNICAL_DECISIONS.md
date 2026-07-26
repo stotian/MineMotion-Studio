@@ -482,3 +482,9 @@ when activated.
 The existing `animation.nlaTracks` must become the persistence container; do not
 add a parallel layer collection. VFX synchronization stores bounded effect
 references only and never duplicates effect timing or parameters.
+
+Legacy NLA tracks without kind fields load as Base Animation. Global timeline
+tracks are sampled first, then target layers compose in fixed kind order through
+one shared project sampler. Playback/export and dependent tools use that same
+composition so foot lock, look-at, and motion-path results cannot silently
+diverge from the rendered pose.
