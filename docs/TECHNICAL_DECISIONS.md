@@ -716,3 +716,20 @@ each frame. Imported blocks remain instanced by material within chunk-local
 groups so whole chunks can cull independently. This intentionally exposes a
 draw-call versus rejected-work tradeoff; Phase 20.6 must measure it before
 changing batch size or caches.
+
+## TD-050 - Retain chunk-local batches and share immutable geometry
+
+Status: Accepted in Phase 20.6.
+
+Use a bounded pure workload estimator to compare exact draw calls, submitted
+instances, rejected instances, geometries, and materials. For the current
+16-chunk/17-material fixture, chunk-local batches cost 272 all-visible world
+calls (below the Draft recommended 400) and reject 75% of instances when only
+4 chunks are visible. Retain chunk-local culling until hardware benchmarks
+justify a hybrid.
+
+Share one lazily allocated cube geometry across every imported chunk mesh in
+one owned build; tree disposal deduplicates it. Continue reusing Minecraft
+materials only for an identical deterministic context signature and skin
+textures only while the asset remains active. Do not cache mutable Three.js
+object trees or parsed OBJ assets before instance-safe ownership is defined.

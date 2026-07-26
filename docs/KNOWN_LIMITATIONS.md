@@ -56,7 +56,7 @@ still required before changing code.
 | LIM-047 | Version 1 performance thresholds are initial guardrails and still require named hardware benchmark calibration | Yes | P3 | 20.15/20.17 | OPEN_MEASUREMENT |
 | LIM-048 | CSS viewport post overlays and Canvas2D final capture share inputs but generic bloom, grain, chromatic aberration, and fog are not pixel-identical passes | Yes | P2/P4 | 20/future renderer | OPEN |
 | LIM-049 | Material and skin cache cleanup assumes the current single production SceneRenderer; concurrent renderer instances need instance-safe ownership | Yes | P3 | 20.8 | OPEN_ARCHITECTURE |
-| LIM-050 | Per-chunk material instancing enables chunk culling but may increase all-visible draw calls; benchmark evidence is still required | Yes | P3 | 20.6/20.15 | OPEN_MEASUREMENT |
+| LIM-050 | Per-chunk instancing now has exact call/instance comparison, but named hardware frame-time validation remains required | Yes | P3 | 20.15 | PARTIALLY_RESOLVED |
 
 ## Phase 15.1 Outcome
 

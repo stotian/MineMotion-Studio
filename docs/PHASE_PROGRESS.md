@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.6 - Use instancing and caches where benchmarks justify them
+20.7 - Pool reusable particles and VFX resources
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.5 measurement, budgets, layers, disposal, and culling are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.6 measurement, budgets, layers, disposal, culling, and justified reuse are implemented and validated.
 
 ## Completed
 
@@ -322,15 +322,21 @@ IN_PROGRESS - Phase 20.1-20.5 measurement, budgets, layers, disposal, and cullin
 - Imported blocks stay instanced by material inside independently cullable chunk
   groups. Final distance equals camera far and no persistent object visibility
   is changed.
+- Phase 20.6 measures global versus chunk-local material batches. At the
+  16-chunk/17-material default bound, chunk-local work uses 272 world calls
+  all-visible and rejects 75% of instances when only 4 chunks are visible.
+- Every imported chunk mesh in one build now shares one lazily allocated cube
+  geometry, while unchanged material contexts and identical active skins prove
+  cache reuse without weakening Phase 20.4 invalidation.
 
 ## In Progress
 
-- Benchmark Phase 20.6 draw-call/triangle/resource changes from current
-  instancing and caches before selecting new batching or reuse.
+- Audit Phase 20.7 VFX geometry/material/instance churn and introduce bounded
+  reusable pools only for equivalent resources.
 
 ## Not Started
 
-- Phase 20 tasks 6-17 and phases 21-35.
+- Phase 20 tasks 7-17 and phases 21-35.
 
 ## Blockers
 
@@ -346,20 +352,20 @@ IN_PROGRESS - Phase 20.1-20.5 measurement, budgets, layers, disposal, and cullin
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed checkpoint: `70460e0` (Phase 20.4).
-- Latest validated implementation checkpoint: Phase 20.5 local milestone
+- Latest committed checkpoint: `0e2ffcb` (Phase 20.5).
+- Latest validated implementation checkpoint: Phase 20.6 local milestone
   (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.5 culling/metrics tests: PASS - 4 files, 10 tests
-- `npm test`: PASS - 128 files, 551 tests
+- Focused Phase 20.6 instancing/cache tests: PASS - 4 files, 9 tests
+- `npm test`: PASS - 129 files, 555 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,642/2,839 lines
-- `npm run build`: PASS - 1,880 modules; 1,531.08 kB known large chunk
+- `npm run build`: PASS - 1,880 modules; 1,531.09 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -369,6 +375,6 @@ IN_PROGRESS - Phase 20.1-20.5 measurement, budgets, layers, disposal, and cullin
 
 ## Next Exact Action
 
-Run reproducible small/all-visible/off-screen chunk and VFX scenes against the
-new calls/triangles/culling metrics. Change instancing/cache strategy only where
-the recorded tradeoff improves a named budget.
+Characterize per-frame VFX object creation by primitive family. Pool only
+resources with identical ownership/material/geometry semantics, enforce caps,
+and prove release on rebuild and shutdown.

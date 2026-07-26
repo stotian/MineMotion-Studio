@@ -46,6 +46,8 @@
   Blob URL lifecycles, and extracted audio playback ownership from `App.tsx`.
 - Added measurable fail-open layer, distance, frustum, and per-chunk culling
   with editor-selection and final-camera correctness.
+- Benchmarked global versus chunk-local material batches and shared one owned
+  cube geometry across every imported chunk mesh.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.6 by benchmarking current per-chunk instancing and material/
-skin caches against small, all-visible, and off-screen scenes. Change batching
-or reuse only where calls, triangles, frame time, and memory justify it.
+Implement Phase 20.7 by characterizing VFX geometry/material/instance creation
+per primitive family and adding bounded reusable pools only where ownership and
+visual output remain equivalent.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -146,17 +146,19 @@ Preserve the local commits and push normally once authentication is restored.
 - Phase 20.5 applies bounded fail-open semantic layer, camera-distance, frustum,
   and independent chunk culling. Selection/final range remain correct and live
   metrics expose every decision class.
+- Phase 20.6 proves the chunk-local call/instance tradeoff, keeps default world
+  calls inside Draft guidance, shares one cube geometry per build, and verifies
+  unchanged material/skin cache reuse.
 
 ## Unfinished Work
 
-- Phase 20 tasks 6-17 and phases 21-35 remain.
+- Phase 20 tasks 7-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Build reproducible culling/instancing fixtures that estimate or render
-all-visible and mostly-off-screen chunk work. Compare the current pre-20.5
-global material batches with chunk-local batches before selecting a hybrid,
-cache, or reuse strategy.
+Inventory VFX primitive geometry/material signatures and rebuild frequency.
+Pool only fixed descriptors under existing global VFX caps, reset instance
+state deterministically, and release every pooled resource with its renderer.
 
 ## Tests To Run
 

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearMinecraftMaterialCache } from "../../renderer/MinecraftMaterialSystem";
 import { disposeThreeObjectTree } from "../../renderer/ThreeResourceDisposal";
 import type { ImportedChunkData } from "../import/MinecraftChunkTypes";
@@ -57,13 +57,18 @@ describe("imported chunk render ownership", () => {
     const secondMesh = result.chunks[1].object.children[0];
     expect(firstMesh).toBeInstanceOf(THREE.InstancedMesh);
     expect(secondMesh).toBeInstanceOf(THREE.InstancedMesh);
-    expect((firstMesh as THREE.InstancedMesh).geometry).not.toBe(
+    expect((firstMesh as THREE.InstancedMesh).geometry).toBe(
       (secondMesh as THREE.InstancedMesh).geometry
+    );
+    const sharedGeometryDispose = vi.spyOn(
+      (firstMesh as THREE.InstancedMesh).geometry,
+      "dispose"
     );
     expect(result.helpers?.userData.objectType).toBe("worldHelpers");
 
     const stats = disposeThreeObjectTree(result.object);
-    expect(stats.geometries).toBeGreaterThanOrEqual(2);
+    expect(sharedGeometryDispose).toHaveBeenCalledOnce();
+    expect(stats.geometries).toBeGreaterThanOrEqual(1);
     expect(result.object.children).toEqual([]);
   });
 });

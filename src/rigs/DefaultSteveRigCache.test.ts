@@ -17,7 +17,10 @@ describe("Steve rig texture cache ownership", () => {
   it("retains active skins and disposes skins removed from the project", () => {
     const texture = new THREE.Texture();
     const dispose = vi.spyOn(texture, "dispose");
-    vi.spyOn(THREE.TextureLoader.prototype, "load").mockReturnValue(texture);
+    const load = vi.spyOn(
+      THREE.TextureLoader.prototype,
+      "load"
+    ).mockReturnValue(texture);
     const project = createInitialProject();
     const character = project.scene.characters[0];
     character.skin = {
@@ -35,8 +38,11 @@ describe("Steve rig texture cache ownership", () => {
       }
     };
     const rig = createDefaultSteveRig(character);
+    const secondRig = createDefaultSteveRig(character);
     disposeThreeObjectTree(rig);
+    disposeThreeObjectTree(secondRig);
 
+    expect(load).toHaveBeenCalledOnce();
     expect(pruneSteveRigTextureCache([character.skin.dataUrl])).toBe(0);
     expect(dispose).not.toHaveBeenCalled();
     expect(pruneSteveRigTextureCache([])).toBe(1);

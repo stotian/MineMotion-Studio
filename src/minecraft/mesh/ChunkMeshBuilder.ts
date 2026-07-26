@@ -15,6 +15,7 @@ export class ChunkMeshBuilder {
     group.userData.objectId = "world";
     group.userData.objectType = "world";
     const visibleBlocks = GreedyMesher.compactVisibleBlocks(chunks);
+    let cubeGeometry: THREE.BoxGeometry | null = null;
     const renderedChunks = chunks.map((chunk) => {
       const chunkObject = new THREE.Group();
       chunkObject.name = `Chunk ${chunk.chunkX},${chunk.chunkZ}`;
@@ -26,7 +27,6 @@ export class ChunkMeshBuilder {
         Math.floor(block.x / 16) === chunk.chunkX &&
         Math.floor(block.z / 16) === chunk.chunkZ
       );
-      let cubeGeometry: THREE.BoxGeometry | null = null;
       for (const blockId of listRenderableBlockIds()) {
         const samples = chunkBlocks.filter((block) => block.id === blockId);
         if (samples.length === 0) continue;

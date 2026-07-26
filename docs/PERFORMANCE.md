@@ -76,3 +76,15 @@ camera's full far distance. Invalid or overflow entries fail open.
 Imported blocks remain instanced by material within independently cullable chunk
 groups. Live metrics report visible/tested roots, culling reasons, and
 visible/tested chunks so the Phase 20.6 batching tradeoff can be benchmarked.
+
+## Instancing strategy
+
+Chunk-local material batches are retained after deterministic call/instance
+comparison. A 16-chunk, 17-material all-visible fixture costs 272 world calls,
+within the Draft recommended 400-call guardrail; at 4/16 visible chunks it
+submits 680 rather than 2,720 instances.
+
+All chunk material meshes in one build share one cube geometry. Materials reuse
+the deterministic renderer-context cache and rigs reuse active skin textures.
+Hardware frame-time calibration remains assigned to the named Phase 20.15
+benchmarks.

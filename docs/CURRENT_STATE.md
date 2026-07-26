@@ -231,6 +231,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
   distance equals camera far, and invalid/overflow work never disappears.
 - Imported block instances are grouped by material within independent chunk
   roots; live telemetry reports visible/tested roots and chunks by cull reason.
+- A bounded batch estimator records exact global-versus-chunk-local calls and
+  submitted/rejected instances. Chunk-local batching stays inside the default
+  Draft world-call allowance and all chunks share one cube geometry per build.
 
 ## Partial Systems
 
@@ -250,7 +253,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 128 frontend test files and 551 passing tests.
+- 129 frontend test files and 555 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -362,3 +365,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
   This order prevents both premature disposal and progressive stale-cache growth.
 - Phase 20.5 keeps pure decisions separate from the Three.js adapter. Runtime
   visibility is derived every frame and never becomes project visibility data.
+- Phase 20.6 retains material and skin caches only across identical contexts/
+  assets and shares geometry within one owned build. It does not cache mutable
+  scene trees or claim hardware frame-time results from analytic work counts.

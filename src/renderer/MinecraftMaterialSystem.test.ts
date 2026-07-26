@@ -45,6 +45,18 @@ describe("Minecraft material cache", () => {
     expect(water.transparent).toBe(true);
   });
 
+  it("reuses one material for an unchanged renderer context", () => {
+    const materialContext = context("solid");
+    const first = getMaterialForBlock("stone", materialContext);
+    const second = getMaterialForBlock("stone", materialContext);
+
+    expect(second).toBe(first);
+    expect(clearMinecraftMaterialCache()).toEqual({
+      materials: 1,
+      textures: 0
+    });
+  });
+
   it("creates stable signatures independent of override insertion order", () => {
     const first = context("solid", {
       stone: "glass",
