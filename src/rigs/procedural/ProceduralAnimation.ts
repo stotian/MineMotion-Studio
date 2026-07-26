@@ -56,7 +56,12 @@ export const PROCEDURAL_ANIMATION_LIMITS = Object.freeze({
 });
 
 export const AVAILABLE_PROCEDURAL_ANIMATION_KINDS =
-  Object.freeze(["idle"] as const satisfies readonly ProceduralAnimationKind[]);
+  Object.freeze([
+    "idle",
+    "walk",
+    "run",
+    "crouch"
+  ] as const satisfies readonly ProceduralAnimationKind[]);
 
 const KIND_SET = new Set<ProceduralAnimationKind>(PROCEDURAL_ANIMATION_KINDS);
 const DEFAULT_DURATION: Record<ProceduralAnimationKind, number> = {
@@ -156,7 +161,7 @@ export function generateProceduralAnimation(
       `PROCEDURAL_ANIMATION_KIND_UNAVAILABLE: ${settings.kind}`
     );
   }
-  const tracks = settings.kind === "idle" ? generateIdle(settings) : [];
+  const tracks = generateAvailableKind(settings);
   if (tracks.length === 0 ||
     tracks.some((track) =>
       track.keyframes.length === 0 ||
@@ -235,6 +240,92 @@ function generateIdle(
     boneTrack("rightArm", samples.map(({ frame, breath }) => [
       frame,
       [0.6 * breath, 0, 8]
+    ]))
+  ];
+}
+
+function generateAvailableKind(
+  settings: ProceduralAnimationSettings
+): GeneratedBoneTrack[] {
+  if (settings.kind === "idle") return generateIdle(settings);
+  if (settings.kind === "walk") {
+    return generateLocomotion(settings, {
+      armAmplitude: 28,
+      legAmplitude: 28,
+      bodyLean: 1.5,
+      headPitch: -1
+    });
+  }
+  if (settings.kind === "run") {
+    return generateLocomotion(settings, {
+      armAmplitude: 48,
+      legAmplitude: 42,
+      bodyLean: 8,
+      headPitch: -4
+    });
+  }
+  if (settings.kind === "crouch") {
+    return generateLocomotion(settings, {
+      armAmplitude: 18,
+      legAmplitude: 16,
+      bodyLean: 24,
+      headPitch: -10
+    });
+  }
+  return [];
+}
+
+interface LocomotionStyle {
+  armAmplitude: number;
+  legAmplitude: number;
+  bodyLean: number;
+  headPitch: number;
+}
+
+function generateLocomotion(
+  settings: ProceduralAnimationSettings,
+  style: LocomotionStyle
+): GeneratedBoneTrack[] {
+  const sampleCount = settings.cycles * 4;
+  const samples = Array.from({ length: sampleCount + 1 }, (_, index) => {
+    const frame = Math.round(
+      index * settings.durationFrames / sampleCount
+    );
+    const phase = index === sampleCount
+      ? 0
+      : index / sampleCount * Math.PI * 2 * settings.cycles *
+        settings.direction;
+    return {
+      frame,
+      arm: Math.sin(phase) * style.armAmplitude * settings.intensity,
+      leg: Math.sin(phase) * style.legAmplitude * settings.intensity,
+      sway: Math.sin(phase * 2) * 1.5 * settings.intensity
+    };
+  });
+  return [
+    boneTrack("body", samples.map(({ frame, sway }) => [
+      frame,
+      [style.bodyLean * settings.intensity, 0, sway]
+    ])),
+    boneTrack("head", samples.map(({ frame, sway }) => [
+      frame,
+      [style.headPitch * settings.intensity, 0, -sway * 0.4]
+    ])),
+    boneTrack("leftArm", samples.map(({ frame, arm }) => [
+      frame,
+      [arm, 0, -8]
+    ])),
+    boneTrack("rightArm", samples.map(({ frame, arm }) => [
+      frame,
+      [-arm, 0, 8]
+    ])),
+    boneTrack("leftLeg", samples.map(({ frame, leg }) => [
+      frame,
+      [-leg, 0, 0]
+    ])),
+    boneTrack("rightLeg", samples.map(({ frame, leg }) => [
+      frame,
+      [leg, 0, 0]
     ]))
   ];
 }

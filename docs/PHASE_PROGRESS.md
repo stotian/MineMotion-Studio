@@ -250,10 +250,11 @@ IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are imple
 
 ## In Progress
 
-- Phase 19.8 has a bounded ten-kind pure contract and the first deterministic
-  idle-breathing generator. Rig Studio duration/intensity/cycle controls create
-  one reusable clip and editable global keys through one history operation.
-- Walk, run, and crouch-walk are the next generator batch.
+- Phase 19.8 has a bounded ten-kind pure contract plus deterministic idle, walk,
+  run, and crouch-walk recipes. Rig Studio duration/intensity/cycle/direction
+  controls create one reusable clip and editable global keys through one
+  history operation.
+- Jump, landing, recoil, hit reaction, sword swing, and turn are next.
 
 ## Not Started
 
@@ -295,5 +296,5 @@ IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Implement deterministic editable walk, run, and crouch-walk recipes through the
-completed procedural clip/bake contract.
+Implement deterministic editable jump, landing, recoil, hit-reaction,
+sword-swing, and turn recipes through the completed clip/bake contract.

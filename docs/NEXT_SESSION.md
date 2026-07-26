@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.8 with deterministic walk, run, and crouch-walk recipes over
-the completed procedural clip/global timeline contract.
+Continue Phase 19.8 with deterministic jump, landing, recoil, hit-reaction,
+sword-swing, and turn recipes over the completed procedural clip contract.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -80,9 +80,10 @@ Preserve the local commits and push normally once authentication is restored.
   clip-instance controls, and select bounded VFX synchronization references.
 - Schema 10, guarded schema 9, package, autosave, history, migrations, and
   production sampling are regression-tested for layered animation.
-- A bounded ten-kind procedural contract and deterministic idle-breathing
-  recipe generate one reusable clip plus editable global keys in one history
-  operation. Duration, intensity, and cycles are localized Rig Studio controls.
+- A bounded ten-kind procedural contract and deterministic idle, walk, run, and
+  crouch-walk recipes generate one reusable clip plus editable global keys in
+  one history operation. Duration, intensity, cycles, and applicable direction
+  are localized Rig Studio controls.
 
 ## Unfinished Work
 
@@ -90,8 +91,8 @@ Preserve the local commits and push normally once authentication is restored.
 
 ## Next Implementation Step
 
-Implement walk, run, and crouch-walk recipes with deterministic loop closure,
-bounded output, direction-aware motion where relevant, and focused tests.
+Implement the six action recipes with bounded authored beats, direction-aware
+motion where relevant, editable output, and focused regressions.
 
 ## Tests To Run
 

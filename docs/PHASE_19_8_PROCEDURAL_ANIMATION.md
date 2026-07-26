@@ -20,8 +20,10 @@ rotations bounded to 180 degrees. Invalid versions and accessor-bearing objects
 fail without invocation. Generator settings remain session controls rather than
 new project state.
 
-The first available generator creates a looping idle-breathing clip for body,
-head, and both arms. One Rig Studio action:
+Available generators create idle breathing plus direction-aware walk, run, and
+crouch-walk loops. Locomotion recipes drive body/head counter-sway and opposing
+arm/leg motion, with distinct stride, lean, and amplitude profiles. All loops
+close exactly at their final key. One Rig Studio action:
 
 1. creates or updates one reusable deterministic clip;
 2. bakes its global `bone.rotation.*` tracks at the playhead;
@@ -35,14 +37,12 @@ frames and does not duplicate either the clip or frame keys.
 
 ## Remaining
 
-- add walk, run, and crouch-walk locomotion recipes;
 - add jump, landing, recoil, hit-reaction, sword-swing, and turn recipes;
-- expose direction only for recipes that use it;
 - complete persistence/export regression coverage for all generator kinds.
 
 ## Validation
 
-- Focused procedural/clip tests: 3 files, 9 tests.
-- Full frontend suite: 109 files, 490 tests.
+- Focused procedural/controller tests: 2 files, 7 tests.
+- Full frontend suite: 109 files, 491 tests.
 - Typecheck, localization, architecture, build, and audit pass.
 - `App.tsx` remains 2,678 lines.

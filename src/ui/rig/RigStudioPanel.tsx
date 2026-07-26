@@ -276,6 +276,26 @@ export function RigStudioPanel({
                   }
                 />
               </label>
+              {proceduralSettings.kind !== "idle" && (
+                <div className="info-row">
+                  <label htmlFor="rig-procedural-direction">
+                    {t("rig.procedural.direction")}
+                  </label>
+                  <select
+                    id="rig-procedural-direction"
+                    value={proceduralSettings.direction}
+                    onChange={(event) =>
+                      setProceduralSettings((current) => ({
+                        ...current,
+                        direction: Number(event.target.value) === -1 ? -1 : 1
+                      }))
+                    }
+                  >
+                    <option value={1}>{t("rig.procedural.forward")}</option>
+                    <option value={-1}>{t("rig.procedural.reverse")}</option>
+                  </select>
+                </div>
+              )}
               <button
                 type="button"
                 disabled={!character}
@@ -654,6 +674,9 @@ function proceduralKindLabel(
   t: ReturnType<typeof useLocalization>["t"]
 ): string {
   if (kind === "idle") return t("rig.procedural.idle");
+  if (kind === "walk") return t("rig.procedural.walk");
+  if (kind === "run") return t("rig.procedural.run");
+  if (kind === "crouch") return t("rig.procedural.crouch");
   return kind;
 }
 

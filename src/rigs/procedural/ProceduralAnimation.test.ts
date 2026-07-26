@@ -60,9 +60,54 @@ describe("procedural animation generation", () => {
       cycles: PROCEDURAL_ANIMATION_LIMITS.maximumCycles,
       direction: -1
     });
-    expect(generateProceduralAnimation(safe).error).toContain(
-      "PROCEDURAL_ANIMATION_KIND_UNAVAILABLE"
+    expect(generateProceduralAnimation(safe).ok).toBe(true);
+    expect(generateProceduralAnimation({
+      ...createDefaultProceduralAnimationSettings("jump")
+    }).error).toContain("PROCEDURAL_ANIMATION_KIND_UNAVAILABLE");
+  });
+
+  it("generates closed direction-aware walk, run, and crouch locomotion", () => {
+    const outputs = ["walk", "run", "crouch"].map((kind) =>
+      generateProceduralAnimation({
+        ...createDefaultProceduralAnimationSettings(
+          kind as "walk" | "run" | "crouch"
+        ),
+        durationFrames: 32,
+        cycles: 1
+      })
     );
+    expect(outputs.every((result) => result.ok)).toBe(true);
+    for (const output of outputs) {
+      for (const track of output.clip!.tracks) {
+        expect(track.keyframes[0].value).toEqual(
+          track.keyframes.at(-1)?.value
+        );
+      }
+    }
+    const walkArm = outputs[0].clip!.tracks.find(
+      (track) => track.property === "bone.rotation.leftArm"
+    )!;
+    const runArm = outputs[1].clip!.tracks.find(
+      (track) => track.property === "bone.rotation.leftArm"
+    )!;
+    expect(Math.max(...runArm.keyframes.map((key) => Math.abs(key.value[0]))))
+      .toBeGreaterThan(
+        Math.max(...walkArm.keyframes.map((key) => Math.abs(key.value[0])))
+      );
+    const crouchBody = outputs[2].clip!.tracks.find(
+      (track) => track.property === "bone.rotation.body"
+    )!;
+    expect(crouchBody.keyframes[0].value[0]).toBe(24);
+
+    const reverse = generateProceduralAnimation({
+      ...createDefaultProceduralAnimationSettings("walk"),
+      durationFrames: 32,
+      cycles: 1,
+      direction: -1
+    });
+    expect(reverse.clip!.tracks.find(
+      (track) => track.property === "bone.rotation.leftArm"
+    )?.keyframes[1].value[0]).toBe(-walkArm.keyframes[1].value[0]);
   });
 
   it("rejects accessor and invalid-version inputs without invoking them", () => {

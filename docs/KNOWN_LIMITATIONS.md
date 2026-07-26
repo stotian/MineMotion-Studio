@@ -47,7 +47,7 @@ still required before changing code.
 | LIM-038 | Pure root/hand/camera path sampling existed without viewport paths and key points | Yes | P4 | 19.6 | RESOLVED |
 | LIM-039 | Motion paths are inspect-only; optional direct path editing is deferred until it can reuse global keyframe commands | Yes | P5 | 19/future | OPEN_OPTIONAL |
 | LIM-040 | Pure animation-layer blending existed without NLA persistence, production sampling, or layer UI | Yes | P4 | 19.7 | RESOLVED |
-| LIM-041 | Procedural generation currently exposes editable idle breathing; remaining locomotion/action recipes are not connected yet | Yes | P4 | 19.8 | PARTIALLY_RESOLVED |
+| LIM-041 | Procedural generation exposes editable idle/walk/run/crouch loops; jump, landing, recoil, hit, sword, and turn recipes are not connected yet | Yes | P4 | 19.8 | PARTIALLY_RESOLVED |
 
 ## Phase 15.1 Outcome
 
