@@ -167,6 +167,11 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - The pure two-bone IK solver handles reachable and clamped-unreachable targets,
   deterministic pole fallback, per-joint component limits, and influence. It
   reports finite analytic joint/end positions and hierarchical rotations.
+- Steve/Alex hand and foot controls provide deterministic live preview and
+  atomic bake-to-keyframes through the authoritative global bone tracks.
+- Renderer-neutral preset terrain data and an indexed runtime sampler resolve
+  bounded supporting surfaces for imported chunks or active terrain presets.
+  Fixed-world foot-lock anchors are defined but range bake/UI remain in progress.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -176,7 +181,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Known preset visuals still use a bounded compatibility map over prepared
   native frames; primitive V1 descriptors are not yet the visual renderer for
   every preset. This preserves appearance while runtime data is canonical.
-- Blockbench auto-rigging, production IK, animated resource textures, secure plugin execution, native dialogs, and full NLA blending are not implemented.
+- Foot-lock range bake/UI, viewport IK gizmos, Blockbench auto-rigging, animated
+  resource textures, secure plugin execution, native dialogs, and full NLA
+  blending are not implemented.
 
 ## Absent Systems
 
@@ -186,7 +193,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 91 frontend test files and 405 passing tests.
+- 98 frontend test files and 447 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -256,3 +263,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
   track array survives only as a synchronized legacy projection.
 - Phase 19.2 keeps IK evaluation pure and renderer-neutral. Production controls
   and bake must target the consolidated timeline in 19.3.
+- Phase 19.3 keeps IK controls session-local and commits each successful
+  two-track bake through the existing project/history path.
+- Phase 19.4 derives ground and fixed-anchor samples without adding project
+  fields or a second timeline. Range bake integration is the next action.

@@ -413,3 +413,18 @@ Keep application `0.8.2` during the current unreleased phase stream. Project
 schema 10 is independent. A future version bump must atomically synchronize all
 Node, Tauri, Cargo, package, example, README, changelog, and compatibility
 surfaces listed in `docs/VERSIONING.md`.
+
+## TD-033 - Derive ground and foot-lock samples without persisted authority
+
+Status: Accepted in Phase 19.4.
+
+Extract terrain preset data generation from the Three.js mesh builder and build
+one deterministic ground sampler over either embedded imported chunks or the
+active preset. Imported chunks take precedence and queries use bounded vertical
+windows. Air and water are not foot supports.
+
+Foot locks are session-derived inclusive frame ranges with a fixed world anchor
+placed on sampled ground. They do not add project fields, constraint tracks, or
+per-frame history entries. Future bake integration must convert each fixed world
+sample into the existing local two-bone IK contract and write all resulting
+global bone keys in one atomic project commit.

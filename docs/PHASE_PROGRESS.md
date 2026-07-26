@@ -218,8 +218,9 @@ IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are imple
 
 ## In Progress
 
-- Phase 19.4 will add deterministic foot lock, ground placement, and foot-slide
-  reduction through the existing rig preview/bake and global timeline paths.
+- Phase 19.4 now has renderer-neutral preset terrain data, deterministic ground
+  sampling for embedded worlds/presets, and a bounded fixed-world foot-lock
+  sample contract. Bake and UI integration remain.
 
 ## Not Started
 
@@ -241,14 +242,14 @@ IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are imple
 
 ## Last Validation
 
-- `npm ci --no-audit --no-fund`: PASS - 109 packages installed
+- `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused IK/SemVer/consolidation tests: PASS
-- `npm test`: PASS - 96 files, 440 tests
+- Focused ground/foot-lock/IK tests: PASS - 3 files, 15 tests
+- `npm test`: PASS - 98 files, 447 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,677/2,839 lines
-- `npm run build`: PASS - 1,833 modules; 1,388.63 kB known large chunk
+- `npm run build`: PASS - 1,834 modules; 1,388.66 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because Phase 19.3 changes TypeScript/docs/CI only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -257,5 +258,6 @@ IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Inventory current ground/world-height access and design the smallest pure foot
-lock sample contract before adding any new UI or persisted authority.
+Evaluate natural foot world positions from sampled character/leg transforms,
+convert fixed lock anchors back to local IK targets, and bake one bounded range
+through the existing global tracks in one history operation.

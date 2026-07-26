@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.3 with production IK controls and bake-to-keyframes. Phase
-19.2 analytic two-bone IK is complete and green.
+Continue Phase 19.4 with atomic foot-lock range baking. Phase 19.3 production IK
+is complete and the first 19.4 ground/anchor contracts are implemented.
 
 ## Completed Work
 
@@ -48,16 +48,20 @@ Continue Phase 19.3 with production IK controls and bake-to-keyframes. Phase
   synchronized compatibility projection across all persistence paths.
 - Pure two-bone IK now returns finite analytic positions and hierarchical
   rotations for reachable/clamped targets, pole fallback, limits, and influence.
+- Steve/Alex hand/foot controls now preview and bake two authoritative bone
+  tracks in one history operation without adding persisted control state.
+- Preset terrain generation is renderer-neutral; imported/preset ground sampling
+  and bounded fixed-world foot-lock anchors are deterministic and tested.
 
 ## Unfinished Work
 
-- Phase 19.3-19.15 and phases 20-35 remain.
+- Phase 19.4 bake/UI integration, Phase 19.5-19.15, and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Define bounded IK control state for hand/foot targets and poles, connect it to
-existing Minecraft rig definitions, and bake evaluated upper/lower rotations to
-the authoritative timeline with one history checkpoint.
+Evaluate foot world positions from sampled character/leg transforms, convert a
+fixed ground anchor into local two-bone targets for each frame, and bake the
+whole bounded range to authoritative tracks with one history checkpoint.
 
 ## Tests To Run
 
