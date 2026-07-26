@@ -38,15 +38,21 @@ import { copyKeyframes, pasteKeyframes } from "../../animation/editor/KeyframeCl
 import {
   deleteSelectedKeyframes,
   duplicateSelectedKeyframes,
+  loopSelectedKeyframes,
+  mirrorSelectedKeyframes,
   moveSelectedKeyframes,
   reduceSelectedKeyframeNoise,
   removeRedundantSelectedKeyframes,
+  reverseSelectedKeyframes,
   scaleSelectedKeyframeTiming,
   setSelectedInterpolation,
   smoothSelectedKeyframes,
   snapSelectedKeyframes
 } from "../../animation/editor/KeyframeCommands";
-import type { KeyframeCleanupResult } from "../../animation/editor/KeyframeCommands";
+import type {
+  KeyframeCleanupResult,
+  KeyframeTransformResult
+} from "../../animation/editor/KeyframeCommands";
 import type { KeyframeRef } from "../../animation/editor/KeyframeModel";
 import { EMPTY_KEYFRAME_SELECTION } from "../../animation/editor/KeyframeSelection";
 import { createTimelineMarker, upsertMarker } from "../../animation/editor/Markers";
@@ -213,8 +219,8 @@ export function TimelinePanel({
     commitTracks(tracks, t("history.moveKeys"), { selected: refs, anchor: refs[0] ?? null });
   };
 
-  const commitCleanup = (
-    result: KeyframeCleanupResult,
+  const commitKeyframeResult = (
+    result: KeyframeCleanupResult | KeyframeTransformResult,
     label: string
   ) => {
     if (!result.changed) return;
@@ -513,7 +519,7 @@ export function TimelinePanel({
           disabled={!editor.selection.selected.length}
           title={t("timeline.removeRedundantTitle")}
           onClick={() =>
-            commitCleanup(
+            commitKeyframeResult(
               removeRedundantSelectedKeyframes(
                 animation.tracks,
                 editor.selection.selected
@@ -546,7 +552,7 @@ export function TimelinePanel({
           disabled={!editor.selection.selected.length}
           title={t("timeline.reduceNoiseTitle")}
           onClick={() =>
-            commitCleanup(
+            commitKeyframeResult(
               reduceSelectedKeyframeNoise(
                 animation.tracks,
                 editor.selection.selected,
@@ -557,6 +563,56 @@ export function TimelinePanel({
           }
         >
           {t("timeline.reduceNoise")}
+        </button>
+        <button
+          type="button"
+          disabled={!editor.selection.selected.length}
+          title={t("timeline.loopKeysTitle")}
+          onClick={() =>
+            commitKeyframeResult(
+              loopSelectedKeyframes(
+                animation.tracks,
+                editor.selection.selected,
+                1,
+                animation.durationFrames
+              ),
+              t("history.loopKeys")
+            )
+          }
+        >
+          {t("timeline.loopKeys")}
+        </button>
+        <button
+          type="button"
+          disabled={!editor.selection.selected.length}
+          title={t("timeline.reverseKeysTitle")}
+          onClick={() =>
+            commitKeyframeResult(
+              reverseSelectedKeyframes(
+                animation.tracks,
+                editor.selection.selected
+              ),
+              t("history.reverseKeys")
+            )
+          }
+        >
+          {t("timeline.reverseKeys")}
+        </button>
+        <button
+          type="button"
+          disabled={!editor.selection.selected.length}
+          title={t("timeline.mirrorKeysTitle")}
+          onClick={() =>
+            commitKeyframeResult(
+              mirrorSelectedKeyframes(
+                animation.tracks,
+                editor.selection.selected
+              ),
+              t("history.mirrorKeys")
+            )
+          }
+        >
+          {t("timeline.mirrorKeys")}
         </button>
         <label className="compact-control">
           {t("timeline.noiseTolerance")}
