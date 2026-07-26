@@ -38,6 +38,8 @@
   history, timeline synchronization, production preview, and export sampling.
 - Added bounded live viewport telemetry for startup, frame percentiles, WebGL
   calls/resources, scene/chunk/effect complexity, and optional browser heap.
+- Defined immutable Minimum/Recommended device and Draft/High/Final workload
+  budgets with deterministic advisory and hard-limit evaluation.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

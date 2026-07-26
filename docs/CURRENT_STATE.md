@@ -213,6 +213,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
   frames, Three.js calls/geometry/texture counters, project object/chunk/effect
   counts, renderer startup, and optional Chromium heap usage. Diagnostics remain
   session-only and outside render capture and project persistence.
+- Immutable version 1 performance budgets qualify Minimum/Recommended devices
+  and Draft/High/Final workloads. Pure ordered evaluation separates advisory
+  overruns from hard limits and never changes quality automatically.
 
 ## Partial Systems
 
@@ -232,7 +235,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 119 frontend test files and 530 passing tests.
+- 120 frontend test files and 534 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -333,3 +336,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
   timeline/preview/export regression while retaining all specialized tests.
 - Phase 20.1 samples the existing render loop and `renderer.info` at a bounded
   UI cadence. It adds no alternate profiler, project fields, or render path.
+- Phase 20.2 keeps device qualification distinct from renderer quality. Budget
+  results are deterministic evidence records, not an automatic degradation
+  mechanism or a persisted project preference.

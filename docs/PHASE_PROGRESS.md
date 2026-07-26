@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.2 - Define Minimum, Recommended, Draft, High, and Final performance budgets
+20.3 - Clarify renderer layers for world, characters, props, transparency, VFX, post, overlays, and helpers
 
 ## Status
 
-IN_PROGRESS - Phase 20.1 renderer measurement is implemented and validated.
+IN_PROGRESS - Phase 20.1 measurement and Phase 20.2 budgets are implemented and validated.
 
 ## Completed
 
@@ -297,15 +297,21 @@ IN_PROGRESS - Phase 20.1 renderer measurement is implemented and validated.
 - Metrics are bounded session-only plain data, emitted at most every 500 ms, and
   shown through the existing diagnostics setting without entering project
   schema, history, autosave, canvas capture, or final renders.
+- Phase 20.2 defines immutable version 1 Minimum/Recommended device budgets and
+  Draft/High/Final quality budgets over startup, p95, heap, calls, triangles,
+  geometries, textures, scene objects, chunks, and active effects.
+- Pure evaluation distinguishes recommendations from hard-limit violations,
+  defers p95 until 30 samples, and treats optional or hostile measurements as
+  unavailable. It never changes quality or project state.
 
 ## In Progress
 
-- Define explicit Phase 20.2 Minimum, Recommended, Draft, High, and Final
-  performance budgets over the measured contract.
+- Audit and document Phase 20.3 renderer layer ownership and ordering before
+  changing rendering behavior.
 
 ## Not Started
 
-- Phase 20 tasks 2-17 and phases 21-35.
+- Phase 20 tasks 3-17 and phases 21-35.
 
 ## Blockers
 
@@ -321,15 +327,16 @@ IN_PROGRESS - Phase 20.1 renderer measurement is implemented and validated.
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: Phase 20.1 working tree
+- Latest committed checkpoint: `eeab419` (Phase 20.1).
+- Latest validated implementation checkpoint: Phase 20.2 local milestone
   (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.1 performance tests: PASS - 2 files, 4 tests
-- `npm test`: PASS - 119 files, 530 tests
+- Focused Phase 20 performance tests: PASS - 3 files, 8 tests
+- `npm test`: PASS - 120 files, 534 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,674/2,839 lines
@@ -343,6 +350,6 @@ IN_PROGRESS - Phase 20.1 renderer measurement is implemented and validated.
 
 ## Next Exact Action
 
-Define typed Minimum, Recommended, Draft, High, and Final budgets over the
-measured startup/frame/memory/renderer/scene counters, with deterministic
-evaluation and honest diagnostics before any optimization is selected.
+Map current world, characters, props, transparency, VFX, post, overlays, and
+helpers to explicit renderer layers. Characterize preview/export ordering and
+visibility before changing masks, passes, or material behavior.

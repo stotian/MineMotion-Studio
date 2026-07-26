@@ -2,10 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.2 by defining typed Minimum, Recommended, Draft, High, and
-Final performance budgets over the Phase 20.1 measurement contract. Add pure
-deterministic evaluation before connecting any recommendations or quality
-changes.
+Implement Phase 20.3 by auditing and documenting renderer layers for world,
+characters, props, transparency, VFX, post, overlays, and helpers. Characterize
+the shared preview/export ordering before changing renderer behavior.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -135,16 +134,19 @@ Preserve the local commits and push normally once authentication is restored.
   frames, Three.js calls/resources, scene/chunk/effect complexity, and optional
   Chromium heap through bounded session-only snapshots. The localized overlay
   uses the existing diagnostics switch and is excluded from render capture.
+- Phase 20.2 defines immutable version 1 Minimum/Recommended device and
+  Draft/High/Final quality budgets. Pure evaluation separates recommendations,
+  hard limits, and unavailable measurements without automatic quality changes.
 
 ## Unfinished Work
 
-- Phase 20 tasks 2-17 and phases 21-35 remain.
+- Phase 20 tasks 3-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Define the five performance profile budgets in a renderer-neutral module.
-Evaluate measured snapshots without hidden state, distinguish hard limits from
-recommendations, and keep quality selection explicit and non-destructive.
+Inventory every current `SceneRenderer`, prepared VFX, DOM post-process, motion
+path/helper, preview, and final-frame layer. Define explicit ownership,
+visibility, and ordering contracts before introducing layer masks or passes.
 
 ## Tests To Run
 

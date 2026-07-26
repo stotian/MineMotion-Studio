@@ -643,3 +643,20 @@ history, autosave, canvas capture, or exports. Treat Chromium
 `performance.memory` as optional and display an honest unavailable state in
 other runtimes. Define budgets in Phase 20.2 before using these measurements to
 drive quality changes or optimization recommendations.
+
+## TD-046 - Separate device budgets from quality budgets
+
+Status: Accepted in Phase 20.2.
+
+`minimum` and `recommended` qualify device/runtime capability.
+`draft`, `high`, and `final` qualify renderer workload; final is a
+final-quality viewport tolerance, not an offline throughput guarantee. Keep the
+five IDs in one versioned renderer-neutral contract while retaining their
+distinct `kind`.
+
+Every metric has a recommended maximum and a hard maximum. Evaluation is pure,
+ordered, and advisory: it returns pass, recommendation, or limit plus unavailable
+metrics, but never mutates quality or project state. Require at least 30 frame
+samples for p95 and do not invent heap data. Named benchmark hardware and
+before/after thresholds in later Phase 20 tasks may justify a new version; do
+not silently rewrite version 1 values.

@@ -53,6 +53,7 @@ still required before changing code.
 | LIM-044 | Attachments lacked authoring diagnostics/tests and OBJ attachments rendered as generic cubes | Yes | P2/P4 | 19.11 | RESOLVED |
 | LIM-045 | Character expression overlays are static character settings rather than discrete timeline-keyframe properties | Yes | P5 | Future | OPEN_HONEST_UI |
 | LIM-046 | JavaScript heap telemetry depends on Chromium's non-standard `performance.memory`; other runtimes report it as unavailable | Yes | P5 | 20 | OPEN_HONEST_UI |
+| LIM-047 | Version 1 performance thresholds are initial guardrails and still require named hardware benchmark calibration | Yes | P3 | 20.15/20.17 | OPEN_MEASUREMENT |
 
 ## Phase 15.1 Outcome
 

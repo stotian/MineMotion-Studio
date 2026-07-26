@@ -24,6 +24,17 @@ hides it, and canvas capture does not include DOM diagnostics.
 Pure sanitizers bound every counter and reject invalid clocks or heap data.
 No metric is added to the project schema, history, autosave, or render output.
 
+## Version 1 budgets
+
+`PerformanceBudgets` defines two device profiles (`minimum`, `recommended`) and
+three workload-quality profiles (`draft`, `high`, `final`). Every measured
+dimension has a recommended maximum and a hard maximum. Pure evaluation returns
+`pass`, `recommendation`, or `limit` without changing renderer or project state.
+
+p95 evaluation waits for 30 samples. Missing heap and invalid measurements are
+reported as unavailable. The exact version 1 table and its calibration rules
+are recorded in [Phase 20.2](./PHASE_20_2_PERFORMANCE_BUDGETS.md).
+
 ## Current export strategy
 
 PNG sequence export renders one frame at a time and yields to the browser event
@@ -31,8 +42,8 @@ loop between frames. This keeps the UI responsive and allows cancellation
 between frames.
 
 Future work should move justified heavy work to workers or the native Tauri
-pipeline. Phase 20.2 defines explicit quality budgets before optimizations are
-selected.
+pipeline. Optimizations must cite a profile and reproducible benchmark rather
+than treating the budget table as evidence by itself.
 
 ## World import limits
 
