@@ -11,6 +11,7 @@ import type {
   WorldChunkDecodeRequestMessage,
   WorldChunkDecodeResponseMessage
 } from "./WorldChunkDecodeWorkerProtocol";
+import type { OperationContext } from "../../core/async/LatestOperationController";
 
 function createMinimalWorldChunkDecodeRequest(): WorldChunkDecodeRequest {
   return {
@@ -23,6 +24,13 @@ function createMinimalWorldChunkDecodeRequest(): WorldChunkDecodeRequest {
     regionZ: -1,
     maxVerticalSections: 24
   };
+}
+
+function createOperation(
+  operationId: number,
+  controller = new AbortController()
+): OperationContext {
+  return { operationId, signal: controller.signal };
 }
 
 class SuccessfulWorker implements WorldChunkWorker {
@@ -44,6 +52,7 @@ class SuccessfulWorker implements WorldChunkWorker {
           data: {
             type: "world-chunk-decoded",
             requestId: message.requestId,
+            operationId: message.operationId,
             chunk
           }
         } as MessageEvent<WorldChunkDecodeResponseMessage>);
@@ -85,6 +94,7 @@ class DecodeErrorWorker implements WorldChunkWorker {
           data: {
             type: "world-chunk-decode-error",
             requestId: message.requestId,
+            operationId: message.operationId,
             message: "Invalid worker NBT."
           }
         } as MessageEvent<WorldChunkDecodeResponseMessage>);
@@ -101,14 +111,15 @@ describe("WorldChunkDecodeClient", () => {
     const request = createMinimalWorldChunkDecodeRequest();
     const sourceBuffer = request.compressedData.buffer;
 
-    const first = await client.decode(request);
-    const second = await client.decode(request);
+    const first = await client.decode(request, createOperation(1));
+    const second = await client.decode(request, createOperation(1));
 
     expect(second).toEqual(first);
     expect(worker.postMessage).toHaveBeenCalledTimes(2);
     expect(request.compressedData.buffer).toBe(sourceBuffer);
     expect(request.compressedData).toEqual(new Uint8Array([10, 0, 0, 0]));
     const sent = worker.postMessage.mock.calls[0][0];
+    expect(sent.operationId).toBe(1);
     expect(sent.request.compressedData).not.toBe(sourceBuffer);
     client.dispose();
     expect(worker.terminate).toHaveBeenCalledOnce();
@@ -119,10 +130,10 @@ describe("WorldChunkDecodeClient", () => {
     const client = new WorldChunkDecodeClient(factory);
 
     await expect(
-      client.decode(createMinimalWorldChunkDecodeRequest())
+      client.decode(createMinimalWorldChunkDecodeRequest(), createOperation(1))
     ).resolves.toMatchObject({ id: "overworld:4,-2" });
     await expect(
-      client.decode(createMinimalWorldChunkDecodeRequest())
+      client.decode(createMinimalWorldChunkDecodeRequest(), createOperation(1))
     ).resolves.toMatchObject({ id: "overworld:4,-2" });
     expect(factory).toHaveBeenCalledOnce();
     client.dispose();
@@ -133,7 +144,7 @@ describe("WorldChunkDecodeClient", () => {
     const client = new WorldChunkDecodeClient(() => worker);
 
     await expect(
-      client.decode(createMinimalWorldChunkDecodeRequest())
+      client.decode(createMinimalWorldChunkDecodeRequest(), createOperation(1))
     ).resolves.toMatchObject({ id: "overworld:4,-2" });
     expect(worker.terminate).toHaveBeenCalledOnce();
     client.dispose();
@@ -144,7 +155,7 @@ describe("WorldChunkDecodeClient", () => {
     const client = new WorldChunkDecodeClient(() => worker);
 
     await expect(
-      client.decode(createMinimalWorldChunkDecodeRequest())
+      client.decode(createMinimalWorldChunkDecodeRequest(), createOperation(1))
     ).rejects.toThrow("Invalid worker NBT.");
     expect(worker.terminate).not.toHaveBeenCalled();
     client.dispose();
@@ -154,14 +165,83 @@ describe("WorldChunkDecodeClient", () => {
   it("rejects pending work and terminates on disposal", async () => {
     const worker = new PendingWorker();
     const client = new WorldChunkDecodeClient(() => worker);
-    const pending = client.decode(createMinimalWorldChunkDecodeRequest());
+    const pending = client.decode(
+      createMinimalWorldChunkDecodeRequest(),
+      createOperation(1)
+    );
 
     client.dispose();
 
     await expect(pending).rejects.toThrow("was disposed");
     expect(worker.terminate).toHaveBeenCalledOnce();
     await expect(
-      client.decode(createMinimalWorldChunkDecodeRequest())
+      client.decode(createMinimalWorldChunkDecodeRequest(), createOperation(2))
     ).rejects.toThrow("is disposed");
+  });
+
+  it("terminates active worker decoding when its operation is aborted", async () => {
+    const worker = new PendingWorker();
+    const controller = new AbortController();
+    const client = new WorldChunkDecodeClient(() => worker);
+    const pending = client.decode(
+      createMinimalWorldChunkDecodeRequest(),
+      createOperation(17, controller)
+    );
+
+    controller.abort();
+
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+    expect(worker.terminate).toHaveBeenCalledOnce();
+    client.dispose();
+  });
+
+  it("ignores a reply carrying a stale operation ID", async () => {
+    const worker = new PendingWorker();
+    const client = new WorldChunkDecodeClient(() => worker);
+    const request = createMinimalWorldChunkDecodeRequest();
+    const expected = await decodeWorldChunk(request);
+    const pending = client.decode(request, createOperation(23));
+    const sent = worker.postMessage.mock.calls[0][0];
+    const settled = vi.fn();
+    void pending.then(settled);
+
+    worker.onmessage?.({
+      data: {
+        type: "world-chunk-decoded",
+        requestId: sent.requestId,
+        operationId: 22,
+        chunk: expected
+      }
+    } as MessageEvent<WorldChunkDecodeResponseMessage>);
+    await Promise.resolve();
+    expect(settled).not.toHaveBeenCalled();
+
+    worker.onmessage?.({
+      data: {
+        type: "world-chunk-decoded",
+        requestId: sent.requestId,
+        operationId: 23,
+        chunk: expected
+      }
+    } as MessageEvent<WorldChunkDecodeResponseMessage>);
+
+    await expect(pending).resolves.toEqual(expected);
+    client.dispose();
+  });
+
+  it("rejects a pre-aborted fallback operation before decoding", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const factory = vi.fn(() => null);
+    const client = new WorldChunkDecodeClient(factory);
+
+    await expect(
+      client.decode(
+        createMinimalWorldChunkDecodeRequest(),
+        createOperation(31, controller)
+      )
+    ).rejects.toMatchObject({ name: "AbortError" });
+    expect(factory).not.toHaveBeenCalled();
+    client.dispose();
   });
 });

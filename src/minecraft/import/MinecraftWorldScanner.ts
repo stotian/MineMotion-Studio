@@ -1,9 +1,14 @@
 import { DimensionScanner, relativePathFor } from "./DimensionScanner";
 import { LevelDatReader } from "./LevelDatReader";
 import type { MinecraftWorldScan } from "./MinecraftChunkTypes";
+import { throwIfOperationAborted } from "../../core/async/LatestOperationController";
 
 export class MinecraftWorldScanner {
-  static async scan(files: FileList | File[]): Promise<MinecraftWorldScan> {
+  static async scan(
+    files: FileList | File[],
+    signal?: AbortSignal
+  ): Promise<MinecraftWorldScan> {
+    if (signal) throwIfOperationAborted(signal);
     const fileArray = Array.from(files);
     const warnings: string[] = [];
     const levelDat =
@@ -12,7 +17,9 @@ export class MinecraftWorldScanner {
         return path === "level.dat" || path.endsWith("/level.dat");
       }) ?? null;
     const dimensions = DimensionScanner.scan(fileArray);
-    const level = await LevelDatReader.read(levelDat);
+    if (signal) throwIfOperationAborted(signal);
+    const level = await LevelDatReader.read(levelDat, signal);
+    if (signal) throwIfOperationAborted(signal);
     warnings.push(...level.warnings);
 
     if (!levelDat) {

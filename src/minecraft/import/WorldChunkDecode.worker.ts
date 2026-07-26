@@ -24,6 +24,7 @@ workerScope.onmessage = (event) => {
       workerScope.postMessage({
         type: "world-chunk-decoded",
         requestId: message.requestId,
+        operationId: message.operationId,
         chunk
       });
     },
@@ -31,6 +32,7 @@ workerScope.onmessage = (event) => {
       workerScope.postMessage({
         type: "world-chunk-decode-error",
         requestId: message.requestId,
+        operationId: message.operationId,
         message:
           error instanceof Error
             ? error.message

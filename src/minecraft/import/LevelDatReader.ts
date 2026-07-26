@@ -7,9 +7,17 @@ import {
   type NbtTag
 } from "./NbtTypes";
 import type { MinecraftLevelDatSummary } from "./MinecraftChunkTypes";
+import {
+  isOperationAborted,
+  throwIfOperationAborted
+} from "../../core/async/LatestOperationController";
 
 export class LevelDatReader {
-  static async read(file: File | null): Promise<MinecraftLevelDatSummary> {
+  static async read(
+    file: File | null,
+    signal?: AbortSignal
+  ): Promise<MinecraftLevelDatSummary> {
+    if (signal) throwIfOperationAborted(signal);
     if (!file) {
       return {
         found: false,
@@ -22,9 +30,12 @@ export class LevelDatReader {
 
     try {
       const raw = new Uint8Array(await file.arrayBuffer());
-      const decompressed = await LevelDatReader.decompressLevelDat(raw);
+      if (signal) throwIfOperationAborted(signal);
+      const decompressed = await LevelDatReader.decompressLevelDat(raw, signal);
+      if (signal) throwIfOperationAborted(signal);
       return LevelDatReader.summarize(NbtReader.parseUncompressed(decompressed));
     } catch (error) {
+      if (isOperationAborted(error)) throw error;
       return {
         found: true,
         levelName: "",
@@ -60,7 +71,11 @@ export class LevelDatReader {
     };
   }
 
-  private static async decompressLevelDat(data: Uint8Array): Promise<Uint8Array> {
+  private static async decompressLevelDat(
+    data: Uint8Array,
+    signal?: AbortSignal
+  ): Promise<Uint8Array> {
+    if (signal) throwIfOperationAborted(signal);
     const isGzip = data[0] === 0x1f && data[1] === 0x8b;
     if (!isGzip) {
       return data;
@@ -71,7 +86,9 @@ export class LevelDatReader {
     const stream = new Blob([toArrayBuffer(data)]).stream().pipeThrough(
       new DecompressionStream("gzip")
     );
-    return new Uint8Array(await new Response(stream).arrayBuffer());
+    const result = new Uint8Array(await new Response(stream).arrayBuffer());
+    if (signal) throwIfOperationAborted(signal);
+    return result;
   }
 }
 

@@ -19,4 +19,14 @@ describe("NbtReader", () => {
     expect(summary.levelName).toBe("TinyWorld");
     expect(summary.spawn).toEqual([32, 72, -16]);
   });
+
+  it("does not convert an aborted level.dat read into a parse warning", async () => {
+    const controller = new AbortController();
+    const file = new File([new Uint8Array([10, 0, 0, 0])], "level.dat");
+    controller.abort();
+
+    await expect(
+      LevelDatReader.read(file, controller.signal)
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
 });

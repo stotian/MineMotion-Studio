@@ -2,6 +2,11 @@ import {
   decodeWorldChunk,
   type WorldChunkDecodeRequest
 } from "./WorldChunkDecode";
+import {
+  operationAbortReason,
+  throwIfOperationAborted,
+  type OperationContext
+} from "../../core/async/LatestOperationController";
 import type {
   WorldChunkDecodeRequestMessage,
   WorldChunkDecodeResponseMessage
@@ -24,6 +29,8 @@ export type WorldChunkWorkerFactory = () => WorldChunkWorker | null;
 
 interface PendingDecode {
   request: WorldChunkDecodeRequest;
+  operation: OperationContext;
+  onAbort: () => void;
   resolve: (value: ImportedChunkData) => void;
   reject: (reason: Error) => void;
 }
@@ -49,24 +56,44 @@ export class WorldChunkDecodeClient {
   ) {}
 
   async decode(
-    request: WorldChunkDecodeRequest
+    request: WorldChunkDecodeRequest,
+    operation: OperationContext
   ): ReturnType<typeof decodeWorldChunk> {
     if (this.disposed) {
       throw new Error("World chunk decoder is disposed.");
     }
+    throwIfOperationAborted(operation.signal);
     const worker = this.getWorker();
-    if (!worker) return await decodeWorldChunk(request);
+    if (!worker) {
+      const chunk = await decodeWorldChunk(request);
+      throwIfOperationAborted(operation.signal);
+      return chunk;
+    }
 
     const requestId = this.nextRequestId;
     this.nextRequestId += 1;
     const compressedData = request.compressedData.slice().buffer;
     return await new Promise((resolve, reject) => {
-      this.pending.set(requestId, { request, resolve, reject });
+      const onAbort = () => {
+        const pending = this.takePending(requestId);
+        if (!pending) return;
+        pending.reject(operationAbortReason(operation.signal));
+        this.disableWorkerAndFallback();
+      };
+      this.pending.set(requestId, {
+        request,
+        operation,
+        onAbort,
+        resolve,
+        reject
+      });
+      operation.signal.addEventListener("abort", onAbort, { once: true });
       try {
         worker.postMessage(
           {
             type: "decode-world-chunk",
             requestId,
+            operationId: operation.operationId,
             request: {
               ...request,
               compressedData
@@ -85,10 +112,11 @@ export class WorldChunkDecodeClient {
     this.disposed = true;
     this.worker?.terminate();
     this.worker = null;
-    for (const pending of this.pending.values()) {
-      pending.reject(new Error("World chunk decoder was disposed."));
+    for (const requestId of [...this.pending.keys()]) {
+      this.takePending(requestId)?.reject(
+        new Error("World chunk decoder was disposed.")
+      );
     }
-    this.pending.clear();
   }
 
   private getWorker(): WorldChunkWorker | null {
@@ -114,8 +142,13 @@ export class WorldChunkDecodeClient {
   ): void => {
     const message = event.data;
     const pending = this.pending.get(message.requestId);
-    if (!pending) return;
-    this.pending.delete(message.requestId);
+    if (
+      !pending ||
+      message.operationId !== pending.operation.operationId
+    ) {
+      return;
+    }
+    this.takePending(message.requestId);
     if (message.type === "world-chunk-decoded") {
       pending.resolve(message.chunk);
     } else {
@@ -133,14 +166,16 @@ export class WorldChunkDecodeClient {
     this.workerUnavailable = true;
     const pending = [...this.pending.entries()];
     for (const [requestId, item] of pending) {
-      void decodeWorldChunk(item.request).then(
+      void decodeWithAbortChecks(item.request, item.operation.signal).then(
         (chunk) => {
-          if (!this.pending.delete(requestId)) return;
-          item.resolve(chunk);
+          const current = this.takePending(requestId);
+          if (current !== item) return;
+          current.resolve(chunk);
         },
         (error: unknown) => {
-          if (!this.pending.delete(requestId)) return;
-          item.reject(
+          const current = this.takePending(requestId);
+          if (current !== item) return;
+          current.reject(
             error instanceof Error
               ? error
               : new Error("World chunk decoding failed.")
@@ -149,4 +184,22 @@ export class WorldChunkDecodeClient {
       );
     }
   }
+
+  private takePending(requestId: number): PendingDecode | null {
+    const pending = this.pending.get(requestId);
+    if (!pending) return null;
+    this.pending.delete(requestId);
+    pending.operation.signal.removeEventListener("abort", pending.onAbort);
+    return pending;
+  }
+}
+
+async function decodeWithAbortChecks(
+  request: WorldChunkDecodeRequest,
+  signal: AbortSignal
+): ReturnType<typeof decodeWorldChunk> {
+  throwIfOperationAborted(signal);
+  const chunk = await decodeWorldChunk(request);
+  throwIfOperationAborted(signal);
+  return chunk;
 }

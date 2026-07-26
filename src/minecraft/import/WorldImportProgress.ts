@@ -10,6 +10,7 @@ export type WorldImportStatus =
   | "error";
 
 export interface WorldImportProgress {
+  operationId: number | null;
   status: WorldImportStatus;
   current: number;
   total: number;
@@ -18,6 +19,7 @@ export interface WorldImportProgress {
 }
 
 export const IDLE_WORLD_IMPORT_PROGRESS: WorldImportProgress = {
+  operationId: null,
   status: "idle",
   current: 0,
   total: 0,

@@ -56,16 +56,7 @@ import {
 import { RenderJobRunner } from "./export/renderQueue/RenderJobRunner";
 import { executeProductionRenderJob } from "./export/renderQueue/ProductionRenderExecutor";
 import { HistoryStack } from "./history/HistoryStack";
-import type { MinecraftWorldScan } from "./minecraft/import/MinecraftChunkTypes";
-import {
-  DEFAULT_WORLD_IMPORT_OPTIONS,
-  WorldImportManager,
-  type WorldChunkImportOptions
-} from "./minecraft/import/WorldImportManager";
-import {
-  createWorldImportProgress,
-  IDLE_WORLD_IMPORT_PROGRESS
-} from "./minecraft/import/WorldImportProgress";
+import { useWorldImportOperations } from "./minecraft/import/useWorldImportOperations";
 import { ResourcePackImporter } from "./minecraft/resources/ResourcePackImporter";
 import type { MinecraftResourceSettings } from "./minecraft/resources/ResourcePackTypes";
 import {
@@ -206,11 +197,6 @@ export function App() {
   const [lightingStudioOpen, setLightingStudioOpen] = useState(false);
   const [worldImportOpen, setWorldImportOpen] = useState(false);
   const [vfxWorkspaceOpen, setVfxWorkspaceOpen] = useState(false);
-  const [worldScan, setWorldScan] = useState<MinecraftWorldScan | null>(null);
-  const [worldImportOptions, setWorldImportOptions] = useState<WorldChunkImportOptions>(DEFAULT_WORLD_IMPORT_OPTIONS);
-  const [worldImportProgress, setWorldImportProgress] = useState(
-    IDLE_WORLD_IMPORT_PROGRESS
-  );
   const [exportProgress, setExportProgress] = useState(IDLE_EXPORT_PROGRESS);
   const [ffmpegDetection, setFfmpegDetection] =
     useState<FfmpegDetectionResult>(WEB_FFMPEG_STATUS);
@@ -263,7 +249,6 @@ export function App() {
   }, []);
   const exportCancelledRef = useRef(false);
   const renderJobRunnerRef = useRef(new RenderJobRunner());
-  const worldImportCancelledRef = useRef(false);
 
   const presets = useMemo(() => presetRegistry.snapshot(), []);
   const rigPosePresets = useMemo(
@@ -406,6 +391,30 @@ export function App() {
     },
     [setProject]
   );
+  const requestWorldFocus = useCallback(() => {
+    setFocusWorldRequest((value) => value + 1);
+  }, []);
+  const {
+    scan: worldScan,
+    importOptions: worldImportOptions,
+    progress: worldImportProgress,
+    selectWorld: handleWorldSelected,
+    updateOptions: handleWorldImportOptionsChange,
+    importChunks: handleImportWorldChunks,
+    cancel: handleCancelWorldImport,
+    reset: resetWorldImport
+  } = useWorldImportOperations({
+    project,
+    commitProject,
+    setProject,
+    setDirty: setIsDirty,
+    setSelectedObjectId,
+    requestWorldFocus,
+    setPanelOpen: setWorldImportOpen,
+    setStatus,
+    tr,
+    diagnostic
+  });
   const rigWorkspace = useRigWorkspaceController({
     project,
     selectedObjectId,
@@ -417,13 +426,14 @@ export function App() {
   });
 
   const replaceProject = useCallback((nextProject: MineMotionProject, label: string) => {
+    resetWorldImport("Project replaced.");
     historyRef.current.clear();
     setProject(nextProject);
     setSelectedObjectId(nextProject.scene.characters[0]?.id ?? nextProject.scene.cameras[0]?.id ?? null);
     setSelectedEffectId(null);
     setIsDirty(true);
     setStatus(label);
-  }, [setProject]);
+  }, [resetWorldImport, setProject]);
 
   const confirmDiscardChanges = useCallback(() => {
     if (!isDirty) return true;
@@ -502,6 +512,7 @@ export function App() {
     event.target.value = "";
     if (!file || !confirmDiscardChanges()) return;
 
+    resetWorldImport("Project replaced.");
     try {
       const raw = await file.text();
       const loadedProject = PackageReader.looksLikePackage(raw)
@@ -539,191 +550,13 @@ export function App() {
     worldInputRef.current?.click();
   }, []);
 
-  const handleWorldSelected = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-    event.target.value = "";
-    if (!files || files.length === 0) return;
-
-    try {
-      setWorldImportProgress(
-        createWorldImportProgress({
-          status: "scanning",
-          message: tr("app.worldScanning")
-        })
-      );
-      const scan = await WorldImportManager.scan(files);
-      const spawn = scan.level.spawn;
-      const nextOptions: WorldChunkImportOptions = {
-        ...worldImportOptions,
-        centerChunkX: spawn ? Math.floor(spawn[0] / 16) : worldImportOptions.centerChunkX,
-        centerChunkZ: spawn ? Math.floor(spawn[2] / 16) : worldImportOptions.centerChunkZ
-      };
-      const scannedWorld = WorldImportManager.createSummaryFromScan(
-        scan,
-        nextOptions
-      );
-      setWorldScan(scan);
-      setWorldImportOptions(nextOptions);
-      setWorldImportOpen(true);
-      commitProject(
-        (currentProject) =>
-          updateProjectSettings(
-            {
-              ...currentProject,
-              world: scannedWorld
-            },
-            {
-              worldSourcePath: scannedWorld.sourcePath ?? scannedWorld.sourceName
-            }
-          ),
-        "Scan world folder"
-      );
-      setSelectedObjectId("world");
-      setWorldImportProgress(
-        createWorldImportProgress({
-          status: "complete",
-          current: scan.dimensions.reduce(
-            (sum, dimension) => sum + dimension.regionFiles.length,
-            0
-          ),
-          total: scan.dimensions.reduce(
-            (sum, dimension) => sum + dimension.regionFiles.length,
-            0
-          ),
-          message: tr("app.worldScanned", { name: scan.sourceName })
-        })
-      );
-      setStatus(
-        tr("app.worldScanComplete", { name: scan.sourceName, dimensions: scan.dimensions
-          .map((dimension) => `${dimension.label} ${dimension.regionFiles.length}`)
-          .join(", ") })
-      );
-    } catch (error) {
-      const message = diagnostic("WORLD_SCAN_FAILED", "app.worldScanFailed");
-      setWorldImportProgress(
-        createWorldImportProgress({
-          status: "error",
-          message,
-          error: message
-        })
-      );
-      setStatus(message);
-    }
-  };
-
-  const handleWorldImportOptionsChange = useCallback(
-    (options: WorldChunkImportOptions) => {
-      setWorldImportOptions(options);
-      setProject((currentProject) =>
-        currentProject.world
-          ? {
-              ...currentProject,
-              world: {
-                ...currentProject.world,
-                selectedDimension: options.dimension,
-                importSettings: {
-                  dimension: options.dimension,
-                  centerChunkX: options.centerChunkX,
-                  centerChunkZ: options.centerChunkZ,
-                  radiusChunks: options.radiusChunks,
-                  maxChunks: options.maxChunks,
-                  maxRegionFiles: options.maxRegionFiles,
-                  maxVerticalSections: options.maxVerticalSections
-                },
-                renderOptions: {
-                  showChunkBorders: options.showChunkBorders,
-                  showWorldOrigin: options.showWorldOrigin
-                }
-              }
-            }
-          : currentProject
-      );
-      if (project.world) {
-        setIsDirty(true);
-      }
-    },
-    [project.world]
-  );
-
-  const handleImportWorldChunks = useCallback(async () => {
-    if (!worldScan) {
-      setStatus(tr("app.chooseWorld"));
-      return;
-    }
-
-    worldImportCancelledRef.current = false;
-    setWorldImportProgress(
-      createWorldImportProgress({
-        status: "reading-regions",
-        message: tr("app.worldPreparing")
-      })
-    );
-
-    try {
-      const result = await WorldImportManager.importChunks({
-        scan: worldScan,
-        importOptions: worldImportOptions,
-        onProgress: setWorldImportProgress,
-        isCancelled: () => worldImportCancelledRef.current
-      });
-      commitProject(
-        (currentProject) =>
-          updateProjectSettings(
-            {
-              ...currentProject,
-              world: result.world,
-              projectSettings: {
-                ...currentProject.projectSettings,
-                terrainPreset:
-                  result.chunks.length > 0
-                    ? "none"
-                    : currentProject.projectSettings.terrainPreset
-              }
-            },
-            {
-              worldSourcePath: result.world.sourcePath ?? result.world.sourceName
-            }
-          ),
-        "Import Minecraft chunks"
-      );
-      setSelectedObjectId("world");
-      setFocusWorldRequest((value) => value + 1);
-      setStatus(
-        tr("app.worldImported", { chunks: result.chunks.length, blocks: result.estimate.importedBlocks, name: result.world.sourceName })
-      );
-    } catch (error) {
-      const cancelled = worldImportCancelledRef.current;
-      const message = diagnostic("WORLD_IMPORT_FAILED", "app.worldImportFailed");
-      setWorldImportProgress(
-        createWorldImportProgress({
-          status: cancelled ? "cancelled" : "error",
-          message,
-          error: cancelled ? "" : message
-        })
-      );
-      setStatus(message);
-    }
-  }, [commitProject, worldImportOptions, worldScan]);
-
-  const handleCancelWorldImport = useCallback(() => {
-    worldImportCancelledRef.current = true;
-    setWorldImportProgress(
-      createWorldImportProgress({
-        status: "cancelled",
-        message: tr("app.worldCancel")
-      })
-    );
-    setStatus(tr("app.worldCancel"));
-  }, []);
-
   const handleFocusWorld = useCallback(() => {
-    setFocusWorldRequest((value) => value + 1);
+    requestWorldFocus();
     setStatus(tr("app.worldFocused"));
-  }, []);
+  }, [requestWorldFocus]);
 
   const handleUnloadWorld = useCallback(() => {
+    resetWorldImport("World unloaded.");
     commitProject(
       (currentProject) =>
         updateProjectSettings(
@@ -738,10 +571,9 @@ export function App() {
         ),
       "Unload Minecraft world"
     );
-    setWorldScan(null);
     setSelectedObjectId(null);
     setStatus(tr("app.worldUnloaded"));
-  }, [commitProject]);
+  }, [commitProject, resetWorldImport]);
 
   const handleAddCharacter = useCallback(() => {
     const character = createCharacter(

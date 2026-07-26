@@ -12,6 +12,11 @@ import type {
 import { McaFileReader } from "./McaFileReader";
 import { createWorldImportProgress, type WorldImportProgress } from "./WorldImportProgress";
 import { WorldChunkDecodeClient } from "./WorldChunkDecodeClient";
+import {
+  isOperationAborted,
+  operationAbortReason,
+  throwIfOperationAborted
+} from "../../core/async/LatestOperationController";
 
 export interface WorldChunkImportOptions {
   dimension: MinecraftDimensionId;
@@ -40,14 +45,21 @@ export const DEFAULT_WORLD_IMPORT_OPTIONS: WorldChunkImportOptions = {
 };
 
 export interface WorldImportResult {
+  operationId: number;
   world: ImportedWorldSummary;
   chunks: ImportedChunkData[];
   estimate: WorldImportPerformanceEstimate;
 }
 
 export class WorldImportManager {
-  static async scan(files: FileList | File[]): Promise<MinecraftWorldScan> {
-    return await MinecraftWorldScanner.scan(files);
+  static async scan(
+    files: FileList | File[],
+    signal?: AbortSignal
+  ): Promise<MinecraftWorldScan> {
+    if (signal) throwIfOperationAborted(signal);
+    const scan = await MinecraftWorldScanner.scan(files, signal);
+    if (signal) throwIfOperationAborted(signal);
+    return scan;
   }
 
   static createSummaryFromScan(
@@ -106,10 +118,18 @@ export class WorldImportManager {
   static async importChunks(options: {
     scan: MinecraftWorldScan;
     importOptions: WorldChunkImportOptions;
+    operationId: number;
+    signal: AbortSignal;
     onProgress: (progress: WorldImportProgress) => void;
-    isCancelled: () => boolean;
   }): Promise<WorldImportResult> {
-    const { scan, importOptions, onProgress, isCancelled } = options;
+    const {
+      scan,
+      importOptions,
+      operationId,
+      signal,
+      onProgress
+    } = options;
+    throwIfOperationAborted(signal);
     const dimension = scan.dimensions.find(
       (item) => item.id === importOptions.dimension
     );
@@ -126,23 +146,26 @@ export class WorldImportManager {
     const unknownBlockMappings: Record<string, string> = {};
     let totalCandidates = Math.max(1, importOptions.maxChunks);
     const chunkDecoder = new WorldChunkDecodeClient();
+    const reportProgress = (
+      patch: Omit<Partial<WorldImportProgress>, "operationId">
+    ) => {
+      throwIfOperationAborted(signal);
+      onProgress(createWorldImportProgress({ ...patch, operationId }));
+    };
 
-    onProgress(
-      createWorldImportProgress({
-        status: "reading-regions",
-        total: selectedRegions.length,
-        message: `Reading ${selectedRegions.length} region files.`
-      })
-    );
+    reportProgress({
+      status: "reading-regions",
+      total: selectedRegions.length,
+      message: `Reading ${selectedRegions.length} region files.`
+    });
 
     try {
       for (const [regionIndex, region] of selectedRegions.entries()) {
-        if (isCancelled()) {
-          throw new Error("World import cancelled.");
-        }
+        throwIfOperationAborted(signal);
 
         try {
           const buffer = await region.file.arrayBuffer();
+          throwIfOperationAborted(signal);
           const header = McaFileReader.readHeader(
             buffer,
             region.regionX ?? 0,
@@ -155,38 +178,39 @@ export class WorldImportManager {
           totalCandidates = Math.max(totalCandidates, locations.length);
 
           for (const location of locations) {
-            if (isCancelled()) {
-              throw new Error("World import cancelled.");
-            }
+            throwIfOperationAborted(signal);
             if (chunks.length >= importOptions.maxChunks) break;
 
-            onProgress(
-              createWorldImportProgress({
-                status: "reading-chunks",
-                current: chunks.length + 1,
-                total: importOptions.maxChunks,
-                message: `Reading chunk ${location.chunkX}, ${location.chunkZ}.`
-              })
-            );
+            reportProgress({
+              status: "reading-chunks",
+              current: chunks.length + 1,
+              total: importOptions.maxChunks,
+              message: `Reading chunk ${location.chunkX}, ${location.chunkZ}.`
+            });
 
             try {
               const payload = McaFileReader.readChunkPayload(buffer, location);
-              const chunk = await chunkDecoder.decode({
-                compressedData: payload.data,
-                compressionType: payload.compressionType,
-                dimension: importOptions.dimension,
-                fallbackChunkX: location.chunkX,
-                fallbackChunkZ: location.chunkZ,
-                regionX: header.regionX,
-                regionZ: header.regionZ,
-                maxVerticalSections: importOptions.maxVerticalSections
-              });
+              const chunk = await chunkDecoder.decode(
+                {
+                  compressedData: payload.data,
+                  compressionType: payload.compressionType,
+                  dimension: importOptions.dimension,
+                  fallbackChunkX: location.chunkX,
+                  fallbackChunkZ: location.chunkZ,
+                  regionX: header.regionX,
+                  regionZ: header.regionZ,
+                  maxVerticalSections: importOptions.maxVerticalSections
+                },
+                { operationId, signal }
+              );
+              throwIfOperationAborted(signal);
               chunks.push(chunk);
               for (const name of Object.keys(chunk.unknownBlocks)) {
                 unknownBlockMappings[name] = "unknown";
               }
               warnings.push(...chunk.warnings);
             } catch (error) {
+              if (isOperationAborted(error)) throw error;
               warnings.push(
                 error instanceof Error
                   ? `Chunk ${location.chunkX},${location.chunkZ}: ${error.message}`
@@ -194,9 +218,10 @@ export class WorldImportManager {
               );
             }
 
-            await yieldToBrowser();
+            await yieldToBrowser(signal);
           }
         } catch (error) {
+          if (isOperationAborted(error)) throw error;
           warnings.push(
             error instanceof Error
               ? `Region ${region.path}: ${error.message}`
@@ -204,14 +229,12 @@ export class WorldImportManager {
           );
         }
 
-        onProgress(
-          createWorldImportProgress({
-            status: "reading-regions",
-            current: regionIndex + 1,
-            total: selectedRegions.length,
-            message: `Finished region ${region.path}.`
-          })
-        );
+        reportProgress({
+          status: "reading-regions",
+          current: regionIndex + 1,
+          total: selectedRegions.length,
+          message: `Finished region ${region.path}.`
+        });
       }
     } finally {
       chunkDecoder.dispose();
@@ -260,16 +283,14 @@ export class WorldImportManager {
       notes: [...new Set(warnings)].slice(0, 100)
     };
 
-    onProgress(
-      createWorldImportProgress({
-        status: "complete",
-        current: chunks.length,
-        total: importOptions.maxChunks,
-        message: `Imported ${chunks.length} chunks with ${importedBlocks} blocks.`
-      })
-    );
+    reportProgress({
+      status: "complete",
+      current: chunks.length,
+      total: importOptions.maxChunks,
+      message: `Imported ${chunks.length} chunks with ${importedBlocks} blocks.`
+    });
 
-    return { world, chunks, estimate };
+    return { operationId, world, chunks, estimate };
   }
 }
 
@@ -348,6 +369,17 @@ function chunkDistance(
   );
 }
 
-function yieldToBrowser(): Promise<void> {
-  return new Promise((resolve) => globalThis.setTimeout(resolve, 0));
+function yieldToBrowser(signal: AbortSignal): Promise<void> {
+  throwIfOperationAborted(signal);
+  return new Promise((resolve, reject) => {
+    const timerId = globalThis.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, 0);
+    const onAbort = () => {
+      globalThis.clearTimeout(timerId);
+      reject(operationAbortReason(signal));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
 }
