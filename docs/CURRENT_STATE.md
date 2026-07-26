@@ -216,6 +216,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Immutable version 1 performance budgets qualify Minimum/Recommended devices
   and Draft/High/Final workloads. Pure ordered evaluation separates advisory
   overruns from hard limits and never changes quality automatically.
+- Renderer objects carry semantic world/character/prop/VFX/helper ownership and
+  an opaque/container/transparent pass tag. Final presentation excludes every
+  editor helper while Three.js retains depth-based scene ordering.
 
 ## Partial Systems
 
@@ -235,7 +238,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 120 frontend test files and 534 passing tests.
+- 121 frontend test files and 537 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -339,3 +342,6 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 20.2 keeps device qualification distinct from renderer quality. Budget
   results are deterministic evidence records, not an automatic degradation
   mechanism or a persisted project preference.
+- Phase 20.3 treats transparency as a cross-cutting material pass rather than a
+  competing object owner. Semantic tags support later culling/diagnostics, but
+  do not introduce fragile global render-order values or camera masks.

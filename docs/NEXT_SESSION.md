@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.3 by auditing and documenting renderer layers for world,
-characters, props, transparency, VFX, post, overlays, and helpers. Characterize
-the shared preview/export ordering before changing renderer behavior.
+Implement Phase 20.4 by auditing and fixing geometry, material, texture,
+render-target, listener, animation-loop, and cache disposal across rebuild,
+shutdown, repeated preview, and export lifecycles.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -137,16 +137,19 @@ Preserve the local commits and push normally once authentication is restored.
 - Phase 20.2 defines immutable version 1 Minimum/Recommended device and
   Draft/High/Final quality budgets. Pure evaluation separates recommendations,
   hard limits, and unavailable measurements without automatic quality changes.
+- Phase 20.3 tags world/character/prop/VFX/helper ownership, treats transparency
+  as cross-cutting, documents preview/export order, and prevents every known
+  WebGL editor helper from leaking into the final canvas.
 
 ## Unfinished Work
 
-- Phase 20 tasks 3-17 and phases 21-35 remain.
+- Phase 20 tasks 4-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Inventory every current `SceneRenderer`, prepared VFX, DOM post-process, motion
-path/helper, preview, and final-frame layer. Define explicit ownership,
-visibility, and ordering contracts before introducing layer masks or passes.
+Audit the existing `ThreeResourceDisposal`, shared material/skin caches,
+renderer rebuild path, controls/listeners, animation frame, export bitmaps,
+recorders, and temporary canvases. Characterize repeated lifecycles first.
 
 ## Tests To Run
 

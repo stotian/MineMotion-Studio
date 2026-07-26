@@ -34,6 +34,11 @@ import {
   sanitizeRendererFrameInfo,
   type RendererMetricsSnapshot
 } from "../performance/RendererMetrics";
+import {
+  resolveRendererLayerVisibility,
+  tagThreeObjectLayer,
+  type RendererLayerVisibility
+} from "./RendererLayers";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -64,6 +69,14 @@ export class SceneRenderer {
   private startupMs: number | null = null;
   private lastMetricsAt = Number.NEGATIVE_INFINITY;
   private activeEffectCount = 0;
+  private gridRequestedVisible = true;
+  private layerVisibility: RendererLayerVisibility =
+    resolveRendererLayerVisibility({
+      mode: "editor",
+      includeVfx: true,
+      includePost: true,
+      includeOverlays: true
+    });
 
   constructor(private readonly options: SceneRendererOptions) {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -80,9 +93,11 @@ export class SceneRenderer {
     this.directionalLight.position.set(8, 16, 10);
     this.directionalLight.castShadow = true;
     this.scene.add(this.ambientLight, this.directionalLight);
+    tagThreeObjectLayer(this.gridFloor, "helpers");
     this.scene.add(this.gridFloor);
     this.scene.add(this.sceneRoot);
     this.selectionBox.visible = false;
+    tagThreeObjectLayer(this.selectionBox, "helpers");
     this.scene.add(this.selectionBox);
 
     this.renderer.domElement.addEventListener("pointerdown", this.handlePointer);
@@ -99,9 +114,21 @@ export class SceneRenderer {
   ): void {
     this.project = project;
     this.selectedObjectId = selectedObjectId;
+    this.layerVisibility = resolveRendererLayerVisibility({
+      mode: project.renderSettings.renderPreviewEnabled ? "final" : "editor",
+      includeVfx: shouldIncludeProjectVfx(project),
+      includePost:
+        !project.renderSettings.renderPreviewEnabled ||
+        project.exportSettings.includePostProcessing,
+      includeOverlays:
+        !project.renderSettings.renderPreviewEnabled ||
+        project.exportSettings.includeCinematicBars
+    });
     if (viewportSettings) {
       this.applyViewportSettings(viewportSettings);
     }
+    this.gridFloor.visible =
+      this.layerVisibility.helpers && this.gridRequestedVisible;
     SkySystem.apply(
       this.scene,
       this.ambientLight,
@@ -171,10 +198,17 @@ export class SceneRenderer {
             showChunkBorders: true,
             showWorldOrigin: true
           }),
+          showChunkBorders:
+            this.layerVisibility.helpers &&
+            (project.world?.renderOptions?.showChunkBorders ?? true),
+          showWorldOrigin:
+            this.layerVisibility.helpers &&
+            (project.world?.renderOptions?.showWorldOrigin ?? true),
           materialContext
         }
       );
       imported.object.name = `Imported World: ${project.world?.sourceName ?? "Minecraft World"}`;
+      tagThreeObjectLayer(imported.object, "world");
       this.sceneRoot.add(imported.object);
     } else {
       const terrainChunk = PresetChunkMeshBuilder.createChunkForPreset(
@@ -188,32 +222,44 @@ export class SceneRenderer {
         terrain.name = project.world
           ? `Imported World Placeholder: ${project.world.sourceName}`
           : `${project.projectSettings.terrainPreset} terrain`;
+        tagThreeObjectLayer(terrain, "world");
         this.sceneRoot.add(terrain);
       }
     }
 
     for (const character of project.scene.characters) {
       if (!character.visible) continue;
-      this.sceneRoot.add(this.createCharacterObject(project, character));
+      const object = this.createCharacterObject(project, character);
+      tagThreeObjectLayer(object, "characters");
+      this.sceneRoot.add(object);
     }
 
-    for (const camera of project.scene.cameras) {
-      if (!camera.visible) continue;
-      if (this.gridFloor.userData.hideCameras) continue;
-      this.sceneRoot.add(this.createCameraObject(camera));
+    if (this.layerVisibility.helpers) {
+      for (const camera of project.scene.cameras) {
+        if (!camera.visible) continue;
+        if (this.gridFloor.userData.hideCameras) continue;
+        const object = this.createCameraObject(camera);
+        tagThreeObjectLayer(object, "helpers");
+        this.sceneRoot.add(object);
+      }
     }
 
     for (const obj of project.scene.importedObjects) {
       if (!obj.visible) continue;
-      this.sceneRoot.add(this.createObjObject(project, obj));
+      const object = this.createObjObject(project, obj);
+      tagThreeObjectLayer(object, "props");
+      this.sceneRoot.add(object);
     }
-    if (motionPath) {
+    if (this.layerVisibility.helpers && motionPath) {
       const pathObject = createMotionPathObject(motionPath);
-      if (pathObject) this.sceneRoot.add(pathObject);
+      if (pathObject) {
+        tagThreeObjectLayer(pathObject, "helpers");
+        this.sceneRoot.add(pathObject);
+      }
     }
 
     const prepared = prepareProjectVfxFrame(project, {
-      includeVfx: shouldIncludeProjectVfx(project),
+      includeVfx: this.layerVisibility.vfx,
       quality: project.renderSettings.renderPreviewEnabled
         ? "export"
         : "preview"
@@ -230,7 +276,10 @@ export class SceneRenderer {
           const object = this.createNativePrimitiveObject(primitive);
           if (object) group.add(object);
         }
-        if (group.children.length > 0) this.sceneRoot.add(group);
+        if (group.children.length > 0) {
+          tagThreeObjectLayer(group, "vfx");
+          this.sceneRoot.add(group);
+        }
         continue;
       }
       if (
@@ -247,6 +296,7 @@ export class SceneRenderer {
         particleCount
       );
       if (object) {
+        tagThreeObjectLayer(object, "vfx");
         this.sceneRoot.add(object);
       }
     }
@@ -508,7 +558,9 @@ export class SceneRenderer {
   }
 
   private applyViewportSettings(settings: ViewportSettings): void {
-    this.gridFloor.visible = settings.gridEnabled;
+    this.gridRequestedVisible = settings.gridEnabled;
+    this.gridFloor.visible =
+      this.layerVisibility.helpers && this.gridRequestedVisible;
     this.gridFloor.scale.setScalar(Math.max(0.25, settings.gridSize / 64));
     this.gridFloor.userData.hideCameras = !settings.showCameraObjects;
     const qualityRatio =
@@ -535,6 +587,10 @@ export class SceneRenderer {
   }
 
   private updateSelectionBox(): void {
+    if (!this.layerVisibility.helpers) {
+      this.selectionBox.visible = false;
+      return;
+    }
     const selected = this.findObjectById(this.selectedObjectId);
     if (!selected) {
       this.selectionBox.visible = false;

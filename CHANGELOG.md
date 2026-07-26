@@ -40,6 +40,8 @@
   calls/resources, scene/chunk/effect complexity, and optional browser heap.
 - Defined immutable Minimum/Recommended device and Draft/High/Final workload
   budgets with deterministic advisory and hard-limit evaluation.
+- Clarified semantic renderer layer ownership and excluded editor-only helpers
+  from final preview/export canvases.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

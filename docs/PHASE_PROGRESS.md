@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.3 - Clarify renderer layers for world, characters, props, transparency, VFX, post, overlays, and helpers
+20.4 - Audit and fix geometry, material, texture, render-target, listener, and loop disposal
 
 ## Status
 
-IN_PROGRESS - Phase 20.1 measurement and Phase 20.2 budgets are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.3 measurement, budgets, and renderer layers are implemented and validated.
 
 ## Completed
 
@@ -303,15 +303,21 @@ IN_PROGRESS - Phase 20.1 measurement and Phase 20.2 budgets are implemented and 
 - Pure evaluation distinguishes recommendations from hard-limit violations,
   defers p95 until 30 samples, and treats optional or hostile measurements as
   unavailable. It never changes quality or project state.
+- Phase 20.3 defines immutable semantic ownership for world, characters, props,
+  transparency, VFX, post, overlays, and helpers. Three.js objects are tagged
+  without forcing a new painter order or camera mask.
+- The final WebGL canvas now excludes grid/axes, selection, camera models, motion
+  paths, chunk borders, and the world-origin marker while preserving editor
+  preferences. Preview/export post-pipeline differences remain documented.
 
 ## In Progress
 
-- Audit and document Phase 20.3 renderer layer ownership and ordering before
-  changing rendering behavior.
+- Audit every geometry, material, texture, render target, listener, animation
+  loop, and cache owner for Phase 20.4.
 
 ## Not Started
 
-- Phase 20 tasks 3-17 and phases 21-35.
+- Phase 20 tasks 4-17 and phases 21-35.
 
 ## Blockers
 
@@ -327,20 +333,20 @@ IN_PROGRESS - Phase 20.1 measurement and Phase 20.2 budgets are implemented and 
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed checkpoint: `eeab419` (Phase 20.1).
-- Latest validated implementation checkpoint: Phase 20.2 local milestone
+- Latest committed checkpoint: `f4951d3` (Phase 20.2).
+- Latest validated implementation checkpoint: Phase 20.3 local milestone
   (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20 performance tests: PASS - 3 files, 8 tests
-- `npm test`: PASS - 120 files, 534 tests
+- Focused Phase 20.3 renderer tests: PASS - 3 files, 7 tests
+- `npm test`: PASS - 121 files, 537 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,674/2,839 lines
-- `npm run build`: PASS - 1,874 modules; 1,521.63 kB known large chunk
+- `npm run build`: PASS - 1,875 modules; 1,523.98 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -350,6 +356,5 @@ IN_PROGRESS - Phase 20.1 measurement and Phase 20.2 budgets are implemented and 
 
 ## Next Exact Action
 
-Map current world, characters, props, transparency, VFX, post, overlays, and
-helpers to explicit renderer layers. Characterize preview/export ordering and
-visibility before changing masks, passes, or material behavior.
+Audit disposal ownership by layer and lifecycle. Add focused repeated-rebuild/
+dispose regressions before changing caches, pools, or scene reconstruction.

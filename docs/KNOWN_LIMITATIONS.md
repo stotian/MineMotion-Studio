@@ -54,6 +54,7 @@ still required before changing code.
 | LIM-045 | Character expression overlays are static character settings rather than discrete timeline-keyframe properties | Yes | P5 | Future | OPEN_HONEST_UI |
 | LIM-046 | JavaScript heap telemetry depends on Chromium's non-standard `performance.memory`; other runtimes report it as unavailable | Yes | P5 | 20 | OPEN_HONEST_UI |
 | LIM-047 | Version 1 performance thresholds are initial guardrails and still require named hardware benchmark calibration | Yes | P3 | 20.15/20.17 | OPEN_MEASUREMENT |
+| LIM-048 | CSS viewport post overlays and Canvas2D final capture share inputs but generic bloom, grain, chromatic aberration, and fog are not pixel-identical passes | Yes | P2/P4 | 20/future renderer | OPEN |
 
 ## Phase 15.1 Outcome
 

@@ -660,3 +660,22 @@ metrics, but never mutates quality or project state. Require at least 30 frame
 samples for p95 and do not invent heap data. Named benchmark hardware and
 before/after thresholds in later Phase 20 tasks may justify a new version; do
 not silently rewrite version 1 values.
+
+## TD-047 - Use semantic renderer ownership before explicit passes
+
+Status: Accepted in Phase 20.3.
+
+Tag Three.js scene objects as world, characters, props, VFX, or helpers and
+record transparency as a cross-cutting material pass. Keep post and overlays as
+explicit CSS-preview/Canvas-export owners. Do not assign arbitrary global
+`renderOrder` values or camera masks to depth-sorted production geometry merely
+to make the inventory look layered.
+
+One pure visibility plan makes WebGL helpers editor-only. The final canvas excludes
+the grid, axes, selection box, camera models, motion paths, chunk borders, and
+world-origin marker without changing project or viewport preferences.
+
+The current CSS preview and Canvas2D export composition orders are documented,
+including their non-identical generic post passes. Later renderer work may
+unify them, but semantic ownership must remain independent of a particular
+Three.js pass implementation.
