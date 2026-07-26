@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Begin Phase 19.9 with deterministic keyframe cleanup and reduction over the
-existing Dopesheet selection and history commands.
+Continue Phase 19.9 with deterministic loop, reverse, and mirror transforms over
+the existing Dopesheet selection and history commands.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -86,6 +86,9 @@ Preserve the local commits and push normally once authentication is restored.
 - Duration, intensity, cycles, and applicable direction are localized Rig
   Studio controls. All kinds pass schema 10/9, package, autosave, history, and
   production-sampling regressions.
+- Selected redundant keys, bounded noise, and interior values can now be
+  cleaned or smoothed atomically from the existing command bar. Endpoints and
+  no-op history behavior are regression-tested.
 
 ## Unfinished Work
 
@@ -93,8 +96,8 @@ Preserve the local commits and push normally once authentication is restored.
 
 ## Next Implementation Step
 
-Inspect existing keyframe commands and selection contracts, then implement
-bounded redundant-key removal and noise reduction as atomic history edits.
+Implement one-range loop and reverse plus renderer-consistent left/right
+animation mirroring, with collision guards and focused tests.
 
 ## Tests To Run
 

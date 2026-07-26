@@ -39,10 +39,14 @@ import {
   deleteSelectedKeyframes,
   duplicateSelectedKeyframes,
   moveSelectedKeyframes,
+  reduceSelectedKeyframeNoise,
+  removeRedundantSelectedKeyframes,
   scaleSelectedKeyframeTiming,
   setSelectedInterpolation,
+  smoothSelectedKeyframes,
   snapSelectedKeyframes
 } from "../../animation/editor/KeyframeCommands";
+import type { KeyframeCleanupResult } from "../../animation/editor/KeyframeCommands";
 import type { KeyframeRef } from "../../animation/editor/KeyframeModel";
 import { EMPTY_KEYFRAME_SELECTION } from "../../animation/editor/KeyframeSelection";
 import { createTimelineMarker, upsertMarker } from "../../animation/editor/Markers";
@@ -130,6 +134,7 @@ export function TimelinePanel({
   const [selectedClipId, setSelectedClipId] = useState("");
   const [selectedLayerKind, setSelectedLayerKind] =
     useState<AnimationLayerKind>("base");
+  const [cleanupTolerance, setCleanupTolerance] = useState(0.25);
   const [effectClipboard, setEffectClipboard] =
     useState<EffectTimelineClipboardV1 | null>(null);
   const projectIdentity = project.metadata.createdAt;
@@ -206,6 +211,17 @@ export function TimelinePanel({
       );
     }
     commitTracks(tracks, t("history.moveKeys"), { selected: refs, anchor: refs[0] ?? null });
+  };
+
+  const commitCleanup = (
+    result: KeyframeCleanupResult,
+    label: string
+  ) => {
+    if (!result.changed) return;
+    commitTracks(result.tracks, label, {
+      selected: result.selection,
+      anchor: result.selection[0] ?? null
+    });
   };
 
   const addMarker = () => {
@@ -492,6 +508,72 @@ export function TimelinePanel({
         >
           2x
         </button>
+        <button
+          type="button"
+          disabled={!editor.selection.selected.length}
+          title={t("timeline.removeRedundantTitle")}
+          onClick={() =>
+            commitCleanup(
+              removeRedundantSelectedKeyframes(
+                animation.tracks,
+                editor.selection.selected
+              ),
+              t("history.removeRedundantKeys")
+            )
+          }
+        >
+          {t("timeline.removeRedundant")}
+        </button>
+        <button
+          type="button"
+          disabled={!editor.selection.selected.length}
+          title={t("timeline.smoothKeysTitle")}
+          onClick={() => {
+            const tracks = smoothSelectedKeyframes(
+              animation.tracks,
+              editor.selection.selected,
+              0.5
+            );
+            if (tracks !== animation.tracks) {
+              commitTracks(tracks, t("history.smoothKeys"));
+            }
+          }}
+        >
+          {t("timeline.smoothKeys")}
+        </button>
+        <button
+          type="button"
+          disabled={!editor.selection.selected.length}
+          title={t("timeline.reduceNoiseTitle")}
+          onClick={() =>
+            commitCleanup(
+              reduceSelectedKeyframeNoise(
+                animation.tracks,
+                editor.selection.selected,
+                cleanupTolerance
+              ),
+              t("history.reduceKeyNoise")
+            )
+          }
+        >
+          {t("timeline.reduceNoise")}
+        </button>
+        <label className="compact-control">
+          {t("timeline.noiseTolerance")}
+          <input
+            type="number"
+            min={0}
+            max={180}
+            step={0.01}
+            value={cleanupTolerance}
+            onChange={(event) =>
+              setCleanupTolerance(Math.min(
+                180,
+                Math.max(0, event.target.valueAsNumber || 0)
+              ))
+            }
+          />
+        </label>
         <label className="checkbox-label compact-control">
           <input
             type="checkbox"

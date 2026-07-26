@@ -253,7 +253,9 @@ IN_PROGRESS - Phase 19.1 through 19.8 and the consolidation checkpoint are imple
 
 ## In Progress
 
-- Phase 19.9 keyframe cleanup and transformation tools is the next READY task.
+- Phase 19.9 now has selection-scoped redundant-key removal, bounded noise
+  reduction, and time-weighted smoothing in the existing command/history path.
+- Loop, reverse, and mirror remain.
 
 ## Not Started
 
@@ -295,5 +297,5 @@ IN_PROGRESS - Phase 19.1 through 19.8 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Inspect existing keyframe commands, then add deterministic cleanup/reduction
-without duplicating Dopesheet selection, history, or timeline authority.
+Add deterministic loop, reverse, and mirror transforms over the existing
+Dopesheet selection, then run the full persistence/production gate.

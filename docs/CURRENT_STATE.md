@@ -192,6 +192,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
   Idle, walk, run, crouch-walk, jump, landing, recoil, hit-reaction,
   sword-swing, and turn recipes create one reusable clip plus editable global
   bone keys in one history operation from localized Rig Studio controls.
+- Dopesheet selections support redundant-key removal, tolerance-based noise
+  reduction, and time-weighted value smoothing. Endpoints are preserved and
+  no-op cleanup does not enter history.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -214,7 +217,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 109 frontend test files and 493 passing tests.
+- 109 frontend test files and 496 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

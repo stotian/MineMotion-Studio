@@ -502,3 +502,17 @@ Do not persist generator settings, procedural nodes, caches, or a procedural
 timeline. Generated motion must become ordinary editable keyframes. Equal-frame
 application replaces the previous key so repeated generation is idempotent at
 the same playhead.
+
+## TD-038 - Keyframe tools operate on the existing Dopesheet selection
+
+Status: Accepted in Phase 19.9.
+
+Cleanup and transformation commands consume stable keyframe references from the
+current selection and return normal global tracks. They do not create a cleanup
+stack, modified clip format, or secondary timeline.
+
+Exact redundant removal is conservative around non-linear interpolation. Noise
+reduction is an explicit tolerance approximation. Both preserve track
+endpoints, recompute against current neighbors after each removal, and prune
+deleted references from selection. No-op results retain track identity so the
+UI can avoid empty history checkpoints.
