@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.8 with deterministic jump, landing, recoil, hit-reaction,
-sword-swing, and turn recipes over the completed procedural clip contract.
+Begin Phase 19.9 with deterministic keyframe cleanup and reduction over the
+existing Dopesheet selection and history commands.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -81,18 +81,20 @@ Preserve the local commits and push normally once authentication is restored.
 - Schema 10, guarded schema 9, package, autosave, history, migrations, and
   production sampling are regression-tested for layered animation.
 - A bounded ten-kind procedural contract and deterministic idle, walk, run, and
-  crouch-walk recipes generate one reusable clip plus editable global keys in
-  one history operation. Duration, intensity, cycles, and applicable direction
-  are localized Rig Studio controls.
+  crouch-walk, jump, landing, recoil, hit, sword, and turn recipes generate one
+  reusable clip plus editable global keys in one history operation.
+- Duration, intensity, cycles, and applicable direction are localized Rig
+  Studio controls. All kinds pass schema 10/9, package, autosave, history, and
+  production-sampling regressions.
 
 ## Unfinished Work
 
-- Phase 19.8-19.15 and phases 20-35 remain.
+- Phase 19.9-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Implement the six action recipes with bounded authored beats, direction-aware
-motion where relevant, editable output, and focused regressions.
+Inspect existing keyframe commands and selection contracts, then implement
+bounded redundant-key removal and noise reduction as atomic history edits.
 
 ## Tests To Run
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-IN_PROGRESS
+COMPLETE
 
 ## Contract and idle checkpoint
 
@@ -20,10 +20,12 @@ rotations bounded to 180 degrees. Invalid versions and accessor-bearing objects
 fail without invocation. Generator settings remain session controls rather than
 new project state.
 
-Available generators create idle breathing plus direction-aware walk, run, and
-crouch-walk loops. Locomotion recipes drive body/head counter-sway and opposing
-arm/leg motion, with distinct stride, lean, and amplitude profiles. All loops
-close exactly at their final key. One Rig Studio action:
+Available generators create idle breathing, direction-aware walk/run/crouch
+loops, jump, landing, recoil, hit reaction, sword swing, and turn motion.
+Locomotion recipes drive body/head counter-sway and opposing arm/leg motion,
+with distinct stride, lean, and amplitude profiles. All loops close exactly at
+their final key. Action recipes contain bounded authored anticipation, impact,
+recovery, and directional beats. One Rig Studio action:
 
 1. creates or updates one reusable deterministic clip;
 2. bakes its global `bone.rotation.*` tracks at the playhead;
@@ -35,14 +37,18 @@ Generated keys use normal interpolation and are immediately editable in the
 Dopesheet/Graph/timeline. Repeating the same generation replaces keys at equal
 frames and does not duplicate either the clip or frame keys.
 
-## Remaining
+## Persistence and production integration
 
-- add jump, landing, recoil, hit-reaction, sword-swing, and turn recipes;
-- complete persistence/export regression coverage for all generator kinds.
+All ten kinds round-trip their clips and global keys through schema 10, guarded
+schema 9, `.minemotion` package data, autosave, and history. The shared
+production sampler evaluates generated keys for viewport playback and export.
+Timeline extension updates both animation and project settings, avoiding
+save-time truncation. Signed zero is normalized so JSON round-trips remain
+strictly deterministic.
 
 ## Validation
 
-- Focused procedural/controller tests: 2 files, 7 tests.
-- Full frontend suite: 109 files, 491 tests.
-- Typecheck, localization, architecture, build, and audit pass.
+- Focused procedural/controller tests: 2 files, 9 tests.
+- Full frontend suite: 109 files, 493 tests.
+- Typecheck, localization, VFX examples, architecture, build, and audit pass.
 - `App.tsx` remains 2,678 lines.

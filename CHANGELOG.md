@@ -16,8 +16,9 @@
 - Evolved the existing NLA tracks into six bounded animation layers with scoped
   override/additive blending, mute/weight controls, shared production sampling,
   and VFX synchronization metadata.
-- Added the bounded procedural-animation contract and editable deterministic
-  idle, walk, run, and crouch-walk generators with localized Rig Studio controls.
+- Added ten bounded deterministic procedural rig generators for idle, locomotion,
+  jump/landing, recoil/hit, sword swing, and turn motion with editable outputs
+  and localized Rig Studio controls.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

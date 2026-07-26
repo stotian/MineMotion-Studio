@@ -114,14 +114,14 @@ the single timing and parameter authority.
 
 ## Procedural Animation
 
-Rig Studio can generate bounded looping idle-breathing, walk, run, and
-crouch-walk animation with duration, intensity, cycle, and applicable direction
-controls. The locomotion profiles drive opposing limbs plus body/head posture
-and close exactly. Settings are session-only. The result is both a reusable
-deterministic clip and ordinary global bone keys at the playhead, so it remains
-editable with the existing timeline, Dopesheet, and Graph tools. Repeating
-identical generation replaces equal-frame keys and one generation creates one
-history operation.
+Rig Studio can generate bounded idle-breathing, walk, run, crouch-walk, jump,
+landing, recoil, hit-reaction, sword-swing, and turn animation with duration,
+intensity, applicable cycle, and direction controls. Locomotion profiles drive
+opposing limbs plus body/head posture and close exactly; action profiles expose
+authored anticipation, impact, and recovery beats.
 
-Jump, landing, recoil, hit, sword, and turn recipes remain the active Phase 19.8
-work.
+Settings are session-only. The result is both a reusable deterministic clip and
+ordinary global bone keys at the playhead, so it remains editable with the
+existing timeline, Dopesheet, and Graph tools. Repeating identical generation
+replaces equal-frame keys and one generation creates one history operation.
+All kinds survive current project/package/autosave and schema 9 paths.

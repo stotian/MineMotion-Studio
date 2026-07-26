@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.8 - Editable procedural animation generators
+19.9 - Keyframe cleanup, retime, loop, reverse, and mirror
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.8 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -247,18 +247,17 @@ IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are imple
 - Phase 19.7 reuses `animation.nlaTracks` for six fixed layer kinds, samples
   them after global tracks in every production/tool path, exposes localized
   mute/weight/VFX-reference controls, and passes all persistence/history gates.
+- Phase 19.8 provides all ten bounded deterministic generators. Each produces
+  one reusable clip plus editable global keys through existing history, with
+  full save/package/autosave/schema 9 and production-sampling coverage.
 
 ## In Progress
 
-- Phase 19.8 has a bounded ten-kind pure contract plus deterministic idle, walk,
-  run, and crouch-walk recipes. Rig Studio duration/intensity/cycle/direction
-  controls create one reusable clip and editable global keys through one
-  history operation.
-- Jump, landing, recoil, hit reaction, sword swing, and turn are next.
+- Phase 19.9 keyframe cleanup and transformation tools is the next READY task.
 
 ## Not Started
 
-- Phase 19.8-19.15 and phases 20-35.
+- Phase 19.9-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -274,19 +273,19 @@ IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are imple
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed local checkpoint: `189aac3` (publication pending external
-  GitHub authentication).
+- Latest validated implementation checkpoint: `f4aec26` (publication pending
+  external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused layer/editor/motion/persistence tests: PASS - 4 files, 16 tests
-- `npm test`: PASS - 107 files, 484 tests
+- Focused procedural/controller tests: PASS - 2 files, 9 tests
+- `npm test`: PASS - 109 files, 493 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
-- `npm run build`: PASS - 1,853 modules; 1,445.14 kB known large chunk
+- `npm run build`: PASS - 1,855 modules; 1,458.95 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -296,5 +295,5 @@ IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Implement deterministic editable jump, landing, recoil, hit-reaction,
-sword-swing, and turn recipes through the completed clip/bake contract.
+Inspect existing keyframe commands, then add deterministic cleanup/reduction
+without duplicating Dopesheet selection, history, or timeline authority.
