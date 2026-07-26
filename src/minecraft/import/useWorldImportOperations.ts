@@ -26,7 +26,8 @@ import {
 } from "./WorldImportManager";
 import {
   createWorldImportProgress,
-  IDLE_WORLD_IMPORT_PROGRESS
+  IDLE_WORLD_IMPORT_PROGRESS,
+  isWorldImportInProgress
 } from "./WorldImportProgress";
 
 type ProjectCommit = (
@@ -345,6 +346,7 @@ export function useWorldImportOperations({
     scan,
     importOptions,
     progress,
+    isImporting: isWorldImportInProgress(progress),
     selectWorld,
     updateOptions,
     importChunks,

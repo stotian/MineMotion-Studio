@@ -16,3 +16,11 @@ export function createExportProgress(
     ...patch
   };
 }
+
+export function isExportInProgress(progress: ExportProgressState): boolean {
+  return (
+    progress.status === "preparing" ||
+    progress.status === "rendering" ||
+    progress.status === "encoding"
+  );
+}

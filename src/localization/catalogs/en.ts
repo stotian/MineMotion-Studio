@@ -1,5 +1,6 @@
 export const EN_TRANSLATIONS = Object.freeze({
   "common.close": "Close",
+  "common.loading": "Loading...",
   "common.enabled": "Enabled",
   "common.disabled": "Disabled",
   "common.none": "None",
@@ -918,6 +919,7 @@ export const EN_TRANSLATIONS = Object.freeze({
   "app.worldPreparing": "Preparing chunk import.",
   "app.worldImported": "Imported {chunks} chunks and {blocks} blocks from {name}.",
   "app.worldImportFailed": "Minecraft chunk import failed.",
+  "app.panelLoadFailed": "This panel could not be loaded.",
   "app.worldCancel": "World import cancellation requested.",
   "app.worldFocused": "Viewport focused on imported world.",
   "app.worldUnloaded": "Imported world unloaded; demo terrain restored.",

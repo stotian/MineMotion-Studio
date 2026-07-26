@@ -35,3 +35,15 @@ export function createWorldImportProgress(
     ...patch
   };
 }
+
+export function isWorldImportInProgress(
+  progress: WorldImportProgress
+): boolean {
+  return (
+    progress.status === "scanning" ||
+    progress.status === "reading-level" ||
+    progress.status === "reading-regions" ||
+    progress.status === "reading-chunks" ||
+    progress.status === "meshing"
+  );
+}

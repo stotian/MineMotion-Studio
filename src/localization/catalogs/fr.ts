@@ -2,6 +2,7 @@ import type { TranslationCatalog } from "./en";
 
 export const FR_TRANSLATIONS = Object.freeze({
   "common.close": "Fermer",
+  "common.loading": "Chargement...",
   "common.enabled": "Activé",
   "common.disabled": "Désactivé",
   "common.none": "Aucun",
@@ -920,6 +921,7 @@ export const FR_TRANSLATIONS = Object.freeze({
   "app.worldPreparing": "Préparation de l’import des chunks.",
   "app.worldImported": "{chunks} chunks et {blocks} blocs importés depuis {name}.",
   "app.worldImportFailed": "Échec de l’import des chunks Minecraft.",
+  "app.panelLoadFailed": "Ce panneau n’a pas pu être chargé.",
   "app.worldCancel": "Annulation de l’import du monde demandée.",
   "app.worldFocused": "Vue 3D cadrée sur le monde importé.",
   "app.worldUnloaded": "Monde importé déchargé ; terrain de démonstration restauré.",

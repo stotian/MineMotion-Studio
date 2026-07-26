@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AssetManager } from "./assets/AssetManager";
 import { ObjImporter } from "./assets/ObjImporter";
+import * as deferredWorkflows from "./workflows/DeferredWorkflowModules";
 import { createBuiltinAudioClip, createImportedAudioClip } from "./audio/AudioClip";
 import { useProjectAudioPlayback } from "./audio/useProjectAudioPlayback";
 import { BUILTIN_SFX, getBuiltinSfx } from "./audio/BuiltinSfxRegistry";
-import { exportProjectWav } from "./audio/export/AudioMixdown";
 import { addTransformKeyframes, setCurrentFrame } from "./animation/Timeline";
-import { CommandPalette } from "./commands/CommandPalette";
 import { createBuiltinCommands } from "./commands/BuiltinCommands";
 import {
   applyEffectTimelineCommand,
@@ -37,15 +36,13 @@ import {
   withFfmpegSettingsDefaults,
   type FfmpegSettings
 } from "./export/ffmpeg/FfmpegSettings";
-import { createExportProgress, IDLE_EXPORT_PROGRESS } from "./export/ExportProgress";
+import { createExportProgress, IDLE_EXPORT_PROGRESS, isExportInProgress } from "./export/ExportProgress";
 import {
   sanitizeOutputName,
   validateExportSettings,
   withExportSettingsDefaults
 } from "./export/ExportSettings";
 import type { ExportResult, ExportSettings } from "./export/ExportTypes";
-import { exportPngSequenceZip } from "./export/SequenceExporter";
-import { recordCapturedFramesWebM } from "./export/video/WebMRecorder";
 import { createRenderJob } from "./export/renderQueue/RenderJob";
 import {
   clearFinishedRenderJobs,
@@ -54,10 +51,8 @@ import {
   replaceRenderJob
 } from "./export/renderQueue/RenderQueue";
 import { RenderJobRunner } from "./export/renderQueue/RenderJobRunner";
-import { executeProductionRenderJob } from "./export/renderQueue/ProductionRenderExecutor";
 import { HistoryStack } from "./history/HistoryStack";
 import { useWorldImportOperations } from "./minecraft/import/useWorldImportOperations";
-import { ResourcePackImporter } from "./minecraft/resources/ResourcePackImporter";
 import type { MinecraftResourceSettings } from "./minecraft/resources/ResourcePackTypes";
 import {
   addEnvironmentKeyframe,
@@ -123,7 +118,6 @@ import { createRenderStateSnapshot } from "./rendering/export/RenderStateSnapsho
 import { restoreRenderState } from "./rendering/export/RenderStateRestore";
 import { type SkyPresetId } from "./renderer/SkySystem";
 import { Viewport } from "./renderer/Viewport";
-import { BlockbenchImporter } from "./rigs/blockbench/BlockbenchImporter";
 import { MinecraftSkinImporter } from "./rigs/MinecraftSkinImporter";
 import { getSelectedCharacterId, parseRigBoneSelection } from "./rigs/RigSelection";
 import { useRigWorkspaceController } from "./rigs/RigWorkspaceController";
@@ -132,18 +126,21 @@ import { SettingsStore, type AppSettings } from "./settings/AppSettings";
 import { templateRegistry } from "./templates/TemplateRegistry";
 import { TopBar } from "./ui/TopBar";
 import { EffectsLibraryPanel } from "./ui/effects/EffectsLibraryPanel";
-import { ExportPanel } from "./ui/export/ExportPanel";
-import { HelpPanel } from "./ui/help/HelpPanel";
 import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
-import { PluginManagerPanel } from "./ui/plugins/PluginManagerPanel";
-import { RigStudioPanel } from "./ui/rig/RigStudioPanel";
-import { LightingStudioPanel } from "./ui/lighting/LightingStudioPanel";
-import { SettingsModal } from "./ui/settings/SettingsModal";
-import { TemplatePicker } from "./ui/templates/TemplatePicker";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
-import { WorldImportPanel } from "./ui/world/WorldImportPanel";
-import { VfxWorkspacePanel } from "./ui/vfx/VfxWorkspacePanel";
+import {
+  CommandPalette,
+  ExportPanel,
+  HelpPanel,
+  LightingStudioPanel,
+  PluginManagerPanel,
+  RigStudioPanel,
+  SettingsModal,
+  TemplatePicker,
+  VfxWorkspacePanel,
+  WorldImportPanel
+} from "./ui/deferred/DeferredPanelRegistry";
 
 export function App() {
   const [settings, setSettings] = useState<AppSettings>(() =>
@@ -391,13 +388,12 @@ export function App() {
     },
     [setProject]
   );
-  const requestWorldFocus = useCallback(() => {
-    setFocusWorldRequest((value) => value + 1);
-  }, []);
+  const requestWorldFocus = useCallback(() => setFocusWorldRequest((value) => value + 1), []);
   const {
     scan: worldScan,
     importOptions: worldImportOptions,
     progress: worldImportProgress,
+    isImporting: isWorldImporting,
     selectWorld: handleWorldSelected,
     updateOptions: handleWorldImportOptionsChange,
     importChunks: handleImportWorldChunks,
@@ -745,6 +741,8 @@ export function App() {
     if (!file) return;
 
     try {
+      const { BlockbenchImporter } =
+        await deferredWorkflows.loadBlockbenchImporter();
       const imported = await BlockbenchImporter.fromFile(file);
       let createdObjectId = "";
       commitProject(
@@ -1098,6 +1096,8 @@ export function App() {
 
       const runner = renderJobRunnerRef.current;
       try {
+        const { executeProductionRenderJob } =
+          await deferredWorkflows.loadProductionRenderExecutor();
         const finalJob = await runner.run(
           job,
           async (context) =>
@@ -1239,6 +1239,8 @@ export function App() {
 
     try {
       const viewportShell = getViewportShell();
+      const { exportPngSequenceZip } =
+        await deferredWorkflows.loadSequenceExporter();
       const result = await exportPngSequenceZip({
         settings,
         onProgress: setExportProgress,
@@ -1303,6 +1305,8 @@ export function App() {
 
     try {
       const viewportShell = getViewportShell();
+      const { recordCapturedFramesWebM } =
+        await deferredWorkflows.loadWebMRecorder();
       const blob = await recordCapturedFramesWebM({
         startFrame: settings.startFrame,
         endFrame: settings.endFrame,
@@ -1369,6 +1373,8 @@ export function App() {
     );
 
     try {
+      const { exportProjectWav } =
+        await deferredWorkflows.loadAudioMixdown();
       const blob = await exportProjectWav(project, {
         startFrame: project.exportSettings.startFrame,
         endFrame: project.exportSettings.endFrame
@@ -1719,6 +1725,8 @@ export function App() {
     event.target.value = "";
     if (!file) return;
     try {
+      const { ResourcePackImporter } =
+        await deferredWorkflows.loadResourcePackImporter();
       const pack = await ResourcePackImporter.importZip(file);
       commitProject(
         (currentProject) => ({
@@ -1750,6 +1758,8 @@ export function App() {
     event.target.value = "";
     if (!files || files.length === 0) return;
     try {
+      const { ResourcePackImporter } =
+        await deferredWorkflows.loadResourcePackImporter();
       const pack = await ResourcePackImporter.importFolder(files);
       commitProject(
         (currentProject) => ({
@@ -2278,11 +2288,7 @@ export function App() {
         open={exportOpen}
         project={project}
         progress={exportProgress}
-        isExporting={
-          exportProgress.status === "preparing" ||
-          exportProgress.status === "rendering" ||
-          exportProgress.status === "encoding"
-        }
+        isExporting={isExportInProgress(exportProgress)}
         ffmpegDetection={ffmpegDetection}
         onClose={() => setExportOpen(false)}
         onSettingsChange={handleExportSettingsChange}
@@ -2351,13 +2357,7 @@ export function App() {
         project={project}
         options={worldImportOptions}
         progress={worldImportProgress}
-        isImporting={
-          worldImportProgress.status === "scanning" ||
-          worldImportProgress.status === "reading-level" ||
-          worldImportProgress.status === "reading-regions" ||
-          worldImportProgress.status === "reading-chunks" ||
-          worldImportProgress.status === "meshing"
-        }
+        isImporting={isWorldImporting}
         onClose={() => setWorldImportOpen(false)}
         onChooseWorldFolder={handleChooseWorldFolder}
         onOptionsChange={handleWorldImportOptionsChange}
