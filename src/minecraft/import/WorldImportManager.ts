@@ -1,5 +1,4 @@
 import type { ImportedWorldSummary } from "../../project/ProjectFile";
-import { ChunkReader } from "./ChunkReader";
 import { MinecraftWorldScanner } from "./MinecraftWorldScanner";
 import type {
   ImportedChunkData,
@@ -11,9 +10,8 @@ import type {
   WorldRenderOptions
 } from "./MinecraftChunkTypes";
 import { McaFileReader } from "./McaFileReader";
-import { decompressMcaPayload } from "./AnvilRegionReader";
-import { NbtReader } from "./NbtReader";
 import { createWorldImportProgress, type WorldImportProgress } from "./WorldImportProgress";
+import { WorldChunkDecodeClient } from "./WorldChunkDecodeClient";
 
 export interface WorldChunkImportOptions {
   dimension: MinecraftDimensionId;
@@ -127,6 +125,7 @@ export class WorldImportManager {
     const warnings = [...scan.warnings];
     const unknownBlockMappings: Record<string, string> = {};
     let totalCandidates = Math.max(1, importOptions.maxChunks);
+    const chunkDecoder = new WorldChunkDecodeClient();
 
     onProgress(
       createWorldImportProgress({
@@ -136,83 +135,86 @@ export class WorldImportManager {
       })
     );
 
-    for (const [regionIndex, region] of selectedRegions.entries()) {
-      if (isCancelled()) {
-        throw new Error("World import cancelled.");
-      }
-
-      try {
-        const buffer = await region.file.arrayBuffer();
-        const header = McaFileReader.readHeader(
-          buffer,
-          region.regionX ?? 0,
-          region.regionZ ?? 0
-        );
-        const locations = chooseChunkLocations(header.locations, importOptions);
-        totalCandidates = Math.max(totalCandidates, locations.length);
-
-        for (const [chunkIndex, location] of locations.entries()) {
-          if (isCancelled()) {
-            throw new Error("World import cancelled.");
-          }
-          if (chunks.length >= importOptions.maxChunks) break;
-
-          onProgress(
-            createWorldImportProgress({
-              status: "reading-chunks",
-              current: chunks.length + 1,
-              total: importOptions.maxChunks,
-              message: `Reading chunk ${location.chunkX}, ${location.chunkZ}.`
-            })
-          );
-
-          try {
-            const payload = McaFileReader.readChunkPayload(buffer, location);
-            const decompressed = await decompressMcaPayload(
-              payload.data,
-              payload.compressionType
-            );
-            const tag = NbtReader.parseUncompressed(decompressed);
-            const chunk = ChunkReader.readChunk({
-              tag,
-              dimension: importOptions.dimension,
-              fallbackChunkX: location.chunkX,
-              fallbackChunkZ: location.chunkZ,
-              regionX: header.regionX,
-              regionZ: header.regionZ,
-              maxVerticalSections: importOptions.maxVerticalSections
-            });
-            chunks.push(chunk);
-            for (const name of Object.keys(chunk.unknownBlocks)) {
-              unknownBlockMappings[name] = "unknown";
-            }
-            warnings.push(...chunk.warnings);
-          } catch (error) {
-            warnings.push(
-              error instanceof Error
-                ? `Chunk ${location.chunkX},${location.chunkZ}: ${error.message}`
-                : `Chunk ${location.chunkX},${location.chunkZ}: unreadable chunk.`
-            );
-          }
-
-          await yieldToBrowser();
+    try {
+      for (const [regionIndex, region] of selectedRegions.entries()) {
+        if (isCancelled()) {
+          throw new Error("World import cancelled.");
         }
-      } catch (error) {
-        warnings.push(
-          error instanceof Error
-            ? `Region ${region.path}: ${error.message}`
-            : `Region ${region.path}: unreadable region.`
+
+        try {
+          const buffer = await region.file.arrayBuffer();
+          const header = McaFileReader.readHeader(
+            buffer,
+            region.regionX ?? 0,
+            region.regionZ ?? 0
+          );
+          const locations = chooseChunkLocations(
+            header.locations,
+            importOptions
+          );
+          totalCandidates = Math.max(totalCandidates, locations.length);
+
+          for (const location of locations) {
+            if (isCancelled()) {
+              throw new Error("World import cancelled.");
+            }
+            if (chunks.length >= importOptions.maxChunks) break;
+
+            onProgress(
+              createWorldImportProgress({
+                status: "reading-chunks",
+                current: chunks.length + 1,
+                total: importOptions.maxChunks,
+                message: `Reading chunk ${location.chunkX}, ${location.chunkZ}.`
+              })
+            );
+
+            try {
+              const payload = McaFileReader.readChunkPayload(buffer, location);
+              const chunk = await chunkDecoder.decode({
+                compressedData: payload.data,
+                compressionType: payload.compressionType,
+                dimension: importOptions.dimension,
+                fallbackChunkX: location.chunkX,
+                fallbackChunkZ: location.chunkZ,
+                regionX: header.regionX,
+                regionZ: header.regionZ,
+                maxVerticalSections: importOptions.maxVerticalSections
+              });
+              chunks.push(chunk);
+              for (const name of Object.keys(chunk.unknownBlocks)) {
+                unknownBlockMappings[name] = "unknown";
+              }
+              warnings.push(...chunk.warnings);
+            } catch (error) {
+              warnings.push(
+                error instanceof Error
+                  ? `Chunk ${location.chunkX},${location.chunkZ}: ${error.message}`
+                  : `Chunk ${location.chunkX},${location.chunkZ}: unreadable chunk.`
+              );
+            }
+
+            await yieldToBrowser();
+          }
+        } catch (error) {
+          warnings.push(
+            error instanceof Error
+              ? `Region ${region.path}: ${error.message}`
+              : `Region ${region.path}: unreadable region.`
+          );
+        }
+
+        onProgress(
+          createWorldImportProgress({
+            status: "reading-regions",
+            current: regionIndex + 1,
+            total: selectedRegions.length,
+            message: `Finished region ${region.path}.`
+          })
         );
       }
-
-      onProgress(
-        createWorldImportProgress({
-          status: "reading-regions",
-          current: regionIndex + 1,
-          total: selectedRegions.length,
-          message: `Finished region ${region.path}.`
-        })
-      );
+    } finally {
+      chunkDecoder.dispose();
     }
 
     const importedBlocks = chunks.reduce(
