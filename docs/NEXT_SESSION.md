@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.9 by measuring NBT/MCA, chunk mesh, atlas, package, and
-thumbnail workloads, then moving the first justified structured-clone-safe
-boundary to a worker with deterministic fallback and error behavior.
+Implement Phase 20.10 by threading AbortSignal and public operation IDs through
+world scan/import and the worker client, terminating active work promptly, and
+proving stale asynchronous results cannot overwrite a newer operation.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -162,16 +162,22 @@ Preserve the local commits and push normally once authentication is restored.
   clones share only cache-owned immutable resources, while hiding/removal/
   replacement/shutdown prune them. Chunk cache replacement/delete/clear now
   disposes full owned trees even though that cache remains inactive.
+- Phase 20.9 moves decompression, NBT, palette/section decoding, and plain chunk
+  construction to one reusable world-import worker. Payload copies transfer
+  without detaching the MCA region, and bootstrap failure uses the identical
+  main-thread decoder.
+- The closed audit keeps fixed MCA headers bounded, Three.js/DOM work on safe
+  owners, archives bounded, and thumbnails on their cancellable idle scheduler.
 
 ## Unfinished Work
 
-- Phase 20 tasks 9-17 and phases 21-35 remain.
+- Phase 20 tasks 10-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Profile the listed heavy pure operations and map input/output cloneability.
-Choose one workload with meaningful main-thread cost, add a worker protocol and
-fallback, and prove byte/data equivalence plus failure behavior before expanding.
+Add an abort-aware operation contract to world import and worker requests.
+Cancel/terminate active decoding, ignore mismatched/late replies, and integrate
+the App controller so only the latest operation may commit project/history state.
 
 ## Tests To Run
 

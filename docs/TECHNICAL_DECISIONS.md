@@ -768,3 +768,18 @@ Do not activate the dormant chunk-tree cache as a performance optimization
 without Phase 20 benchmark evidence. Its ownership contract must nevertheless
 dispose replacements/deletes/clear operations rather than merely detaching
 children.
+
+## TD-053 - Transfer only clone-safe chunk decoding to a worker
+
+Status: Accepted in Phase 20.9.
+
+Keep fixed-size MCA header selection on the main thread and transfer a copied
+compressed chunk payload to one worker reused by the import. Run decompression,
+NBT parsing, palette/section decoding, and `ImportedChunkData` construction
+through the same `decodeWorldChunk` function used by the main-thread fallback.
+
+Preserve the original region view for bootstrap fallback. Retry infrastructure
+failure, but do not retry a deterministic invalid-data response. Terminate the
+worker with its import owner. Do not move Three.js, DOM canvas/image work,
+bounded archives, or already-cancellable idle thumbnails without compatibility
+and measurement evidence.

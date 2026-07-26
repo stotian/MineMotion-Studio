@@ -376,3 +376,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
   renderer-owned. Visible consumers drive lazy OBJ/skin retention; persistent
   project payloads remain authoritative and every cached GPU resource has one
   invalidation/shutdown owner.
+- Phase 20.9 transfers compressed chunk copies to one import-owned module worker
+  for decompression/NBT/palette decoding. The same pure decoder is the
+  deterministic fallback; DOM, Three.js, bounded archive, and idle thumbnail
+  paths stay on their justified owners.

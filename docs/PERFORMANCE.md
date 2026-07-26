@@ -134,3 +134,28 @@ plain project data. Playback/capture operations own their temporary media
 objects, and scene/VFX owners manage GPU resources. The unused chunk mesh cache
 also disposes replaced, deleted, and cleared trees completely before any future
 runtime activation.
+
+## Worker boundary
+
+World import keeps the fixed 8 KiB MCA location/timestamp table on the main
+thread, then transfers a copy of each selected compressed chunk payload to one
+module worker reused for the import. Decompression, NBT parsing, palette/section
+decoding, and plain `ImportedChunkData` construction run there.
+
+The worker and fallback call the same `decodeWorldChunk` function. If workers
+are unavailable, construction throws, or bootstrap fails, the untouched MCA
+source view is decoded on the main thread. Invalid chunk data preserves its
+error rather than being silently retried. Vite emits the worker separately
+(7.55 kB in the Phase 20.9 build).
+
+The Phase 20.9 audit leaves these bounded paths unchanged:
+
+- MCA header selection is fixed-size and required before payload transfer;
+- Three.js mesh creation stays on the renderer thread until scene rebuild is
+  asynchronous;
+- the unused atlas builder requires DOM `Image`/canvas and lacks a proven
+  OffscreenCanvas compatibility gate;
+- package archives remain explicit and size/count bounded without evidence for
+  a worker threshold;
+- generated SVG thumbnails remain capped, cached, cancellable, and scheduled
+  one at a time during idle work.

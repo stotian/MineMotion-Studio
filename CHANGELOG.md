@@ -53,6 +53,8 @@
 - Made Minecraft material/texture, skin, and parsed OBJ caches renderer-owned;
   OBJ templates now load lazily, clone safely, and prune with visible consumers.
 - Fixed replacement/delete/clear disposal in the dormant chunk mesh cache.
+- Added a reusable Minecraft chunk-decoding worker with transferable payloads,
+  deterministic main-thread fallback, and a closed worker-workload audit.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

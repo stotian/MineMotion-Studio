@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.9 - Safe worker extraction
+20.10 - Abort, operation IDs, and stale-result protection
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.8 measurement, renderer optimization, VFX pooling, and instance-safe asset ownership are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.9 measurement, renderer optimization, asset ownership, and safe chunk worker extraction are implemented and validated.
 
 ## Completed
 
@@ -343,15 +343,21 @@ IN_PROGRESS - Phase 20.1-20.8 measurement, renderer optimization, VFX pooling, a
   change, removal, hiding, and shutdown dispose exactly once.
 - The dormant chunk mesh cache remains inactive but now disposes replaced,
   deleted, and cleared object trees with aggregate lifecycle counters.
+- Phase 20.9 transfers compressed chunk copies to one reusable import worker for
+  decompression, NBT, palette/section decoding, and plain chunk construction.
+  The original region remains intact for deterministic bootstrap fallback.
+- A typed audit keeps fixed MCA headers bounded on main, Three.js mesh work on
+  the renderer, DOM atlas work deferred, archives bounded, and thumbnails on
+  their existing cancellable idle scheduler.
 
 ## In Progress
 
-- Audit Phase 20.9 NBT/MCA, mesh, atlas, package, and thumbnail workloads for
-  structured-clone safety and extract the first justified operation to a worker.
+- Implement Phase 20.10 AbortSignal, public operation IDs, active-worker
+  cancellation, and stale-result suppression across asynchronous imports.
 
 ## Not Started
 
-- Phase 20 tasks 9-17 and phases 21-35.
+- Phase 20 tasks 10-17 and phases 21-35.
 
 ## Blockers
 
@@ -367,21 +373,20 @@ IN_PROGRESS - Phase 20.1-20.8 measurement, renderer optimization, VFX pooling, a
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed checkpoint: `314743d` (Phase 20.8 cache disposal follow-up;
-  primary implementation `f49aba5`).
-- Latest validated implementation checkpoint: Phase 20.8 local milestone
+- Latest committed checkpoint: `c94d371` (Phase 20.9 worker extraction).
+- Latest validated implementation checkpoint: Phase 20.9 local milestone
   (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.8 asset/cache lifecycle tests: PASS - 5 files, 17 tests
-- `npm test`: PASS - 133 files, 573 tests
+- Focused Phase 20.9 worker/NBT/MCA tests: PASS - 5 files, 11 tests
+- `npm test`: PASS - 136 files, 582 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,642/2,839 lines
-- `npm run build`: PASS - 1,882 modules; 1,537.22 kB known large chunk
+- `npm run build`: PASS - 1,884 modules; 1,539.40 kB main plus 7.55 kB worker
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -391,6 +396,6 @@ IN_PROGRESS - Phase 20.1-20.8 measurement, renderer optimization, VFX pooling, a
 
 ## Next Exact Action
 
-Measure NBT/MCA parsing, chunk mesh preparation, atlas creation, package work,
-and thumbnail generation. Select only a structured-clone-safe heavy boundary,
-preserve deterministic results/progress/errors, and keep a tested fallback.
+Thread AbortSignal and a public operation ID through world scan/import and the
+worker client. Terminate active work promptly, reject stale replies, and ensure
+an older import can never overwrite a newer project result.
