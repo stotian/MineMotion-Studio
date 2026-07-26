@@ -53,6 +53,10 @@ export function bakeProceduralAnimation(
   );
   const next = syncCinematicTimeline({
     ...project,
+    projectSettings: {
+      ...project.projectSettings,
+      durationFrames: Math.max(project.projectSettings.durationFrames, endFrame)
+    },
     animation: {
       ...project.animation,
       durationFrames: Math.max(project.animation.durationFrames, endFrame),

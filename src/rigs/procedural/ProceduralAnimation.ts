@@ -56,14 +56,24 @@ export const PROCEDURAL_ANIMATION_LIMITS = Object.freeze({
 });
 
 export const AVAILABLE_PROCEDURAL_ANIMATION_KINDS =
-  Object.freeze([
-    "idle",
-    "walk",
-    "run",
-    "crouch"
-  ] as const satisfies readonly ProceduralAnimationKind[]);
+  PROCEDURAL_ANIMATION_KINDS;
 
 const KIND_SET = new Set<ProceduralAnimationKind>(PROCEDURAL_ANIMATION_KINDS);
+const LOOP_KINDS = new Set<ProceduralAnimationKind>([
+  "idle",
+  "walk",
+  "run",
+  "crouch"
+]);
+const DIRECTIONAL_KINDS = new Set<ProceduralAnimationKind>([
+  "walk",
+  "run",
+  "crouch",
+  "recoil",
+  "hitReaction",
+  "swordSwing",
+  "turn"
+]);
 const DEFAULT_DURATION: Record<ProceduralAnimationKind, number> = {
   idle: 48,
   walk: 32,
@@ -102,7 +112,7 @@ export function createDefaultProceduralAnimationSettings(
     kind,
     durationFrames: DEFAULT_DURATION[kind],
     intensity: 1,
-    cycles: kind === "idle" ? 1 : 2,
+    cycles: kind === "walk" || kind === "run" || kind === "crouch" ? 2 : 1,
     direction: 1
   };
 }
@@ -140,8 +150,10 @@ export function sanitizeProceduralAnimationSettings(
       PROCEDURAL_ANIMATION_LIMITS.maximumIntensity,
       1
     ),
-    cycles: boundedInteger(record.cycles, 1, maximumCycles, 1),
-    direction: record.direction === -1 ? -1 : 1
+    cycles: LOOP_KINDS.has(kind)
+      ? boundedInteger(record.cycles, 1, maximumCycles, 1)
+      : 1,
+    direction: DIRECTIONAL_KINDS.has(kind) && record.direction === -1 ? -1 : 1
   };
 }
 
@@ -272,6 +284,12 @@ function generateAvailableKind(
       headPitch: -10
     });
   }
+  if (settings.kind === "jump") return generateJump(settings);
+  if (settings.kind === "landing") return generateLanding(settings);
+  if (settings.kind === "recoil") return generateRecoil(settings);
+  if (settings.kind === "hitReaction") return generateHitReaction(settings);
+  if (settings.kind === "swordSwing") return generateSwordSwing(settings);
+  if (settings.kind === "turn") return generateTurn(settings);
   return [];
 }
 
@@ -330,6 +348,264 @@ function generateLocomotion(
   ];
 }
 
+interface ProceduralPose {
+  amount: number;
+  bones: Record<string, Vector3Tuple>;
+}
+
+function generateJump(
+  settings: ProceduralAnimationSettings
+): GeneratedBoneTrack[] {
+  return poseSequence(settings, [
+    pose(0, {
+      body: [12, 0, 0],
+      head: [4, 0, 0],
+      leftArm: [8, 0, -8],
+      rightArm: [8, 0, 8],
+      leftLeg: [-24, 0, -4],
+      rightLeg: [-24, 0, 4]
+    }),
+    pose(0.25, {
+      body: [-10, 0, 0],
+      head: [-5, 0, 0],
+      leftArm: [-44, 0, -16],
+      rightArm: [-44, 0, 16],
+      leftLeg: [24, 0, -4],
+      rightLeg: [16, 0, 4]
+    }),
+    pose(0.68, {
+      body: [-6, 0, 0],
+      head: [-3, 0, 0],
+      leftArm: [-30, 0, -12],
+      rightArm: [-30, 0, 12],
+      leftLeg: [18, 0, -6],
+      rightLeg: [26, 0, 6]
+    }),
+    neutralPose(1, [
+      "body",
+      "head",
+      "leftArm",
+      "rightArm",
+      "leftLeg",
+      "rightLeg"
+    ])
+  ]);
+}
+
+function generateLanding(
+  settings: ProceduralAnimationSettings
+): GeneratedBoneTrack[] {
+  return poseSequence(settings, [
+    pose(0, {
+      body: [-5, 0, 0],
+      head: [-2, 0, 0],
+      leftArm: [-24, 0, -12],
+      rightArm: [-24, 0, 12],
+      leftLeg: [12, 0, -4],
+      rightLeg: [12, 0, 4]
+    }),
+    pose(0.3, {
+      body: [24, 0, 0],
+      head: [10, 0, 0],
+      leftArm: [24, 0, -18],
+      rightArm: [24, 0, 18],
+      leftLeg: [-34, 0, -8],
+      rightLeg: [-34, 0, 8]
+    }),
+    pose(0.65, {
+      body: [10, 0, 0],
+      head: [4, 0, 0],
+      leftArm: [8, 0, -10],
+      rightArm: [8, 0, 10],
+      leftLeg: [-12, 0, -3],
+      rightLeg: [-12, 0, 3]
+    }),
+    neutralPose(1, [
+      "body",
+      "head",
+      "leftArm",
+      "rightArm",
+      "leftLeg",
+      "rightLeg"
+    ])
+  ]);
+}
+
+function generateRecoil(
+  settings: ProceduralAnimationSettings
+): GeneratedBoneTrack[] {
+  const direction = settings.direction;
+  return poseSequence(settings, [
+    pose(0, {
+      body: [4, 8 * direction, 0],
+      head: [-2, -6 * direction, 0],
+      rightArm: [-78, -10 * direction, 12 * direction],
+      rightForearm: [-34, 0, 0],
+      leftArm: [-48, 10 * direction, -8 * direction]
+    }),
+    pose(0.28, {
+      body: [-12, -8 * direction, -5 * direction],
+      head: [-10, 10 * direction, 3 * direction],
+      rightArm: [-112, 18 * direction, 22 * direction],
+      rightForearm: [-58, 0, 0],
+      leftArm: [-70, -8 * direction, -16 * direction]
+    }),
+    pose(0.62, {
+      body: [-2, 4 * direction, 0],
+      head: [-4, -3 * direction, 0],
+      rightArm: [-90, -4 * direction, 14 * direction],
+      rightForearm: [-42, 0, 0],
+      leftArm: [-54, 5 * direction, -10 * direction]
+    }),
+    pose(1, {
+      body: [4, 8 * direction, 0],
+      head: [-2, -6 * direction, 0],
+      rightArm: [-78, -10 * direction, 12 * direction],
+      rightForearm: [-34, 0, 0],
+      leftArm: [-48, 10 * direction, -8 * direction]
+    })
+  ]);
+}
+
+function generateHitReaction(
+  settings: ProceduralAnimationSettings
+): GeneratedBoneTrack[] {
+  const direction = settings.direction;
+  return poseSequence(settings, [
+    neutralPose(0, [
+      "body",
+      "head",
+      "leftArm",
+      "rightArm",
+      "leftLeg",
+      "rightLeg"
+    ]),
+    pose(0.35, {
+      body: [-16, 18 * direction, 10 * direction],
+      head: [-22, -24 * direction, -8 * direction],
+      leftArm: [-38, 8 * direction, -22],
+      rightArm: [-38, 8 * direction, 22],
+      leftLeg: [8, 0, -5 * direction],
+      rightLeg: [-8, 0, 5 * direction]
+    }),
+    pose(0.7, {
+      body: [-6, 6 * direction, 3 * direction],
+      head: [-8, -8 * direction, -2 * direction],
+      leftArm: [-14, 2 * direction, -12],
+      rightArm: [-14, 2 * direction, 12],
+      leftLeg: [3, 0, -2 * direction],
+      rightLeg: [-3, 0, 2 * direction]
+    }),
+    neutralPose(1, [
+      "body",
+      "head",
+      "leftArm",
+      "rightArm",
+      "leftLeg",
+      "rightLeg"
+    ])
+  ]);
+}
+
+function generateSwordSwing(
+  settings: ProceduralAnimationSettings
+): GeneratedBoneTrack[] {
+  const direction = settings.direction;
+  return poseSequence(settings, [
+    pose(0, {
+      body: [0, -20 * direction, 0],
+      head: [-6, -16 * direction, 0],
+      rightArm: [-98, 14 * direction, 26 * direction],
+      rightForearm: [-42, 0, 0],
+      leftArm: [8, 0, -10]
+    }),
+    pose(0.42, {
+      body: [0, 24 * direction, 0],
+      head: [-8, 18 * direction, 0],
+      rightArm: [-34, -20 * direction, -48 * direction],
+      rightForearm: [-12, 0, 0],
+      leftArm: [-8, 0, -12]
+    }),
+    pose(0.72, {
+      body: [2, 10 * direction, 0],
+      head: [-4, 8 * direction, 0],
+      rightArm: [-12, -8 * direction, -18 * direction],
+      rightForearm: [-4, 0, 0],
+      leftArm: [0, 0, -8]
+    }),
+    neutralPose(1, [
+      "body",
+      "head",
+      "rightArm",
+      "rightForearm",
+      "leftArm"
+    ])
+  ]);
+}
+
+function generateTurn(
+  settings: ProceduralAnimationSettings
+): GeneratedBoneTrack[] {
+  const direction = settings.direction;
+  return poseSequence(settings, [
+    pose(0, {
+      root: [0, 0, 0],
+      body: [0, 0, 0],
+      head: [0, 24 * direction, 0]
+    }),
+    pose(0.35, {
+      root: [0, 28 * direction, 0],
+      body: [0, 16 * direction, 0],
+      head: [0, 18 * direction, 0]
+    }),
+    pose(0.7, {
+      root: [0, 68 * direction, 0],
+      body: [0, 12 * direction, 0],
+      head: [0, 8 * direction, 0]
+    }),
+    pose(1, {
+      root: [0, 90 * direction, 0],
+      body: [0, 0, 0],
+      head: [0, 0, 0]
+    })
+  ]);
+}
+
+function poseSequence(
+  settings: ProceduralAnimationSettings,
+  poses: ProceduralPose[]
+): GeneratedBoneTrack[] {
+  const boneIds = [...new Set(poses.flatMap((entry) =>
+    Object.keys(entry.bones)
+  ))];
+  return boneIds.map((boneId) =>
+    boneTrack(boneId, poses.map((entry) => [
+      Math.round(entry.amount * settings.durationFrames),
+      (entry.bones[boneId] ?? [0, 0, 0]).map((component) =>
+        component * settings.intensity
+      ) as Vector3Tuple
+    ]))
+  );
+}
+
+function pose(
+  amount: number,
+  bones: Record<string, Vector3Tuple>
+): ProceduralPose {
+  return { amount, bones };
+}
+
+function neutralPose(amount: number, boneIds: string[]): ProceduralPose {
+  return pose(amount, Object.fromEntries(boneIds.map((boneId) => [
+    boneId,
+    boneId === "leftArm"
+      ? [0, 0, -8]
+      : boneId === "rightArm"
+        ? [0, 0, 8]
+        : [0, 0, 0]
+  ])));
+}
+
 function boneTrack(
   boneId: string,
   keyframes: Array<[number, Vector3Tuple]>
@@ -367,9 +643,10 @@ function boundedNumber(
   maximum: number,
   fallback: number
 ): number {
-  return typeof value === "number" && Number.isFinite(value)
+  const bounded = typeof value === "number" && Number.isFinite(value)
     ? Math.min(maximum, Math.max(minimum, value))
     : fallback;
+  return Object.is(bounded, -0) ? 0 : bounded;
 }
 
 function boundedInteger(

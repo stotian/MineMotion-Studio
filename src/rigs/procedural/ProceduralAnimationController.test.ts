@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { HistoryStack } from "../../history/HistoryStack";
+import {
+  loadProjectAutosave,
+  saveProjectAutosave
+} from "../../project/ProjectAutosave";
 import { ProjectSerializer } from "../../project/ProjectSerializer";
 import { createInitialProject } from "../../project/ProjectStore";
+import { createMineMotionPackageData } from "../../project/package/MineMotionPackage";
+import { PackageReader } from "../../project/package/PackageReader";
+import { sampleProjectAnimationWithVfxTiming } from "../../vfx/runtime/VfxAnimationSampling";
 import {
-  createDefaultProceduralAnimationSettings
+  createDefaultProceduralAnimationSettings,
+  PROCEDURAL_ANIMATION_KINDS
 } from "./ProceduralAnimation";
 import { bakeProceduralAnimation } from "./ProceduralAnimationController";
 
@@ -77,5 +85,58 @@ describe("procedural animation baking", () => {
       changed: false,
       error: expect.stringContaining("TARGET_LOCKED")
     });
+  });
+
+  it("preserves every generator through save, package, autosave, schema 9, and production sampling", () => {
+    let project = createInitialProject();
+    const targetId = project.scene.characters[0].id;
+    let startFrame = 0;
+    for (const kind of PROCEDURAL_ANIMATION_KINDS) {
+      project = {
+        ...project,
+        animation: { ...project.animation, currentFrame: startFrame }
+      };
+      const result = bakeProceduralAnimation(
+        project,
+        targetId,
+        createDefaultProceduralAnimationSettings(kind)
+      );
+      expect(result.changed).toBe(true);
+      project = result.project;
+      startFrame += result.project.animation.clips.at(-1)!.durationFrames + 2;
+    }
+    expect(project.animation.clips).toHaveLength(
+      PROCEDURAL_ANIMATION_KINDS.length
+    );
+
+    const reloaded = ProjectSerializer.parse(ProjectSerializer.serialize(project));
+    const packaged = PackageReader.parse(
+      JSON.stringify(createMineMotionPackageData(project))
+    );
+    const schema9 = ProjectSerializer.parse(
+      ProjectSerializer.serializeLegacyV9(project)
+    );
+    for (const candidate of [reloaded, packaged, schema9]) {
+      expect(candidate.animation.clips.map((clip) => clip.name)).toEqual(
+        project.animation.clips.map((clip) => clip.name)
+      );
+      expect(candidate.animation.tracks).toEqual(project.animation.tracks);
+    }
+
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        values.set(key, value);
+      }
+    };
+    saveProjectAutosave(storage, project);
+    expect(loadProjectAutosave(storage)?.project.animation.clips).toEqual(
+      reloaded.animation.clips
+    );
+
+    const sampled = sampleProjectAnimationWithVfxTiming(project, 24);
+    expect(sampled.scene.characters[0].boneRotations.body[0])
+      .toBeGreaterThan(0);
   });
 });

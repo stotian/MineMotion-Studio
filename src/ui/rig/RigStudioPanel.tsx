@@ -260,23 +260,25 @@ export function RigStudioPanel({
                   }
                 />
               </label>
-              <label>
-                <span>{t("rig.procedural.cycles")}</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={PROCEDURAL_ANIMATION_LIMITS.maximumCycles}
-                  step={1}
-                  value={proceduralSettings.cycles}
-                  onChange={(event) =>
-                    setProceduralSettings((current) => ({
-                      ...current,
-                      cycles: event.target.valueAsNumber
-                    }))
-                  }
-                />
-              </label>
-              {proceduralSettings.kind !== "idle" && (
+              {proceduralKindUsesCycles(proceduralSettings.kind) && (
+                <label>
+                  <span>{t("rig.procedural.cycles")}</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={PROCEDURAL_ANIMATION_LIMITS.maximumCycles}
+                    step={1}
+                    value={proceduralSettings.cycles}
+                    onChange={(event) =>
+                      setProceduralSettings((current) => ({
+                        ...current,
+                        cycles: event.target.valueAsNumber
+                      }))
+                    }
+                  />
+                </label>
+              )}
+              {proceduralKindUsesDirection(proceduralSettings.kind) && (
                 <div className="info-row">
                   <label htmlFor="rig-procedural-direction">
                     {t("rig.procedural.direction")}
@@ -677,7 +679,29 @@ function proceduralKindLabel(
   if (kind === "walk") return t("rig.procedural.walk");
   if (kind === "run") return t("rig.procedural.run");
   if (kind === "crouch") return t("rig.procedural.crouch");
+  if (kind === "jump") return t("rig.procedural.jump");
+  if (kind === "landing") return t("rig.procedural.landing");
+  if (kind === "recoil") return t("rig.procedural.recoil");
+  if (kind === "hitReaction") return t("rig.procedural.hitReaction");
+  if (kind === "swordSwing") return t("rig.procedural.swordSwing");
+  if (kind === "turn") return t("rig.procedural.turn");
   return kind;
+}
+
+function proceduralKindUsesCycles(kind: ProceduralAnimationKind): boolean {
+  return ["idle", "walk", "run", "crouch"].includes(kind);
+}
+
+function proceduralKindUsesDirection(kind: ProceduralAnimationKind): boolean {
+  return [
+    "walk",
+    "run",
+    "crouch",
+    "recoil",
+    "hitReaction",
+    "swordSwing",
+    "turn"
+  ].includes(kind);
 }
 
 function VectorEditor({

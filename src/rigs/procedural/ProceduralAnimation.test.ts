@@ -46,7 +46,7 @@ describe("procedural animation generation", () => {
     });
   });
 
-  it("clamps settings before allocation and reports unavailable generators", () => {
+  it("clamps settings before allocation and normalizes unused controls", () => {
     const safe = sanitizeProceduralAnimationSettings({
       ...createDefaultProceduralAnimationSettings("walk"),
       durationFrames: Number.POSITIVE_INFINITY,
@@ -61,9 +61,11 @@ describe("procedural animation generation", () => {
       direction: -1
     });
     expect(generateProceduralAnimation(safe).ok).toBe(true);
-    expect(generateProceduralAnimation({
-      ...createDefaultProceduralAnimationSettings("jump")
-    }).error).toContain("PROCEDURAL_ANIMATION_KIND_UNAVAILABLE");
+    expect(sanitizeProceduralAnimationSettings({
+      ...createDefaultProceduralAnimationSettings("jump"),
+      cycles: 8,
+      direction: -1
+    })).toMatchObject({ cycles: 1, direction: 1 });
   });
 
   it("generates closed direction-aware walk, run, and crouch locomotion", () => {
@@ -108,6 +110,47 @@ describe("procedural animation generation", () => {
     expect(reverse.clip!.tracks.find(
       (track) => track.property === "bone.rotation.leftArm"
     )?.keyframes[1].value[0]).toBe(-walkArm.keyframes[1].value[0]);
+  });
+
+  it("generates all six bounded action recipes with directional turns", () => {
+    const kinds = [
+      "jump",
+      "landing",
+      "recoil",
+      "hitReaction",
+      "swordSwing",
+      "turn"
+    ] as const;
+    const outputs = kinds.map((kind) =>
+      generateProceduralAnimation(
+        createDefaultProceduralAnimationSettings(kind)
+      )
+    );
+    expect(outputs.every((result) => result.ok)).toBe(true);
+    for (const output of outputs) {
+      expect(output.clip!.tracks.length).toBeGreaterThan(0);
+      expect(output.clip!.tracks.every((track) =>
+        track.keyframes.length <=
+          PROCEDURAL_ANIMATION_LIMITS.maximumKeyframes &&
+        track.keyframes[0].frame === 0 &&
+        track.keyframes.at(-1)?.frame === output.clip!.durationFrames &&
+        track.keyframes.every((keyframe) =>
+          keyframe.value.every((component) =>
+            Number.isFinite(component) && Math.abs(component) <= 180
+          )
+        )
+      )).toBe(true);
+    }
+    const forward = outputs.at(-1)!.clip!.tracks.find(
+      (track) => track.property === "bone.rotation.root"
+    )!.keyframes.at(-1)!.value[1];
+    const reverse = generateProceduralAnimation({
+      ...createDefaultProceduralAnimationSettings("turn"),
+      direction: -1
+    }).clip!.tracks.find(
+      (track) => track.property === "bone.rotation.root"
+    )!.keyframes.at(-1)!.value[1];
+    expect([forward, reverse]).toEqual([90, -90]);
   });
 
   it("rejects accessor and invalid-version inputs without invoking them", () => {
