@@ -6,6 +6,10 @@ import { getRigDefinition } from "./MinecraftRigPresets";
 import { makeBoneObjectId } from "./RigSelection";
 import { applySkinUvToBoxGeometry } from "./MinecraftSkinMapper";
 import { markSharedThreeResource } from "../renderer/ThreeResourceDisposal";
+import {
+  resolveExpressionOverlay,
+  type ExpressionOverlayTone
+} from "./expressions/ExpressionOverlay";
 
 const MATERIALS = {
   head: createSolidMaterial("#d9a066"),
@@ -17,7 +21,15 @@ const MATERIALS = {
   sword: createSolidMaterial("#c7d0dc"),
   item: createSolidMaterial("#74b36a")
 };
+const EXPRESSION_MATERIALS: Record<ExpressionOverlayTone, THREE.Material> = {
+  dark: createSolidMaterial("#201613"),
+  light: createSolidMaterial("#f4f1e8"),
+  mouth: createSolidMaterial("#6f2525")
+};
 for (const material of Object.values(MATERIALS)) {
+  markSharedThreeResource(material);
+}
+for (const material of Object.values(EXPRESSION_MATERIALS)) {
   markSharedThreeResource(material);
 }
 
@@ -98,6 +110,11 @@ function createBoneObject(bone: RigBone, character: CharacterEntity): THREE.Grou
   markBoneSelectable(mesh, character.id, bone.id);
   pivot.add(mesh);
 
+  if (bone.id === "head") {
+    const expression = createExpressionOverlayObject(character);
+    if (expression) mesh.add(expression);
+  }
+
   if (bone.id === "head" && !character.skin?.metadata.valid) {
     const hair = new THREE.Mesh(
       new THREE.BoxGeometry(bone.size[0] + 0.04, 0.12, bone.size[2] + 0.04),
@@ -108,6 +125,40 @@ function createBoneObject(bone: RigBone, character: CharacterEntity): THREE.Grou
   }
 
   return pivot;
+}
+
+function createExpressionOverlayObject(
+  character: CharacterEntity
+): THREE.Group | null {
+  const descriptors = resolveExpressionOverlay(character.expression);
+  if (descriptors.length === 0) return null;
+  const group = new THREE.Group();
+  group.name = "Expression Overlay";
+  group.userData.expressionOverlay = true;
+  for (const descriptor of descriptors) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(
+        descriptor.size[0],
+        descriptor.size[1],
+        0.014
+      ),
+      EXPRESSION_MATERIALS[descriptor.tone]
+    );
+    mesh.name = `Expression ${descriptor.id}`;
+    mesh.position.set(
+      descriptor.position[0],
+      descriptor.position[1],
+      0.407
+    );
+    mesh.rotation.z = THREE.MathUtils.degToRad(
+      descriptor.rotationDegrees
+    );
+    mesh.renderOrder = 2;
+    mesh.userData.expressionOverlay = true;
+    mesh.raycast = () => {};
+    group.add(mesh);
+  }
+  return group;
 }
 
 function materialForBone(bone: RigBone, character: CharacterEntity): THREE.Material {

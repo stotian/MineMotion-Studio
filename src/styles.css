@@ -1502,6 +1502,25 @@ p.parameter-control-error {
   padding: 0.3rem 0.45rem;
 }
 
+.rig-expression-controls {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+  padding: 0.65rem;
+  border: 1px solid #2b3443;
+  border-radius: 6px;
+}
+
+.rig-expression-controls label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.rig-expression-controls .checkbox-row {
+  display: flex;
+  align-items: center;
+}
+
 .rig-ik-controls label {
   display: grid;
   gap: 0.35rem;

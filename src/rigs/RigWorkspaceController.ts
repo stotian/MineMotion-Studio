@@ -28,6 +28,7 @@ import {
 } from "./procedural/ProceduralAnimationController";
 import { useRigAttachmentWorkspace } from "./attachments/useRigAttachmentWorkspace";
 import { useBlockbenchMappingWorkspace } from "./blockbench/useBlockbenchMappingWorkspace";
+import { useRigExpressionWorkspace } from "./expressions/useRigExpressionWorkspace";
 
 type ProjectCommit = (
   updater: MineMotionProject | ((current: MineMotionProject) => MineMotionProject),
@@ -74,6 +75,12 @@ export function useRigWorkspaceController({
     tr
   });
   const blockbenchMappingWorkspace = useBlockbenchMappingWorkspace({
+    project,
+    commitProject,
+    setStatus,
+    tr
+  });
+  const expressionWorkspace = useRigExpressionWorkspace({
     project,
     commitProject,
     setStatus,
@@ -346,6 +353,7 @@ export function useRigWorkspaceController({
     bakeLookAt,
     attachmentWorkspace,
     blockbenchMappingWorkspace,
+    expressionWorkspace,
     poseWorkspace: {
       hasClipboard: poseClipboard !== null,
       applyPose,

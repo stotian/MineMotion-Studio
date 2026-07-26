@@ -2502,9 +2502,7 @@ export function App() {
         onClose={() => setRigStudioOpen(false)}
         onImportSkin={handleImportSkin}
         onResetSkin={handleResetSkin}
-        poseWorkspace={rigWorkspace.poseWorkspace}
-        attachmentWorkspace={rigWorkspace.attachmentWorkspace}
-        blockbenchMappingWorkspace={rigWorkspace.blockbenchMappingWorkspace}
+        workspaces={rigWorkspace}
         onApplyAnimation={rigWorkspace.applyAnimation}
         onGenerateProcedural={rigWorkspace.generateProceduralAnimation}
         onImportBlockbench={handleImportBlockbench}

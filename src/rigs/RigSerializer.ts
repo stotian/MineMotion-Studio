@@ -10,6 +10,7 @@ import {
   sanitizeRigVector
 } from "./RigContract";
 import { sanitizeBlockbenchModelAssets } from "./blockbench/BlockbenchAssetContract";
+import { sanitizeCharacterExpression } from "./expressions/ExpressionOverlay";
 
 export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntity {
   const rigPreset = normalizeRigPresetId(character.rigPreset);
@@ -32,6 +33,7 @@ export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntit
         : "body",
     boneRotations,
     skin: character.skin ?? null,
+    expression: sanitizeCharacterExpression(character.expression),
     attachments: sanitizeRigAttachments(
       character.attachments,
       definition,

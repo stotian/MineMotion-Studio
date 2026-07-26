@@ -23,6 +23,15 @@ import { RigAttachmentControls } from "./RigAttachmentControls";
 import type { RigAttachmentWorkspace } from "../../rigs/attachments/useRigAttachmentWorkspace";
 import { BlockbenchImportReportCard } from "./BlockbenchImportReportCard";
 import type { BlockbenchMappingWorkspace } from "../../rigs/blockbench/useBlockbenchMappingWorkspace";
+import type { RigExpressionWorkspace } from "../../rigs/expressions/useRigExpressionWorkspace";
+import { RigExpressionControls } from "./RigExpressionControls";
+
+interface RigStudioWorkspaces {
+  poseWorkspace: RigPoseWorkspace;
+  attachmentWorkspace: RigAttachmentWorkspace;
+  blockbenchMappingWorkspace: BlockbenchMappingWorkspace;
+  expressionWorkspace: RigExpressionWorkspace;
+}
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -34,9 +43,7 @@ interface RigStudioPanelProps {
   onClose: () => void;
   onImportSkin: (characterId: string) => void;
   onResetSkin: (characterId: string) => void;
-  poseWorkspace: RigPoseWorkspace;
-  attachmentWorkspace: RigAttachmentWorkspace;
-  blockbenchMappingWorkspace: BlockbenchMappingWorkspace;
+  workspaces: RigStudioWorkspaces;
   onApplyAnimation: (presetId: string) => void;
   onGenerateProcedural: (settings: ProceduralAnimationSettings) => void;
   onImportBlockbench: () => void;
@@ -62,9 +69,7 @@ export function RigStudioPanel({
   onClose,
   onImportSkin,
   onResetSkin,
-  poseWorkspace,
-  attachmentWorkspace,
-  blockbenchMappingWorkspace,
+  workspaces,
   onApplyAnimation,
   onGenerateProcedural,
   onImportBlockbench,
@@ -74,6 +79,12 @@ export function RigStudioPanel({
   onUpdateLookAtControl,
   onBakeLookAt
 }: RigStudioPanelProps) {
+  const {
+    poseWorkspace,
+    attachmentWorkspace,
+    blockbenchMappingWorkspace,
+    expressionWorkspace
+  } = workspaces;
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const ikControls = constraintWorkspace.ikSession.controls;
@@ -163,6 +174,10 @@ export function RigStudioPanel({
                 <RigPoseControls
                   characterId={character.id}
                   workspace={poseWorkspace}
+                />
+                <RigExpressionControls
+                  character={character}
+                  workspace={expressionWorkspace}
                 />
               </>
             ) : (

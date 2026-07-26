@@ -24,6 +24,7 @@ import type {
   BoneAnimationTrack,
   BlockbenchModelAsset,
   CharacterAttachment,
+  CharacterExpressionOverlay,
   MinecraftSkinAsset,
   RigPresetId,
   RigProjectData
@@ -60,6 +61,7 @@ export interface CharacterEntity extends SceneEntity {
   boneRotations: Record<string, Vector3Tuple>;
   selectedBoneId?: string;
   skin?: MinecraftSkinAsset | null;
+  expression?: CharacterExpressionOverlay;
   attachments?: CharacterAttachment[];
   boneKeyframes?: BoneAnimationTrack[];
 }

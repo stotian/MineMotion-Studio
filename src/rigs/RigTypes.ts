@@ -30,6 +30,20 @@ export interface MinecraftSkinAsset {
   metadata: MinecraftSkinMetadata;
 }
 
+export type CharacterExpressionPreset =
+  | "blink"
+  | "anger"
+  | "sadness"
+  | "confidence"
+  | "surprise"
+  | "fear";
+
+export interface CharacterExpressionOverlay {
+  enabled: true;
+  preset: CharacterExpressionPreset;
+  intensity: number;
+}
+
 export type CharacterAttachmentPointId = "rightHand" | "leftHand" | "head" | "back";
 
 export type CharacterAttachmentKind =
