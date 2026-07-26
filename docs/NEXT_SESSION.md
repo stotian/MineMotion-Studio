@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Start Phase 19.10 by reconciling the existing pose library, rig workspace, and
-current-pose commands, then add only the missing copy/paste/blend behavior
-through the existing history path.
+Start Phase 19.11 by auditing existing attachment points, renderer parenting,
+visibility, persistence, and timeline behavior before adding animation or
+validation.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -97,16 +97,22 @@ Preserve the local commits and push normally once authentication is restored.
 - Keyframe transforms survive JSON, project packages, autosave, schema 9,
   undo, and the production animation sampler. Phase 19.9 is complete at
   implementation commit `3d1c2c8`.
+- A detached session-only pose clipboard now supports compatible-rig paste and
+  bounded blend. Existing preset/save/mirror/reset actions are no-op-aware and
+  use at most one history checkpoint.
+- Applied poses survive JSON, project packages, autosave, schema 9, undo, and
+  production sampling. Phase 19.10 is complete at implementation commit
+  `8fa38e0`.
 
 ## Unfinished Work
 
-- Phase 19.10-19.15 and phases 20-35 remain.
+- Phase 19.11-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Inspect current pose save/apply/mirror/reset contracts and Rig Studio controls.
-Implement deterministic session copy/paste and bounded pose blending without a
-second pose authority or per-bone history entries.
+Inspect attachment contracts, current placeholder/OBJ parenting, renderer
+sampling, and save/export paths. Define the smallest compatible animation
+contract on the existing global timeline before adding UI.
 
 ## Tests To Run
 

@@ -198,6 +198,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Selected global-key ranges support duration-bounded deterministic looping,
   easing-aware reverse, and renderer-consistent rig/transform mirroring.
   Collisions fail atomically and successful actions reuse one history entry.
+- A session-only detached pose clipboard supports compatible-bone paste and
+  0-100% blend. Preset apply, paste, blend, mirror, and reset reject locked or
+  unchanged targets without empty history checkpoints.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -220,7 +223,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 110 frontend test files and 500 passing tests.
+- 111 frontend test files and 505 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -303,3 +306,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
   session-only procedural settings.
 - Phase 19.9 transforms the existing Dopesheet selection immutably and commits
   only real track changes through the current history path.
+- Phase 19.10 keeps copied pose state outside project persistence and applies
+  pose operations atomically through the existing whole-project history.

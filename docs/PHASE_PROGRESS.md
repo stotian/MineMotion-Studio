@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.10 - Pose copy, paste, mirror, blend, and reset
+19.11 - Animated and validated attachments
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.9 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.10 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -254,15 +254,19 @@ IN_PROGRESS - Phase 19.1 through 19.9 and the consolidation checkpoint are imple
   reduction, smoothing, loop, reverse, and renderer-consistent rig/transform
   mirroring. Transform commands are immutable, collision-safe, deterministic,
   duration-bounded, and atomic through the existing Dopesheet/history path.
+- Phase 19.10 adds a detached session-only pose clipboard, compatible-bone
+  paste, and bounded pose blending while preserving existing save/apply/mirror/
+  reset behavior. Project commands reject locked, missing, invalid, and no-op
+  actions atomically and pass every persistence/production path.
 
 ## In Progress
 
-- Reconcile the existing pose library, rig workspace, and current-pose commands
-  before adding the missing Phase 19.10 copy/paste/blend workflow.
+- Audit current attachment points, object parenting, visibility, persistence,
+  timeline behavior, and renderer/export parity before Phase 19.11 changes.
 
 ## Not Started
 
-- Phase 19.10-19.15 and phases 20-35.
+- Phase 19.11-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -278,19 +282,19 @@ IN_PROGRESS - Phase 19.1 through 19.9 and the consolidation checkpoint are imple
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: `3d1c2c8` (publication pending
+- Latest validated implementation checkpoint: `8fa38e0` (publication pending
   external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused keyframe command/integration tests: PASS - 2 files, 9 tests
-- `npm test`: PASS - 110 files, 500 tests
+- Focused pose command/library/persistence tests: PASS - 3 files, 9 tests
+- `npm test`: PASS - 111 files, 505 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
-- `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
-- `npm run build`: PASS - 1,855 modules; 1,468.81 kB known large chunk
+- `npm run verify:architecture`: PASS - `App.tsx` 2,675/2,839 lines
+- `npm run build`: PASS - 1,857 modules; 1,473.71 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -300,6 +304,6 @@ IN_PROGRESS - Phase 19.1 through 19.9 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Audit existing pose copy/paste/mirror/blend/reset behavior against Phase 19.10,
-then implement only the missing operations through the current rig workspace
-and one history checkpoint per user action.
+Audit attachment rendering and persistence against Phase 19.11, then implement
+only the missing animation/validation behavior through the authoritative
+character attachment records and global timeline.

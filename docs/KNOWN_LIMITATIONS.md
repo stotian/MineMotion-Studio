@@ -49,6 +49,7 @@ still required before changing code.
 | LIM-040 | Pure animation-layer blending existed without NLA persistence, production sampling, or layer UI | Yes | P4 | 19.7 | RESOLVED |
 | LIM-041 | Procedural generation lacked the ten editable rig recipes required by Phase 19.8 | Yes | P4 | 19.8 | RESOLVED |
 | LIM-042 | Key cleanup/smoothing was connected, but selected-range loop, reverse, and mirror remained unavailable | Yes | P4 | 19.9 | RESOLVED |
+| LIM-043 | Pose mirror/reset existed, but there was no session copy/paste or bounded blend workflow | Yes | P4 | 19.10 | RESOLVED |
 
 ## Phase 15.1 Outcome
 

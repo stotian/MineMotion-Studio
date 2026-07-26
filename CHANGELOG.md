@@ -22,6 +22,8 @@
 - Added selection-scoped redundant-key cleanup, bounded noise reduction,
   smoothing, duration-bounded loop, easing-aware reverse, and rig/transform
   mirror tools to the existing animation command bar.
+- Added a session-only rig pose clipboard with compatible-bone paste, bounded
+  blending, no-op-aware mirror/reset, and localized Rig Studio controls.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

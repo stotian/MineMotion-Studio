@@ -523,3 +523,17 @@ frames are enforced before commit. Reverse rejects unselected-key collisions
 and maps directional easing to the reversed segment. Mirror swaps supported
 left/right limb tracks from the same snapshot and applies renderer-consistent
 axis signs to rig rotations and transform motion.
+
+## TD-039 - Pose clipboard is session-only and paste is a project command
+
+Status: Accepted in Phase 19.10.
+
+Copy captures one detached snapshot of the source rig's supported current bone
+rotations. It is transient editor state, not project data. Paste and blend
+resolve only bone IDs supported by the target rig; influence is finite and
+clamped to 0-1.
+
+Paste, blend, mirror, reset, and preset apply return the original project on
+locked, missing, invalid, or unchanged targets. Successful user actions replace
+the character once through whole-project history rather than producing one
+checkpoint per bone.
