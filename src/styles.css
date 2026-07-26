@@ -1422,6 +1422,40 @@ p.parameter-control-error {
   font-size: 0.78rem;
 }
 
+.rig-attachment-list,
+.rig-attachment-add {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.rig-attachment-row {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border: 1px solid #2b3443;
+  border-radius: 6px;
+  background: #0e141d;
+}
+
+.rig-attachment-row label,
+.rig-attachment-add label {
+  display: grid;
+  gap: 0.35rem;
+  color: #9ca8ba;
+  font-size: 0.78rem;
+}
+
+.rig-attachment-row .checkbox-row {
+  display: flex;
+  align-items: center;
+}
+
+.rig-attachment-add {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #2b3443;
+}
+
 .rig-ik-controls label {
   display: grid;
   gap: 0.35rem;

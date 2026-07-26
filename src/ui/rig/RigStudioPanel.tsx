@@ -19,6 +19,8 @@ import {
   type ProceduralAnimationSettings
 } from "../../rigs/procedural/ProceduralAnimation";
 import { RigPoseControls } from "./RigPoseControls";
+import { RigAttachmentControls } from "./RigAttachmentControls";
+import type { RigAttachmentWorkspace } from "../../rigs/attachments/useRigAttachmentWorkspace";
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -31,6 +33,7 @@ interface RigStudioPanelProps {
   onImportSkin: (characterId: string) => void;
   onResetSkin: (characterId: string) => void;
   poseWorkspace: RigPoseWorkspace;
+  attachmentWorkspace: RigAttachmentWorkspace;
   onApplyAnimation: (presetId: string) => void;
   onGenerateProcedural: (settings: ProceduralAnimationSettings) => void;
   onImportBlockbench: () => void;
@@ -57,6 +60,7 @@ export function RigStudioPanel({
   onImportSkin,
   onResetSkin,
   poseWorkspace,
+  attachmentWorkspace,
   onApplyAnimation,
   onGenerateProcedural,
   onImportBlockbench,
@@ -177,6 +181,15 @@ export function RigStudioPanel({
               ))}
             </div>
           </section>
+          {character && (
+            <section>
+              <RigAttachmentControls
+                character={character}
+                objAssets={project.assets.obj}
+                workspace={attachmentWorkspace}
+              />
+            </section>
+          )}
           <section>
             <h3>
               <Film size={15} />

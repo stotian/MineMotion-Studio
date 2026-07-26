@@ -180,7 +180,7 @@ export class SceneRenderer {
 
     for (const character of project.scene.characters) {
       if (!character.visible) continue;
-      this.sceneRoot.add(this.createCharacterObject(character));
+      this.sceneRoot.add(this.createCharacterObject(project, character));
     }
 
     for (const camera of project.scene.cameras) {
@@ -237,8 +237,14 @@ export class SceneRenderer {
     }
   }
 
-  private createCharacterObject(character: CharacterEntity): THREE.Group {
-    const group = createDefaultSteveRig(character);
+  private createCharacterObject(
+    project: MineMotionProject,
+    character: CharacterEntity
+  ): THREE.Group {
+    const group = createDefaultSteveRig(
+      character,
+      (assetId) => this.createObjAssetObject(project, assetId)
+    );
     this.applyTransform(group, character.transform);
     this.markSelectable(group, character.id, "character");
     return group;
@@ -276,28 +282,32 @@ export class SceneRenderer {
     project: MineMotionProject,
     obj: ObjEntity
   ): THREE.Object3D {
-    const asset = project.assets.obj.find((item) => item.id === obj.assetId);
-    let object: THREE.Object3D;
-
-    if (!asset) {
-      object = new THREE.Mesh(
+    const object = this.createObjAssetObject(project, obj.assetId) ??
+      new THREE.Mesh(
         new THREE.BoxGeometry(1, 1, 1),
         createSolidMaterial("#9aa3ad")
       );
-    } else {
-      object = this.objLoader.parse(asset.rawObj);
-      object.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.material = createSolidMaterial("#aab2bd");
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
-    }
 
     object.name = obj.name;
     this.applyTransform(object, obj.transform);
     this.markSelectable(object, obj.id, "obj");
+    return object;
+  }
+
+  private createObjAssetObject(
+    project: MineMotionProject,
+    assetId: string
+  ): THREE.Object3D | null {
+    const asset = project.assets.obj.find((item) => item.id === assetId);
+    if (!asset) return null;
+    const object = this.objLoader.parse(asset.rawObj);
+    object.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.material = createSolidMaterial("#aab2bd");
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
     return object;
   }
 

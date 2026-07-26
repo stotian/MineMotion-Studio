@@ -23,7 +23,14 @@ for (const material of Object.values(MATERIALS)) {
 
 const textureCache = new Map<string, THREE.Texture>();
 
-export function createDefaultSteveRig(character: CharacterEntity): THREE.Group {
+export type ObjAttachmentResolver = (
+  assetId: string
+) => THREE.Object3D | null;
+
+export function createDefaultSteveRig(
+  character: CharacterEntity,
+  resolveObjAttachment?: ObjAttachmentResolver
+): THREE.Group {
   const definition = getRigDefinition(character.rigPreset);
   const root = new THREE.Group();
   root.name = character.name;
@@ -47,7 +54,11 @@ export function createDefaultSteveRig(character: CharacterEntity): THREE.Group {
     if (!point) continue;
     const parent = boneObjects.get(point.boneId);
     if (!parent) continue;
-    const object = createAttachmentObject(attachment.kind);
+    const object = createAttachmentObject(
+      attachment.kind,
+      attachment.assetId,
+      resolveObjAttachment
+    );
     object.name = attachment.name;
     object.position.set(point.offset[0], point.offset[1], point.offset[2]);
     applyEuler(object.rotation, point.rotation);
@@ -117,7 +128,15 @@ function materialForBone(bone: RigBone, character: CharacterEntity): THREE.Mater
   return MATERIALS.body;
 }
 
-function createAttachmentObject(kind: string): THREE.Object3D {
+function createAttachmentObject(
+  kind: string,
+  assetId: string | undefined,
+  resolveObjAttachment: ObjAttachmentResolver | undefined
+): THREE.Object3D {
+  if (kind === "obj" && assetId && resolveObjAttachment) {
+    const resolved = resolveObjAttachment(assetId);
+    if (resolved) return resolved;
+  }
   if (kind === "placeholder_sword") {
     const group = new THREE.Group();
     const blade = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.65, 0.07), MATERIALS.sword);

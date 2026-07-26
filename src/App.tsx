@@ -2504,6 +2504,7 @@ export function App() {
         onImportSkin={handleImportSkin}
         onResetSkin={handleResetSkin}
         poseWorkspace={rigWorkspace.poseWorkspace}
+        attachmentWorkspace={rigWorkspace.attachmentWorkspace}
         onApplyAnimation={rigWorkspace.applyAnimation}
         onGenerateProcedural={rigWorkspace.generateProceduralAnimation}
         onImportBlockbench={handleImportBlockbench}

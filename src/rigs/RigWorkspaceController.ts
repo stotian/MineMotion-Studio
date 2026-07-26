@@ -26,6 +26,7 @@ import {
   bakeProceduralAnimation,
   type ProceduralAnimationSettings
 } from "./procedural/ProceduralAnimationController";
+import { useRigAttachmentWorkspace } from "./attachments/useRigAttachmentWorkspace";
 
 type ProjectCommit = (
   updater: MineMotionProject | ((current: MineMotionProject) => MineMotionProject),
@@ -65,6 +66,12 @@ export function useRigWorkspaceController({
   const [poseClipboard, setPoseClipboard] = useState<RigPoseClipboard | null>(
     null
   );
+  const attachmentWorkspace = useRigAttachmentWorkspace({
+    project,
+    commitProject,
+    setStatus,
+    tr
+  });
   const updateBoneRotation = useCallback(
     (characterId: string, boneId: string, rotation: [number, number, number]) => {
       const character = project.scene.characters.find((item) => item.id === characterId);
@@ -330,6 +337,7 @@ export function useRigWorkspaceController({
     bakeIK,
     bakeFootLock,
     bakeLookAt,
+    attachmentWorkspace,
     poseWorkspace: {
       hasClipboard: poseClipboard !== null,
       applyPose,
