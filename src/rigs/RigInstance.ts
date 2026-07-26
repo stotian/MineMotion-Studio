@@ -57,18 +57,18 @@ export function updateBoneRotation(
 }
 
 export function applyRigPose(character: CharacterEntity, pose: RigPose): CharacterEntity {
-  return {
-    ...character,
-    boneRotations: mergeBoneRotations(character.boneRotations, pose.boneRotations)
-  };
+  return updateCharacterRotations(
+    character,
+    mergeBoneRotations(character.boneRotations, pose.boneRotations)
+  );
 }
 
 export function resetRigPose(character: CharacterEntity): CharacterEntity {
   const definition = getRigDefinition(character.rigPreset);
-  return {
-    ...character,
-    boneRotations: getDefaultBoneRotations(definition)
-  };
+  return updateCharacterRotations(
+    character,
+    getDefaultBoneRotations(definition)
+  );
 }
 
 export function mirrorCurrentPose(character: CharacterEntity): CharacterEntity {
@@ -85,10 +85,7 @@ export function mirrorCurrentPose(character: CharacterEntity): CharacterEntity {
     mirrored[bone.mirrorOf] = mirrorRotation(left);
   }
 
-  return {
-    ...character,
-    boneRotations: mirrored
-  };
+  return updateCharacterRotations(character, mirrored);
 }
 
 export function savePoseFromCharacter(character: CharacterEntity, name: string): RigPose {
@@ -103,4 +100,24 @@ export function savePoseFromCharacter(character: CharacterEntity, name: string):
       ])
     )
   };
+}
+
+function updateCharacterRotations(
+  character: CharacterEntity,
+  boneRotations: Record<string, RigVector3Tuple>
+): CharacterEntity {
+  const currentIds = Object.keys(character.boneRotations);
+  const nextIds = Object.keys(boneRotations);
+  const unchanged = currentIds.length === nextIds.length &&
+    nextIds.every((boneId) => {
+      const current = character.boneRotations[boneId];
+      const next = boneRotations[boneId];
+      return current !== undefined &&
+        current[0] === next[0] &&
+        current[1] === next[1] &&
+        current[2] === next[2];
+    });
+  return unchanged
+    ? character
+    : { ...character, boneRotations };
 }

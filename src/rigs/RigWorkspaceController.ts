@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import type { TranslationKey, TranslationValues } from "../localization/LocalizationTypes";
 import { presetRegistry } from "../presets/PresetRegistry";
 import { applyRigPosePreset } from "../presets/RigPosePresets";
@@ -6,10 +6,17 @@ import { syncCinematicTimeline } from "../project/CinematicTimeline";
 import type { MineMotionProject } from "../project/ProjectFile";
 import { addBoneRotationKeyframe, updateProjectBoneRotation } from "./RigController";
 import { getDefaultBoneRotations } from "./RigDefinition";
-import { mirrorCurrentPose, resetRigPose, savePoseFromCharacter } from "./RigInstance";
+import { savePoseFromCharacter } from "./RigInstance";
 import { getRigDefinition } from "./MinecraftRigPresets";
 import { getSelectedCharacterId } from "./RigSelection";
 import type { RigPresetId } from "./RigTypes";
+import {
+  copyCharacterPose,
+  mirrorProjectCharacterPose,
+  pasteProjectCharacterPose,
+  resetProjectCharacterPose,
+  type RigPoseClipboard
+} from "./PoseCommands";
 import { bakeProjectFootLockRange } from "./IK/FootLockBakeController";
 import { bakeProjectRigIKControl } from "./IK/RigIKController";
 import type { RigIKSession } from "./IK/useRigIKSession";
@@ -35,6 +42,17 @@ interface RigWorkspaceControllerOptions {
   tr: (key: TranslationKey, values?: TranslationValues) => string;
 }
 
+export interface RigPoseWorkspace {
+  hasClipboard: boolean;
+  applyPose: (presetId: string) => void;
+  saveCurrentPose: (characterId: string) => void;
+  copyPose: (characterId: string) => void;
+  pastePose: (characterId: string) => void;
+  blendPose: (characterId: string, influence: number) => void;
+  mirrorPose: (characterId: string) => void;
+  resetPose: (characterId: string) => void;
+}
+
 export function useRigWorkspaceController({
   project,
   selectedObjectId,
@@ -44,6 +62,9 @@ export function useRigWorkspaceController({
   setStatus,
   tr
 }: RigWorkspaceControllerOptions) {
+  const [poseClipboard, setPoseClipboard] = useState<RigPoseClipboard | null>(
+    null
+  );
   const updateBoneRotation = useCallback(
     (characterId: string, boneId: string, rotation: [number, number, number]) => {
       const character = project.scene.characters.find((item) => item.id === characterId);
@@ -74,30 +95,70 @@ export function useRigWorkspaceController({
   }, [commitProject, project.animation.currentFrame, setStatus, tr]);
 
   const resetPose = useCallback((characterId: string) => {
-    commitProject((current) => ({
-      ...current,
-      scene: {
-        ...current.scene,
-        characters: current.scene.characters.map((character) =>
-          character.id === characterId ? resetRigPose(character) : character
-        )
-      }
-    }), "Reset rig pose");
+    const result = resetProjectCharacterPose(project, characterId);
+    if (!result.changed) {
+      setStatus(poseCommandError(result.error, project, characterId, tr));
+      return;
+    }
+    commitProject(result.project, tr("history.resetPose"));
     setStatus(tr("app.poseReset"));
-  }, [commitProject, setStatus, tr]);
+  }, [commitProject, project, setStatus, tr]);
 
   const mirrorPose = useCallback((characterId: string) => {
-    commitProject((current) => ({
-      ...current,
-      scene: {
-        ...current.scene,
-        characters: current.scene.characters.map((character) =>
-          character.id === characterId ? mirrorCurrentPose(character) : character
-        )
-      }
-    }), "Mirror rig pose");
+    const result = mirrorProjectCharacterPose(project, characterId);
+    if (!result.changed) {
+      setStatus(poseCommandError(result.error, project, characterId, tr));
+      return;
+    }
+    commitProject(result.project, tr("history.mirrorPose"));
     setStatus(tr("app.poseMirrored"));
-  }, [commitProject, setStatus, tr]);
+  }, [commitProject, project, setStatus, tr]);
+
+  const copyPose = useCallback((characterId: string) => {
+    const character = project.scene.characters.find(
+      (candidate) => candidate.id === characterId
+    );
+    if (!character) {
+      setStatus(tr("app.poseUnavailable"));
+      return;
+    }
+    setPoseClipboard(copyCharacterPose(character));
+    setStatus(tr("app.poseCopied", { name: character.name }));
+  }, [project.scene.characters, setStatus, tr]);
+
+  const pastePose = useCallback((characterId: string) => {
+    const result = pasteProjectCharacterPose(
+      project,
+      characterId,
+      poseClipboard
+    );
+    if (!result.changed) {
+      setStatus(poseCommandError(result.error, project, characterId, tr));
+      return;
+    }
+    commitProject(result.project, tr("history.pastePose"));
+    setStatus(tr("app.posePasted"));
+  }, [commitProject, poseClipboard, project, setStatus, tr]);
+
+  const blendPose = useCallback((
+    characterId: string,
+    influence: number
+  ) => {
+    const result = pasteProjectCharacterPose(
+      project,
+      characterId,
+      poseClipboard,
+      influence
+    );
+    if (!result.changed) {
+      setStatus(poseCommandError(result.error, project, characterId, tr));
+      return;
+    }
+    commitProject(result.project, tr("history.blendPose"));
+    setStatus(tr("app.poseBlended", {
+      percent: Math.round(Math.min(1, Math.max(0, influence)) * 100)
+    }));
+  }, [commitProject, poseClipboard, project, setStatus, tr]);
 
   const saveCurrentPose = useCallback((characterId: string) => {
     const character = project.scene.characters.find((item) => item.id === characterId);
@@ -135,16 +196,21 @@ export function useRigWorkspaceController({
     const preset = presetRegistry.getRigPosePreset(presetId) ??
       project.rigs.savedPoses.find((candidate) => candidate.id === presetId);
     if (!preset) return;
-    commitProject((current) => ({
-      ...current,
-      scene: {
-        ...current.scene,
-        characters: current.scene.characters.map((character) =>
-          character.id === characterId ? applyRigPosePreset(character, preset) : character
-        )
-      }
-    }), "Apply rig pose preset");
-    setStatus(tr("app.poseApplied", { name: preset.name }));
+    const changed = commitProject((current) => {
+      let poseChanged = false;
+      const characters = current.scene.characters.map((character) => {
+        if (character.id !== characterId || character.locked) return character;
+        const transformed = applyRigPosePreset(character, preset);
+        if (transformed !== character) poseChanged = true;
+        return transformed;
+      });
+      return poseChanged
+        ? { ...current, scene: { ...current.scene, characters } }
+        : current;
+    }, tr("history.applyPose"));
+    setStatus(changed
+      ? tr("app.poseApplied", { name: preset.name })
+      : tr("app.poseUnchanged"));
   }, [commitProject, project.rigs.savedPoses, project.scene.characters, selectedObjectId, setStatus, tr]);
 
   const applyAnimation = useCallback((presetId: string) => {
@@ -263,6 +329,33 @@ export function useRigWorkspaceController({
     generateProceduralAnimation,
     bakeIK,
     bakeFootLock,
-    bakeLookAt
+    bakeLookAt,
+    poseWorkspace: {
+      hasClipboard: poseClipboard !== null,
+      applyPose,
+      saveCurrentPose,
+      copyPose,
+      pastePose,
+      blendPose,
+      mirrorPose,
+      resetPose
+    } satisfies RigPoseWorkspace
   };
+}
+
+function poseCommandError(
+  error: string | null,
+  project: MineMotionProject,
+  characterId: string,
+  tr: RigWorkspaceControllerOptions["tr"]
+): string {
+  if (error === "POSE_CLIPBOARD_EMPTY") return tr("app.poseClipboardEmpty");
+  if (error === "POSE_CHARACTER_LOCKED") {
+    const name = project.scene.characters.find(
+      (character) => character.id === characterId
+    )?.name ?? characterId;
+    return tr("app.entityLocked", { name });
+  }
+  if (error === "POSE_CHARACTER_MISSING") return tr("app.poseUnavailable");
+  return tr("app.poseUnchanged");
 }

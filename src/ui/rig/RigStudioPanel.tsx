@@ -7,6 +7,7 @@ import { getSelectedCharacterId } from "../../rigs/RigSelection";
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { RigIKControl } from "../../rigs/IK/IKControl";
 import type { RigVector3Tuple } from "../../rigs/RigTypes";
+import type { RigPoseWorkspace } from "../../rigs/RigWorkspaceController";
 import type { LookAtControl } from "../../rigs/constraints/LookAtControl";
 import type { LookAtControlPatch } from "../../rigs/constraints/useLookAtSession";
 import type { RigConstraintWorkspace } from "../../rigs/useRigConstraintWorkspace";
@@ -17,6 +18,7 @@ import {
   type ProceduralAnimationKind,
   type ProceduralAnimationSettings
 } from "../../rigs/procedural/ProceduralAnimation";
+import { RigPoseControls } from "./RigPoseControls";
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -28,10 +30,7 @@ interface RigStudioPanelProps {
   onClose: () => void;
   onImportSkin: (characterId: string) => void;
   onResetSkin: (characterId: string) => void;
-  onApplyPose: (poseId: string) => void;
-  onSavePose: (characterId: string) => void;
-  onMirrorPose: (characterId: string) => void;
-  onResetPose: (characterId: string) => void;
+  poseWorkspace: RigPoseWorkspace;
   onApplyAnimation: (presetId: string) => void;
   onGenerateProcedural: (settings: ProceduralAnimationSettings) => void;
   onImportBlockbench: () => void;
@@ -57,10 +56,7 @@ export function RigStudioPanel({
   onClose,
   onImportSkin,
   onResetSkin,
-  onApplyPose,
-  onSavePose,
-  onMirrorPose,
-  onResetPose,
+  poseWorkspace,
   onApplyAnimation,
   onGenerateProcedural,
   onImportBlockbench,
@@ -139,28 +135,28 @@ export function RigStudioPanel({
           <section>
             <h3>{t("rig.selectedCharacter")}</h3>
             {character ? (
-              <CharacterSummary
-                character={character}
-                onImportSkin={() => onImportSkin(character.id)}
-                onResetSkin={() => onResetSkin(character.id)}
-                onSavePose={() => onSavePose(character.id)}
-                onMirrorPose={() => onMirrorPose(character.id)}
-                onResetPose={() => onResetPose(character.id)}
-                labels={{
-                  skin: t("rig.skin"),
-                  fallbackColors: t("rig.fallbackColors"),
-                  resolution: t("rig.resolution"),
-                  model: t("rig.model"),
-                  status: t("rig.status"),
-                  valid: t("rig.valid"),
-                  invalid: t("rig.invalid"),
-                  importSkin: t("rig.importSkin"),
-                  resetSkin: t("rig.resetSkin"),
-                  savePose: t("rig.savePose"),
-                  mirrorPose: t("rig.mirrorPose"),
-                  resetPose: t("rig.resetPose")
-                }}
-              />
+              <>
+                <CharacterSummary
+                  character={character}
+                  onImportSkin={() => onImportSkin(character.id)}
+                  onResetSkin={() => onResetSkin(character.id)}
+                  labels={{
+                    skin: t("rig.skin"),
+                    fallbackColors: t("rig.fallbackColors"),
+                    resolution: t("rig.resolution"),
+                    model: t("rig.model"),
+                    status: t("rig.status"),
+                    valid: t("rig.valid"),
+                    invalid: t("rig.invalid"),
+                    importSkin: t("rig.importSkin"),
+                    resetSkin: t("rig.resetSkin")
+                  }}
+                />
+                <RigPoseControls
+                  characterId={character.id}
+                  workspace={poseWorkspace}
+                />
+              </>
             ) : (
               <p className="empty-note">{t("rig.selectPrompt")}</p>
             )}
@@ -174,7 +170,7 @@ export function RigStudioPanel({
                   type="button"
                   disabled={!character}
                   title={pose.description}
-                  onClick={() => onApplyPose(pose.id)}
+                  onClick={() => poseWorkspace.applyPose(pose.id)}
                 >
                   {pose.name}
                 </button>
@@ -747,17 +743,11 @@ function CharacterSummary({
   character,
   onImportSkin,
   onResetSkin,
-  onSavePose,
-  onMirrorPose,
-  onResetPose,
   labels
 }: {
   character: CharacterEntity;
   onImportSkin: () => void;
   onResetSkin: () => void;
-  onSavePose: () => void;
-  onMirrorPose: () => void;
-  onResetPose: () => void;
   labels: {
     skin: string;
     fallbackColors: string;
@@ -768,9 +758,6 @@ function CharacterSummary({
     invalid: string;
     importSkin: string;
     resetSkin: string;
-    savePose: string;
-    mirrorPose: string;
-    resetPose: string;
   };
 }) {
   const skin = character.skin;
@@ -810,15 +797,6 @@ function CharacterSummary({
         <button type="button" onClick={onResetSkin}>
           <RefreshCw size={15} />
           {labels.resetSkin}
-        </button>
-        <button type="button" onClick={onSavePose}>
-          {labels.savePose}
-        </button>
-        <button type="button" onClick={onMirrorPose}>
-          {labels.mirrorPose}
-        </button>
-        <button type="button" onClick={onResetPose}>
-          {labels.resetPose}
         </button>
       </div>
     </>
