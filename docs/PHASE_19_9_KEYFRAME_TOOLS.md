@@ -2,7 +2,7 @@
 
 ## Status
 
-IN_PROGRESS
+COMPLETE
 
 ## Cleanup checkpoint
 
@@ -26,16 +26,26 @@ Existing timing scale commands already provide selected-key retime, and IK,
 foot lock, and look-at already bake constraints through their production
 controllers.
 
-## Remaining
+## Selected-range transforms
 
-- loop a selected animation range;
-- reverse selected timing;
-- mirror selected rig/transform animation;
-- validate save/load, history, timeline, preview, and export for all operations.
+- Loop repeats the selected global frame range with deterministic key IDs,
+  preserves the shared boundary without duplicate frames, and stops at the
+  authoritative timeline duration.
+- Reverse reflects selected frames inside their shared range, reverses
+  directional easing, and rejects collisions with unselected keys atomically.
+- Mirror reads one immutable snapshot before writing. It swaps supported
+  left/right limb rotations and mirrors root position/rotation consistently
+  with the renderer coordinate conventions.
+
+All operations return ordinary authoritative global tracks and enter the
+existing history exactly once only when data changes. No cleanup metadata,
+secondary clip format, or persistent tool state was added.
 
 ## Validation
 
-- Focused keyframe commands: 1 file, 5 tests.
-- Full frontend suite: 109 files, 496 tests.
-- Typecheck, localization, architecture, build, and audit pass.
+- Focused commands and persistence/production integration: 2 files, 9 tests.
+- Full frontend suite: 110 files, 500 tests.
+- Typecheck, localization, VFX examples, architecture, build, and audit pass.
+- JSON, project packages, browser autosave, schema 9 compatibility, history,
+  and production animation sampling preserve the transformed keys.
 - `App.tsx` remains 2,678 lines.

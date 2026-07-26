@@ -195,6 +195,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Dopesheet selections support redundant-key removal, tolerance-based noise
   reduction, and time-weighted value smoothing. Endpoints are preserved and
   no-op cleanup does not enter history.
+- Selected global-key ranges support duration-bounded deterministic looping,
+  easing-aware reverse, and renderer-consistent rig/transform mirroring.
+  Collisions fail atomically and successful actions reuse one history entry.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -210,14 +213,14 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Remaining keyframe/expression/Blockbench rigging milestones,
+- Remaining pose/expression/Blockbench rigging milestones,
   shot/take manager, plugin SDK/sandbox, AI assistance, collaboration, and
   additional community locale data files.
 - A distinct completed Phase 13 premium polish release.
 
 ## Evidence
 
-- 109 frontend test files and 496 passing tests.
+- 110 frontend test files and 500 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -296,3 +299,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 19.6 derives motion paths without persisted path data or render helpers.
 - Phase 19.7 reuses NLA persistence for ordered layers and centralizes sampling
   after global tracks without adding a layer store or effect timing authority.
+- Phase 19.8 emits ordinary reusable clips and global keys from bounded,
+  session-only procedural settings.
+- Phase 19.9 transforms the existing Dopesheet selection immutably and commits
+  only real track changes through the current history path.

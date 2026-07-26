@@ -48,7 +48,7 @@ still required before changing code.
 | LIM-039 | Motion paths are inspect-only; optional direct path editing is deferred until it can reuse global keyframe commands | Yes | P5 | 19/future | OPEN_OPTIONAL |
 | LIM-040 | Pure animation-layer blending existed without NLA persistence, production sampling, or layer UI | Yes | P4 | 19.7 | RESOLVED |
 | LIM-041 | Procedural generation lacked the ten editable rig recipes required by Phase 19.8 | Yes | P4 | 19.8 | RESOLVED |
-| LIM-042 | Key cleanup/smoothing is connected, but selected-range loop, reverse, and mirror remain unavailable | Yes | P4 | 19.9 | PARTIALLY_RESOLVED |
+| LIM-042 | Key cleanup/smoothing was connected, but selected-range loop, reverse, and mirror remained unavailable | Yes | P4 | 19.9 | RESOLVED |
 
 ## Phase 15.1 Outcome
 

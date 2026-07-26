@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.9 - Keyframe cleanup, retime, loop, reverse, and mirror
+19.10 - Pose copy, paste, mirror, blend, and reset
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.8 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.9 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -250,16 +250,19 @@ IN_PROGRESS - Phase 19.1 through 19.8 and the consolidation checkpoint are imple
 - Phase 19.8 provides all ten bounded deterministic generators. Each produces
   one reusable clip plus editable global keys through existing history, with
   full save/package/autosave/schema 9 and production-sampling coverage.
+- Phase 19.9 adds selection-scoped redundant-key removal, bounded noise
+  reduction, smoothing, loop, reverse, and renderer-consistent rig/transform
+  mirroring. Transform commands are immutable, collision-safe, deterministic,
+  duration-bounded, and atomic through the existing Dopesheet/history path.
 
 ## In Progress
 
-- Phase 19.9 now has selection-scoped redundant-key removal, bounded noise
-  reduction, and time-weighted smoothing in the existing command/history path.
-- Loop, reverse, and mirror remain.
+- Reconcile the existing pose library, rig workspace, and current-pose commands
+  before adding the missing Phase 19.10 copy/paste/blend workflow.
 
 ## Not Started
 
-- Phase 19.9-19.15 and phases 20-35.
+- Phase 19.10-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -275,19 +278,19 @@ IN_PROGRESS - Phase 19.1 through 19.8 and the consolidation checkpoint are imple
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: `f4aec26` (publication pending
+- Latest validated implementation checkpoint: `3d1c2c8` (publication pending
   external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused procedural/controller tests: PASS - 2 files, 9 tests
-- `npm test`: PASS - 109 files, 493 tests
+- Focused keyframe command/integration tests: PASS - 2 files, 9 tests
+- `npm test`: PASS - 110 files, 500 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
-- `npm run build`: PASS - 1,855 modules; 1,458.95 kB known large chunk
+- `npm run build`: PASS - 1,855 modules; 1,468.81 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -297,5 +300,6 @@ IN_PROGRESS - Phase 19.1 through 19.8 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Add deterministic loop, reverse, and mirror transforms over the existing
-Dopesheet selection, then run the full persistence/production gate.
+Audit existing pose copy/paste/mirror/blend/reset behavior against Phase 19.10,
+then implement only the missing operations through the current rig workspace
+and one history checkpoint per user action.

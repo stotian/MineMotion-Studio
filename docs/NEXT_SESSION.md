@@ -2,8 +2,9 @@
 
 ## Exact Current Task
 
-Continue Phase 19.9 with deterministic loop, reverse, and mirror transforms over
-the existing Dopesheet selection and history commands.
+Start Phase 19.10 by reconciling the existing pose library, rig workspace, and
+current-pose commands, then add only the missing copy/paste/blend behavior
+through the existing history path.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -89,15 +90,23 @@ Preserve the local commits and push normally once authentication is restored.
 - Selected redundant keys, bounded noise, and interior values can now be
   cleaned or smoothed atomically from the existing command bar. Endpoints and
   no-op history behavior are regression-tested.
+- Selected animation ranges can now be looped within the timeline, reversed
+  with directional easing, or mirrored across supported left/right rig bones
+  and transform axes. Commands are deterministic, immutable, collision-safe,
+  and committed once.
+- Keyframe transforms survive JSON, project packages, autosave, schema 9,
+  undo, and the production animation sampler. Phase 19.9 is complete at
+  implementation commit `3d1c2c8`.
 
 ## Unfinished Work
 
-- Phase 19.9-19.15 and phases 20-35 remain.
+- Phase 19.10-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Implement one-range loop and reverse plus renderer-consistent left/right
-animation mirroring, with collision guards and focused tests.
+Inspect current pose save/apply/mirror/reset contracts and Rig Studio controls.
+Implement deterministic session copy/paste and bounded pose blending without a
+second pose authority or per-bone history entries.
 
 ## Tests To Run
 

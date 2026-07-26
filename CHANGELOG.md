@@ -19,8 +19,9 @@
 - Added ten bounded deterministic procedural rig generators for idle, locomotion,
   jump/landing, recoil/hit, sword swing, and turn motion with editable outputs
   and localized Rig Studio controls.
-- Added selection-scoped redundant-key cleanup, bounded noise reduction, and
-  time-weighted keyframe smoothing to the existing animation command bar.
+- Added selection-scoped redundant-key cleanup, bounded noise reduction,
+  smoothing, duration-bounded loop, easing-aware reverse, and rig/transform
+  mirror tools to the existing animation command bar.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

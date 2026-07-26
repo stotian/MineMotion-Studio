@@ -516,3 +516,10 @@ reduction is an explicit tolerance approximation. Both preserve track
 endpoints, recompute against current neighbors after each removal, and prune
 deleted references from selection. No-op results retain track identity so the
 UI can avoid empty history checkpoints.
+
+Loop, reverse, and mirror use immutable snapshots. Loop IDs derive from source
+identity, destination frame, and repeat index; timeline bounds and occupied
+frames are enforced before commit. Reverse rejects unselected-key collisions
+and maps directional easing to the reversed segment. Mirror swaps supported
+left/right limb tracks from the same snapshot and applies renderer-consistent
+axis signs to rig rotations and transform motion.
