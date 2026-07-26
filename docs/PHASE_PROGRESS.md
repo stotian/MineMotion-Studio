@@ -229,8 +229,10 @@ IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are imple
 
 ## In Progress
 
-- Phase 19.5 will add bounded head, camera, and object look-at constraints with
-  influence through existing transform/bone tracks.
+- Phase 19.5 now has one pure bounded look-at solver for `XYZ` rig/object and
+  `YXZ` production-camera conventions, including up fallback, quaternion
+  influence, component limits, evaluated direction, and hostile-input guards.
+  Head/camera/object mapping, preview, and bake integration remain.
 
 ## Not Started
 
@@ -268,6 +270,6 @@ IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Inventory existing head, camera, and object orientation tracks and design the
-smallest pure bounded look-at solve contract before adding session UI or bake
-integration.
+Map head parent space plus camera/object world space into the pure look-at
+contract, then connect deterministic session preview and atomic bake to existing
+bone/transform rotation tracks.

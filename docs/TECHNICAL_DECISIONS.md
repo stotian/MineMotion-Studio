@@ -430,3 +430,18 @@ existing analytic two-bone solver. Any unreachable frame rejects the whole
 operation. A successful range writes its two global leg tracks in one project
 and history commit; no project fields, constraint tracks, or per-frame undo
 entries are added.
+
+## TD-034 - Use one bounded look-at solve across renderer Euler conventions
+
+Status: Accepted in Phase 19.5.
+
+Use local `-Z` as the closed forward convention and make Euler order explicit:
+`XYZ` for rendered rig bones/scene objects and `YXZ` for the production camera
+controller. Build the desired orientation from forward/up basis vectors, blend
+from the current orientation with shortest-path quaternion interpolation, then
+apply bounded component limits and report the evaluated direction honestly.
+
+The solver consumes plain finite data and owns no project state. Head parent
+space and camera/object world space must be mapped by focused controllers.
+Preview remains derived session state and successful bake must reuse existing
+global bone or transform rotation tracks rather than adding constraint tracks.

@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.5 with a pure bounded look-at solve contract. Phase 19.4
-terrain-aware foot locking is complete and validated.
+Continue Phase 19.5 with head/camera/object look-at mapping and bake. The pure
+bounded solver is implemented after the completed Phase 19.4 foot locks.
 
 ## Completed Work
 
@@ -54,6 +54,8 @@ terrain-aware foot locking is complete and validated.
   and bounded fixed-world foot-lock anchors are deterministic and tested.
 - Left/right foot ranges sample current animation, transform one ground anchor
   into local IK per frame, and bake atomically with no partial or duplicate keys.
+- One pure look-at solver supports renderer-matched `XYZ` and camera `YXZ`,
+  quaternion influence, limits, vertical fallback, and hostile-input rejection.
 
 ## Unfinished Work
 
@@ -61,8 +63,9 @@ terrain-aware foot locking is complete and validated.
 
 ## Next Implementation Step
 
-Inventory current head, camera, and object rotation sampling, then define the
-smallest pure look-at solve contract with limits and influence before UI/bake.
+Map head parent coordinates and camera/object world coordinates into the look-at
+solver, then preview session controls and atomically bake existing rotation
+tracks without persisted constraint state.
 
 ## Tests To Run
 
