@@ -88,6 +88,11 @@ export interface BlockbenchModelAsset {
   elementCount: number;
   groupCount: number;
   textureCount: number;
+  animationCount?: number;
+  animationNames?: string[];
+  modelFormat?: string;
+  supportedFeatures?: string[];
+  unsupportedFeatures?: string[];
   importedAt: string;
   warnings: string[];
   rawJson: string;

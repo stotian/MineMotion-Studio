@@ -26,6 +26,9 @@ import {
   sanitizeRigProjectData
 } from "../rigs/RigSerializer";
 import { reconcileRigAnimation } from "../rigs/RigContract";
+import {
+  reconcileBlockbenchModelAssets
+} from "../rigs/blockbench/BlockbenchAssetContract";
 import type {
   MineMotionProject,
   TimelineItem,
@@ -84,6 +87,11 @@ export class ProjectSerializer {
 
   static toSerializableProject(project: MineMotionProject): MineMotionProject {
     const sanitizedCharacters = project.scene.characters.map(sanitizeCharacterRig);
+    const sanitizedRigs = sanitizeRigProjectData(project.rigs);
+    const blockbenchModels = reconcileBlockbenchModelAssets(
+      project.assets.blockbench,
+      sanitizedRigs.blockbenchModels
+    );
     const reconciledRigAnimation = reconcileRigAnimation(
       sanitizedCharacters,
       project.animation.tracks,
@@ -97,7 +105,14 @@ export class ProjectSerializer {
         ...project.scene,
         characters: reconciledRigAnimation.characters
       },
-      rigs: sanitizeRigProjectData(project.rigs),
+      assets: {
+        ...project.assets,
+        blockbench: blockbenchModels
+      },
+      rigs: {
+        ...sanitizedRigs,
+        blockbenchModels
+      },
       animation: {
         ...project.animation,
         tracks: normalizedTracks
@@ -202,6 +217,10 @@ export class ProjectSerializer {
         : migrateLegacyEffectsToSchema10(rawEffects);
     const audioClips = sanitizeAudioClips(project.audio?.clips);
     const rigs = sanitizeRigProjectData(project.rigs);
+    const blockbenchModels = reconcileBlockbenchModelAssets(
+      project.assets?.blockbench,
+      rigs.blockbenchModels
+    );
     const resourcePacks = sanitizeResourcePackAssets(project.assets?.resourcePacks);
     const lighting = withLightingDefaults(project.lighting);
     const timelineTracks = sanitizeTimelineTracks(
@@ -287,7 +306,7 @@ export class ProjectSerializer {
       assets: {
         obj: project.assets?.obj ?? [],
         skins: project.assets?.skins ?? [],
-        blockbench: project.assets?.blockbench ?? [],
+        blockbench: blockbenchModels,
         resourcePacks
       },
       minecraftResources: {
@@ -304,7 +323,10 @@ export class ProjectSerializer {
         materials: withMinecraftMaterialDefaults(project.minecraftResources?.materials)
       },
       lighting,
-      rigs,
+      rigs: {
+        ...rigs,
+        blockbenchModels
+      },
       assetLibrary: sanitizeAssetLibrary(project.assetLibrary),
       effects: {
         instances: effects

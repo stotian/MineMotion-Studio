@@ -21,6 +21,7 @@ import {
 import { RigPoseControls } from "./RigPoseControls";
 import { RigAttachmentControls } from "./RigAttachmentControls";
 import type { RigAttachmentWorkspace } from "../../rigs/attachments/useRigAttachmentWorkspace";
+import { BlockbenchImportReportCard } from "./BlockbenchImportReportCard";
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -650,16 +651,11 @@ export function RigStudioPanel({
               {t("rig.importBlockbench")}
             </button>
             <div className="asset-list">
-              {project.rigs.blockbenchModels.length === 0 ? (
+              {project.assets.blockbench.length === 0 ? (
                 <p className="empty-note">{t("rig.noBlockbench")}</p>
               ) : (
-                project.rigs.blockbenchModels.map((model) => (
-                  <div key={model.id} className="asset-row">
-                    <strong>{model.name}</strong>
-                    <small>
-                      {t("rig.modelCounts", { cubes: model.elementCount, groups: model.groupCount, textures: model.textureCount })}
-                    </small>
-                  </div>
+                project.assets.blockbench.map((model) => (
+                  <BlockbenchImportReportCard key={model.id} model={model} />
                 ))
               )}
             </div>

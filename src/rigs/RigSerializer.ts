@@ -9,6 +9,7 @@ import {
   sanitizeRigPose,
   sanitizeRigVector
 } from "./RigContract";
+import { sanitizeBlockbenchModelAssets } from "./blockbench/BlockbenchAssetContract";
 
 export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntity {
   const rigPreset = normalizeRigPresetId(character.rigPreset);
@@ -51,9 +52,7 @@ export function sanitizeRigProjectData(
           .filter((pose): pose is NonNullable<typeof pose> => pose !== null)
       : [],
     animationClips: Array.isArray(rigs?.animationClips) ? rigs.animationClips : [],
-    blockbenchModels: Array.isArray(rigs?.blockbenchModels)
-      ? rigs.blockbenchModels
-      : []
+    blockbenchModels: sanitizeBlockbenchModelAssets(rigs?.blockbenchModels)
   };
 }
 

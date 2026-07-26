@@ -1456,6 +1456,19 @@ p.parameter-control-error {
   border-top: 1px solid #2b3443;
 }
 
+.blockbench-report-card {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.65rem;
+  border: 1px solid #2b3443;
+  border-radius: 6px;
+  background: #0e141d;
+}
+
+.blockbench-report-card small {
+  overflow-wrap: anywhere;
+}
+
 .rig-ik-controls label {
   display: grid;
   gap: 0.35rem;

@@ -1,11 +1,25 @@
 # Blockbench Import Notes
 
-Phase 5 supports a clean `.bbmodel` MVP:
+The importer accepts current `.bbmodel` JSON with an `outliner`, plus the
+legacy top-level `groups` representation. It applies explicit limits to source
+size, cube count, hierarchy depth, groups, textures, clips, and report text
+before the model reaches project persistence.
 
-- read JSON files exported by Blockbench
-- validate the `elements` cube array
-- collect groups, textures, and metadata
-- convert static cubes into OBJ geometry for viewport preview
+Static viewport geometry supports:
 
-Rig mapping is intentionally prepared but not automatic yet. Future work should
-map Blockbench groups to MineMotion bone IDs when names are compatible.
+- cube bounds, inflation, and explicitly enabled faces
+- nested group names and cube membership
+- cube and group pivots
+- cube and nested group rotations baked deterministically into OBJ vertices
+
+Texture and animation metadata remain embedded in the original `.bbmodel` and
+are summarized in the import report. Static OBJ preview deliberately uses the
+MineMotion material, so the report identifies texture preview as unsupported.
+Animation clips are named and counted, but they are not silently attached to a
+MineMotion rig before a reliable group-to-bone mapping exists.
+
+`project.assets.blockbench` is the authoritative asset collection. The legacy
+`project.rigs.blockbenchModels` collection is sanitized and reconciled as a
+compatibility projection during serialization and migration.
+
+The parser does not execute Blockbench expressions, scripts, or plugin data.
