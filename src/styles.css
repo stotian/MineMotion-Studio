@@ -1469,6 +1469,39 @@ p.parameter-control-error {
   overflow-wrap: anywhere;
 }
 
+.blockbench-mapping-controls,
+.blockbench-animation-controls {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #2b3443;
+}
+
+.blockbench-mapping-list {
+  display: grid;
+  gap: 0.45rem;
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.blockbench-mapping-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.55rem;
+  align-items: end;
+}
+
+.blockbench-mapping-row label,
+.blockbench-animation-controls label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.blockbench-mapping-row button {
+  grid-column: 2;
+  padding: 0.3rem 0.45rem;
+}
+
 .rig-ik-controls label {
   display: grid;
   gap: 0.35rem;

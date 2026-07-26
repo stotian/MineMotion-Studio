@@ -1,12 +1,21 @@
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { BlockbenchModelAsset } from "../../rigs/RigTypes";
+import type { CharacterEntity } from "../../project/ProjectFile";
+import type {
+  BlockbenchMappingWorkspace
+} from "../../rigs/blockbench/useBlockbenchMappingWorkspace";
+import { BlockbenchMappingControls } from "./BlockbenchMappingControls";
 
 interface BlockbenchImportReportCardProps {
   model: BlockbenchModelAsset;
+  character: CharacterEntity | null;
+  mappingWorkspace: BlockbenchMappingWorkspace;
 }
 
 export function BlockbenchImportReportCard({
-  model
+  model,
+  character,
+  mappingWorkspace
 }: BlockbenchImportReportCardProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
@@ -52,6 +61,11 @@ export function BlockbenchImportReportCard({
           {warning}
         </small>
       ))}
+      <BlockbenchMappingControls
+        model={model}
+        character={character}
+        workspace={mappingWorkspace}
+      />
     </div>
   );
 }

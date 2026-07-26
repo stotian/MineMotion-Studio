@@ -93,9 +93,16 @@ export interface BlockbenchModelAsset {
   modelFormat?: string;
   supportedFeatures?: string[];
   unsupportedFeatures?: string[];
+  boneMappings?: BlockbenchBoneMappingOverride[];
   importedAt: string;
   warnings: string[];
   rawJson: string;
+}
+
+export interface BlockbenchBoneMappingOverride {
+  rigPresetId: RigPresetId;
+  sourceGroupId: string;
+  targetBoneId: string | null;
 }
 
 export interface RigProjectData {

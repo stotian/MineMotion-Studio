@@ -35,7 +35,27 @@ export interface BlockbenchAnimation {
   loop?: string | boolean;
   length?: number;
   snapping?: number;
-  animators?: Record<string, unknown>;
+  animators?: Record<string, BlockbenchAnimationAnimator>;
+}
+
+export interface BlockbenchAnimationAnimator {
+  name?: string;
+  type?: string;
+  keyframes?: BlockbenchAnimationKeyframe[];
+}
+
+export interface BlockbenchAnimationKeyframe {
+  uuid?: string;
+  channel?: string;
+  time?: number;
+  interpolation?: string;
+  data_points?: BlockbenchAnimationDataPoint[];
+}
+
+export interface BlockbenchAnimationDataPoint {
+  x?: unknown;
+  y?: unknown;
+  z?: unknown;
 }
 
 export interface BlockbenchModelJson {

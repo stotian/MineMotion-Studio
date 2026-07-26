@@ -1,6 +1,7 @@
 import { createDeterministicId } from "../../core/ids/Id";
 import type { BlockbenchModelAsset } from "../RigTypes";
 import { BbmodelParser } from "./BbmodelParser";
+import { sanitizeBlockbenchBoneMappingOverrides } from "./BlockbenchMapping";
 import type { BlockbenchGroup } from "./BlockbenchTypes";
 
 export const BLOCKBENCH_ASSET_LIMITS = Object.freeze({
@@ -55,6 +56,10 @@ export function sanitizeBlockbenchModelAssets(
       animationNames: boundedTexts(model.report.animationNames),
       supportedFeatures: boundedTexts(model.report.supportedFeatures),
       unsupportedFeatures: boundedTexts(model.report.unsupportedFeatures),
+      boneMappings: sanitizeBlockbenchBoneMappingOverrides(
+        model,
+        source.boneMappings
+      ),
       importedAt: validDate(source.importedAt)
         ? source.importedAt!
         : "1970-01-01T00:00:00.000Z",

@@ -22,6 +22,7 @@ import { RigPoseControls } from "./RigPoseControls";
 import { RigAttachmentControls } from "./RigAttachmentControls";
 import type { RigAttachmentWorkspace } from "../../rigs/attachments/useRigAttachmentWorkspace";
 import { BlockbenchImportReportCard } from "./BlockbenchImportReportCard";
+import type { BlockbenchMappingWorkspace } from "../../rigs/blockbench/useBlockbenchMappingWorkspace";
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -35,6 +36,7 @@ interface RigStudioPanelProps {
   onResetSkin: (characterId: string) => void;
   poseWorkspace: RigPoseWorkspace;
   attachmentWorkspace: RigAttachmentWorkspace;
+  blockbenchMappingWorkspace: BlockbenchMappingWorkspace;
   onApplyAnimation: (presetId: string) => void;
   onGenerateProcedural: (settings: ProceduralAnimationSettings) => void;
   onImportBlockbench: () => void;
@@ -62,6 +64,7 @@ export function RigStudioPanel({
   onResetSkin,
   poseWorkspace,
   attachmentWorkspace,
+  blockbenchMappingWorkspace,
   onApplyAnimation,
   onGenerateProcedural,
   onImportBlockbench,
@@ -655,7 +658,12 @@ export function RigStudioPanel({
                 <p className="empty-note">{t("rig.noBlockbench")}</p>
               ) : (
                 project.assets.blockbench.map((model) => (
-                  <BlockbenchImportReportCard key={model.id} model={model} />
+                  <BlockbenchImportReportCard
+                    key={model.id}
+                    model={model}
+                    character={character}
+                    mappingWorkspace={blockbenchMappingWorkspace}
+                  />
                 ))
               )}
             </div>

@@ -929,7 +929,6 @@ export function App() {
   const handleImportBlockbench = useCallback(() => {
     blockbenchInputRef.current?.click();
   }, []);
-
   const handleBlockbenchSelected = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -2505,6 +2504,7 @@ export function App() {
         onResetSkin={handleResetSkin}
         poseWorkspace={rigWorkspace.poseWorkspace}
         attachmentWorkspace={rigWorkspace.attachmentWorkspace}
+        blockbenchMappingWorkspace={rigWorkspace.blockbenchMappingWorkspace}
         onApplyAnimation={rigWorkspace.applyAnimation}
         onGenerateProcedural={rigWorkspace.generateProceduralAnimation}
         onImportBlockbench={handleImportBlockbench}

@@ -1,5 +1,6 @@
 import type {
   BlockbenchAnimation,
+  BlockbenchAnimationKeyframe,
   BlockbenchElement,
   BlockbenchGroup,
   BlockbenchModelJson,
@@ -14,6 +15,9 @@ export const BLOCKBENCH_IMPORT_LIMITS = Object.freeze({
   groupDepth: 32,
   textures: 256,
   animations: 256,
+  animatorsPerAnimation: 128,
+  keyframesPerAnimation: 8_192,
+  dataPointsPerKeyframe: 2,
   textLength: 256
 });
 
@@ -73,10 +77,12 @@ export class BbmodelParser {
     const sourceAnimations = Array.isArray(parsed.animations)
       ? parsed.animations
       : [];
-    const animations = sourceAnimations
-      .filter(isAnimation)
-      .slice(0, BLOCKBENCH_IMPORT_LIMITS.animations);
-    if (animations.length !== sourceAnimations.length) {
+    const animationResult = sanitizeAnimations(sourceAnimations);
+    const animations = animationResult.animations;
+    warnings.push(...animationResult.warnings);
+    if (animations.length !== sourceAnimations.length &&
+      !animationResult.warnings.some((warning) =>
+        warning.startsWith("BLOCKBENCH_ANIMATIONS_SKIPPED"))) {
       warnings.push(
         "BLOCKBENCH_ANIMATIONS_SKIPPED: Invalid or excessive animations were skipped."
       );
@@ -251,6 +257,143 @@ function isAnimation(value: unknown): value is BlockbenchAnimation {
       (Number.isFinite(animation.snapping) &&
         animation.snapping > 0 &&
         animation.snapping <= 1_000));
+}
+
+function sanitizeAnimations(
+  values: unknown[]
+): { animations: BlockbenchAnimation[]; warnings: string[] } {
+  let invalid = false;
+  let truncated = values.length > BLOCKBENCH_IMPORT_LIMITS.animations;
+  const animations = values
+    .slice(0, BLOCKBENCH_IMPORT_LIMITS.animations)
+    .flatMap((value) => {
+      if (!isAnimation(value)) {
+        invalid = true;
+        return [];
+      }
+      const sourceAnimators = value.animators &&
+        typeof value.animators === "object" &&
+        !Array.isArray(value.animators)
+        ? Object.entries(value.animators)
+        : [];
+      if (sourceAnimators.length >
+        BLOCKBENCH_IMPORT_LIMITS.animatorsPerAnimation) {
+        truncated = true;
+      }
+      let keyframeCount = 0;
+      const animators: NonNullable<BlockbenchAnimation["animators"]> = {};
+      for (const [animatorId, candidate] of sourceAnimators.slice(
+        0,
+        BLOCKBENCH_IMPORT_LIMITS.animatorsPerAnimation
+      )) {
+        if (!candidate || typeof candidate !== "object" ||
+          Array.isArray(candidate)) {
+          invalid = true;
+          continue;
+        }
+        const source = candidate as Record<string, unknown>;
+        const sourceKeyframes = Array.isArray(source.keyframes)
+          ? source.keyframes
+          : [];
+        const remaining = Math.max(
+          0,
+          BLOCKBENCH_IMPORT_LIMITS.keyframesPerAnimation - keyframeCount
+        );
+        if (sourceKeyframes.length > remaining) truncated = true;
+        const keyframes = sourceKeyframes
+          .slice(0, remaining)
+          .flatMap((keyframe) => {
+            const sanitized = sanitizeAnimationKeyframe(keyframe);
+            if (!sanitized) {
+              invalid = true;
+              return [];
+            }
+            return [sanitized];
+          });
+        keyframeCount += keyframes.length;
+        const safeAnimatorId = safeText(
+          animatorId,
+          `animator_${Object.keys(animators).length}`
+        );
+        if (Object.hasOwn(animators, safeAnimatorId)) {
+          invalid = true;
+          continue;
+        }
+        animators[safeAnimatorId] = {
+          ...(typeof source.name === "string"
+            ? { name: safeText(source.name, "") }
+            : {}),
+          ...(typeof source.type === "string"
+            ? { type: safeText(source.type, "") }
+            : {}),
+          keyframes
+        };
+        if (keyframeCount >= BLOCKBENCH_IMPORT_LIMITS.keyframesPerAnimation) {
+          break;
+        }
+      }
+      return [{
+        ...(typeof value.uuid === "string"
+          ? { uuid: safeText(value.uuid, "") }
+          : {}),
+        ...(typeof value.name === "string"
+          ? { name: safeText(value.name, "") }
+          : {}),
+        ...(typeof value.loop === "string" || typeof value.loop === "boolean"
+          ? { loop: value.loop }
+          : {}),
+        ...(value.length !== undefined ? { length: value.length } : {}),
+        ...(value.snapping !== undefined ? { snapping: value.snapping } : {}),
+        animators
+      }];
+    });
+  return {
+    animations,
+    warnings: [
+      ...(invalid
+        ? ["BLOCKBENCH_ANIMATIONS_SKIPPED: Invalid animation data was skipped."]
+        : []),
+      ...(truncated
+        ? ["BLOCKBENCH_ANIMATIONS_TRUNCATED: Animation data exceeded import limits."]
+        : [])
+    ]
+  };
+}
+
+function sanitizeAnimationKeyframe(
+  value: unknown
+): BlockbenchAnimationKeyframe | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const source = value as Record<string, unknown>;
+  if (typeof source.time !== "number" ||
+    !Number.isFinite(source.time) ||
+    source.time < 0 ||
+    source.time > 86_400) {
+    return null;
+  }
+  const dataPoints = Array.isArray(source.data_points)
+    ? source.data_points
+        .slice(0, BLOCKBENCH_IMPORT_LIMITS.dataPointsPerKeyframe)
+        .filter((entry): entry is Record<string, unknown> =>
+          Boolean(entry) &&
+          typeof entry === "object" &&
+          !Array.isArray(entry)
+        )
+        .map((entry) => ({ x: entry.x, y: entry.y, z: entry.z }))
+    : [];
+  return {
+    ...(typeof source.uuid === "string"
+      ? { uuid: safeText(source.uuid, "") }
+      : {}),
+    ...(typeof source.channel === "string"
+      ? { channel: safeText(source.channel, "") }
+      : {}),
+    time: source.time,
+    ...(typeof source.interpolation === "string"
+      ? { interpolation: safeText(source.interpolation, "") }
+      : {}),
+    data_points: dataPoints
+  };
 }
 
 function hasElementRotation(element: BlockbenchElement): boolean {
