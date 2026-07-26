@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import type {
   CameraEntity,
   CharacterEntity,
@@ -10,14 +9,13 @@ import type {
 import { ChunkMeshBuilder as PresetChunkMeshBuilder } from "../minecraft/ChunkMeshBuilder";
 import { ChunkMeshBuilder as ImportedChunkMeshBuilder } from "../minecraft/mesh/ChunkMeshBuilder";
 import {
-  clearSteveRigTextureCache,
   createDefaultSteveRig,
-  pruneSteveRigTextureCache
+  SteveRigTextureCache
 } from "../rigs/DefaultSteveRig";
 import {
-  clearMinecraftMaterialCache,
   createMinecraftMaterialContextSignature,
-  createSolidMaterial
+  createSolidMaterial,
+  MinecraftMaterialCache
 } from "./MinecraftMaterialSystem";
 import { SkySystem } from "./SkySystem";
 import { createGridFloor } from "./GridFloor";
@@ -47,9 +45,12 @@ import {
   tagThreeObjectLayer,
   type RendererLayerVisibility
 } from "./RendererLayers";
-import { replaceOwnedObjMeshMaterials } from "./ObjMaterialOwnership";
 import { ThreeCullingAdapter } from "./ThreeCullingAdapter";
 import { VfxResourcePool } from "./VfxResourcePool";
+import {
+  collectRenderedObjAssetIds,
+  ObjAssetCache
+} from "./ObjAssetCache";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -70,13 +71,15 @@ export class SceneRenderer {
   private readonly pointer = new THREE.Vector2();
   private readonly culling = new ThreeCullingAdapter();
   private readonly vfxResources = new VfxResourcePool();
+  private readonly minecraftMaterials = new MinecraftMaterialCache();
+  private readonly skinTextures = new SteveRigTextureCache();
+  private readonly objAssets = new ObjAssetCache();
   private readonly sceneRoot = new THREE.Group();
   private readonly gridFloor = createGridFloor();
   private readonly selectionBox = new THREE.BoxHelper(new THREE.Object3D(), 0xf7d56b);
   private animationFrame = 0;
   private selectedObjectId: string | null = null;
   private project: MineMotionProject | null = null;
-  private readonly objLoader = new OBJLoader();
   private readonly performanceMonitor = new PerformanceMonitor();
   private readonly startedAt = performance.now();
   private startupMs: number | null = null;
@@ -181,8 +184,9 @@ export class SceneRenderer {
     this.controller.dispose();
     disposeThreeObjectTree(this.sceneRoot);
     this.vfxResources.dispose();
-    clearMinecraftMaterialCache();
-    clearSteveRigTextureCache();
+    this.minecraftMaterials.clear();
+    this.skinTextures.clear();
+    this.objAssets.clear();
     this.materialContextSignature = null;
     disposeThreeObjectTree(this.gridFloor);
     disposeThreeObjectTree(this.selectionBox);
@@ -208,18 +212,25 @@ export class SceneRenderer {
     );
     const materialContext = {
       resourcePack: activeResourcePack,
-      settings: project.minecraftResources
+      settings: project.minecraftResources,
+      materialCache: this.minecraftMaterials
     };
     const materialContextSignature =
       createMinecraftMaterialContextSignature(materialContext);
     if (materialContextSignature !== this.materialContextSignature) {
-      clearMinecraftMaterialCache();
+      this.minecraftMaterials.clear();
       this.materialContextSignature = materialContextSignature;
     }
-    pruneSteveRigTextureCache(
+    this.skinTextures.prune(
       project.scene.characters.flatMap((character) =>
-        character.skin?.metadata.valid ? [character.skin.dataUrl] : []
+        character.visible && character.skin?.metadata.valid
+          ? [character.skin.dataUrl]
+          : []
       )
+    );
+    const renderedObjAssetIds = collectRenderedObjAssetIds(project);
+    this.objAssets.prune(
+      project.assets.obj.filter((asset) => renderedObjAssetIds.has(asset.id))
     );
 
     const importedChunks = project.world?.importedChunks ?? [];
@@ -402,7 +413,8 @@ export class SceneRenderer {
   ): THREE.Group {
     const group = createDefaultSteveRig(
       character,
-      (assetId) => this.createObjAssetObject(project, assetId)
+      (assetId) => this.createObjAssetObject(project, assetId),
+      this.skinTextures
     );
     this.applyTransform(group, character.transform);
     this.markSelectable(group, character.id, "character");
@@ -462,12 +474,7 @@ export class SceneRenderer {
   ): THREE.Object3D | null {
     const asset = project.assets.obj.find((item) => item.id === assetId);
     if (!asset) return null;
-    const object = this.objLoader.parse(asset.rawObj);
-    replaceOwnedObjMeshMaterials(
-      object,
-      () => createSolidMaterial("#aab2bd")
-    );
-    return object;
+    return this.objAssets.resolve(asset);
   }
 
   private createWorldEffectObject(

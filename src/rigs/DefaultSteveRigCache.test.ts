@@ -5,7 +5,8 @@ import { disposeThreeObjectTree } from "../renderer/ThreeResourceDisposal";
 import {
   clearSteveRigTextureCache,
   createDefaultSteveRig,
-  pruneSteveRigTextureCache
+  pruneSteveRigTextureCache,
+  SteveRigTextureCache
 } from "./DefaultSteveRig";
 
 afterEach(() => {
@@ -48,5 +49,24 @@ describe("Steve rig texture cache ownership", () => {
     expect(pruneSteveRigTextureCache([])).toBe(1);
     expect(dispose).toHaveBeenCalledOnce();
     expect(clearSteveRigTextureCache()).toBe(0);
+  });
+
+  it("keeps skin texture ownership independent between renderers", () => {
+    const textures = [new THREE.Texture(), new THREE.Texture()];
+    vi.spyOn(THREE.TextureLoader.prototype, "load")
+      .mockImplementation(() => textures.shift() ?? new THREE.Texture());
+    const firstOwner = new SteveRigTextureCache();
+    const secondOwner = new SteveRigTextureCache();
+    const first = firstOwner.get("data:image/png;base64,shared");
+    const second = secondOwner.get("data:image/png;base64,shared");
+    const firstDispose = vi.spyOn(first, "dispose");
+    const secondDispose = vi.spyOn(second, "dispose");
+
+    expect(first).not.toBe(second);
+    expect(firstOwner.clear()).toBe(1);
+    expect(firstDispose).toHaveBeenCalledOnce();
+    expect(secondDispose).not.toHaveBeenCalled();
+    expect(secondOwner.clear()).toBe(1);
+    expect(secondDispose).toHaveBeenCalledOnce();
   });
 });

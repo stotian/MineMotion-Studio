@@ -33,24 +33,49 @@ for (const material of Object.values(EXPRESSION_MATERIALS)) {
   markSharedThreeResource(material);
 }
 
-const textureCache = new Map<string, THREE.Texture>();
+export class SteveRigTextureCache {
+  private readonly textures = new Map<string, THREE.Texture>();
+
+  get(dataUrl: string): THREE.Texture {
+    const cached = this.textures.get(dataUrl);
+    if (cached) return cached;
+    const texture = new THREE.TextureLoader().load(dataUrl);
+    markSharedThreeResource(texture);
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.generateMipmaps = false;
+    this.textures.set(dataUrl, texture);
+    return texture;
+  }
+
+  prune(activeDataUrls: readonly string[]): number {
+    const active = new Set(activeDataUrls);
+    let disposed = 0;
+    for (const [dataUrl, texture] of this.textures) {
+      if (active.has(dataUrl)) continue;
+      texture.dispose();
+      this.textures.delete(dataUrl);
+      disposed += 1;
+    }
+    return disposed;
+  }
+
+  clear(): number {
+    return this.prune([]);
+  }
+}
+
+const defaultTextureCache = new SteveRigTextureCache();
 
 export function pruneSteveRigTextureCache(
   activeDataUrls: readonly string[]
 ): number {
-  const active = new Set(activeDataUrls);
-  let disposed = 0;
-  for (const [dataUrl, texture] of textureCache) {
-    if (active.has(dataUrl)) continue;
-    texture.dispose();
-    textureCache.delete(dataUrl);
-    disposed += 1;
-  }
-  return disposed;
+  return defaultTextureCache.prune(activeDataUrls);
 }
 
 export function clearSteveRigTextureCache(): number {
-  return pruneSteveRigTextureCache([]);
+  return defaultTextureCache.clear();
 }
 
 export type ObjAttachmentResolver = (
@@ -59,7 +84,8 @@ export type ObjAttachmentResolver = (
 
 export function createDefaultSteveRig(
   character: CharacterEntity,
-  resolveObjAttachment?: ObjAttachmentResolver
+  resolveObjAttachment?: ObjAttachmentResolver,
+  textureCache: SteveRigTextureCache = defaultTextureCache
 ): THREE.Group {
   const definition = getRigDefinition(character.rigPreset);
   const root = new THREE.Group();
@@ -68,7 +94,7 @@ export function createDefaultSteveRig(
   const boneObjects = new Map<string, THREE.Group>();
 
   for (const bone of definition.bones) {
-    const boneObject = createBoneObject(bone, character);
+    const boneObject = createBoneObject(bone, character, textureCache);
     boneObjects.set(bone.id, boneObject);
 
     if (!bone.parentId) {
@@ -98,7 +124,11 @@ export function createDefaultSteveRig(
   return root;
 }
 
-function createBoneObject(bone: RigBone, character: CharacterEntity): THREE.Group {
+function createBoneObject(
+  bone: RigBone,
+  character: CharacterEntity,
+  textureCache: SteveRigTextureCache
+): THREE.Group {
   const pivot = new THREE.Group();
   pivot.name = bone.label;
   pivot.position.set(bone.offset[0], bone.offset[1], bone.offset[2]);
@@ -121,7 +151,10 @@ function createBoneObject(bone: RigBone, character: CharacterEntity): THREE.Grou
     );
   }
 
-  const mesh = new THREE.Mesh(geometry, materialForBone(bone, character));
+  const mesh = new THREE.Mesh(
+    geometry,
+    materialForBone(bone, character, textureCache)
+  );
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.position.set(bone.pivot[0], bone.pivot[1], bone.pivot[2]);
@@ -179,10 +212,14 @@ function createExpressionOverlayObject(
   return group;
 }
 
-function materialForBone(bone: RigBone, character: CharacterEntity): THREE.Material {
+function materialForBone(
+  bone: RigBone,
+  character: CharacterEntity,
+  textureCache: SteveRigTextureCache
+): THREE.Material {
   if (character.skin?.metadata.valid && bone.skinPart && bone.skinPart !== "cape") {
     return new THREE.MeshStandardMaterial({
-      map: getSkinTexture(character.skin.dataUrl),
+      map: textureCache.get(character.skin.dataUrl),
       transparent: true,
       alphaTest: 0.05,
       roughness: 0.78,
@@ -217,19 +254,6 @@ function createAttachmentObject(
     return group;
   }
   return new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 0.24), MATERIALS.item);
-}
-
-function getSkinTexture(dataUrl: string): THREE.Texture {
-  const cached = textureCache.get(dataUrl);
-  if (cached) return cached;
-  const texture = new THREE.TextureLoader().load(dataUrl);
-  markSharedThreeResource(texture);
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.NearestFilter;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.generateMipmaps = false;
-  textureCache.set(dataUrl, texture);
-  return texture;
 }
 
 function applyEuler(target: THREE.Euler, rotation: Vector3Tuple): void {
