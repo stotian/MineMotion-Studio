@@ -537,3 +537,17 @@ Paste, blend, mirror, reset, and preset apply return the original project on
 locked, missing, invalid, or unchanged targets. Successful user actions replace
 the character once through whole-project history rather than producing one
 checkpoint per bone.
+
+## TD-040 - Attachment motion derives from authoritative bone animation
+
+Status: Accepted in Phase 19.11.
+
+An attachment remains a bounded character record mapped to one attachment
+point. Its world transform comes from the resolved point offset under the
+production-sampled parent bone. Do not add attachment copies of bone tracks,
+per-frame attachment state, or a second attachment timeline.
+
+Attachment commands mutate the existing character collection once per user
+action. Cross-record validation resolves rig points/bones and project OBJ asset
+references. The shared scene renderer resolves attached OBJ geometry so preview
+and offline rendering consume the same project asset.

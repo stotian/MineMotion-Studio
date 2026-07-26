@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Start Phase 19.11 by auditing existing attachment points, renderer parenting,
-visibility, persistence, and timeline behavior before adding animation or
-validation.
+Start Phase 19.12 by auditing the existing Blockbench parser, static OBJ
+conversion, stored model contract, rendering, reports, and unsupported-feature
+warnings.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -103,16 +103,21 @@ Preserve the local commits and push normally once authentication is restored.
 - Applied poses survive JSON, project packages, autosave, schema 9, undo, and
   production sampling. Phase 19.10 is complete at implementation commit
   `8fa38e0`.
+- Attachments now inherit production-sampled bone motion without a separate
+  timeline. Rig Studio supports bounded visibility/remapping/OBJ add/remove,
+  while stable diagnostics reject broken records.
+- The shared preview/export renderer resolves attached OBJ assets instead of a
+  generic cube. Phase 19.11 is complete at implementation commit `462e232`.
 
 ## Unfinished Work
 
-- Phase 19.11-19.15 and phases 20-35 remain.
+- Phase 19.12-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Inspect attachment contracts, current placeholder/OBJ parenting, renderer
-sampling, and save/export paths. Define the smallest compatible animation
-contract on the existing global timeline before adding UI.
+Inspect `BlockbenchParser`, `BlockbenchImporter`, `BlockbenchTypes`, current
+fixtures, Rig Studio reporting, and actual renderer consumers. Reconcile what
+is already supported before changing the stored model or schema.
 
 ## Tests To Run
 

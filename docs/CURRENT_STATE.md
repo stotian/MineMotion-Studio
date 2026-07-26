@@ -201,6 +201,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - A session-only detached pose clipboard supports compatible-bone paste and
   0-100% blend. Preset apply, paste, blend, mirror, and reset reject locked or
   unchanged targets without empty history checkpoints.
+- Validated attachments inherit production bone animation, can be remapped and
+  managed in Rig Studio, and resolve real imported OBJ geometry through the
+  shared preview/export renderer.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -223,7 +226,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 111 frontend test files and 505 passing tests.
+- 113 frontend test files and 511 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -308,3 +311,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
   only real track changes through the current history path.
 - Phase 19.10 keeps copied pose state outside project persistence and applies
   pose operations atomically through the existing whole-project history.
+- Phase 19.11 derives attachment motion from sampled parent bones and keeps
+  authoring in the existing bounded character attachment collection.

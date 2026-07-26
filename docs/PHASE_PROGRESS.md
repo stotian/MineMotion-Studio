@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.11 - Animated and validated attachments
+19.12 - Blockbench bones, groups, cubes, pivots, textures, clips, and reports
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.10 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.11 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -258,15 +258,19 @@ IN_PROGRESS - Phase 19.1 through 19.10 and the consolidation checkpoint are impl
   paste, and bounded pose blending while preserving existing save/apply/mirror/
   reset behavior. Project commands reject locked, missing, invalid, and no-op
   actions atomically and pass every persistence/production path.
+- Phase 19.11 keeps attachment motion derived from authoritative bone tracks,
+  adds bounded atomic authoring and diagnostics, and resolves real imported OBJ
+  assets in the shared preview/export renderer. No parallel attachment timeline
+  or duplicated animation data was introduced.
 
 ## In Progress
 
-- Audit current attachment points, object parenting, visibility, persistence,
-  timeline behavior, and renderer/export parity before Phase 19.11 changes.
+- Audit the existing Blockbench parser, static OBJ conversion, stored model
+  contract, renderer, reports, and unsupported-feature behavior before 19.12.
 
 ## Not Started
 
-- Phase 19.11-19.15 and phases 20-35.
+- Phase 19.12-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -282,19 +286,19 @@ IN_PROGRESS - Phase 19.1 through 19.10 and the consolidation checkpoint are impl
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: `8fa38e0` (publication pending
+- Latest validated implementation checkpoint: `462e232` (publication pending
   external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused pose command/library/persistence tests: PASS - 3 files, 9 tests
-- `npm test`: PASS - 111 files, 505 tests
+- Focused attachment/runtime/persistence tests: PASS - 3 files, 7 tests
+- `npm test`: PASS - 113 files, 511 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
-- `npm run verify:architecture`: PASS - `App.tsx` 2,675/2,839 lines
-- `npm run build`: PASS - 1,857 modules; 1,473.71 kB known large chunk
+- `npm run verify:architecture`: PASS - `App.tsx` 2,676/2,839 lines
+- `npm run build`: PASS - 1,860 modules; 1,482.88 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -304,6 +308,6 @@ IN_PROGRESS - Phase 19.1 through 19.10 and the consolidation checkpoint are impl
 
 ## Next Exact Action
 
-Audit attachment rendering and persistence against Phase 19.11, then implement
-only the missing animation/validation behavior through the authoritative
-character attachment records and global timeline.
+Audit Blockbench import behavior against Phase 19.12, then improve only
+evidence-backed gaps in bones, groups, cubes, pivots, textures, clips, and
+import reporting.

@@ -24,6 +24,8 @@
   mirror tools to the existing animation command bar.
 - Added a session-only rig pose clipboard with compatible-bone paste, bounded
   blending, no-op-aware mirror/reset, and localized Rig Studio controls.
+- Added validated rig attachment controls, parent-bone animation coverage, and
+  real imported OBJ rendering through the shared preview/export scene path.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 
