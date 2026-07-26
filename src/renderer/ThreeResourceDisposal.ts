@@ -9,6 +9,7 @@ export interface ThreeResourceDisposalStats {
   textures: number;
   renderTargets: number;
   skeletons: number;
+  instanceMeshes: number;
 }
 
 export function markSharedThreeResource<T extends object>(resource: T): T {
@@ -26,13 +27,15 @@ export function disposeThreeObjectTree(
     materials: 0,
     textures: 0,
     renderTargets: 0,
-    skeletons: 0
+    skeletons: 0,
+    instanceMeshes: 0
   };
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
   const renderTargets = new Set<THREE.WebGLRenderTarget>();
   const skeletons = new Set<THREE.Skeleton>();
+  const instanceMeshes = new Set<THREE.InstancedMesh>();
 
   root.traverse((object) => {
     stats.objects += 1;
@@ -51,6 +54,9 @@ export function disposeThreeObjectTree(
     }
     if (renderable.skeleton instanceof THREE.Skeleton) {
       skeletons.add(renderable.skeleton);
+    }
+    if (object instanceof THREE.InstancedMesh) {
+      instanceMeshes.add(object);
     }
     collectNestedGpuResources(
       object.userData,
@@ -82,6 +88,11 @@ export function disposeThreeObjectTree(
     if (sharedResources.has(skeleton)) continue;
     skeleton.dispose();
     stats.skeletons += 1;
+  }
+  for (const instanceMesh of instanceMeshes) {
+    if (sharedResources.has(instanceMesh)) continue;
+    instanceMesh.dispose();
+    stats.instanceMeshes += 1;
   }
   const renderTargetTextures = new Set<THREE.Texture>();
   for (const renderTarget of renderTargets) {

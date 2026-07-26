@@ -49,6 +49,7 @@ import {
 } from "./RendererLayers";
 import { replaceOwnedObjMeshMaterials } from "./ObjMaterialOwnership";
 import { ThreeCullingAdapter } from "./ThreeCullingAdapter";
+import { VfxResourcePool } from "./VfxResourcePool";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -68,6 +69,7 @@ export class SceneRenderer {
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
   private readonly culling = new ThreeCullingAdapter();
+  private readonly vfxResources = new VfxResourcePool();
   private readonly sceneRoot = new THREE.Group();
   private readonly gridFloor = createGridFloor();
   private readonly selectionBox = new THREE.BoxHelper(new THREE.Object3D(), 0xf7d56b);
@@ -178,6 +180,7 @@ export class SceneRenderer {
     window.removeEventListener("resize", this.resize);
     this.controller.dispose();
     disposeThreeObjectTree(this.sceneRoot);
+    this.vfxResources.dispose();
     clearMinecraftMaterialCache();
     clearSteveRigTextureCache();
     this.materialContextSignature = null;
@@ -198,6 +201,7 @@ export class SceneRenderer {
     motionPath: SampledMotionPath | null
   ): void {
     disposeThreeObjectTree(this.sceneRoot);
+    this.vfxResources.beginFrame();
     this.culling.reset();
     const activeResourcePack = project.assets.resourcePacks.find(
       (pack) => pack.id === project.minecraftResources.activeResourcePackId
@@ -497,9 +501,8 @@ export class SceneRenderer {
         );
       }
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({
+      const material = this.vfxResources.acquireLineMaterial({
         color,
-        transparent: true,
         opacity: alpha * (1 - progress * 0.35)
       });
       const line = new THREE.Line(geometry, material);
@@ -514,9 +517,8 @@ export class SceneRenderer {
       );
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(radius, 0.035, 8, effect.budget.segments),
-        new THREE.MeshBasicMaterial({
+        this.vfxResources.acquireMeshMaterial({
           color,
-          transparent: true,
           opacity: alpha * (1 - progress)
         })
       );
@@ -530,29 +532,33 @@ export class SceneRenderer {
       const radius =
         getPreparedVfxNumber(effect, "radius", 2) * Math.max(0.15, progress);
       const size = getPreparedVfxNumber(effect, "size", 0.16);
-      const geometry = new THREE.BoxGeometry(size, size, size);
-      const material = new THREE.MeshBasicMaterial({
+      const geometry = this.vfxResources.getUnitCubeGeometry();
+      const material = this.vfxResources.acquireMeshMaterial({
         color,
-        transparent: true,
         opacity: alpha * (1 - progress * 0.8)
       });
-      const particles = new THREE.InstancedMesh(
+      const particles = this.vfxResources.acquireParticleMesh(
         geometry,
         material,
         particleCount
       );
       const matrix = new THREE.Matrix4();
+      const particlePosition = new THREE.Vector3();
+      const particleRotation = new THREE.Quaternion();
+      const particleScale = new THREE.Vector3(size, size, size);
       for (let index = 0; index < particleCount; index += 1) {
         const angle = (index / particleCount) * Math.PI * 2;
         const vertical = Math.sin(index * 1.618) * radius * 0.45;
-        matrix.makeTranslation(
+        particlePosition.set(
           position[0] + Math.cos(angle) * radius,
           position[1] + vertical + 1,
           position[2] + Math.sin(angle) * radius
         );
+        matrix.compose(particlePosition, particleRotation, particleScale);
         particles.setMatrixAt(index, matrix);
       }
       particles.instanceMatrix.needsUpdate = true;
+      particles.computeBoundingSphere();
       particles.name = effect.displayName;
       return particles;
     }
@@ -566,28 +572,33 @@ export class SceneRenderer {
     const color = isSafeVfxColor(primitive.color) ? primitive.color : "#ffffff";
     if (primitive.kind === "particle-emitter") {
       if (primitive.particles.length === 0) return null;
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      const material = new THREE.MeshBasicMaterial({
+      const geometry = this.vfxResources.getUnitCubeGeometry();
+      const material = this.vfxResources.acquireMeshMaterial({
         color,
-        transparent: true,
         opacity: Math.max(0, Math.min(1, primitive.particles[0]?.opacity ?? 0))
       });
-      const particles = new THREE.InstancedMesh(
+      const particles = this.vfxResources.acquireParticleMesh(
         geometry,
         material,
         primitive.particles.length
       );
       const matrix = new THREE.Matrix4();
+      const particlePosition = new THREE.Vector3();
+      const particleRotation = new THREE.Quaternion();
+      const particleScale = new THREE.Vector3();
       for (let index = 0; index < primitive.particles.length; index += 1) {
         const sample = primitive.particles[index];
+        particlePosition.set(...sample.position);
+        particleScale.setScalar(sample.size);
         matrix.compose(
-          new THREE.Vector3(...sample.position),
-          new THREE.Quaternion(),
-          new THREE.Vector3(sample.size, sample.size, sample.size)
+          particlePosition,
+          particleRotation,
+          particleScale
         );
         particles.setMatrixAt(index, matrix);
       }
       particles.instanceMatrix.needsUpdate = true;
+      particles.computeBoundingSphere();
       return particles;
     }
 
@@ -609,9 +620,8 @@ export class SceneRenderer {
             : primitive.points[0]?.opacity ?? 0;
       return new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(points),
-        new THREE.LineBasicMaterial({
+        this.vfxResources.acquireLineMaterial({
           color,
-          transparent: true,
           opacity: Math.max(0, Math.min(1, opacity))
         })
       );
@@ -619,10 +629,9 @@ export class SceneRenderer {
 
     if (primitive.radius <= 0 || primitive.intensity <= 0) return null;
     const pulse = new THREE.Mesh(
-      new THREE.SphereGeometry(primitive.radius, 16, 8),
-      new THREE.MeshBasicMaterial({
+      this.vfxResources.getUnitSphereGeometry(),
+      this.vfxResources.acquireMeshMaterial({
         color,
-        transparent: true,
         opacity: Math.max(0, Math.min(0.45, primitive.intensity * 0.18)),
         wireframe: true,
         blending: THREE.AdditiveBlending,
@@ -630,6 +639,7 @@ export class SceneRenderer {
       })
     );
     pulse.position.set(...primitive.center);
+    pulse.scale.setScalar(primitive.radius);
     return pulse;
   }
 

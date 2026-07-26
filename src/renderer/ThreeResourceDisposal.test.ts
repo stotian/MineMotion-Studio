@@ -39,7 +39,8 @@ describe("disposeThreeObjectTree", () => {
       materials: 1,
       textures: 1,
       renderTargets: 1,
-      skeletons: 0
+      skeletons: 0,
+      instanceMeshes: 0
     });
   });
 
@@ -63,5 +64,41 @@ describe("disposeThreeObjectTree", () => {
     expect(stats.geometries).toBe(1);
     expect(stats.materials).toBe(0);
     expect(stats.textures).toBe(0);
+  });
+
+  it("releases instanced-mesh attributes even when geometry is shared", () => {
+    const root = new THREE.Group();
+    const geometry = markSharedThreeResource(new THREE.BoxGeometry());
+    const material = markSharedThreeResource(new THREE.MeshBasicMaterial());
+    const instances = new THREE.InstancedMesh(geometry, material, 4);
+    const dispose = vi.spyOn(instances, "dispose");
+    root.add(instances);
+
+    const stats = disposeThreeObjectTree(root);
+
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(stats).toMatchObject({
+      instanceMeshes: 1,
+      geometries: 0,
+      materials: 0
+    });
+  });
+
+  it("keeps explicitly shared instanced meshes under their pool owner", () => {
+    const root = new THREE.Group();
+    const instances = markSharedThreeResource(
+      new THREE.InstancedMesh(
+        markSharedThreeResource(new THREE.BoxGeometry()),
+        markSharedThreeResource(new THREE.MeshBasicMaterial()),
+        4
+      )
+    );
+    const dispose = vi.spyOn(instances, "dispose");
+    root.add(instances);
+
+    const stats = disposeThreeObjectTree(root);
+
+    expect(dispose).not.toHaveBeenCalled();
+    expect(stats.instanceMeshes).toBe(0);
   });
 });
