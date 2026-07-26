@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.5 - Head, camera, and object look-at constraints
+19.6 - Root, limb, and camera motion paths
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are implemented and validated.
+READY - Phase 19.1 through 19.5 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -226,13 +226,20 @@ IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are imple
 - Rig Studio exposes localized bounded start/end/ground-offset controls only for
   feet. No persisted constraint state, parallel timeline, or per-frame undo is
   introduced.
+- Phase 19.5 adds one pure bounded look-at solver for renderer `XYZ` rig/object
+  and production-camera `YXZ`, with quaternion influence, limits, deterministic
+  up fallback, evaluated direction, and hostile-input guards.
+- Head mapping converts animated targets through character transform, root, and
+  body into parent space; camera/object mapping uses sampled world coordinates.
+- Localized session controls select an animated target or custom world position,
+  preview deterministically, and bake one existing head/transform rotation track
+  through one history operation. Eye direction follows the head as disclosed.
+- Constraint composition moved to `useRigConstraintWorkspace`; `App.tsx` remains
+  unchanged at 2,678 lines from the Phase 19.4 baseline.
 
 ## In Progress
 
-- Phase 19.5 now has one pure bounded look-at solver for `XYZ` rig/object and
-  `YXZ` production-camera conventions, including up fallback, quaternion
-  influence, component limits, evaluated direction, and hostile-input guards.
-  Head/camera/object mapping, preview, and bake integration remain.
+- None. Phase 19.6 is the next safe READY milestone.
 
 ## Not Started
 
@@ -241,6 +248,9 @@ IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are imple
 ## Blockers
 
 - None for current Phase 19 TypeScript work.
+- Publishing local milestone commits is pending because this environment has no
+  authenticated GitHub credential and no `gh` executable; `origin/main` remains
+  readable and no history rewrite or force push was attempted.
 - Final Phase 15 browser smoke is environment-blocked because the in-app
   browser client cannot attach (`Cannot redefine property: process`).
 - Host Smart App Control blocks release-profile Cargo build scripts; debug
@@ -256,12 +266,12 @@ IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are imple
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused ground/foot-lock/IK tests: PASS - 4 files, 18 tests
-- `npm test`: PASS - 100 files, 453 tests
+- Focused look-at/timeline/foot-space tests: PASS - 5 files, 19 tests
+- `npm test`: PASS - 103 files, 467 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
-- `npm run build`: PASS - 1,838 modules; 1,399.91 kB known large chunk
+- `npm run build`: PASS - 1,845 modules; 1,418.39 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because Phase 19.3 changes TypeScript/docs/CI only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
@@ -270,6 +280,6 @@ IN_PROGRESS - Phase 19.1 through 19.4 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Map head parent space plus camera/object world space into the pure look-at
-contract, then connect deterministic session preview and atomic bake to existing
-bone/transform rotation tracks.
+Inventory root, hand, and camera path sampling plus viewport overlay ownership,
+then define one renderer-neutral bounded motion-path sampling contract before
+adding key points or editing.

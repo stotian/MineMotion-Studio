@@ -112,8 +112,8 @@ contracts and evidence-based runtime capability reporting.
   to all faces of each instanced block material.
 - Blockbench rig mapping is not automatic yet; Phase 5 imports static cube
   geometry as a preview object.
-- Production IK and foot locks use honest numeric controls; interactive viewport
-  gizmos, look-at constraints, and procedural rig tools remain later Phase 19
+- Production IK, foot locks, and look-at constraints use honest numeric controls;
+  interactive viewport gizmos and procedural rig tools remain later Phase 19
   milestones.
 - Import is intentionally bounded by max region files, max chunks, and max
   vertical sections.

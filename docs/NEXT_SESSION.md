@@ -2,8 +2,12 @@
 
 ## Exact Current Task
 
-Continue Phase 19.5 with head/camera/object look-at mapping and bake. The pure
-bounded solver is implemented after the completed Phase 19.4 foot locks.
+Begin Phase 19.6 with root, limb, and camera motion paths after the completed
+and validated Phase 19.5 look-at constraints.
+
+GitHub publication is externally blocked in this environment: the HTTPS remote
+is readable, but no authenticated credential or `gh` executable is available.
+Preserve the local commits and push normally once authentication is restored.
 
 ## Completed Work
 
@@ -56,16 +60,20 @@ bounded solver is implemented after the completed Phase 19.4 foot locks.
   into local IK per frame, and bake atomically with no partial or duplicate keys.
 - One pure look-at solver supports renderer-matched `XYZ` and camera `YXZ`,
   quaternion influence, limits, vertical fallback, and hostile-input rejection.
+- Head parent-space plus camera/object world-space mapping now supports animated
+  target selection, deterministic live preview, and one-key atomic bake.
+- Numeric target/influence/maximum-angle controls are localized and session-only;
+  existing bone/transform rotation tracks remain authoritative and persistent.
 
 ## Unfinished Work
 
-- Phase 19.5-19.15 and phases 20-35 remain.
+- Phase 19.6-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Map head parent coordinates and camera/object world coordinates into the look-at
-solver, then preview session controls and atomically bake existing rotation
-tracks without persisted constraint state.
+Inventory current root, hand, and camera sampling plus viewport overlay
+ownership, then define one renderer-neutral bounded motion-path sampling
+contract before adding key points or editing.
 
 ## Tests To Run
 

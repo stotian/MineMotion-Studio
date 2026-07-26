@@ -157,13 +157,13 @@ Service interfaces identify scene, timeline, render, VFX, audio, asset,
 project, export, and plugin boundaries. They document future extraction from
 `App.tsx`; they are deliberately not a new runtime container.
 
-## Rig and IK control flow
+## Rig constraint control flow
 
 ```text
-Rig Studio numeric controls (session-only)
+Rig Studio IK/look-at controls (session-only)
                  |
                  v
-      RigIKController + canonical mapping
+       focused controllers + canonical mapping
           |                         |
           v                         v
  live preview project       bake command result
@@ -172,19 +172,20 @@ Rig Studio numeric controls (session-only)
  existing Viewport       existing commit/history path
                                     |
                                     v
-                     global bone.rotation.* tracks
+           global bone.rotation.* / transform.rotation tracks
                                     |
                                     v
                  generated legacy boneKeyframes projection
 ```
 
-`App.tsx` is a composition root for this flow. Rig/pose/IK callbacks live in
-`RigWorkspaceController`; pure solve, mapping, preview, foot kinematics, ground
-anchors, and atomic bake behavior lives under `src/rigs/IK`. Ground sampling
-derives an indexed runtime view from renderer-neutral preset data or embedded
-imported chunks. No project store, animation authority, constraint track, or
-event bus was added. The measured Phase 19.3 baseline was 2,839 lines and the
-current size remains below that reviewed ceiling, enforced by
+`App.tsx` is a composition root for this flow. Rig/pose/constraint callbacks
+live in `RigWorkspaceController`; `useRigConstraintWorkspace` composes IK then
+look-at preview. Pure IK behavior lives under `src/rigs/IK`, while look-at solve,
+mapping, controller, and session contracts live under `src/rigs/constraints`.
+Ground sampling derives an indexed runtime view from renderer-neutral preset
+data or embedded imported chunks. No project store, animation authority,
+constraint track, or event bus was added. The measured Phase 19.3 baseline was
+2,839 lines; the Phase 19.5 checkpoint remains 2,678 lines and is enforced by
 `npm run verify:architecture`.
 
 VFX frame evaluation is counter-addressed rather than stateful. A versioned

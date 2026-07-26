@@ -9,6 +9,8 @@
   two-bone IK controls, live preview, and timeline baking.
 - Added deterministic imported/preset terrain sampling and atomic grounded
   left/right foot-lock range baking.
+- Added bounded head, camera, and object look-at preview with animated target
+  selection and atomic bake to existing rotation tracks.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

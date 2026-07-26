@@ -441,7 +441,13 @@ controller. Build the desired orientation from forward/up basis vectors, blend
 from the current orientation with shortest-path quaternion interpolation, then
 apply bounded component limits and report the evaluated direction honestly.
 
-The solver consumes plain finite data and owns no project state. Head parent
-space and camera/object world space must be mapped by focused controllers.
-Preview remains derived session state and successful bake must reuse existing
-global bone or transform rotation tracks rather than adding constraint tracks.
+The solver consumes plain finite data and owns no project state. Focused
+controllers map head parent space and camera/object world space. Preview remains
+derived session state and successful bake reuses existing global bone or
+transform rotation tracks rather than adding constraint tracks.
+
+Animated target entities are sampled at the requested timeline frame before
+solving. Head conversion includes character transform, root, and body; a shared
+pure XYZ space-math module also retains the foot-lock coordinate behavior. One
+constraint workspace hook composes IK then look-at preview without adding lines
+to `App.tsx`.

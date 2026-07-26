@@ -173,9 +173,10 @@ preview/export budgets, and explicit renderer ownership now coexist.
   bounded supporting surfaces for imported chunks or active terrain presets.
   Fixed-world left/right foot anchors bake inclusive grounded ranges atomically,
   reject unreachable frames without partial keys, and reduce root-motion slide.
-- One pure bounded look-at solver matches the renderer's `XYZ` rig/object and
-  `YXZ` camera conventions. It provides quaternion influence, component limits,
-  deterministic vertical fallback, and guarded plain-data inputs.
+- Bounded head/camera/object look-at controls select animated entities or custom
+  world positions, preview from session state, and atomically bake existing
+  rotation tracks. The pure solver matches renderer `XYZ` and camera `YXZ`;
+  head mapping accounts for character transform, root, body, and scale.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -185,9 +186,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Known preset visuals still use a bounded compatibility map over prepared
   native frames; primitive V1 descriptors are not yet the visual renderer for
   every preset. This preserves appearance while runtime data is canonical.
-- Viewport IK gizmos, look-at preview/bake integration, Blockbench auto-rigging,
-  animated resource textures, secure plugin execution, native dialogs, and full
-  NLA blending are not implemented.
+- Viewport IK/look-at gizmos, separate eye expression overlays, Blockbench
+  auto-rigging, animated resource textures, secure plugin execution, native
+  dialogs, and full NLA blending are not implemented.
 
 ## Absent Systems
 
@@ -197,7 +198,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 101 frontend test files and 459 passing tests.
+- 103 frontend test files and 467 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

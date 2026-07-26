@@ -13,6 +13,8 @@ import type { RigPresetId } from "./RigTypes";
 import { bakeProjectFootLockRange } from "./IK/FootLockBakeController";
 import { bakeProjectRigIKControl } from "./IK/RigIKController";
 import type { RigIKSession } from "./IK/useRigIKSession";
+import { bakeProjectLookAt } from "./constraints/LookAtController";
+import type { LookAtSession } from "./constraints/useLookAtSession";
 
 type ProjectCommit = (
   updater: MineMotionProject | ((current: MineMotionProject) => MineMotionProject),
@@ -23,6 +25,7 @@ interface RigWorkspaceControllerOptions {
   project: MineMotionProject;
   selectedObjectId: string | null;
   ikSession: RigIKSession;
+  lookAtSession: LookAtSession;
   commitProject: ProjectCommit;
   setStatus: (status: string) => void;
   tr: (key: TranslationKey, values?: TranslationValues) => string;
@@ -32,6 +35,7 @@ export function useRigWorkspaceController({
   project,
   selectedObjectId,
   ikSession,
+  lookAtSession,
   commitProject,
   setStatus,
   tr
@@ -198,6 +202,27 @@ export function useRigWorkspaceController({
     }));
   }, [commitProject, ikSession.characterId, ikSession.controls, project, setStatus, tr]);
 
+  const bakeLookAt = useCallback(() => {
+    if (!lookAtSession.control) {
+      setStatus(tr("app.lookAtUnavailable"));
+      return;
+    }
+    const result = bakeProjectLookAt(
+      project,
+      lookAtSession.control,
+      project.animation.currentFrame
+    );
+    if (!result.changed || !result.historyLabel) {
+      setStatus(result.error ?? tr("app.lookAtUnchanged"));
+      return;
+    }
+    commitProject(result.project, result.historyLabel);
+    setStatus(tr("app.lookAtBaked", {
+      target: lookAtSession.control.subject.kind,
+      frame: project.animation.currentFrame
+    }));
+  }, [commitProject, lookAtSession.control, project, setStatus, tr]);
+
   return {
     updateBoneRotation,
     addBoneKeyframe,
@@ -208,6 +233,7 @@ export function useRigWorkspaceController({
     applyPose,
     applyAnimation,
     bakeIK,
-    bakeFootLock
+    bakeFootLock,
+    bakeLookAt
   };
 }

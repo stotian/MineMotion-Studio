@@ -33,6 +33,32 @@ export function addTransformKeyframes(
   targetId: string,
   frame = project.animation.currentFrame
 ): MineMotionProject {
+  return TRANSFORM_PROPERTIES.reduce(
+    (current, property) =>
+      addTransformPropertyKeyframe(current, targetId, property, frame),
+    project
+  );
+}
+
+export function addTransformRotationKeyframe(
+  project: MineMotionProject,
+  targetId: string,
+  frame = project.animation.currentFrame
+): MineMotionProject {
+  return addTransformPropertyKeyframe(
+    project,
+    targetId,
+    "transform.rotation",
+    frame
+  );
+}
+
+function addTransformPropertyKeyframe(
+  project: MineMotionProject,
+  targetId: string,
+  property: (typeof TRANSFORM_PROPERTIES)[number],
+  frame: number
+): MineMotionProject {
   const lookup = findObject(project, targetId);
   if (!lookup) {
     return project;
@@ -41,22 +67,18 @@ export function addTransformKeyframes(
   const transform = lookup.entity.transform;
   const tracks = [...project.animation.tracks];
   const safeFrame = clampFrame(project.animation, frame);
+  const trackId = `${targetId}:${property}`;
+  const value = readTransformProperty(transform, property);
+  const existingTrack = tracks.find((track) => track.id === trackId);
 
-  for (const property of TRANSFORM_PROPERTIES) {
-    const trackId = `${targetId}:${property}`;
-    const value = readTransformProperty(transform, property);
-    const existingTrack = tracks.find((track) => track.id === trackId);
-
-    if (!existingTrack) {
-      tracks.push({
-        id: trackId,
-        targetId,
-        property,
-        keyframes: [createVectorKeyframe(safeFrame, value)]
-      });
-      continue;
-    }
-
+  if (!existingTrack) {
+    tracks.push({
+      id: trackId,
+      targetId,
+      property,
+      keyframes: [createVectorKeyframe(safeFrame, value)]
+    });
+  } else {
     const existingFrame = existingTrack.keyframes.findIndex(
       (keyframe) => keyframe.frame === safeFrame
     );
@@ -97,4 +119,3 @@ function readTransformProperty(
   }
   return transform.scale;
 }
-

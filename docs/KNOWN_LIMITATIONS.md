@@ -42,7 +42,8 @@ still required before changing code.
 | LIM-033 | Two-bone IK math is validated, but production hand/foot controls and bake-to-timeline are not connected yet | Yes | P1 | 19.3 | RESOLVED |
 | LIM-034 | IK controls are numeric session tools; viewport gizmos are not implemented | Yes | P4 | 19/future | OPEN_HONEST_UI |
 | LIM-035 | Foot lock, ground placement, and foot-slide reduction were not implemented | Yes | P2/P4 | 19.4 | RESOLVED |
-| LIM-036 | Pure look-at math exists, but head/camera/object preview and timeline bake are not connected | Yes | P4 | 19.5 | PARTIALLY_RESOLVED |
+| LIM-036 | Pure look-at math existed without head/camera/object preview and timeline bake integration | Yes | P4 | 19.5 | RESOLVED |
+| LIM-037 | Look-at uses numeric session controls; viewport target gizmos and separate eye overlays remain placeholders | Yes | P4 | 19/future | OPEN_HONEST_UI |
 
 ## Phase 15.1 Outcome
 

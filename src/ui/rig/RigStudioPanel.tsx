@@ -7,6 +7,9 @@ import { getSelectedCharacterId } from "../../rigs/RigSelection";
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { RigIKControl } from "../../rigs/IK/IKControl";
 import type { RigVector3Tuple } from "../../rigs/RigTypes";
+import type { LookAtControl } from "../../rigs/constraints/LookAtControl";
+import type { LookAtControlPatch } from "../../rigs/constraints/useLookAtSession";
+import type { RigConstraintWorkspace } from "../../rigs/useRigConstraintWorkspace";
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -14,8 +17,7 @@ interface RigStudioPanelProps {
   selectedObjectId: string | null;
   posePresets: RigPosePreset[];
   animationPresets: AnimationPreset[];
-  ikControls: readonly RigIKControl[];
-  ikWarnings: readonly string[];
+  constraintWorkspace: RigConstraintWorkspace;
   onClose: () => void;
   onImportSkin: (characterId: string) => void;
   onResetSkin: (characterId: string) => void;
@@ -33,6 +35,8 @@ interface RigStudioPanelProps {
     endFrame: number,
     groundOffset: number
   ) => void;
+  onUpdateLookAtControl: (patch: LookAtControlPatch) => void;
+  onBakeLookAt: () => void;
 }
 
 export function RigStudioPanel({
@@ -41,8 +45,7 @@ export function RigStudioPanel({
   selectedObjectId,
   posePresets,
   animationPresets,
-  ikControls,
-  ikWarnings,
+  constraintWorkspace,
   onClose,
   onImportSkin,
   onResetSkin,
@@ -54,10 +57,18 @@ export function RigStudioPanel({
   onImportBlockbench,
   onUpdateIKControl,
   onBakeIKControl,
-  onBakeFootLock
+  onBakeFootLock,
+  onUpdateLookAtControl,
+  onBakeLookAt
 }: RigStudioPanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
+  const ikControls = constraintWorkspace.ikSession.controls;
+  const ikWarnings = constraintWorkspace.ikPreview.warnings;
+  const lookAtControl: LookAtControl | null =
+    constraintWorkspace.lookAtSession.control;
+  const lookAtTargets = constraintWorkspace.lookAtSession.targets;
+  const lookAtWarnings = constraintWorkspace.lookAtPreview.warnings;
   const [selectedIKControlId, setSelectedIKControlId] = useState("ik:leftArm");
   const [footLockStartFrame, setFootLockStartFrame] = useState(project.animation.currentFrame);
   const [footLockEndFrame, setFootLockEndFrame] = useState(
@@ -85,6 +96,19 @@ export function RigStudioPanel({
     preset.targetTypes.includes("character")
   );
   const selectedIKControl = ikControls.find((control) => control.id === selectedIKControlId) ?? ikControls[0] ?? null;
+  const lookAtSubjectName = lookAtControl
+    ? [
+        ...project.scene.characters,
+        ...project.scene.cameras,
+        ...project.scene.importedObjects
+      ].find((entity) => entity.id === lookAtControl.subject.id)?.name ??
+      lookAtControl.subject.id
+    : "";
+  const lookAtSubjectLabel = lookAtControl?.subject.kind === "head"
+    ? t("rig.lookAt.head")
+    : lookAtControl?.subject.kind === "camera"
+      ? t("rig.lookAt.camera")
+      : t("rig.lookAt.object");
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -280,6 +304,99 @@ export function RigStudioPanel({
             )}
           </section>
           <section>
+            <h3>{t("rig.lookAt.title")}</h3>
+            {lookAtControl ? (
+              <div className="rig-ik-controls">
+                <div className="info-row">
+                  <span>{t("rig.lookAt.subject")}</span>
+                  <strong>{lookAtSubjectLabel}: {lookAtSubjectName}</strong>
+                </div>
+                <label className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={lookAtControl.enabled}
+                    onChange={(event) =>
+                      onUpdateLookAtControl({ enabled: event.target.checked })
+                    }
+                  />
+                  {t("rig.lookAt.enabled")}
+                </label>
+                <div className="info-row">
+                  <label htmlFor="rig-look-at-target">{t("rig.lookAt.target")}</label>
+                  <select
+                    id="rig-look-at-target"
+                    value={lookAtControl.targetId ?? "__custom__"}
+                    onChange={(event) => onUpdateLookAtControl({
+                      targetId: event.target.value === "__custom__"
+                        ? null
+                        : event.target.value
+                    })}
+                  >
+                    <option value="__custom__">{t("rig.lookAt.customTarget")}</option>
+                    {lookAtTargets.map((target) => (
+                      <option key={target.id} value={target.id}>
+                        {target.name} ({target.type})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {lookAtControl.targetId === null && (
+                  <VectorEditor
+                    label={t("rig.lookAt.position")}
+                    value={lookAtControl.targetPosition}
+                    onChange={(targetPosition) =>
+                      onUpdateLookAtControl({ targetPosition })
+                    }
+                  />
+                )}
+                <label>
+                  <span>
+                    {t("rig.lookAt.influence")}:{" "}
+                    {localization.formatNumber(lookAtControl.influence)}
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={lookAtControl.influence}
+                    onChange={(event) =>
+                      onUpdateLookAtControl({ influence: Number(event.target.value) })
+                    }
+                  />
+                </label>
+                <VectorEditor
+                  label={t("rig.lookAt.maxAngle")}
+                  value={lookAtControl.maxAngle}
+                  min={0}
+                  max={180}
+                  step={1}
+                  onChange={(maxAngle) => onUpdateLookAtControl({ maxAngle })}
+                />
+                <div className="info-row">
+                  <span>{t("rig.lookAt.frame")}</span>
+                  <strong>{localization.formatNumber(project.animation.currentFrame)}</strong>
+                </div>
+                <button
+                  type="button"
+                  disabled={!lookAtControl.enabled}
+                  onClick={onBakeLookAt}
+                >
+                  {t("rig.lookAt.bake")}
+                </button>
+                <small className="empty-note">{t("rig.lookAt.sessionNote")}</small>
+                {lookAtControl.subject.kind === "head" && (
+                  <small className="empty-note">{t("rig.lookAt.eyePlaceholder")}</small>
+                )}
+                {lookAtWarnings.map((warning) => (
+                  <small key={warning} className="warning-text">{warning}</small>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-note">{t("rig.lookAt.unsupported")}</p>
+            )}
+          </section>
+          <section>
             <h3>
               <Box size={15} />
               {t("rig.blockbench")}
@@ -312,11 +429,17 @@ export function RigStudioPanel({
 function VectorEditor({
   label,
   value,
-  onChange
+  onChange,
+  min = -10_000,
+  max = 10_000,
+  step = 0.05
 }: {
   label: string;
   value: RigVector3Tuple;
   onChange: (value: RigVector3Tuple) => void;
+  min?: number;
+  max?: number;
+  step?: number;
 }) {
   return (
     <fieldset className="rig-vector-editor">
@@ -326,9 +449,9 @@ function VectorEditor({
           <span>{axis}</span>
           <input
             type="number"
-            min={-10_000}
-            max={10_000}
-            step={0.05}
+            min={min}
+            max={max}
+            step={step}
             value={value[index]}
             onChange={(event) => {
               const next = [...value] as RigVector3Tuple;

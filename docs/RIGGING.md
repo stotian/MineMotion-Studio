@@ -65,3 +65,20 @@ one ground-aligned world anchor, converts it back to leg-local IK space for each
 sampled frame, and writes the complete range through one history operation.
 Missing ground, invalid transforms, and unreachable frames fail without partial
 keys. Foot-lock settings are session tools and add no serialized authority.
+
+## Look-at Constraints
+
+Rig Studio provides session-only look-at controls for a selected character head,
+production camera, or imported object. A control can target another animated
+scene entity or an explicit world position, set influence, and bound maximum
+Euler angles.
+
+The pure solver uses local `-Z`, renderer-matched `XYZ` for heads/objects, and
+the production camera's `YXZ` order. Head targets are converted through the
+character transform and root/body hierarchy into head-parent space. Live
+preview derives a temporary project; bake samples the selected target at the
+current frame and writes exactly one existing `bone.rotation.head` or
+`transform.rotation` track through one history operation.
+
+Constraint controls are never serialized. Eye direction currently follows the
+head; a separate expression overlay remains an explicit placeholder.

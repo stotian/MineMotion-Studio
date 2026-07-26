@@ -241,8 +241,8 @@ function ownDataRecord(value: unknown): Record<string, unknown> | null {
 }
 
 function safeVector(value: unknown, limit: number): RigVector3Tuple | null {
-  if (!Array.isArray(value) || value.length !== 3) return null;
   try {
+    if (!Array.isArray(value) || value.length !== 3) return null;
     const descriptors = Object.getOwnPropertyDescriptors(value);
     const output = [0, 1, 2].map((index) => descriptors[index.toString()]);
     if (output.some((descriptor) => !descriptor || !("value" in descriptor) ||

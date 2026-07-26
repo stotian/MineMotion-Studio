@@ -135,9 +135,8 @@ import { Viewport } from "./renderer/Viewport";
 import { BlockbenchImporter } from "./rigs/blockbench/BlockbenchImporter";
 import { MinecraftSkinImporter } from "./rigs/MinecraftSkinImporter";
 import { getSelectedCharacterId, parseRigBoneSelection } from "./rigs/RigSelection";
-import { previewRigIKControls } from "./rigs/IK/RigIKController";
-import { useRigIKSession } from "./rigs/IK/useRigIKSession";
 import { useRigWorkspaceController } from "./rigs/RigWorkspaceController";
+import { useRigConstraintWorkspace } from "./rigs/useRigConstraintWorkspace";
 import { SettingsStore, type AppSettings } from "./settings/AppSettings";
 import { templateRegistry } from "./templates/TemplateRegistry";
 import { TopBar } from "./ui/TopBar";
@@ -280,8 +279,6 @@ export function App() {
     () => findObject(project, selectedObjectId)?.entity ?? null,
     [project, selectedObjectId]
   );
-  const rigIKSession = useRigIKSession(project, selectedObjectId);
-
   useEffect(() => {
     if (
       selectedEffectId &&
@@ -302,11 +299,12 @@ export function App() {
       timelineFrame
     );
   }, [project]);
-  const rigIKPreview = useMemo(
-    () => previewRigIKControls(animatedProject, rigIKSession.characterId, rigIKSession.controls),
-    [animatedProject, rigIKSession.characterId, rigIKSession.controls]
+  const rigConstraints = useRigConstraintWorkspace(
+    project,
+    selectedObjectId,
+    animatedProject
   );
-  const displayProject = rigIKPreview.project;
+  const displayProject = rigConstraints.displayProject;
 
   useEffect(() => {
     SettingsStore.save(settings);
@@ -437,7 +435,8 @@ export function App() {
   const rigWorkspace = useRigWorkspaceController({
     project,
     selectedObjectId,
-    ikSession: rigIKSession,
+    ikSession: rigConstraints.ikSession,
+    lookAtSession: rigConstraints.lookAtSession,
     commitProject,
     setStatus,
     tr
@@ -2501,8 +2500,7 @@ export function App() {
         selectedObjectId={selectedObjectId}
         posePresets={rigPosePresets}
         animationPresets={presets.animation}
-        ikControls={rigIKSession.controls}
-        ikWarnings={rigIKPreview.warnings}
+        constraintWorkspace={rigConstraints}
         onClose={() => setRigStudioOpen(false)}
         onImportSkin={handleImportSkin}
         onResetSkin={handleResetSkin}
@@ -2512,9 +2510,11 @@ export function App() {
         onResetPose={rigWorkspace.resetPose}
         onApplyAnimation={rigWorkspace.applyAnimation}
         onImportBlockbench={handleImportBlockbench}
-        onUpdateIKControl={rigIKSession.updateControl}
+        onUpdateIKControl={rigConstraints.ikSession.updateControl}
         onBakeIKControl={rigWorkspace.bakeIK}
         onBakeFootLock={rigWorkspace.bakeFootLock}
+        onUpdateLookAtControl={rigConstraints.lookAtSession.updateControl}
+        onBakeLookAt={rigWorkspace.bakeLookAt}
       />
       <LightingStudioPanel
         open={lightingStudioOpen}
