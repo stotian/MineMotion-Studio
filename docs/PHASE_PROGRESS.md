@@ -6,11 +6,11 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.7 - Pool reusable particles and VFX resources
+20.8 - Asset ownership, lazy loading, and disposal
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.6 measurement, budgets, layers, disposal, culling, and justified reuse are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.7 measurement, budgets, layers, disposal, culling, justified reuse, and VFX pooling are implemented and validated.
 
 ## Completed
 
@@ -328,15 +328,22 @@ IN_PROGRESS - Phase 20.1-20.6 measurement, budgets, layers, disposal, culling, a
 - Every imported chunk mesh in one build now shares one lazily allocated cube
   geometry, while unchanged material contexts and identical active skins prove
   cache reuse without weakening Phase 20.4 invalidation.
+- Phase 20.7 reuses fixed unit VFX geometry, bounded per-frame material slots,
+  and bounded particle instance buffers under one renderer owner. Owned
+  `InstancedMesh` attributes now dispose on rebuild and pooled attributes
+  dispose once on growth or shutdown.
+- The 120-frame VFX allocation fixture reduces geometry constructors from
+  15,360 to 5,762 and material/particle-buffer constructors from 15,360/7,680
+  to 128/64 without pooling dynamic line or ring topology.
 
 ## In Progress
 
-- Audit Phase 20.7 VFX geometry/material/instance churn and introduce bounded
-  reusable pools only for equivalent resources.
+- Audit Phase 20.8 asset creation/read paths, define instance-safe owners, and
+  add lazy/disposal boundaries without creating a second asset registry.
 
 ## Not Started
 
-- Phase 20 tasks 7-17 and phases 21-35.
+- Phase 20 tasks 8-17 and phases 21-35.
 
 ## Blockers
 
@@ -352,20 +359,20 @@ IN_PROGRESS - Phase 20.1-20.6 measurement, budgets, layers, disposal, culling, a
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest committed checkpoint: `0e2ffcb` (Phase 20.5).
-- Latest validated implementation checkpoint: Phase 20.6 local milestone
+- Latest committed checkpoint: `8c9553d` (Phase 20.7 implementation).
+- Latest validated implementation checkpoint: Phase 20.7 local milestone
   (publication pending external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.6 instancing/cache tests: PASS - 4 files, 9 tests
-- `npm test`: PASS - 129 files, 555 tests
+- Focused Phase 20.7 VFX pooling tests: PASS - 5 files, 31 tests
+- `npm test`: PASS - 131 files, 565 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,642/2,839 lines
-- `npm run build`: PASS - 1,880 modules; 1,531.09 kB known large chunk
+- `npm run build`: PASS - 1,881 modules; 1,535.14 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
   and documentation only.
@@ -375,6 +382,6 @@ IN_PROGRESS - Phase 20.1-20.6 measurement, budgets, layers, disposal, culling, a
 
 ## Next Exact Action
 
-Characterize per-frame VFX object creation by primitive family. Pool only
-resources with identical ownership/material/geometry semantics, enforce caps,
-and prove release on rebuild and shutdown.
+Inventory asset creation, decode, cache, and consumer paths. Assign each
+resource one instance-safe owner, make expensive reads lazy where behavior
+remains equivalent, and prove release/invalidation without parallel registries.

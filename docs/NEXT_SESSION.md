@@ -2,9 +2,9 @@
 
 ## Exact Current Task
 
-Implement Phase 20.7 by characterizing VFX geometry/material/instance creation
-per primitive family and adding bounded reusable pools only where ownership and
-visual output remain equivalent.
+Implement Phase 20.8 by auditing asset creation, loading, cache ownership, and
+consumer lifecycles. Introduce instance-safe lazy/disposal boundaries without
+creating a second asset registry or weakening persistence.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -149,22 +149,29 @@ Preserve the local commits and push normally once authentication is restored.
 - Phase 20.6 proves the chunk-local call/instance tradeoff, keeps default world
   calls inside Draft guidance, shares one cube geometry per build, and verifies
   unchanged material/skin cache reuse.
+- Phase 20.7 pools fixed unit cube/sphere geometry, bounded material slots, and
+  bounded reusable particle instance buffers under the renderer. Overflow and
+  owned instance attributes dispose normally; pool slots dispose on replacement
+  or renderer shutdown.
+- Its bounded 120-frame fixture measures 15,360 to 5,762 geometry constructors,
+  15,360 to 128 materials, and 7,680 to 64 particle buffers while leaving
+  dynamic line/ring geometry honestly frame-owned.
 
 ## Unfinished Work
 
-- Phase 20 tasks 7-17 and phases 21-35 remain.
+- Phase 20 tasks 8-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Inventory VFX primitive geometry/material signatures and rebuild frequency.
-Pool only fixed descriptors under existing global VFX caps, reset instance
-state deterministically, and release every pooled resource with its renderer.
+Map OBJ, skin, resource-pack, world, audio, and generated asset ownership from
+creation through consumers. Fix the highest-risk instance-sharing or eager-load
+boundary with focused lifecycle tests, preserving current project authorities.
 
 ## Tests To Run
 
 ```powershell
 npm run typecheck
-npx vitest run src/performance
+npx vitest run src/renderer src/performance
 npm test
 npm run build
 npm audit

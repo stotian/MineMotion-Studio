@@ -88,3 +88,30 @@ All chunk material meshes in one build share one cube geometry. Materials reuse
 the deterministic renderer-context cache and rigs reuse active skin textures.
 Hardware frame-time calibration remains assigned to the named Phase 20.15
 benchmarks.
+
+## VFX resource pooling
+
+The renderer owns one bounded VFX pool. Fixed unit cube/sphere geometries,
+per-primitive mesh/line material slots, and particle `InstancedMesh` matrix
+buffers survive scene rebuilds and reset only after the previous tree is
+detached. The default caps are 512 mesh materials, 512 line materials, and 128
+particle meshes; overflow resources remain scene-owned and are disposed
+normally.
+
+Particle buffers use dynamic draw usage, reuse an existing capacity, and replace
+smaller slots with explicit disposal when demand grows. Owned, non-pooled
+`InstancedMesh` objects now emit their disposal event so renderer-side instance
+attributes cannot survive a rebuild accidentally.
+
+For a deterministic 120-frame fixture with 64 particle systems, 16 light
+pulses, 16 dynamic mesh primitives, and 32 dynamic lines per frame:
+
+| Constructor allocations | Before | Pooled | Reduction |
+| --- | ---: | ---: | ---: |
+| Geometries | 15,360 | 5,762 | 62.5% |
+| Materials | 15,360 | 128 | 99.2% |
+| Particle buffers | 7,680 | 64 | 99.2% |
+
+Dynamic line and ring geometries remain frame-owned because their evaluated
+vertices/topology change. Their browser/GPU cost belongs to the named Phase
+20.15 benchmarks rather than an unsafe mutable geometry pool.

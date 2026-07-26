@@ -57,6 +57,7 @@ still required before changing code.
 | LIM-048 | CSS viewport post overlays and Canvas2D final capture share inputs but generic bloom, grain, chromatic aberration, and fog are not pixel-identical passes | Yes | P2/P4 | 20/future renderer | OPEN |
 | LIM-049 | Material and skin cache cleanup assumes the current single production SceneRenderer; concurrent renderer instances need instance-safe ownership | Yes | P3 | 20.8 | OPEN_ARCHITECTURE |
 | LIM-050 | Per-chunk instancing now has exact call/instance comparison, but named hardware frame-time validation remains required | Yes | P3 | 20.15 | PARTIALLY_RESOLVED |
+| LIM-051 | Dynamic VFX line/ring geometry remains frame-owned because evaluated vertices/topology change; its hardware allocation cost is not yet calibrated | Yes | P3 | 20.15 | OPEN_MEASUREMENT |
 
 ## Phase 15.1 Outcome
 

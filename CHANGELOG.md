@@ -48,6 +48,8 @@
   with editor-selection and final-camera correctness.
 - Benchmarked global versus chunk-local material batches and shared one owned
   cube geometry across every imported chunk mesh.
+- Added bounded renderer-owned VFX geometry, material, and particle-buffer
+  pools with deterministic frame reuse and complete overflow/shutdown disposal.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

@@ -368,3 +368,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 20.6 retains material and skin caches only across identical contexts/
   assets and shares geometry within one owned build. It does not cache mutable
   scene trees or claim hardware frame-time results from analytic work counts.
+- Phase 20.7 gives fixed VFX geometry, material slots, and particle instance
+  buffers one bounded renderer owner. Dynamic line/ring geometry stays
+  frame-owned, while owned and pooled instance attributes each have exactly one
+  disposal path.

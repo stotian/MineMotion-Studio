@@ -733,3 +733,19 @@ one owned build; tree disposal deduplicates it. Continue reusing Minecraft
 materials only for an identical deterministic context signature and skin
 textures only while the asset remains active. Do not cache mutable Three.js
 object trees or parsed OBJ assets before instance-safe ownership is defined.
+
+## TD-051 - Pool only equivalent VFX resources under the renderer
+
+Status: Accepted in Phase 20.7.
+
+Reuse one unit cube, one unit sphere, bounded mesh/line material slots, and
+bounded particle `InstancedMesh` capacity only after the previous scene tree is
+detached. Each active primitive receives a distinct material slot, preventing
+same-frame mutation from changing another effect. Overflow stays scene-owned;
+the pool owns retained resources and disposes them on replacement or shutdown.
+
+Do not pool evaluated line or shockwave geometry: their vertices, radius, and
+topology vary by frame. General tree disposal must emit `InstancedMesh`
+disposal for owned objects, while explicitly shared particle meshes remain
+alive until their pool owner releases them. Treat the pure allocation estimate
+as constructor-churn evidence only; Phase 20.15 still owns hardware timing.
