@@ -463,5 +463,7 @@ and sampled with the production interpolation curves and binary search.
 
 Do not call `Animator.sampleProject` for every path point because it clones the
 broad project whenever tracks exist. Do not persist paths, duplicate keys, or
-introduce a path timeline. Viewport geometry must consume the derived result and
-dispose with the existing scene root.
+introduce a path timeline. Viewport geometry consumes the derived result,
+disposes with the existing scene root, and is withheld whenever production
+render preview/export is active. Session memoization ignores current-frame-only
+updates so playback does not resample a static full-range path every tick.

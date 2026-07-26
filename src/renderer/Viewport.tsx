@@ -13,6 +13,7 @@ import {
   shouldIncludeProjectVfx
 } from "../vfx/runtime/VfxProjectFrame";
 import { useLocalization } from "../localization/LocalizationContext";
+import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 
 interface ViewportProps {
   project: MineMotionProject;
@@ -22,6 +23,7 @@ interface ViewportProps {
   resetCameraRequest: number;
   focusWorldRequest: number;
   viewportSettings: ViewportSettings;
+  motionPath: SampledMotionPath | null;
 }
 
 export function Viewport({
@@ -31,7 +33,8 @@ export function Viewport({
   lookThroughCameraRequest,
   resetCameraRequest,
   focusWorldRequest,
-  viewportSettings
+  viewportSettings,
+  motionPath
 }: ViewportProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
@@ -55,8 +58,13 @@ export function Viewport({
   }, [onSelectObject]);
 
   useEffect(() => {
-    rendererRef.current?.renderProject(project, selectedObjectId, viewportSettings);
-  }, [project, selectedObjectId, viewportSettings]);
+    rendererRef.current?.renderProject(
+      project,
+      selectedObjectId,
+      viewportSettings,
+      motionPath
+    );
+  }, [motionPath, project, selectedObjectId, viewportSettings]);
 
   const selectedCamera = useMemo(() => {
     const lookup = findObject(project, selectedObjectId);

@@ -82,3 +82,19 @@ current frame and writes exactly one existing `bone.rotation.head` or
 
 Constraint controls are never serialized. Eye direction currently follows the
 head; a separate expression overlay remains an explicit placeholder.
+
+## Motion Paths
+
+Rig Studio can derive and show a selected character root, left/right hand
+attachment, or production-camera path over an inclusive timeline range. The
+panel reports frame/second duration, traveled distance, sample count, and exact
+relevant key count.
+
+Paths sample only existing transform and bone tracks with the production
+interpolation curves. The viewport renders a colored polyline plus white
+keyframe points; both are owned and disposed by the normal scene root. Path
+controls and geometry are session-only and are hidden from render preview and
+export.
+
+Direct path editing remains optional and is deferred until it can delegate to
+the existing keyframe commands without creating another animation authority.

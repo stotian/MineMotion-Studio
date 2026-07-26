@@ -69,6 +69,7 @@ export function RigStudioPanel({
     constraintWorkspace.lookAtSession.control;
   const lookAtTargets = constraintWorkspace.lookAtSession.targets;
   const lookAtWarnings = constraintWorkspace.lookAtPreview.warnings;
+  const motionPathSession = constraintWorkspace.motionPathSession;
   const [selectedIKControlId, setSelectedIKControlId] = useState("ik:leftArm");
   const [footLockStartFrame, setFootLockStartFrame] = useState(project.animation.currentFrame);
   const [footLockEndFrame, setFootLockEndFrame] = useState(
@@ -397,6 +398,118 @@ export function RigStudioPanel({
             )}
           </section>
           <section>
+            <h3>{t("rig.motionPath.title")}</h3>
+            {motionPathSession.control ? (
+              <div className="rig-ik-controls">
+                <div className="info-row">
+                  <label htmlFor="rig-motion-path-subject">
+                    {t("rig.motionPath.subject")}
+                  </label>
+                  <select
+                    id="rig-motion-path-subject"
+                    value={`${motionPathSession.control.kind}|${motionPathSession.control.subjectId}`}
+                    onChange={(event) => {
+                      const option = motionPathSession.options.find(
+                        (entry) => entry.key === event.target.value
+                      );
+                      if (option) {
+                        motionPathSession.updateControl({
+                          kind: option.kind,
+                          subjectId: option.subjectId
+                        });
+                      }
+                    }}
+                  >
+                    {motionPathSession.options.map((option) => (
+                      <option key={option.key} value={option.key}>
+                        {option.name} — {motionPathKindLabel(option.kind, t)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <label className="checkbox-row">
+                  <input
+                    type="checkbox"
+                    checked={motionPathSession.control.visible}
+                    onChange={(event) =>
+                      motionPathSession.updateControl({ visible: event.target.checked })
+                    }
+                  />
+                  {t("rig.motionPath.visible")}
+                </label>
+                <fieldset className="rig-foot-lock-controls">
+                  <legend>{t("rig.motionPath.range")}</legend>
+                  <label>
+                    <span>{t("rig.motionPath.start")}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={project.animation.durationFrames}
+                      step={1}
+                      value={motionPathSession.control.startFrame}
+                      onChange={(event) =>
+                        motionPathSession.updateControl({
+                          startFrame: Number(event.target.value)
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>{t("rig.motionPath.end")}</span>
+                    <input
+                      type="number"
+                      min={motionPathSession.control.startFrame}
+                      max={project.animation.durationFrames}
+                      step={1}
+                      value={motionPathSession.control.endFrame}
+                      onChange={(event) =>
+                        motionPathSession.updateControl({
+                          endFrame: Number(event.target.value)
+                        })
+                      }
+                    />
+                  </label>
+                </fieldset>
+                {motionPathSession.path && (
+                  <>
+                    <div className="info-row">
+                      <span>{t("rig.motionPath.duration")}</span>
+                      <strong>
+                        {t("rig.motionPath.durationValue", {
+                          frames: motionPathSession.path.durationFrames,
+                          seconds: localization.formatNumber(
+                            motionPathSession.path.durationSeconds
+                          )
+                        })}
+                      </strong>
+                    </div>
+                    <div className="info-row">
+                      <span>{t("rig.motionPath.distance")}</span>
+                      <strong>
+                        {localization.formatNumber(motionPathSession.path.distance)}
+                      </strong>
+                    </div>
+                    <div className="info-row">
+                      <span>{t("rig.motionPath.points")}</span>
+                      <strong>
+                        {t("rig.motionPath.pointsValue", {
+                          points: motionPathSession.path.points.length,
+                          keys: motionPathSession.path.keyframeFrames.length
+                        })}
+                      </strong>
+                    </div>
+                  </>
+                )}
+                {motionPathSession.error && (
+                  <small className="warning-text">{motionPathSession.error}</small>
+                )}
+                <small className="empty-note">{t("rig.motionPath.sessionNote")}</small>
+              </div>
+            ) : (
+              <p className="empty-note">{t("rig.motionPath.unavailable")}</p>
+            )}
+          </section>
+          <section>
             <h3>
               <Box size={15} />
               {t("rig.blockbench")}
@@ -424,6 +537,16 @@ export function RigStudioPanel({
       </div>
     </div>
   );
+}
+
+function motionPathKindLabel(
+  kind: "characterRoot" | "leftHand" | "rightHand" | "camera",
+  t: ReturnType<typeof useLocalization>["t"]
+): string {
+  if (kind === "characterRoot") return t("rig.motionPath.root");
+  if (kind === "leftHand") return t("rig.motionPath.leftHand");
+  if (kind === "rightHand") return t("rig.motionPath.rightHand");
+  return t("rig.motionPath.camera");
 }
 
 function VectorEditor({

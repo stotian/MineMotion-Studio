@@ -182,6 +182,9 @@ Rig Studio IK/look-at controls (session-only)
 live in `RigWorkspaceController`; `useRigConstraintWorkspace` composes IK then
 look-at preview. Pure IK behavior lives under `src/rigs/IK`, while look-at solve,
 mapping, controller, and session contracts live under `src/rigs/constraints`.
+`src/rigs/motion` derives bounded root/hand/camera paths directly from global
+tracks; `MotionPathRenderer` owns only the disposable Three.js line/point view
+and never feeds editor helpers into production render preview.
 Ground sampling derives an indexed runtime view from renderer-neutral preset
 data or embedded imported chunks. No project store, animation authority,
 constraint track, or event bus was added. The measured Phase 19.3 baseline was

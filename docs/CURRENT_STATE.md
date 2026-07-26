@@ -177,9 +177,10 @@ preview/export budgets, and explicit renderer ownership now coexist.
   world positions, preview from session state, and atomically bake existing
   rotation tracks. The pure solver matches renderer `XYZ` and camera `YXZ`;
   head mapping accounts for character transform, root, body, and scale.
-- A renderer-neutral bounded motion-path sampler evaluates character root,
-  left/right hand attachment points, and cameras from existing interpolated
-  tracks, reporting key points, duration, distance, and world bounds.
+- Session-only character root, left/right hand, and camera motion paths derive
+  from existing interpolated tracks. Rig Studio reports range, key points,
+  duration, distance, and samples; disposed viewport overlays are excluded from
+  render preview/export.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -191,7 +192,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
   every preset. This preserves appearance while runtime data is canonical.
 - Viewport IK/look-at gizmos, separate eye expression overlays, Blockbench
   auto-rigging, animated resource textures, secure plugin execution, native
-  dialogs, motion-path viewport overlays, and full NLA blending are not
+  dialogs, direct path editing, and full animation-layer/NLA blending are not
   implemented.
 
 ## Absent Systems
@@ -202,7 +203,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 104 frontend test files and 471 passing tests.
+- 105 frontend test files and 473 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.

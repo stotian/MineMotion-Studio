@@ -305,7 +305,6 @@ export function App() {
     animatedProject
   );
   const displayProject = rigConstraints.displayProject;
-
   useEffect(() => {
     SettingsStore.save(settings);
     document.documentElement.style.setProperty(
@@ -2397,6 +2396,7 @@ export function App() {
           resetCameraRequest={resetCameraRequest}
           focusWorldRequest={focusWorldRequest}
           viewportSettings={settings.viewport}
+          motionPath={rigConstraints.motionPathSession.path}
         />
         <InspectorPanel
           project={project}

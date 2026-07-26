@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Continue Phase 19.6 by connecting viewport motion-path controls and rendering
-after the completed pure root/hand/camera sampling checkpoint.
+Begin Phase 19.7 with animation layers after the completed and validated
+root/hand/camera motion-path workflow.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -68,16 +68,19 @@ Preserve the local commits and push normally once authentication is restored.
   points from existing tracks with exact keys, duration, distance, and bounds.
 - Relevant tracks are sorted once and sampled with existing interpolation;
   rendered-hand parity is covered without repeated whole-project cloning.
+- Localized session controls select a path/range and report statistics; the
+  viewport polyline/key points dispose normally and never enter final renders.
 
 ## Unfinished Work
 
-- Phase 19.6-19.15 and phases 20-35 remain.
+- Phase 19.7-19.15 and phases 20-35 remain.
 
 ## Next Implementation Step
 
-Add session-only subject/range/visibility controls, pass the derived sampled path
-to the viewport, and render disposed polylines plus keyframe points. Keep editing
-deferred unless it reuses existing keyframe commands and the main timeline.
+Inventory the current NLA clip skeleton, global track sampling, and VFX sync
+metadata, then define the smallest layer contract for Base Animation, Upper
+Body, Head Look, Hand Adjustment, Additive Motion, and VFX Synchronization with
+mute, weight, and basic blending.
 
 ## Tests To Run
 

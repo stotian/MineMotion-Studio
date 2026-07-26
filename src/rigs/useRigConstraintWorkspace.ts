@@ -16,12 +16,17 @@ import {
   useRigIKSession,
   type RigIKSession
 } from "./IK/useRigIKSession";
+import {
+  useMotionPathSession,
+  type MotionPathSession
+} from "./motion/useMotionPathSession";
 
 export interface RigConstraintWorkspace {
   ikSession: RigIKSession;
   ikPreview: RigIKPreviewResult;
   lookAtSession: LookAtSession;
   lookAtPreview: LookAtPreviewResult;
+  motionPathSession: MotionPathSession;
   displayProject: MineMotionProject;
 }
 
@@ -32,6 +37,7 @@ export function useRigConstraintWorkspace(
 ): RigConstraintWorkspace {
   const ikSession = useRigIKSession(project, selectedObjectId);
   const lookAtSession = useLookAtSession(project, selectedObjectId);
+  const motionPathSession = useMotionPathSession(project, selectedObjectId);
   const ikPreview = useMemo(
     () => previewRigIKControls(
       animatedProject,
@@ -51,6 +57,7 @@ export function useRigConstraintWorkspace(
     ikPreview,
     lookAtSession,
     lookAtPreview,
+    motionPathSession,
     displayProject: lookAtPreview.project
   };
 }

@@ -11,6 +11,8 @@
   left/right foot-lock range baking.
 - Added bounded head, camera, and object look-at preview with animated target
   selection and atomic bake to existing rotation tracks.
+- Added derived character root, left/right hand, and camera motion paths with
+  timeline ranges, key points, statistics, and export-safe viewport overlays.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

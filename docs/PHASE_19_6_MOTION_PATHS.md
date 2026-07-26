@@ -2,7 +2,7 @@
 
 ## Status
 
-IN_PROGRESS
+COMPLETE
 
 ## Pure sampling checkpoint
 
@@ -27,16 +27,24 @@ Relevant tracks are bounded and sorted once; sampling uses binary search plus
 the existing interpolation curves. The contract does not repeatedly clone the
 whole project through `Animator`, add project fields, or allocate Three.js data.
 
-## Remaining
+## Viewport integration
 
-- session controls for subject, range, and visibility;
-- viewport polyline and keyframe-point rendering with correct disposal;
-- root/hand/camera selection integration and duration display;
-- optional path editing only if it can reuse existing keyframe commands without
-  adding another timeline authority.
+- Rig Studio selects character root, left/right hand, or camera path.
+- Inclusive start/end and visibility controls remain outside project data.
+- Duration in frames/seconds, distance, samples, and key count update from the
+  derived path.
+- The viewport owns one colored polyline and exact white keyframe points under
+  the disposable scene root.
+- Render preview and every export frame exclude the editor-only overlay.
+- Changing only `currentFrame` does not recompute a whole path; memoization is
+  keyed to scene entities, authoritative tracks, duration, and FPS.
+
+Direct path editing is an optional criterion and remains deferred. It must reuse
+existing keyframe commands before it can be enabled; no path-specific key store
+or timeline was added.
 
 ## Validation
 
-- Focused motion-path/interpolation tests: 2 files, 6 tests.
-- Full frontend suite: 104 files, 471 tests.
+- Focused sampler/renderer/disposal tests: 3 files, 8 tests.
+- Full frontend suite: 105 files, 473 tests.
 - Typecheck, locales, VFX examples, architecture, build, and audit pass.

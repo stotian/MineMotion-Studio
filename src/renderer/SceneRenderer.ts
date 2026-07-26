@@ -25,6 +25,8 @@ import {
   type PreparedProjectVfxEffect
 } from "../vfx/runtime/VfxProjectFrame";
 import type { VfxPrimitiveEvaluation } from "../vfx/primitives/VfxPrimitiveTypes";
+import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
+import { createMotionPathObject } from "./MotionPathRenderer";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -79,7 +81,8 @@ export class SceneRenderer {
   renderProject(
     project: MineMotionProject,
     selectedObjectId: string | null,
-    viewportSettings?: ViewportSettings
+    viewportSettings?: ViewportSettings,
+    motionPath: SampledMotionPath | null = null
   ): void {
     this.project = project;
     this.selectedObjectId = selectedObjectId;
@@ -97,7 +100,10 @@ export class SceneRenderer {
     );
     this.renderer.shadowMap.enabled = project.lighting.shadowsEnabled;
 
-    this.rebuildSceneRoot(project);
+    this.rebuildSceneRoot(
+      project,
+      project.renderSettings.renderPreviewEnabled ? null : motionPath
+    );
     this.updateSelectionBox();
   }
 
@@ -129,7 +135,10 @@ export class SceneRenderer {
     this.project = null;
   }
 
-  private rebuildSceneRoot(project: MineMotionProject): void {
+  private rebuildSceneRoot(
+    project: MineMotionProject,
+    motionPath: SampledMotionPath | null
+  ): void {
     disposeThreeObjectTree(this.sceneRoot);
     const activeResourcePack = project.assets.resourcePacks.find(
       (pack) => pack.id === project.minecraftResources.activeResourcePackId
@@ -183,6 +192,10 @@ export class SceneRenderer {
     for (const obj of project.scene.importedObjects) {
       if (!obj.visible) continue;
       this.sceneRoot.add(this.createObjObject(project, obj));
+    }
+    if (motionPath) {
+      const pathObject = createMotionPathObject(motionPath);
+      if (pathObject) this.sceneRoot.add(pathObject);
     }
 
     const prepared = prepareProjectVfxFrame(project, {

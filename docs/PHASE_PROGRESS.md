@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.6 - Root, limb, and camera motion paths
+19.7 - Animation layers with mute, weight, and additive behavior
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.5 and the consolidation checkpoint are implemented and validated.
+READY - Phase 19.1 through 19.6 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -236,18 +236,22 @@ IN_PROGRESS - Phase 19.1 through 19.5 and the consolidation checkpoint are imple
   through one history operation. Eye direction follows the head as disclosed.
 - Constraint composition moved to `useRigConstraintWorkspace`; `App.tsx` remains
   unchanged at 2,678 lines from the Phase 19.4 baseline.
+- Phase 19.6 derives bounded root, left/right hand, and camera paths from the
+  authoritative tracks with exact production interpolation, key points, duration,
+  distance, bounds, and a Three.js hand-hierarchy parity regression.
+- Localized range/visibility controls feed one disposable viewport polyline and
+  key-point set. Playback frame-only changes do not resample the whole path, and
+  production render preview/export excludes all path helpers.
+- Paths remain session-only. Optional direct path editing is deferred until it
+  can delegate to existing global keyframe commands.
 
 ## In Progress
 
-- Phase 19.6 has one pure bounded path sampler for character root, left/right
-  hand attachment points, and production cameras. It reports inclusive samples,
-  exact key points, duration, distance, and bounds through existing interpolation.
-- Session selection, viewport polylines/key points, disposal, and optional
-  existing-command editing remain.
+- None. Phase 19.7 is the next safe READY milestone.
 
 ## Not Started
 
-- Phase 19.6-19.15 and phases 20-35.
+- Phase 19.7-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -262,28 +266,28 @@ IN_PROGRESS - Phase 19.1 through 19.5 and the consolidation checkpoint are imple
 
 ## Last Validated Commit
 
-- Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 19.3 production IK is pushed as `1dc3b4a`; the consolidation report and
-  CI/document/SemVer commits immediately follow in Git history.
+- Official `origin/main` baseline: `4c6213b`.
+- Latest committed local checkpoint: `2ed5222` (publication pending external
+  GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused motion-path/interpolation tests: PASS - 2 files, 6 tests
-- `npm test`: PASS - 104 files, 471 tests
+- Focused sampler/renderer/disposal tests: PASS - 3 files, 8 tests
+- `npm test`: PASS - 105 files, 473 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,678/2,839 lines
-- `npm run build`: PASS - 1,845 modules; 1,418.39 kB known large chunk
+- `npm run build`: PASS - 1,849 modules; 1,432.58 kB known large chunk
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 19.3 changes TypeScript/docs/CI only.
+- Native checks: not rerun because this milestone changes frontend TypeScript
+  and documentation only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
   `Cannot redefine property: process` or times out during local navigation;
   automated characterization passes and the manual checklist is unpassed.
 
 ## Next Exact Action
 
-Connect session-only subject/range/visibility controls to the pure sampler, then
-render disposed viewport polylines and keyframe points without project fields or
-a second animation authority.
+Inventory the NLA skeleton, global track evaluator, and VFX sync metadata, then
+define the smallest bounded animation-layer contract before persistence or UI.
