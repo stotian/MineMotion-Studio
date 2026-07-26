@@ -2,15 +2,15 @@
 
 ## Current Phase
 
-Phase 19 - Advanced Minecraft Rigging and Animation
+Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-19.15 - Phase 19 save/load, history, migration, timeline, preview, and export gate
+20.1 - Measure startup, frame, memory, calls, triangles, textures, chunks, and effects
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 through 19.14 and the consolidation checkpoint are implemented and validated.
+IN_PROGRESS - Phase 19 and the prior consolidation checkpoints are implemented and validated.
 
 ## Completed
 
@@ -283,15 +283,22 @@ IN_PROGRESS - Phase 19.1 through 19.14 and the consolidation checkpoint are impl
 - Expression descriptors are pure and renderer-neutral. Shared preview/export
   head rendering owns the small overlay meshes, while project commands and
   localized Rig Studio controls commit at most one history checkpoint.
+- Phase 19.15 adds one composite regression over expression, attachment, and
+  authoritative bone animation. It crosses JSON, schema 9, project packages,
+  autosave, history, rig-lane synchronization, production sampling, preview
+  rig construction, and final-export frame preparation.
+- The complete Phase 19 gate passes with every specialized rig test retained;
+  no duplicate timeline, per-frame history stream, or alternate renderer was
+  introduced.
 
 ## In Progress
 
-- Audit and complete the Phase 19.15 cross-system acceptance matrix for
-  save/load, history, migration, timeline, preview, and export.
+- Audit existing renderer telemetry and benchmark infrastructure before Phase
+  20.1 measurement work.
 
 ## Not Started
 
-- Phase 19.15 and phases 20-35.
+- Phase 20 tasks 1-17 and phases 21-35.
 
 ## Blockers
 
@@ -307,15 +314,15 @@ IN_PROGRESS - Phase 19.1 through 19.14 and the consolidation checkpoint are impl
 ## Last Validated Commit
 
 - Official `origin/main` baseline: `4c6213b`.
-- Latest validated implementation checkpoint: `32f8f53` (publication pending
+- Latest validated implementation checkpoint: `83241fa` (publication pending
   external GitHub authentication).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused expression/rig/project persistence tests: PASS - 3 files, 22 tests
-- `npm test`: PASS - 116 files, 524 tests
+- Focused Phase 19 composite acceptance tests: PASS - 1 file, 2 tests
+- `npm test`: PASS - 117 files, 526 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
 - `npm run verify:architecture`: PASS - `App.tsx` 2,674/2,839 lines
@@ -329,6 +336,6 @@ IN_PROGRESS - Phase 19.1 through 19.14 and the consolidation checkpoint are impl
 
 ## Next Exact Action
 
-Reconcile the complete Phase 19 acceptance matrix with existing tests. Add only
-missing integration coverage for persistence, history, migration, timeline,
-production sampling, shared preview, and export before the final phase gate.
+Inspect existing performance/resource telemetry, renderer info access, benchmark
+fixtures, and scene/chunk/effect counters. Establish reproducible measurement
+inputs before defining or optimizing against budgets.

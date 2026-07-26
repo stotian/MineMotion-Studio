@@ -2,8 +2,9 @@
 
 MineMotion Studio `0.8.2` uses project schema 10.
 
-Phase 14 architecture consolidation and the complete Phase 15 native VFX
-foundation are finished. Low-level contracts have stable ownership under
+Phase 14 architecture consolidation, the complete Phase 15 native VFX
+foundation, and Phase 19 advanced rigging are finished. Low-level contracts
+have stable ownership under
 `src/core`, and typed deterministic VFX, editing, schema 10 persistence,
 preview/export budgets, and explicit renderer ownership now coexist.
 
@@ -227,7 +228,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Evidence
 
-- 116 frontend test files and 524 passing tests.
+- 117 frontend test files and 526 passing tests.
 - Typecheck/build/audit green.
 - Cargo check and 2 Rust tests green.
 - Tauri debug installers green; release profile blocked by host Smart App Control.
@@ -324,3 +325,5 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Phase 19.14 adds optional bounded blink/anger/sadness/confidence/surprise/fear
   pixel overlays as head children in the shared rig renderer. Missing or invalid
   settings leave standard skin geometry unchanged.
+- Phase 19.15 closes advanced rigging with a composite persistence/history/
+  timeline/preview/export regression while retaining all specialized tests.

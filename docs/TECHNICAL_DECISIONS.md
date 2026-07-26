@@ -610,3 +610,21 @@ Rig Studio keeps draft preset/intensity changes local until Apply, avoiding an
 undo entry per slider event. Enable, disable, and apply use one existing
 whole-project history checkpoint. Expression state is intentionally static; no
 parallel expression timeline or discrete keyframe system is introduced.
+
+## TD-044 - Close Phase 19 with a composite path, not duplicated unit coverage
+
+Status: Accepted in Phase 19.15.
+
+Keep the specialized deterministic tests for IK, foot lock, constraints, motion
+paths, layers, procedural generation, keyframe/pose tools, attachments,
+Blockbench, and expressions as the detailed evidence. Add one compact composite
+fixture only for the cross-system seam.
+
+That fixture combines an optional expression, a visible bone attachment, and an
+authoritative bone track. It must survive JSON, guarded schema 9, project
+packages, autosave, undo/redo, and canonical rig-lane synchronization, then
+produce equal shared-rig results from production preview sampling and final
+export-frame preparation.
+
+This gate verifies integration ownership without creating a Phase 19-specific
+serializer, timeline, renderer, or broad duplicate test suite.

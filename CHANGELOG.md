@@ -34,6 +34,8 @@
   existing editable animation timeline.
 - Added optional bounded pixel-expression overlays for blink, anger, sadness,
   confidence, surprise, and fear through the shared character renderer.
+- Added a composite advanced-rigging acceptance regression across persistence,
+  history, timeline synchronization, production preview, and export sampling.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

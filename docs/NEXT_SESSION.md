@@ -2,9 +2,8 @@
 
 ## Exact Current Task
 
-Start Phase 19.15 by reconciling the complete advanced-rigging acceptance
-matrix against existing save/load, history, migration, timeline, preview, and
-export tests.
+Start Phase 20.1 by auditing renderer telemetry, benchmark fixtures, resource
+tracking, scene/chunk/effect counters, and reproducible measurement entrypoints.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -126,16 +125,21 @@ Preserve the local commits and push normally once authentication is restored.
   head skin through the shared preview/export rig path. Disabled, invalid, or
   zero-intensity state creates no geometry; applying settings is atomic and
   localized. Phase 19.14 is complete at implementation commit `32f8f53`.
+- A composite final acceptance fixture now crosses persistence, migration,
+  package, autosave, history, rig lanes, production sampling, preview rig
+  construction, and final-export frame preparation. Phase 19 is complete at
+  acceptance commit `83241fa`.
 
 ## Unfinished Work
 
-- Phase 19.15 and phases 20-35 remain.
+- Phase 20 tasks 1-17 and phases 21-35 remain.
 
 ## Next Implementation Step
 
-Inventory focused evidence from Phases 19.1-19.14 and identify any missing
-cross-system regression. Do not duplicate already-proven paths; add a compact
-final acceptance fixture only where the matrix has a real gap.
+Inspect existing `SceneRenderer`, Three.js renderer ownership, resource
+disposal, benchmark projects, and performance-monitoring utilities. Measure
+before selecting thresholds or optimizations; do not infer budgets from the
+large-bundle warning alone.
 
 ## Tests To Run
 
