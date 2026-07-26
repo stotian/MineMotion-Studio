@@ -2,8 +2,8 @@
 
 ## Exact Current Task
 
-Begin Phase 19.8 by defining editable procedural animation generators over the
-existing reusable clip/global timeline contracts.
+Continue Phase 19.8 with deterministic walk, run, and crouch-walk recipes over
+the completed procedural clip/global timeline contract.
 
 GitHub publication is externally blocked in this environment: the HTTPS remote
 is readable, but no authenticated credential or `gh` executable is available.
@@ -80,6 +80,9 @@ Preserve the local commits and push normally once authentication is restored.
   clip-instance controls, and select bounded VFX synchronization references.
 - Schema 10, guarded schema 9, package, autosave, history, migrations, and
   production sampling are regression-tested for layered animation.
+- A bounded ten-kind procedural contract and deterministic idle-breathing
+  recipe generate one reusable clip plus editable global keys in one history
+  operation. Duration, intensity, and cycles are localized Rig Studio controls.
 
 ## Unfinished Work
 
@@ -87,9 +90,8 @@ Preserve the local commits and push normally once authentication is restored.
 
 ## Next Implementation Step
 
-Read the Phase 19 procedural-generator requirements, define one bounded pure
-generator result that produces editable reusable/global keyframes, and ship the
-first generator through the existing history and timeline paths.
+Implement walk, run, and crouch-walk recipes with deterministic loop closure,
+bounded output, direction-aware motion where relevant, and focused tests.
 
 ## Tests To Run
 

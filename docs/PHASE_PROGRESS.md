@@ -250,7 +250,10 @@ IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are imple
 
 ## In Progress
 
-- Phase 19.8 procedural animation generators is the next READY milestone.
+- Phase 19.8 has a bounded ten-kind pure contract and the first deterministic
+  idle-breathing generator. Rig Studio duration/intensity/cycle controls create
+  one reusable clip and editable global keys through one history operation.
+- Walk, run, and crouch-walk are the next generator batch.
 
 ## Not Started
 
@@ -292,5 +295,5 @@ IN_PROGRESS - Phase 19.1 through 19.7 and the consolidation checkpoint are imple
 
 ## Next Exact Action
 
-Define the renderer-neutral procedural generator contract and implement the
-first editable, bakeable generator through existing clips/tracks and history.
+Implement deterministic editable walk, run, and crouch-walk recipes through the
+completed procedural clip/bake contract.

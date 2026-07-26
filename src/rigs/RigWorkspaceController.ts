@@ -15,6 +15,10 @@ import { bakeProjectRigIKControl } from "./IK/RigIKController";
 import type { RigIKSession } from "./IK/useRigIKSession";
 import { bakeProjectLookAt } from "./constraints/LookAtController";
 import type { LookAtSession } from "./constraints/useLookAtSession";
+import {
+  bakeProceduralAnimation,
+  type ProceduralAnimationSettings
+} from "./procedural/ProceduralAnimationController";
 
 type ProjectCommit = (
   updater: MineMotionProject | ((current: MineMotionProject) => MineMotionProject),
@@ -152,6 +156,30 @@ export function useRigWorkspaceController({
     setStatus(tr("app.animationPreset", { name: preset.name }));
   }, [commitProject, project.scene.characters, selectedObjectId, setStatus, tr]);
 
+  const generateProceduralAnimation = useCallback((
+    settings: ProceduralAnimationSettings
+  ) => {
+    const targetId =
+      getSelectedCharacterId(selectedObjectId) ?? project.scene.characters[0]?.id;
+    if (!targetId) {
+      setStatus(tr("app.proceduralUnavailable"));
+      return;
+    }
+    const result = bakeProceduralAnimation(project, targetId, settings);
+    if (!result.changed) {
+      setStatus(result.error ?? tr("app.proceduralUnavailable"));
+      return;
+    }
+    commitProject(result.project, tr("history.generateProcedural"));
+    setStatus(tr("app.proceduralGenerated"));
+  }, [
+    commitProject,
+    project,
+    selectedObjectId,
+    setStatus,
+    tr
+  ]);
+
   const bakeIK = useCallback((controlId: string) => {
     const control = ikSession.controls.find((entry) => entry.id === controlId);
     if (!control || !ikSession.characterId) {
@@ -232,6 +260,7 @@ export function useRigWorkspaceController({
     changeRigPreset,
     applyPose,
     applyAnimation,
+    generateProceduralAnimation,
     bakeIK,
     bakeFootLock,
     bakeLookAt

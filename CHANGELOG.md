@@ -16,6 +16,8 @@
 - Evolved the existing NLA tracks into six bounded animation layers with scoped
   override/additive blending, mute/weight controls, shared production sampling,
   and VFX synchronization metadata.
+- Added the bounded procedural-animation contract and an editable deterministic
+  idle-breathing generator with localized Rig Studio controls.
 - Added architecture source-size validation, GitHub CI, strict VFX package
   SemVer precedence, and a reproducible manual smoke checklist.
 

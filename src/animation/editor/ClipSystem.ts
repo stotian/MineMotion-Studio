@@ -76,6 +76,9 @@ export function applyAnimationClip(
     }
     for (const keyframe of clipTrack.keyframes) {
       const frame = Math.max(0, Math.round(startFrame + keyframe.frame));
+      targetTrack.keyframes = targetTrack.keyframes.filter(
+        (candidate) => candidate.frame !== frame
+      );
       targetTrack.keyframes.push({
         ...keyframe,
         id: createKeyframeId(frame),

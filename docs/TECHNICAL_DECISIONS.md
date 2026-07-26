@@ -488,3 +488,17 @@ tracks are sampled first, then target layers compose in fixed kind order through
 one shared project sampler. Playback/export and dependent tools use that same
 composition so foot lock, look-at, and motion-path results cannot silently
 diverge from the rendered pose.
+
+## TD-037 - Procedural generators emit ordinary reusable clips and keys
+
+Status: Accepted in Phase 19.8.
+
+Keep generator settings as bounded session inputs and return a deterministic
+`ReusableAnimationClip`. Baking applies that clip to the authoritative global
+tracks, upserts it in the existing clip collection, synchronizes the rig lane,
+and commits once through project history.
+
+Do not persist generator settings, procedural nodes, caches, or a procedural
+timeline. Generated motion must become ordinary editable keyframes. Equal-frame
+application replaces the previous key so repeated generation is idempotent at
+the same playhead.

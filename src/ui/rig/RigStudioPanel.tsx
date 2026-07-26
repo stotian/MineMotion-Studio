@@ -10,6 +10,13 @@ import type { RigVector3Tuple } from "../../rigs/RigTypes";
 import type { LookAtControl } from "../../rigs/constraints/LookAtControl";
 import type { LookAtControlPatch } from "../../rigs/constraints/useLookAtSession";
 import type { RigConstraintWorkspace } from "../../rigs/useRigConstraintWorkspace";
+import {
+  AVAILABLE_PROCEDURAL_ANIMATION_KINDS,
+  createDefaultProceduralAnimationSettings,
+  PROCEDURAL_ANIMATION_LIMITS,
+  type ProceduralAnimationKind,
+  type ProceduralAnimationSettings
+} from "../../rigs/procedural/ProceduralAnimation";
 
 interface RigStudioPanelProps {
   open: boolean;
@@ -26,6 +33,7 @@ interface RigStudioPanelProps {
   onMirrorPose: (characterId: string) => void;
   onResetPose: (characterId: string) => void;
   onApplyAnimation: (presetId: string) => void;
+  onGenerateProcedural: (settings: ProceduralAnimationSettings) => void;
   onImportBlockbench: () => void;
   onUpdateIKControl: (controlId: string, patch: Partial<RigIKControl>) => void;
   onBakeIKControl: (controlId: string) => void;
@@ -54,6 +62,7 @@ export function RigStudioPanel({
   onMirrorPose,
   onResetPose,
   onApplyAnimation,
+  onGenerateProcedural,
   onImportBlockbench,
   onUpdateIKControl,
   onBakeIKControl,
@@ -76,6 +85,9 @@ export function RigStudioPanel({
     Math.min(project.animation.currentFrame + 12, project.animation.durationFrames)
   );
   const [footLockGroundOffset, setFootLockGroundOffset] = useState(0);
+  const [proceduralSettings, setProceduralSettings] = useState(
+    createDefaultProceduralAnimationSettings
+  );
   const wasOpen = useRef(open);
   useEffect(() => {
     if (open && !wasOpen.current) {
@@ -186,6 +198,94 @@ export function RigStudioPanel({
                   {preset.name}
                 </button>
               ))}
+            </div>
+          </section>
+          <section>
+            <h3>{t("rig.procedural.title")}</h3>
+            <div className="rig-ik-controls">
+              <div className="info-row">
+                <label htmlFor="rig-procedural-kind">
+                  {t("rig.procedural.kind")}
+                </label>
+                <select
+                  id="rig-procedural-kind"
+                  value={proceduralSettings.kind}
+                  onChange={(event) =>
+                    setProceduralSettings(
+                      createDefaultProceduralAnimationSettings(
+                        event.target.value as ProceduralAnimationKind
+                      )
+                    )
+                  }
+                >
+                  {AVAILABLE_PROCEDURAL_ANIMATION_KINDS.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {proceduralKindLabel(kind, t)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <label>
+                <span>{t("rig.procedural.duration")}</span>
+                <input
+                  type="number"
+                  min={PROCEDURAL_ANIMATION_LIMITS.minimumDurationFrames}
+                  max={PROCEDURAL_ANIMATION_LIMITS.maximumDurationFrames}
+                  step={1}
+                  value={proceduralSettings.durationFrames}
+                  onChange={(event) =>
+                    setProceduralSettings((current) => ({
+                      ...current,
+                      durationFrames: event.target.valueAsNumber
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                <span>
+                  {t("rig.procedural.intensity")}:{" "}
+                  {localization.formatNumber(proceduralSettings.intensity)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={PROCEDURAL_ANIMATION_LIMITS.maximumIntensity}
+                  step={0.05}
+                  value={proceduralSettings.intensity}
+                  onChange={(event) =>
+                    setProceduralSettings((current) => ({
+                      ...current,
+                      intensity: event.target.valueAsNumber
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                <span>{t("rig.procedural.cycles")}</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={PROCEDURAL_ANIMATION_LIMITS.maximumCycles}
+                  step={1}
+                  value={proceduralSettings.cycles}
+                  onChange={(event) =>
+                    setProceduralSettings((current) => ({
+                      ...current,
+                      cycles: event.target.valueAsNumber
+                    }))
+                  }
+                />
+              </label>
+              <button
+                type="button"
+                disabled={!character}
+                onClick={() =>
+                  onGenerateProcedural(proceduralSettings)
+                }
+              >
+                {t("rig.procedural.generate")}
+              </button>
+              <small className="empty-note">{t("rig.procedural.note")}</small>
             </div>
           </section>
           <section>
@@ -547,6 +647,14 @@ function motionPathKindLabel(
   if (kind === "leftHand") return t("rig.motionPath.leftHand");
   if (kind === "rightHand") return t("rig.motionPath.rightHand");
   return t("rig.motionPath.camera");
+}
+
+function proceduralKindLabel(
+  kind: ProceduralAnimationKind,
+  t: ReturnType<typeof useLocalization>["t"]
+): string {
+  if (kind === "idle") return t("rig.procedural.idle");
+  return kind;
 }
 
 function VectorEditor({

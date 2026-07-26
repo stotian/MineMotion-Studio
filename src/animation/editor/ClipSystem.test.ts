@@ -43,6 +43,9 @@ describe("ClipSystem", () => {
     expect(parsed.durationFrames).toBe(10);
     expect(applied[0].targetId).toBe("alex");
     expect(applied[0].keyframes.map((keyframe) => keyframe.frame)).toEqual([100, 110]);
+    const reapplied = applyAnimationClip(applied, parsed, "alex", 100);
+    expect(reapplied[0].keyframes.map((keyframe) => keyframe.frame))
+      .toEqual([100, 110]);
     expect(isAnimationClipCompatible(parsed, "character")).toBe(true);
     expect(isAnimationClipCompatible(parsed, "camera")).toBe(false);
   });

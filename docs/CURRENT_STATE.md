@@ -188,6 +188,9 @@ preview/export budgets, and explicit renderer ownership now coexist.
 - Localized layer mute/weight/clip placement and VFX-reference controls reuse
   project history. Schema 10, guarded schema 9, packages, autosave, and undo/
   redo preserve the layer data without another timeline or effect authority.
+- A bounded deterministic procedural contract defines ten generator kinds.
+  The available idle-breathing recipe creates one reusable clip plus editable
+  global body/head/arm keys in one history operation from Rig Studio controls.
 - Validated effects commands reuse cached adapted definitions and skip redundant
   one-record sanitation after whole-project validation. The 4,097-effect legacy
   repair regression improved from 17.6 s to 2.31 s with identical persistence.
@@ -203,7 +206,7 @@ preview/export budgets, and explicit renderer ownership now coexist.
 
 ## Absent Systems
 
-- Remaining procedural/keyframe/expression/Blockbench rigging milestones,
+- Remaining procedural recipes plus keyframe/expression/Blockbench milestones,
   shot/take manager, plugin SDK/sandbox, AI assistance, collaboration, and
   additional community locale data files.
 - A distinct completed Phase 13 premium polish release.

@@ -207,8 +207,7 @@ export function App() {
   const [worldImportOpen, setWorldImportOpen] = useState(false);
   const [vfxWorkspaceOpen, setVfxWorkspaceOpen] = useState(false);
   const [worldScan, setWorldScan] = useState<MinecraftWorldScan | null>(null);
-  const [worldImportOptions, setWorldImportOptions] =
-    useState<WorldChunkImportOptions>(DEFAULT_WORLD_IMPORT_OPTIONS);
+  const [worldImportOptions, setWorldImportOptions] = useState<WorldChunkImportOptions>(DEFAULT_WORLD_IMPORT_OPTIONS);
   const [worldImportProgress, setWorldImportProgress] = useState(
     IDLE_WORLD_IMPORT_PROGRESS
   );
@@ -2509,6 +2508,7 @@ export function App() {
         onMirrorPose={rigWorkspace.mirrorPose}
         onResetPose={rigWorkspace.resetPose}
         onApplyAnimation={rigWorkspace.applyAnimation}
+        onGenerateProcedural={rigWorkspace.generateProceduralAnimation}
         onImportBlockbench={handleImportBlockbench}
         onUpdateIKControl={rigConstraints.ikSession.updateControl}
         onBakeIKControl={rigWorkspace.bakeIK}

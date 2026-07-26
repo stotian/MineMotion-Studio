@@ -111,3 +111,15 @@ Additive Motion uses the clip's first sample as its reference.
 Layer controls are localized and commit through existing project history.
 VFX Synchronization contains effect IDs only; the effects collection remains
 the single timing and parameter authority.
+
+## Procedural Animation
+
+Rig Studio can generate a bounded looping idle-breathing animation with
+duration, intensity, and cycle controls. The settings are session-only. The
+result is both a reusable deterministic clip and ordinary global bone keys at
+the playhead, so it remains editable with the existing timeline, Dopesheet, and
+Graph tools. Repeating identical generation replaces equal-frame keys and one
+generation creates one history operation.
+
+Walk, run, crouch, jump, landing, recoil, hit, sword, and turn recipes remain
+the active Phase 19.8 work.
