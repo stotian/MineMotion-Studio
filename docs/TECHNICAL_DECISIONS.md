@@ -372,3 +372,44 @@ with stable warnings; malformed or degenerate input fails explicitly.
 
 The solver owns no persistent state and edits no project. Phase 19.3 controls
 must bake its output through the existing global `bone.rotation.*` tracks.
+
+## TD-030 - Keep IK controls session-local and bake through global tracks
+
+Status: Accepted in Phase 19.3.
+
+Segment Steve/Alex limbs into visually equivalent upper/lower child bones while
+preserving the established upper-bone IDs and neutral cuboid extents. Existing
+upper-bone tracks therefore continue moving the complete inherited limb. Use
+parent-local `-Y`, XYZ degrees, explicit poles, and closed limb mappings.
+
+Hand/foot targets are bounded session editing tools, not project animation
+authority. Live preview derives a temporary project view. A successful bake
+writes exactly two global bone tracks through the existing commit/history path;
+the legacy character tracks remain a generated projection. Numeric controls
+are honest while viewport gizmos remain unavailable.
+
+## TD-031 - Extract touched orchestration incrementally from App.tsx
+
+Status: Accepted in Phase 19.3.
+
+Considered three approaches:
+
+1. Keep callbacks in `App.tsx`: lowest immediate effort, but directly worsens
+   the confirmed composition-root risk.
+2. Introduce a generic event bus/service container: flexible, but high effort
+   and creates a second coordination architecture.
+3. Extract the touched rig domain into a focused React controller plus pure IK
+   modules: moderate effort, testable, and reuses current state/history paths.
+
+Choose option 3. Enforce the measured 2,839-line ceiling with a lightweight
+source check; future touched domains follow the staged `APP-EXTRACT-*` backlog.
+No global event bus or parallel store is introduced.
+
+## TD-032 - Application versions move only at explicit release checkpoints
+
+Status: Accepted in Phase 19.3.
+
+Keep application `0.8.2` during the current unreleased phase stream. Project
+schema 10 is independent. A future version bump must atomically synchronize all
+Node, Tauri, Cargo, package, example, README, changelog, and compatibility
+surfaces listed in `docs/VERSIONING.md`.

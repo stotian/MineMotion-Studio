@@ -15,7 +15,7 @@ contracts and evidence-based runtime capability reporting.
 ## Current Version
 
 - App version: `0.8.2`
-- Project schema: `9`
+- Project schema: `10`
 - Settings schema: `1`
 - Package format: `.minemotion` JSON package v1
 - License: MIT
@@ -75,6 +75,8 @@ contracts and evidence-based runtime capability reporting.
   - Minecraft skin UV mapping for core body parts
   - Blockbench `.bbmodel` static geometry import MVP
   - hand/head/back attachment point data
+  - deterministic two-bone Steve/Alex arm and leg IK with numeric hand/foot
+    targets, poles, influence, live preview, and bake-to-keyframes
 - Minecraft materials and lighting:
   - resource pack import from ZIP or browser folder selection
   - `pack.mcmeta` metadata and block PNG scanning
@@ -108,7 +110,9 @@ contracts and evidence-based runtime capability reporting.
   to all faces of each instanced block material.
 - Blockbench rig mapping is not automatic yet; Phase 5 imports static cube
   geometry as a preview object.
-- IK solver math is prepared but not implemented.
+- Production IK uses honest numeric local-space controls; interactive viewport
+  gizmos, foot lock, look-at constraints, and procedural rig tools remain later
+  Phase 19 milestones.
 - Import is intentionally bounded by max region files, max chunks, and max
   vertical sections.
 - Tested assumptions target modern Java Edition Anvil worlds using palette-based
@@ -151,6 +155,9 @@ http://127.0.0.1:5173
 ```powershell
 npm run typecheck
 npm test
+npm run verify:locales
+npm run verify:vfx-examples
+npm run verify:architecture
 npm run build
 npm audit
 ```

@@ -14,6 +14,7 @@ import {
   validateVfxPackageManifest,
   validVfxPackagePath
 } from "./VfxPackageValidator";
+import { compareSemVer } from "../../core/version/SemVer";
 
 const FORBIDDEN_EXTENSIONS = new Set([
   ".js", ".mjs", ".cjs", ".jsx", ".ts", ".tsx", ".wasm", ".exe",
@@ -203,15 +204,6 @@ function parseJson(entry: VfxPackageArchiveEntry, label: string): unknown {
   }
 }
 
-function compareSemver(left: string, right: string): number {
-  const a = left.split("-")[0].split(".").map(Number);
-  const b = right.split("-")[0].split(".").map(Number);
-  for (let index = 0; index < 3; index += 1) {
-    if (a[index] !== b[index]) return a[index] < b[index] ? -1 : 1;
-  }
-  return 0;
-}
-
 function inspectPng(entry: VfxPackageArchiveEntry, asset: VfxPackageAssetManifest): void {
   const bytes = entry.bytes;
   const signatureBytes = [137, 80, 78, 71, 13, 10, 26, 10];
@@ -232,7 +224,7 @@ export async function readVfxPackageArchive(buffer: ArrayBuffer): Promise<VfxPac
   const manifestValidation = validateVfxPackageManifest(parseJson(manifestEntry, "VFX package manifest"));
   if (!manifestValidation.ok) fail(manifestValidation.errors.map((entry) => `${entry.path}: ${entry.message}`).join(" "));
   const manifest = manifestValidation.value;
-  if (compareSemver(packageMetadata.version, manifest.minStudioVersion) < 0) fail(`VFX package requires MineMotion Studio ${manifest.minStudioVersion} or newer.`);
+  if (compareSemVer(packageMetadata.version, manifest.minStudioVersion) < 0) fail(`VFX package requires MineMotion Studio ${manifest.minStudioVersion} or newer.`);
   const documentValidation = validateVfxAuthoringDocument(parseJson(effectEntry, "VFX authoring document"));
   if (!documentValidation.ok) fail(documentValidation.errors.map((entry) => `${entry.path}: ${entry.message}`).join(" "));
   if (documentValidation.value.id !== manifest.effect.documentId) fail("Manifest effect document ID does not match effect.json.");

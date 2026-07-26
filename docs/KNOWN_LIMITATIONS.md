@@ -19,16 +19,16 @@ still required before changing code.
 | LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | RESOLVED |
 | LIM-011 | Preview/export consumers previously bypassed the typed evaluator | Yes | P2 | 15.7 | RESOLVED |
 | LIM-012 | Entity/bone targets now resolve safely with warnings, but several registered parameters remain visually ignored by compatibility visuals | Yes | P4 | 16 | PARTIALLY_RESOLVED |
-| LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | OPEN |
+| LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
 | LIM-015 | Static scene data and imported OBJ resources are rebuilt/reparsed on project updates | Yes | P3 | 20 | OPEN |
-| LIM-016 | IK is not connected to the production character workflow | Yes | P4 | 19 | OPEN |
+| LIM-016 | IK is not connected to the production character workflow | Yes | P4 | 19 | RESOLVED |
 | LIM-017 | Blockbench import is static geometry without automatic rig/texture mapping | Yes | P4 | 19 | OPEN |
 | LIM-018 | Animated resource-pack textures are detected but not played | Yes | P4 | 21 | OPEN |
 | LIM-019 | Per-face resource-pack rendering remains incomplete | Yes | P4 | 21 | OPEN |
 | LIM-020 | World import is intentionally bounded and older pre-flattening/decompression cases remain limited | Yes | P4 | 21 | OPEN |
 | LIM-021 | External executable plugins remain disabled; no permissioned sandbox or SDK exists | Yes | P4 | 23 | OPEN_SAFE_DEFAULT |
-| LIM-022 | Service interfaces exist, but concrete domain controllers remain largely inside `App.tsx` | Yes | P3/P4 | Incremental | OPEN |
+| LIM-022 | Service interfaces exist, but concrete domain controllers remain largely inside `App.tsx` | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
 | LIM-023 | Main JavaScript bundle is about 1 MB and triggers a Vite chunk warning | Yes | P3 | 20 | OPEN |
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
@@ -39,7 +39,9 @@ still required before changing code.
 | LIM-030 | English and French are complete; additional community locales still require reviewed catalog data and registration | Yes | P5 | Future/community | OPEN |
 | LIM-031 | Bone motion existed in both global timeline tracks and per-character `boneKeyframes` without deterministic reconciliation | Yes | P1 | 19.1 | RESOLVED |
 | LIM-032 | Two-bone IK types were registered but the solver intentionally returned an unsolved placeholder | Yes | P1 | 19.2 | RESOLVED |
-| LIM-033 | Two-bone IK math is validated, but production hand/foot controls and bake-to-timeline are not connected yet | Yes | P1 | 19.3 | IN_PROGRESS |
+| LIM-033 | Two-bone IK math is validated, but production hand/foot controls and bake-to-timeline are not connected yet | Yes | P1 | 19.3 | RESOLVED |
+| LIM-034 | IK controls are numeric session tools; viewport gizmos are not implemented | Yes | P4 | 19/future | OPEN_HONEST_UI |
+| LIM-035 | Foot lock, ground placement, and foot-slide reduction are not implemented | Yes | P2/P4 | 19.4 | OPEN |
 
 ## Phase 15.1 Outcome
 

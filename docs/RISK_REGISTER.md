@@ -14,6 +14,23 @@ phase documents remain the source of truth for implementation details.
 | RISK-G | Manual browser smoke cannot attach to local webview | ENVIRONMENT_BLOCKED | Per UI milestone | Retry once per major UI milestone, document the result, and retain automated regression coverage. |
 | RISK-H | GitHub CI status is not yet evidenced | NOT_YET_AUDITED | After 15.9 | Add a Node CI workflow when it no longer distracts from Phase 15 stabilization. |
 | RISK-I | Downloaded JSON package writes are not atomic filesystem saves | PARTIALLY_MITIGATED | 24 | Schema 10 migration/package validation is tested and browser autosave keeps a rollback copy; native atomic file save still needs desktop work. |
+| RISK-APP-001 | `App.tsx` continues accumulating domain orchestration | MITIGATED / CONFIRMED | 19-20 | Phase 19.3 extracted rig/pose/IK orchestration, reduced 2,839 to 2,677 lines, and added a reviewed source-size ceiling. |
+| RISK-IK-001 | Euler-angle multiplication produced incorrect IK influence near discontinuities | RESOLVED | 19.3 | Shortest-path identity-to-solution quaternion slerp with 0/0.25/0.5/1 and ±180° regressions. |
+| RISK-IK-002 | Analytic positions did not reflect limited/influenced returned rotations | RESOLVED | 19.3 | Ideal and forward-kinematic evaluated positions are distinct typed fields and tested against final rotations. |
+| RISK-DOC-001 | README schema, milestone, IK, and validation claims drifted from source | RESOLVED | 19.3 | Schema 10, Phase 19.3, version policy, limits, and handoff documents synchronized. |
+| RISK-CI-001 | GitHub had no repository validation workflow | MITIGATED | 19.3 | Node 20 CI now runs locked install, types, tests, locales, examples, architecture check, build, and high-severity audit. Remote run remains evidence-driven. |
+| RISK-SMOKE-001 | Integrated browser cannot complete local visual smoke | ENVIRONMENT_BLOCKED | Per UI milestone | One 2026-07-20 attempt timed out and reset browser control; the reproducible human checklist remains unpassed. |
+| RISK-SEMVER-001 | VFX minimum-version checks could ignore prerelease precedence | RESOLVED | 19.3 | One strict SemVer parser/comparator now feeds manifest, dependency, inspection, and archive checks. |
+| RISK-VFXZIP-001 | The security-sensitive custom ZIP reader needs broader malformed/fuzz corpus evidence | CONFIRMED | Future hardening | Add deterministic bounded corpus/property tests for header mismatches, Unicode collisions, ranges, descriptors, ratios, CRC, and multiple ZIP writers. |
+
+## App extraction backlog
+
+- `APP-EXTRACT-01` Rig/IK orchestration — completed for touched Phase 19.3 paths.
+- `APP-EXTRACT-02` Timeline/playback orchestration — Phase 19/20.
+- `APP-EXTRACT-03` VFX editor orchestration — Phase 20 when touched.
+- `APP-EXTRACT-04` Project lifecycle/autosave — Phase 20/24 when touched.
+- `APP-EXTRACT-05` Render/export orchestration — Phase 20/22 when touched.
+- `APP-EXTRACT-06` Selection and panel coordination — incremental when touched.
 
 ## Phase 15.5 Resolution
 

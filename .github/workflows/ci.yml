@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-validation:
+    name: TypeScript, tests, contracts, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Run tests
+        run: npm test
+      - name: Verify localization
+        run: npm run verify:locales
+      - name: Verify VFX examples
+        run: npm run verify:vfx-examples
+      - name: Verify architecture boundaries
+        run: npm run verify:architecture
+      - name: Build production frontend
+        run: npm run build
+      - name: Audit high-severity dependencies
+        run: npm audit --audit-level=high

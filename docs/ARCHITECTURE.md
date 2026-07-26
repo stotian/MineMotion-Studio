@@ -72,8 +72,9 @@ flowchart LR
 - `src/assets/library`: package asset records and asset library serialization.
 - `src/minecraft`: block palette, terrain presets, world folder detection, NBT
   skeleton, and Anvil region helpers.
-- `src/rigs`: Minecraft rig definitions, Steve/Alex presets, skin import/UV
-  mapping, pose and animation presets, IK placeholders, and Blockbench import.
+- `src/rigs`: Minecraft rig definitions, Steve/Alex presets, segmented player
+  limbs, skin import/UV mapping, pose and animation presets, production IK
+  controllers, and Blockbench import.
 - `src/animation`: transform keyframes, timeline sampling, and interpolation.
 - `src/project`: schema v10, serializer, migrations, recoverable autosave,
   package helpers, bounded
@@ -155,6 +156,34 @@ capability registry.
 Service interfaces identify scene, timeline, render, VFX, audio, asset,
 project, export, and plugin boundaries. They document future extraction from
 `App.tsx`; they are deliberately not a new runtime container.
+
+## Rig and IK control flow
+
+```text
+Rig Studio numeric controls (session-only)
+                 |
+                 v
+      RigIKController + canonical mapping
+          |                         |
+          v                         v
+ live preview project       bake command result
+          |                         |
+          v                         v
+ existing Viewport       existing commit/history path
+                                    |
+                                    v
+                     global bone.rotation.* tracks
+                                    |
+                                    v
+                 generated legacy boneKeyframes projection
+```
+
+`App.tsx` is a composition root for this flow. Rig/pose/IK callbacks live in
+`RigWorkspaceController`; pure solve, mapping, preview, and bake behavior lives
+under `src/rigs/IK`. No project store, animation authority, or event bus was
+added. The measured Phase 19.3 baseline was 2,839 lines and the post-extraction
+size is 2,677 lines. `npm run verify:architecture` enforces the reviewed 2,839
+line ceiling without encouraging compressed formatting.
 
 VFX frame evaluation is counter-addressed rather than stateful. A versioned
 typed seed composition produces root and local-frame seeds; sample indices can

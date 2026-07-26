@@ -152,4 +152,3 @@ describe("production rig IK controller", () => {
       .toEqual(project.scene.characters[0].boneRotations[disabled.upperBoneId]);
   });
 });
-

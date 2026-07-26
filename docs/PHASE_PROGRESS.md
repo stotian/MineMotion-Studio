@@ -6,11 +6,11 @@ Phase 19 - Advanced Minecraft Rigging and Animation
 
 ## Current Milestone
 
-19.2 - Deterministic two-bone IK solver
+19.4 - Foot lock, ground placement, and foot-slide reduction
 
 ## Status
 
-IN_PROGRESS - Phase 19.1 and 19.2 are implemented and validated.
+IN_PROGRESS - Phase 19.1 through 19.3 and the consolidation checkpoint are implemented and validated.
 
 ## Completed
 
@@ -201,15 +201,29 @@ IN_PROGRESS - Phase 19.1 and 19.2 are implemented and validated.
 - Too-far and too-close targets clamp to physical reach with stable warnings;
   invalid lengths, joint counts, target vectors, and root-coincident targets fail
   without NaN/Infinity. Three.js quaternion reconstruction verifies rotations.
+- Phase 19.3 segments Steve/Alex arms and legs into backward-compatible physical
+  upper/lower child bones while preserving neutral geometry and upper-bone IDs.
+- Rig Studio exposes bounded numeric hand/foot targets, poles, enable state,
+  influence, current frame, deterministic live preview, and real bake actions.
+- Every successful bake writes exactly two authoritative global tracks in one
+  history checkpoint; invalid and no-op operations create none. Undo/redo,
+  schema 10, guarded schema 9, packages, autosave, timeline, and export sampling
+  remain on the existing paths.
+- Quaternion influence, ideal/evaluated FK positions, local `-Y`/XYZ assumptions,
+  mirrored limbs, limits, reach clamps, hostile inputs, and all four limbs have
+  focused regressions.
+- Rig/pose/IK orchestration moved out of `App.tsx`, reducing it from 2,839 to
+  2,677 lines. A reviewed architecture ceiling, CI workflow, strict SemVer,
+  version policy, risk/debt register, and manual smoke checklist are present.
 
 ## In Progress
 
-- Phase 19.3 will add production hand/foot targets, pole controls, enable/
-  influence state, and bake solved limb rotations to existing timeline tracks.
+- Phase 19.4 will add deterministic foot lock, ground placement, and foot-slide
+  reduction through the existing rig preview/bake and global timeline paths.
 
 ## Not Started
 
-- Phase 19.3-19.15 and phases 20-35.
+- Phase 19.5-19.15 and phases 20-35.
 
 ## Blockers
 
@@ -222,22 +236,26 @@ IN_PROGRESS - Phase 19.1 and 19.2 are implemented and validated.
 ## Last Validated Commit
 
 - Repository baseline before Phase 15.1: `3a8487a`.
-- Phase 19.1 is the validated checkpoint containing this document; Git history
-  remains the source of truth for its resulting commit hash.
+- Phase 19.3 production IK is pushed as `1dc3b4a`; the consolidation report and
+  CI/document/SemVer commits immediately follow in Git history.
 
 ## Last Validation
 
-- `npm install`: PASS - 110 packages audited, 0 vulnerabilities
+- `npm ci --no-audit --no-fund`: PASS - 109 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 19.2 tests: PASS - 1 file, 4 tests
-- `npm test`: PASS - 91 files, 405 tests
-- `npm run build`: PASS - 1,824 modules; existing large-chunk warning only
-- `npm audit`: PASS - 0 vulnerabilities
-- Native checks: not rerun because Phase 19.1 changes TypeScript/docs only.
+- Focused IK/SemVer/consolidation tests: PASS
+- `npm test`: PASS - 96 files, 440 tests
+- `npm run verify:locales`: PASS - 4 files, 11 tests
+- `npm run verify:vfx-examples`: PASS - 1 file, 1 test
+- `npm run verify:architecture`: PASS - `App.tsx` 2,677/2,839 lines
+- `npm run build`: PASS - 1,833 modules; 1,388.63 kB known large chunk
+- `npm audit --audit-level=high`: PASS - 0 vulnerabilities
+- Native checks: not rerun because Phase 19.3 changes TypeScript/docs/CI only.
 - Manual visual smoke: BLOCKED_BY_ENVIRONMENT - browser bootstrap repeats
-  `Cannot redefine property: process`; automated characterization passes.
+  `Cannot redefine property: process` or times out during local navigation;
+  automated characterization passes and the manual checklist is unpassed.
 
 ## Next Exact Action
 
-Add hand/foot targets, pole controls, enable/influence state, and deterministic
-bake-to-keyframes through the existing global bone animation tracks.
+Inventory current ground/world-height access and design the smallest pure foot
+lock sample contract before adding any new UI or persisted authority.

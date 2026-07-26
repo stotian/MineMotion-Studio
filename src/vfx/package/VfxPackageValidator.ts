@@ -14,10 +14,9 @@ import {
   type VfxPackageManifestV1,
   type VfxPackagePermission
 } from "./VfxPackageTypes";
+import { isValidSemVer, isValidSemVerRange } from "../../core/version/SemVer";
 
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/;
-const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/;
-const VERSION_RANGE_PATTERN = /^(?:\^|~|>=|<=|>|<)?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const SPDX_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}$/;
 const PERMISSIONS = new Set<VfxPackagePermission>(["asset-textures", "asset-audio", "asset-models", "restricted-shader-templates"]);
 const ASSET_KINDS = new Set<VfxPackageAssetKind>(["texture", "sprite", "audio", "model", "gradient", "curve", "thumbnail", "localization", "restricted-shader-template"]);
@@ -85,8 +84,8 @@ export function validateVfxPackageManifest(value: unknown): ValidationResult<Vfx
   const errors: ValidationIssue[] = [];
   if (value.format !== VFX_PACKAGE_FORMAT) errors.push(issue("VFX_PACKAGE_FORMAT_UNSUPPORTED", "VFX package format is unsupported.", "format"));
   if (value.manifestVersion !== VFX_PACKAGE_MANIFEST_VERSION) errors.push(issue("VFX_PACKAGE_VERSION_UNSUPPORTED", "VFX package manifest version is unsupported.", "manifestVersion"));
-  if (typeof value.packageVersion !== "string" || !SEMVER_PATTERN.test(value.packageVersion)) errors.push(issue("VFX_PACKAGE_SEMVER_INVALID", "Package version must be semantic versioning.", "packageVersion"));
-  if (typeof value.minStudioVersion !== "string" || !SEMVER_PATTERN.test(value.minStudioVersion)) errors.push(issue("VFX_PACKAGE_STUDIO_VERSION_INVALID", "Minimum Studio version must be semantic versioning.", "minStudioVersion"));
+  if (!isValidSemVer(value.packageVersion)) errors.push(issue("VFX_PACKAGE_SEMVER_INVALID", "Package version must be semantic versioning.", "packageVersion"));
+  if (!isValidSemVer(value.minStudioVersion)) errors.push(issue("VFX_PACKAGE_STUDIO_VERSION_INVALID", "Minimum Studio version must be semantic versioning.", "minStudioVersion"));
   if (typeof value.id !== "string" || !ID_PATTERN.test(value.id)) errors.push(issue("VFX_PACKAGE_ID_INVALID", "Package ID is invalid.", "id"));
   if (!validText(value.displayName, 128) || !validText(value.description, 1024, true) || !validText(value.author, 128)) errors.push(issue("VFX_PACKAGE_METADATA_INVALID", "Package name, description, or author is invalid.", "displayName"));
   if (typeof value.license !== "string" || !SPDX_PATTERN.test(value.license)) errors.push(issue("VFX_PACKAGE_LICENSE_INVALID", "Package license must be a bounded SPDX identifier.", "license"));
@@ -98,7 +97,7 @@ export function validateVfxPackageManifest(value: unknown): ValidationResult<Vfx
     const ids = new Set<string>();
     value.dependencies.forEach((dependency, index) => {
       const path = `dependencies.${index}`;
-      if (!isRecord(dependency) || !onlyKeys(dependency, ["id", "versionRange", "optional"]) || typeof dependency.id !== "string" || !ID_PATTERN.test(dependency.id) || typeof dependency.versionRange !== "string" || !VERSION_RANGE_PATTERN.test(dependency.versionRange) || typeof dependency.optional !== "boolean") errors.push(issue("VFX_PACKAGE_DEPENDENCY_INVALID", "Package dependency is invalid.", path));
+      if (!isRecord(dependency) || !onlyKeys(dependency, ["id", "versionRange", "optional"]) || typeof dependency.id !== "string" || !ID_PATTERN.test(dependency.id) || !isValidSemVerRange(dependency.versionRange) || typeof dependency.optional !== "boolean") errors.push(issue("VFX_PACKAGE_DEPENDENCY_INVALID", "Package dependency is invalid.", path));
       else if (ids.has(dependency.id) || dependency.id === value.id) errors.push(issue("VFX_PACKAGE_DEPENDENCY_DUPLICATE", "Package dependency is duplicate or self-referential.", `${path}.id`));
       else ids.add(dependency.id);
     });
