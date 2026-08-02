@@ -396,3 +396,8 @@ world import now coexist.
   export workflows while leaving startup-critical React/Three.js/editor code
   static. Main JavaScript falls from 1,542.64 to 1,439.60 kB; the remaining
   >500 kB warning stays visible for later architecture work.
+- Phase 20.12 moves the project document lifecycle behind the existing
+  `src/project/workspace` boundary: one project ref, history, dirty handling,
+  browser save/load, schema 9 legacy export, and autosave remain authoritative.
+  App-level selection/world-import coordination stays explicit; the JSON
+  `.minemotion` path is unchanged. `App.tsx` is 1,856 lines.

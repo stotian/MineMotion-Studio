@@ -817,3 +817,19 @@ panel must not invoke its loader. On open, use localized Suspense and error
 fallbacks; workflow imports remain inside the existing diagnostic boundary.
 Keep the surface/workflow lists closed and tested so new eager behavior is a
 reviewable decision.
+
+## TD-056 - Keep the project lifecycle in one workspace controller
+
+Status: Accepted in Phase 20.12.
+
+Move project state/ref, whole-project history, dirty/replacement handling,
+browser save/load, schema 9 export, recents, and autosave into one focused
+project-workspace controller. Keep the existing project serializer, JSON package
+reader/writer, and schema 9-to-10 migration contracts authoritative; do not
+import later ZIP-only interfaces without proof that the current repository
+supports them.
+
+`App.tsx` remains the composition root for editor selection and world-import
+invalidation. It supplies a pre-replacement callback and reacts to a monotonic
+replacement version, avoiding a global event bus, a second store, or persisted
+workspace operation state.

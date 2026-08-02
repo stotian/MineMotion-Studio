@@ -6,12 +6,13 @@ Phase 20 - Renderer, Performance, and Large Scenes
 
 ## Current Milestone
 
-20.12 - Incremental App orchestration extraction
+20.13 - Timeline module split
 
 ## Status
 
-IN_PROGRESS - Phase 20.1-20.11 measurement, renderer optimization, worker/
-abort reliability, and measured bundle splitting are implemented and validated.
+IN_PROGRESS - Phase 20.1-20.12 measurement, renderer optimization, worker/
+abort reliability, bundle splitting, and project-lifecycle extraction are
+implemented and validated.
 
 ## Completed
 
@@ -363,11 +364,15 @@ abort reliability, and measured bundle splitting are implemented and validated.
 - The main bundle falls from 1,542.64/421.39 kB gzip to 1,439.60/397.66 kB,
   while eighteen named deferred chunks total 110.64 kB. Startup-critical
   React/Three.js/editor code remains static and the >500 kB warning is not hidden.
+- Phase 20.12 extracts the authoritative project lifecycle, history, browser
+  save/load, schema 9 legacy export, and autosave into `src/project/workspace`.
+  The real JSON package path stays intact; `App.tsx` falls from 2,014 to 1,856
+  lines and selection/world-import coordination remains explicit.
 
 ## In Progress
 
-- Implement Phase 20.12 by extracting the next cohesive App orchestration
-  boundary into existing domain controllers without a broad rewrite.
+- Characterize `TimelinePanel` view-only regions before Phase 20.13. Keep the
+  existing timeline data, project/history, and command authorities unchanged.
 
 ## Not Started
 
@@ -384,20 +389,19 @@ abort reliability, and measured bundle splitting are implemented and validated.
 ## Last Validated Commit
 
 - Official verified ZIP baseline: `4c6213b`.
-- Latest committed and pushed implementation checkpoint: `ba46bfd`
-  (Phase 20.11 deferred panels/workflows).
-- Latest validated implementation checkpoint: Phase 20.11.
+- Latest validated implementation checkpoint: Phase 20.12 (commit pending).
 
 ## Last Validation
 
 - `npm ci --no-audit --no-fund`: PASS - 110 packages installed
 - `npm run typecheck`: PASS
-- Focused Phase 20.11 deferred contract tests: PASS - 1 file, 2 tests
-- `npm test`: PASS - 139 files, 593 tests
+- Focused Phase 20.12 persistence/autosave/serializer tests: PASS - 3 files,
+  24 tests
+- `npm test`: PASS - 141 files, 601 tests
 - `npm run verify:locales`: PASS - 4 files, 11 tests
 - `npm run verify:vfx-examples`: PASS - 1 file, 1 test
-- `npm run verify:architecture`: PASS - `App.tsx` 2,474/2,839 lines
-- `npm run build`: PASS - 1,890 modules; 1,439.60 kB main, 7.61 kB worker,
+- `npm run verify:architecture`: PASS - `App.tsx` 1,856/2,839 lines
+- `npm run build`: PASS - 1,893 modules; 1,441.12 kB main, 7.61 kB worker,
   and eighteen deferred chunks
 - `npm audit --audit-level=high`: PASS - 0 vulnerabilities
 - Native checks: not rerun because this milestone changes frontend TypeScript
@@ -408,6 +412,6 @@ abort reliability, and measured bundle splitting are implemented and validated.
 
 ## Next Exact Action
 
-Characterize one remaining cohesive responsibility in `App.tsx`, prefer an
-existing controller/service boundary, extract state/commands without changing
-history or persistence behavior, and keep the architecture size gate decreasing.
+Characterize `TimelinePanel` view-only regions before splitting them. Preserve
+the existing timeline data, project/history, and command authorities, and keep
+the architecture size gate decreasing.

@@ -25,10 +25,7 @@ import {
   getInstalledVfxSourceStatus,
   listEnabledInstalledVfxPresets
 } from "./vfx/package/VfxPackageProjectIntegration";
-import { downloadBrowserBlob } from "./export/BrowserDownload";
-import { sanitizeOutputName } from "./export/ExportSettings";
 import { useExportWorkspaceController } from "./export/useExportWorkspaceController";
-import { HistoryStack } from "./history/HistoryStack";
 import { useWorldImportOperations } from "./minecraft/import/useWorldImportOperations";
 import type { MinecraftResourceSettings } from "./minecraft/resources/ResourcePackTypes";
 import {
@@ -44,8 +41,6 @@ import { pluginRegistry } from "./plugins/PluginRegistry";
 import { applyCameraPreset } from "./presets/CameraPresets";
 import { presetRegistry } from "./presets/PresetRegistry";
 import { syncCinematicTimeline } from "./project/CinematicTimeline";
-import { PackageReader } from "./project/package/PackageReader";
-import { PackageWriter } from "./project/package/PackageWriter";
 import type {
   CameraEntity,
   MineMotionProject,
@@ -53,16 +48,9 @@ import type {
   TimelineData,
   TransformData
 } from "./project/ProjectFile";
-import { ProjectSerializer } from "./project/ProjectSerializer";
-import {
-  hasProjectAutosave,
-  loadProjectAutosave,
-  saveProjectAutosave
-} from "./project/ProjectAutosave";
 import {
   createCharacter,
   createId,
-  createInitialProject,
   createObjEntity,
   createSceneCamera,
   findObject,
@@ -72,6 +60,7 @@ import {
   updateObjectVisibility,
   updateProjectSettings
 } from "./project/ProjectStore";
+import { useProjectWorkspaceController } from "./project/workspace/useProjectWorkspaceController";
 import {
   getPostProcessingPreset,
   POST_PROCESSING_PRESETS
@@ -144,15 +133,35 @@ export function App() {
       formatLocalizedDiagnostic(localizationRef.current, code, key, values),
     []
   );
-  const [project, setProjectState] = useState<MineMotionProject>(() =>
-    createInitialProject(settings)
-  );
+  const [status, setStatus] = useState(() => localization.t("app.ready"));
+  const {
+    project,
+    projectRef,
+    projectInputRef,
+    isDirty,
+    replacementVersion,
+    setDirty: setIsDirty,
+    setProject,
+    commitProject,
+    replaceProject,
+    createNewProject,
+    saveProject: handleSaveProject,
+    exportLegacyProject: handleExportLegacyProject,
+    openProjectPicker: handleLoadProject,
+    loadProjectFile,
+    undo: handleUndo,
+    redo: handleRedo
+  } = useProjectWorkspaceController({
+    settings,
+    setSettings,
+    setStatus,
+    tr,
+    diagnostic
+  });
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(
     project.scene.characters[0]?.id ?? null
   );
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
-  const [status, setStatus] = useState(() => localization.t("app.ready"));
-  const [isDirty, setIsDirty] = useState(false);
   const [lookThroughCameraRequest, setLookThroughCameraRequest] = useState(0);
   const [resetCameraRequest, setResetCameraRequest] = useState(0);
   const [focusWorldRequest, setFocusWorldRequest] = useState(0);
@@ -170,24 +179,7 @@ export function App() {
   const [vfxPackageRegistry, setVfxPackageRegistry] =
     useState<VfxPackageRegistry>(() => createEmptyVfxPackageRegistry());
 
-  const historyRef = useRef(new HistoryStack<MineMotionProject>());
-  const projectRef = useRef(project);
-  const setProject = useCallback(
-    (
-      updater:
-        | MineMotionProject
-        | ((currentProject: MineMotionProject) => MineMotionProject)
-    ) => {
-      const currentProject = projectRef.current;
-      const nextProject =
-        typeof updater === "function" ? updater(currentProject) : updater;
-      projectRef.current = nextProject;
-      setProjectState(nextProject);
-    },
-    []
-  );
   const worldInputRef = useRef<HTMLInputElement | null>(null);
-  const projectInputRef = useRef<HTMLInputElement | null>(null);
   const objInputRef = useRef<HTMLInputElement | null>(null);
   const skinInputRef = useRef<HTMLInputElement | null>(null);
   const skinTargetCharacterIdRef = useRef<string | null>(null);
@@ -258,49 +250,6 @@ export function App() {
     );
   }, [settings]);
 
-  useEffect(() => {
-    if (!hasProjectAutosave(window.localStorage)) return;
-
-    const shouldRestore = window.confirm(tr("app.confirmAutosave"));
-    if (!shouldRestore) return;
-
-    try {
-      const recovered = loadProjectAutosave(window.localStorage);
-      if (!recovered) return;
-      const restored = recovered.project;
-      setProject(restored);
-      setSelectedObjectId(restored.scene.characters[0]?.id ?? null);
-      setStatus(
-        recovered.source === "backup"
-          ? tr("app.autosaveBackupRestored")
-          : tr("app.autosaveRestored")
-      );
-      setIsDirty(true);
-    } catch (error) {
-      setStatus(diagnostic("AUTOSAVE_RECOVERY_FAILED", "app.recoveryFailed"));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!settings.general.autosaveEnabled || !isDirty) return;
-
-    const interval = window.setInterval(() => {
-      try {
-        saveProjectAutosave(window.localStorage, project);
-        setStatus(tr("app.autosaved", { name: project.projectName }));
-      } catch (error) {
-        setStatus(diagnostic("AUTOSAVE_SAVE_FAILED", "app.autosaveFailed"));
-      }
-    }, settings.general.autosaveIntervalSeconds * 1000);
-
-    return () => window.clearInterval(interval);
-  }, [
-    isDirty,
-    project,
-    settings.general.autosaveEnabled,
-    settings.general.autosaveIntervalSeconds
-  ]);
-
   useProjectAudioPlayback(project);
 
   useEffect(() => {
@@ -337,23 +286,6 @@ export function App() {
     return () => cancelAnimationFrame(animationFrame);
   }, [project.animation.isPlaying]);
 
-  const commitProject = useCallback(
-    (
-      updater: MineMotionProject | ((currentProject: MineMotionProject) => MineMotionProject),
-      label: string
-    ) => {
-      const currentProject = projectRef.current;
-      const nextProject =
-        typeof updater === "function" ? updater(currentProject) : updater;
-      if (nextProject === currentProject) return false;
-
-      historyRef.current.push(currentProject, label);
-      setProject(nextProject);
-      setIsDirty(true);
-      return true;
-    },
-    [setProject]
-  );
   const requestWorldFocus = useCallback(() => setFocusWorldRequest((value) => value + 1), []);
   const {
     scan: worldScan,
@@ -412,20 +344,13 @@ export function App() {
     tr
   });
 
-  const replaceProject = useCallback((nextProject: MineMotionProject, label: string) => {
-    resetWorldImport("Project replaced.");
-    historyRef.current.clear();
-    setProject(nextProject);
-    setSelectedObjectId(nextProject.scene.characters[0]?.id ?? nextProject.scene.cameras[0]?.id ?? null);
+  useEffect(() => {
+    if (replacementVersion === 0) return;
+    setSelectedObjectId(
+      project.scene.characters[0]?.id ?? project.scene.cameras[0]?.id ?? null
+    );
     setSelectedEffectId(null);
-    setIsDirty(true);
-    setStatus(label);
-  }, [resetWorldImport, setProject]);
-
-  const confirmDiscardChanges = useCallback(() => {
-    if (!isDirty) return true;
-    return window.confirm(tr("app.confirmDiscard"));
-  }, [isDirty]);
+  }, [replacementVersion]);
 
   const handleSelectObject = useCallback((objectId: string | null) => {
     setSelectedObjectId(objectId);
@@ -438,95 +363,34 @@ export function App() {
   }, []);
 
   const handleNewProject = useCallback(() => {
-    if (!confirmDiscardChanges()) return;
-    replaceProject(createInitialProject(settings), tr("app.newProject"));
-  }, [confirmDiscardChanges, replaceProject, settings]);
+    createNewProject(() => resetWorldImport("Project replaced."));
+  }, [createNewProject, resetWorldImport]);
 
   const handleNewProjectFromTemplate = useCallback(
     (templateId: string) => {
-      if (!confirmDiscardChanges()) return;
       const nextProject = templateRegistry.createProject(templateId, settings);
-      replaceProject(nextProject, tr("app.templateLoaded", { name: nextProject.projectName }));
-      setTemplatesOpen(false);
+      const replaced = replaceProject(
+        nextProject,
+        tr("app.templateLoaded", { name: nextProject.projectName }),
+        {
+          beforeReplace: () => resetWorldImport("Project replaced."),
+          dirty: true
+        }
+      );
+      if (replaced) setTemplatesOpen(false);
     },
-    [confirmDiscardChanges, replaceProject, settings]
+    [replaceProject, resetWorldImport, settings, tr]
   );
 
-  const handleSaveProject = useCallback(() => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    const currentProject = projectRef.current;
-    const filename = `${sanitizeOutputName(currentProject.projectName)}.minemotion`;
-    downloadBrowserBlob(PackageWriter.write(currentProject), filename);
-
-    setSettings((currentSettings) =>
-      SettingsStore.addRecentProject(currentSettings, {
-        id: filename,
-        name: currentProject.projectName,
-        savedAt: new Date().toISOString(),
-        storageHint: "download"
-      })
-    );
-    setIsDirty(false);
-    setStatus(tr("app.projectSaved", { filename }));
-  }, []);
-
-  const handleExportLegacyProject = useCallback(() => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    const currentProject = projectRef.current;
-    try {
-      const raw = ProjectSerializer.serializeLegacyV9(currentProject);
-      const blob = new Blob([raw], { type: "application/json" });
-      const filename = `${sanitizeOutputName(currentProject.projectName)}.mmsproj`;
-      downloadBrowserBlob(blob, filename);
-      setStatus(tr("app.legacyExported", { filename }));
-    } catch (error) {
-      setStatus(diagnostic("PROJECT_SCHEMA9_VFX_UNSUPPORTED", "app.legacyVfxUnsupported"));
-    }
-  }, []);
-
-  const handleLoadProject = useCallback(() => {
-    projectInputRef.current?.click();
-  }, []);
-
-  const handleProjectFileSelected = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || !confirmDiscardChanges()) return;
-
-    resetWorldImport("Project replaced.");
-    try {
-      const raw = await file.text();
-      const loadedProject = PackageReader.looksLikePackage(raw)
-        ? PackageReader.parse(raw)
-        : ProjectSerializer.parse(raw);
-      historyRef.current.clear();
-      setProject(loadedProject);
-      setSelectedObjectId(
-        loadedProject.scene.characters[0]?.id ??
-          loadedProject.scene.cameras[0]?.id ??
-          null
-      );
-      setSelectedEffectId(null);
-      setIsDirty(false);
-      setSettings((currentSettings) =>
-        SettingsStore.addRecentProject(currentSettings, {
-          id: file.name,
-          name: loadedProject.projectName,
-          savedAt: new Date().toISOString(),
-          storageHint: "browser"
-        })
-      );
-      setStatus(tr("app.projectLoaded", { name: loadedProject.projectName }));
-    } catch (error) {
-      setStatus(diagnostic("PROJECT_LOAD_FAILED", "app.projectLoadFailed"));
-    }
-  };
+  const handleProjectFileSelected = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (!file) return;
+      await loadProjectFile(file, () => resetWorldImport("Project replaced."));
+    },
+    [loadProjectFile, resetWorldImport]
+  );
 
   const handleOpenWorld = useCallback(() => {
     setWorldImportOpen(true);
@@ -1501,28 +1365,6 @@ export function App() {
     },
     [commitProject, selectedObjectId]
   );
-
-  const handleUndo = useCallback(() => {
-    const previousProject = historyRef.current.undo(projectRef.current);
-    if (!previousProject) {
-      setStatus(tr("app.nothingUndo"));
-      return;
-    }
-    setProject(previousProject);
-    setIsDirty(true);
-    setStatus(tr("app.undo"));
-  }, [setProject]);
-
-  const handleRedo = useCallback(() => {
-    const nextProject = historyRef.current.redo(projectRef.current);
-    if (!nextProject) {
-      setStatus(tr("app.nothingRedo"));
-      return;
-    }
-    setProject(nextProject);
-    setIsDirty(true);
-    setStatus(tr("app.redo"));
-  }, [setProject]);
 
   const handleTogglePlugin = useCallback(
     (pluginId: string, enabled: boolean) => {

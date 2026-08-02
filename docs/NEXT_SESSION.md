@@ -2,11 +2,16 @@
 
 ## Exact Current Task
 
-Implement Phase 20.12 by characterizing and extracting the next cohesive
-orchestration responsibility from `App.tsx` into an existing domain boundary.
-Preserve history, persistence, localization, and runtime behavior.
+Implement Phase 20.13 by characterizing `TimelinePanel` view-only regions,
+then split only a cohesive UI boundary. Preserve timeline data, project/history,
+localization, and command behavior.
 
 ## Completed Work
+
+- Phase 20.12 extracts project lifecycle into `src/project/workspace` with one
+  authoritative project ref/history, browser save/load, schema 9 legacy export,
+  autosave, and localized diagnostics. The JSON `.minemotion` path remains
+  authoritative; `App.tsx` falls from 2,014 to 1,856 lines.
 
 - Phase 15 complete at `7dc093b`.
 - One built-in recipe registry resolves 60 native recipes across all required
