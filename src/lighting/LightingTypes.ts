@@ -1,6 +1,6 @@
-import type { Vector3Tuple } from "../project/ProjectFile";
+import type { Vector3Tuple } from "../core/scene/SceneTypes";
 import type { PostProcessingPresetId } from "../rendering/postprocessing/PostProcessingTypes";
-import type { SkyPresetId } from "../renderer/SkySystem";
+import type { SkyPresetId } from "../renderer/SkyTypes";
 
 export type LightingMoodPresetId =
   | "clear-day"
@@ -13,13 +13,18 @@ export type LightingMoodPresetId =
   | "anime-impact-lighting";
 
 export type EnvironmentInterpolation = "constant" | "linear";
+export type WeatherMode = "clear" | "rain" | "snow" | "storm";
 
 export interface EnvironmentKeyframeValues {
   sunIntensity: number;
+  moonIntensity: number;
   ambientIntensity: number;
   fogDensity: number;
   fogColor: string;
   timeOfDay: number;
+  weather: WeatherMode;
+  weatherIntensity: number;
+  windSpeed: number;
   bloomIntensity: number;
   vignetteAmount: number;
   grainAmount: number;
@@ -40,6 +45,9 @@ export interface LightingSettings {
   sunDirection: Vector3Tuple;
   sunColor: string;
   sunIntensity: number;
+  moonDirection: Vector3Tuple;
+  moonColor: string;
+  moonIntensity: number;
   ambientColor: string;
   ambientIntensity: number;
   shadowsEnabled: boolean;
@@ -50,6 +58,11 @@ export interface LightingSettings {
   timeOfDay: number;
   animateTimeOfDay: boolean;
   dayLengthFrames: number;
+  weather: WeatherMode;
+  weatherIntensity: number;
+  weatherSeed: number;
+  windDirection: Vector3Tuple;
+  windSpeed: number;
   keyframes: EnvironmentKeyframe[];
 }
 
@@ -64,4 +77,6 @@ export interface LightingMoodPreset {
 
 export interface ResolvedLightingState extends LightingSettings {
   backgroundColor: string;
+  daylightFactor: number;
+  activeCelestialBody: "sun" | "moon";
 }

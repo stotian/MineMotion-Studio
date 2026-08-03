@@ -12,8 +12,18 @@ function importedClip(): AudioClip {
     dataUrl: "data:audio/wav;base64,AA==",
     startFrame: 0,
     durationFrames: 24,
+    sourceOffsetFrames: 0,
+    fadeInFrames: 0,
+    fadeOutFrames: 0,
     volume: 1,
+    pan: 0,
+    muted: false,
     loop: false,
+    role: "sfx",
+    peak: null,
+    integratedLoudnessLufs: null,
+    waveformHash: "",
+    decodeStatus: "ready",
     importedAt: "2026-07-26T00:00:00.000Z"
   };
 }

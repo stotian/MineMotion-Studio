@@ -94,7 +94,7 @@ export function createDefaultSteveRig(
   const boneObjects = new Map<string, THREE.Group>();
 
   for (const bone of definition.bones) {
-    const boneObject = createBoneObject(bone, character, textureCache);
+    const boneObject = createBoneObject(bone, character, textureCache, character.customGeometry?.hideDefaultGeometry === true);
     boneObjects.set(bone.id, boneObject);
 
     if (!bone.parentId) {
@@ -121,13 +121,28 @@ export function createDefaultSteveRig(
     parent.add(object);
   }
 
+  for (const cube of character.customGeometry?.cubes ?? []) {
+    if (!cube.visible) continue;
+    const parent = boneObjects.get(cube.boneId);
+    if (!parent) continue;
+    const geometry = new THREE.BoxGeometry(cube.size[0], cube.size[1], cube.size[2]);
+    const mesh = new THREE.Mesh(geometry, createSolidMaterial(cube.color));
+    mesh.name = cube.name;
+    mesh.position.set(cube.position[0], cube.position[1], cube.position[2]);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    markBoneSelectable(mesh, character.id, cube.boneId);
+    parent.add(mesh);
+  }
+
   return root;
 }
 
 function createBoneObject(
   bone: RigBone,
   character: CharacterEntity,
-  textureCache: SteveRigTextureCache
+  textureCache: SteveRigTextureCache,
+  hideDefaultGeometry: boolean
 ): THREE.Group {
   const pivot = new THREE.Group();
   pivot.name = bone.label;
@@ -135,7 +150,7 @@ function createBoneObject(
   applyEuler(pivot.rotation, character.boneRotations[bone.id] || [0, 0, 0]);
   markBoneSelectable(pivot, character.id, bone.id);
 
-  if (bone.id === "root") {
+  if (bone.id === "root" || hideDefaultGeometry) {
     return pivot;
   }
 
@@ -226,12 +241,29 @@ function materialForBone(
       metalness: 0
     });
   }
+  if (character.modelType === "mob") {
+    const color = mobColor(character.rigPreset, bone.id);
+    return createSolidMaterial(color);
+  }
   if (bone.id === "body") return MATERIALS.body;
   if (bone.id === "head") return MATERIALS.head;
   if (bone.id === "cape") return MATERIALS.cape;
   if (bone.id.toLowerCase().includes("arm")) return MATERIALS.arm;
   if (bone.id.toLowerCase().includes("leg")) return MATERIALS.leg;
   return MATERIALS.body;
+}
+
+function mobColor(rigPreset: string, boneId: string): string {
+  if (rigPreset === "zombie") return boneId === "head" || boneId.toLowerCase().includes("arm") ? "#5f8f55" : boneId.toLowerCase().includes("leg") ? "#36598a" : "#4c6e9d";
+  if (rigPreset === "skeleton") return "#d7d3c7";
+  if (rigPreset === "creeper") return boneId === "head" ? "#58b84d" : "#4aa842";
+  if (rigPreset === "enderman") return boneId === "head" ? "#241b2c" : "#18131e";
+  if (rigPreset === "villager") return boneId === "body" ? "#77523a" : "#b58b67";
+  if (rigPreset === "pig") return "#eaa0a8";
+  if (rigPreset === "cow") return boneId === "head" ? "#6d4933" : "#74513b";
+  if (rigPreset === "wolf") return boneId === "head" ? "#b8b8b1" : "#a5a59f";
+  if (rigPreset === "spider") return boneId === "head" ? "#3c3034" : "#2a2428";
+  return "#7d8a91";
 }
 
 function createAttachmentObject(

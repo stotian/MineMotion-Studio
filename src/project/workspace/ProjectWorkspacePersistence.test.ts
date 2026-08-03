@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { DEFAULT_APP_SETTINGS } from "../../settings/AppSettings";
 import { createInitialProject, updateProjectSettings } from "../ProjectStore";
+import { DEFAULT_APP_SETTINGS } from "../../settings/AppSettings";
 import {
   createLegacyProjectArtifact,
   createProjectPackageArtifact,
@@ -17,12 +16,10 @@ describe("ProjectWorkspacePersistence", () => {
     );
 
     const artifact = createProjectPackageArtifact(project);
-    const reopened = parseProjectWorkspaceBytes(
-      new Uint8Array(await artifact.blob.arrayBuffer())
-    );
+    const reopened = parseProjectWorkspaceBytes(new Uint8Array(await artifact.blob.arrayBuffer()));
 
     expect(artifact.filename).toBe("cinematic-test-01.minemotion");
-    expect(artifact.blob.type).toBe("application/vnd.minemotion.package+json");
+    expect(artifact.blob.type).toBe("application/zip");
     expect(reopened.projectName).toBe(project.projectName);
     expect(reopened.projectSettings).toEqual(project.projectSettings);
     expect(reopened.scene.cameras).toEqual(project.scene.cameras);

@@ -818,18 +818,70 @@ fallbacks; workflow imports remain inside the existing diagnostic boundary.
 Keep the surface/workflow lists closed and tested so new eager behavior is a
 reviewable decision.
 
-## TD-056 - Keep the project lifecycle in one workspace controller
+## TD-058 - Keep one project workspace authority behind a focused controller
 
 Status: Accepted in Phase 20.12.
 
-Move project state/ref, whole-project history, dirty/replacement handling,
-browser save/load, schema 9 export, recents, and autosave into one focused
-project-workspace controller. Keep the existing project serializer, JSON package
-reader/writer, and schema 9-to-10 migration contracts authoritative; do not
-import later ZIP-only interfaces without proof that the current repository
-supports them.
+Move project state, the mutable current-project ref, whole-project history,
+dirty confirmation, autosave, package/legacy persistence, recent-project
+updates, and undo/redo together into `useProjectWorkspaceController`. Keep
+serialization artifact construction pure in `ProjectWorkspacePersistence`.
 
-`App.tsx` remains the composition root for editor selection and world-import
-invalidation. It supplies a pre-replacement callback and reacts to a monotonic
-replacement version, avoiding a global event bus, a second store, or persisted
-workspace operation state.
+`App.tsx` remains the composition root and supplies localization, status, and
+world-import invalidation. Selection reacts to a monotonic replacement version.
+Do not introduce a second store, event bus, or child-owned history stack. This
+preserves replacement order and persistence semantics while reducing the
+composition root from 2,014 to 1,855 lines.
+
+## TD-059 - Extract timeline presentation without moving authority
+
+**Decision:** Keep project, playback, selection, timeline commands, NLA updates,
+and history in their existing owners. Extract only characterized Timeline/NLA
+views and pure layout derivations.
+
+**Reason:** This reduces the oversized panel without creating a second store or
+changing editing semantics during a performance phase.
+
+## TD-060 - Make optimization guidance advisory only
+
+**Decision:** Derive read-only recommendations from immutable budget evidence and
+provide no automatic quality/project mutation path.
+
+**Reason:** Measurements can guide the user without surprising scene changes or
+turning a diagnostic into a second settings authority.
+
+## TD-061 - Reuse deterministic projects for benchmark workloads
+
+**Decision:** Build five fresh fixed-ID/timestamp project fixtures and reuse the
+stable VFX benchmark scenes where appropriate.
+
+**Reason:** Reproducibility and shared runtime behavior matter more than invented
+hardware numbers or a parallel benchmark-only VFX implementation.
+
+## TD-062 - Detect WebGPU without selecting it
+
+**Decision:** Production remains WebGL2 with WebGL fallback. WebGPU is recorded as
+experimental and fails closed when no production backend exists.
+
+**Reason:** Capability detection alone does not prove renderer, export, disposal,
+or visual parity.
+
+## TD-063 - Enforce measured regressions from one threshold source
+
+**Decision:** Share one reviewed threshold configuration between TypeScript
+coverage and post-build CI measurement.
+
+**Reason:** Duplicated ceilings drift. Raising a limit now requires an explicit
+measurement and code review rather than an unnoticed script-only change.
+
+## TD-064 - Keep the v1 release gate fail-closed
+
+**Decision:** Freeze target public contracts while leaving the application at `0.8.2`, and compute `V1_COMPLETE` only when every machine-readable evidence gate is `pass`.
+
+**Reason:** Source completion cannot prove clean installation, native artifacts, visual QA, measured hardware performance, remote CI, signatures or authorization. A red release gate prevents version/tag/documentation drift and false platform claims.
+
+## TD-065 - Preserve recovery deliverables as the authoritative local handoff
+
+**Decision:** Deliver the tracked source archive, full Git bundle, Phase 26–35 patch, original completion pack plus updated context, validation report and SHA-256 manifest.
+
+**Reason:** GitHub remains on an older baseline and local network/write access is unavailable. The Git bundle preserves commit identity and history; the ZIP and patch make inspection and recovery possible without Git-specific tooling.

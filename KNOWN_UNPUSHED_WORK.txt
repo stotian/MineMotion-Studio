@@ -1,0 +1,54 @@
+Known local work not present on GitHub main (2026-07-31):
+
+Recovered completion work:
+- Phases 20-25 recovered locally.
+- Phase 26 premium workspaces.
+- Phase 27 professional portable asset pipeline.
+- Phase 28 audio synchronization and external handoff.
+- Phase 29 compositing and eight render passes.
+- Phase 30 deterministic simulations.
+- Phase 31 legal templates, samples, tutorials and benchmarks.
+- Phase 32 onboarding, accessibility and documentation.
+- Phase 33 cross-platform distribution engineering.
+- Phase 34 public-beta QA and corruption hardening.
+- Phase 35 fail-closed v1 release audit and legal/security preparation.
+
+Ultra work added in this recovery tree:
+- Preserved the Phase 36-83 typed Ultra foundations and acceptance coverage.
+- Added the canonical Phase 84-600 roadmap: 517 explicit instructions across 31 programs.
+- Added dedicated deterministic source engines and 52 focused tests for Phases 84-135.
+- Added hybrid bounded persistence for Phase 84-600 capability records without colliding with Phase 36-83 storage.
+- Added 31 specialized program engines executing all 465 Phase 136-600 contracts.
+- Added a 35-domain searchable Ultra workspace and updated EN/FR localization.
+- Current Ultra gate: 565 phase tests, 52 dedicated foundation tests, 1,263 top-level assertions, 7,986 internal phase-contract assertions, all passing.
+
+GitHub main readback still reports 9e42943408379fee247a314542c8134be8f25a82.
+This recovery environment has no authenticated Git CLI/direct Git network path, so none of the Phase 84-600 work was pushed or committed remotely here. Use the delivered source ZIP and patch to reconcile deliberately.
+
+Do not tag or publish v1.0. The product remains version 0.8.2 and V1_BLOCKED; clean dependency installation, full project tests/build, native installers, manual visual QA, hardware evidence, remote CI, signing and publication remain external gates.
+DIRECTOR REAL PHASES 601-715 (2026-07-31)
+- 115 distinct artist-facing Minecraft filmmaking functions are present locally.
+- Strict gate: npm run verify:director (115/115 acceptance IDs, 447 assertions).
+- Integrated Production UI and EN/FR keys.
+- Not pushed to GitHub. Restore from the delivered Phase 715 source or patch.
+
+
+STUDIO PRO REAL PHASES 716-814 (2026-07-31)
+- 99 additional distinct Studio Pro functions are present locally, bringing the strict Director registry to 214 contiguous phases (601-814).
+- Professional physical cameras, take review, batch tools, rendered light rigs, animation polish, continuity repair and production render orchestration are integrated in Production.
+- Six-department studio quality control scores camera, takes, lighting, continuity, audio and render readiness, focuses weak shots, applies bounded repairs and exports Markdown reports.
+- Reload-safe shot creative variants capture/apply/update/compare camera, lighting, scene lights, post-processing and render-pass choices non-destructively.
+- Strict source gate: npm run verify:director (214/214 acceptance IDs, 603 assertions).
+- Full dependency-backed Vite/Tauri build, Vitest suite, interactive WebGL review, codec/native checks and film-quality evidence remain blocked and unclaimed.
+- Not pushed to GitHub. Restore from the delivered Phase 814 source ZIP or Phase 715-to-814 patch.
+
+MINECRAFT CREATION SUITE REAL PHASES 815-1014 (2026-08-01)
+- 200 additional distinct artist-facing functions are present locally, bringing the strict Director/Creation registry to 414 contiguous phases (601-1014).
+- World Studio stores seed, Java version, Vanilla/Fabric/Forge/NeoForge/Quilt target and a bounded active area; seed-only terrain is an honest deterministic staging proxy, while exact terrain requires the matching imported save.
+- Safe mod manifests bind user-imported resource packs, OBJ and Blockbench assets without executing mod JAR code.
+- Non-destructive building, procedural structures, brushes, blueprints, voxel modeling, OBJ synchronization, ready Minecraft rigs, editable auto-rig geometry, multi-rig animation and optional collisions are integrated in Production.
+- Twenty quick VFX recipes, sixteen post finishes, non-destructive post stacks, bounded performance targets and complete Creation Suite package manifests are integrated.
+- Custom voxel rig geometry and all Creation Suite records are sanitizer/reload-safe in isolated acceptance.
+- Strict source gate: npm run verify:director (414/414 acceptance IDs, 787 assertions).
+- Full dependency-backed TypeScript/Vitest/Vite/Tauri build, interactive WebGL review, exact mod-runtime behavior, codecs, native installers and measured hardware/film evidence remain blocked and unclaimed.
+- Not pushed to GitHub. Restore from the delivered Phase 1014 source ZIP or Phase 814-to-1014 patch.

@@ -1,4 +1,6 @@
 import type { MineMotionProject } from "../project/ProjectFile";
+import { applyCanvasPostProcessing } from "../rendering/postprocessing/CanvasPostProcessor";
+import { createPostProcessingPlan } from "../rendering/postprocessing/PostProcessingPlan";
 import type { ExportSettings } from "./ExportTypes";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
 import {
@@ -44,8 +46,9 @@ export async function captureViewportPng(
     context.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
   }
 
+  const postSettings = settings.postProcessingOverride ?? project.postProcessing;
   if (settings.includePostProcessing) {
-    context.filter = createCanvasFilter(project, prepared.value.effects);
+    context.filter = createCanvasFilter(postSettings, prepared.value.effects);
   }
   const shake = getPreparedCameraShakeOffset(prepared.value.effects);
   context.drawImage(
@@ -66,16 +69,8 @@ export async function captureViewportPng(
     );
   }
 
-  if (
-    settings.includePostProcessing &&
-    project.postProcessing.vignetteAmount > 0
-  ) {
-    drawVignette(
-      context,
-      outputCanvas.width,
-      outputCanvas.height,
-      project.postProcessing.vignetteAmount
-    );
+  if (settings.includePostProcessing) {
+    applyCanvasPostProcessing(context, outputCanvas, postSettings, project.animation.currentFrame, settings.quality === "draft" ? "draft" : "final");
   }
 
   if (settings.includeCinematicBars) {
@@ -92,12 +87,12 @@ export async function captureViewportPng(
 }
 
 function createCanvasFilter(
-  project: MineMotionProject,
+  post: MineMotionProject["postProcessing"],
   effects: readonly PreparedProjectVfxEffect[]
 ): string {
-  const post = project.postProcessing;
+  const plan = createPostProcessingPlan(post);
   const drain = effects.find((effect) => effect.type === "colorDrain");
-  if (!post.enabled && !drain) return "none";
+  if (!plan.enabled && !drain) return "none";
   const brightness = post.brightness * post.exposure;
   const drainSaturation = drain
     ? Math.max(0, 1 - getPreparedVfxNumber(drain, "alpha", 0.8) * getPreparedVfxNumber(drain, "intensity", 1) * (1 - getPreparedVfxNumber(drain, "saturation", 0)))

@@ -28,4 +28,27 @@ describe("BlockFaceCuller", () => {
     expect(visible[0].exposedFaces).not.toContain("east");
     expect(visible[1].exposedFaces).not.toContain("west");
   });
+
+  it("keeps boundaries between different transparent materials", () => {
+    const visible = BlockFaceCuller.visibleBlocks([{
+      id: "overworld:0,0",
+      dimension: "overworld",
+      regionX: 0,
+      regionZ: 0,
+      chunkX: 0,
+      chunkZ: 0,
+      minY: 0,
+      maxY: 0,
+      sectionsRead: 1,
+      blocks: [
+        { id: "water", minecraftName: "minecraft:water", x: 0, y: 0, z: 0 },
+        { id: "glass", minecraftName: "minecraft:glass", x: 1, y: 0, z: 0 }
+      ],
+      unknownBlocks: {},
+      warnings: []
+    }]);
+
+    expect(visible.find((block) => block.id === "water")?.exposedFaces).toContain("east");
+    expect(visible.find((block) => block.id === "glass")?.exposedFaces).toContain("west");
+  });
 });

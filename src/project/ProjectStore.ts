@@ -22,9 +22,14 @@ import { getRigDefinition } from "../rigs/MinecraftRigPresets";
 import { createDefaultCharacterAttachments } from "../rigs/RigInstance";
 import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/LightingPresets";
 import { DEFAULT_BIOME_TINT } from "../minecraft/resources/BiomeTint";
+import { DEFAULT_WATER_RENDER_SETTINGS } from "../minecraft/resources/WaterRenderSettings";
 import { DEFAULT_MINECRAFT_MATERIAL_SETTINGS } from "../minecraft/materials/MinecraftMaterialPresets";
 import { CURRENT_PROJECT_SCHEMA_VERSION } from "../core/serialization/SchemaVersion";
 import { createId } from "../core/ids/Id";
+import { DEFAULT_SHOT_PRODUCTION } from "../production/ShotTypes";
+import { createDefaultSimulationProject } from "../simulation/SimulationSerializer";
+import { createDefaultUltraProjectData } from "../ultra/UltraDefaults";
+import { createDefaultMinecraftCreationSuite } from "../minecraft/studio/MinecraftStudioDefaults";
 
 export { createId };
 
@@ -68,6 +73,12 @@ export function createDefaultTimelineTracks(): TimelineTrackLane[] {
       id: "track_transform_main",
       type: "transform",
       name: "Transform",
+      items: []
+    },
+    {
+      id: "track_camera_main",
+      type: "camera",
+      name: "Camera Cuts",
       items: []
     },
     {
@@ -174,11 +185,14 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
       materials: {
         ...DEFAULT_MINECRAFT_MATERIAL_SETTINGS,
         overrides: {}
-      }
+      },
+      water: { ...DEFAULT_WATER_RENDER_SETTINGS }
     },
     lighting: {
       ...DEFAULT_LIGHTING_SETTINGS,
       sunDirection: [...DEFAULT_LIGHTING_SETTINGS.sunDirection],
+      moonDirection: [...DEFAULT_LIGHTING_SETTINGS.moonDirection],
+      windDirection: [...DEFAULT_LIGHTING_SETTINGS.windDirection],
       keyframes: []
     },
     rigs: {
@@ -187,14 +201,21 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
       blockbenchModels: []
     },
     assetLibrary: {
+      schemaVersion: 2,
       records: [],
-      warnings: []
+      warnings: [],
+      recentAssetIds: [],
+      cleanupHistory: []
     },
     effects: {
       instances: []
     },
     audio: {
-      clips: []
+      schemaVersion: 2,
+      clips: [],
+      markers: [],
+      lipSyncCues: [],
+      masterGain: 1
     },
     postProcessing: DEFAULT_POST_PROCESSING,
     renderSettings: createDefaultRenderSettings(),
@@ -208,6 +229,14 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
       ...DEFAULT_RENDER_QUEUE,
       jobs: []
     },
+    production: {
+      ...DEFAULT_SHOT_PRODUCTION,
+      shots: [],
+      storyboard: []
+    },
+    simulations: createDefaultSimulationProject(),
+    ultra: createDefaultUltraProjectData(now),
+    creationSuite: createDefaultMinecraftCreationSuite(),
     performanceSettings: {
       showDiagnostics: true,
       targetFps: 60,

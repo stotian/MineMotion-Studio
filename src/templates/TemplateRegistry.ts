@@ -7,6 +7,8 @@ import { EmptySceneTemplate } from "./templates/EmptySceneTemplate";
 import { FlatWorldTemplate } from "./templates/FlatWorldTemplate";
 import { NetherMoodTemplate } from "./templates/NetherMoodTemplate";
 import { SunsetSceneTemplate } from "./templates/SunsetSceneTemplate";
+import { PRODUCTION_TEMPLATES } from "./ProductionTemplates";
+import { migrateTemplate } from "./TemplateMigration";
 
 export class TemplateRegistry {
   private readonly templates = new Map<string, ProjectTemplate>();
@@ -16,7 +18,8 @@ export class TemplateRegistry {
   }
 
   register(template: ProjectTemplate): void {
-    this.templates.set(template.id, template);
+    const migrated = migrateTemplate(template);
+    this.templates.set(migrated.id, migrated);
   }
 
   list(): ProjectTemplate[] {
@@ -42,7 +45,8 @@ export const BUILTIN_TEMPLATES: ProjectTemplate[] = [
   CharacterAnimationTemplate,
   CinematicCameraTemplate,
   SunsetSceneTemplate,
-  NetherMoodTemplate
+  NetherMoodTemplate,
+  ...PRODUCTION_TEMPLATES
 ];
 
 export const templateRegistry = new TemplateRegistry();

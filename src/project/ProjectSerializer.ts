@@ -1,4 +1,4 @@
-import { sanitizeAudioClips } from "../audio/AudioSerializer";
+import { sanitizeAudioClips, sanitizeProjectAudio } from "../audio/AudioSerializer";
 import { createAudioTimelineItems } from "../audio/AudioTrack";
 import { sanitizeAssetLibrary } from "../assets/library/AssetSerializer";
 import { createEffectTimelineLaneItems } from "../effects/EffectTimelineTrack";
@@ -10,8 +10,14 @@ import {
 } from "../rendering/postprocessing/PostProcessingPresets";
 import { withLightingDefaults } from "../lighting/LightingSerializer";
 import { withBiomeTintDefaults } from "../minecraft/resources/BiomeTint";
+import { withWaterRenderDefaults } from "../minecraft/resources/WaterRenderSettings";
 import { withMinecraftMaterialDefaults } from "../minecraft/materials/MinecraftMaterialPresets";
 import { sanitizeResourcePackAssets } from "../minecraft/resources/ResourcePackScanner";
+import { sanitizeWorldImportProfiles } from "../minecraft/import/WorldImportProfiles";
+import {
+  READ_ONLY_WORLD_SOURCE_POLICY,
+  withWorldSceneOverridesDefaults
+} from "../minecraft/staging/WorldSceneOverrides";
 import { ensureKeyframeMetadata } from "../animation/editor/KeyframeModel";
 import { parseMarkers } from "../animation/editor/Markers";
 import { parseAnimationClip } from "../animation/editor/ClipSystem";
@@ -44,6 +50,10 @@ import {
   mergeCanonicalTimelineTracks,
   sanitizeTimelineTracks
 } from "./TimelineTrackSanitizer";
+import { sanitizeProductionData } from "../production/ShotManager";
+import { sanitizeSimulationProject } from "../simulation/SimulationSerializer";
+import { sanitizeUltraProjectData } from "../ultra/UltraSerializer";
+import { sanitizeMinecraftCreationSuite } from "../minecraft/studio/MinecraftStudioDefaults";
 import {
   migrateLegacyEffectsToSchema10,
   normalizeEffectsForSchema10,
@@ -119,7 +129,8 @@ export class ProjectSerializer {
       },
       effects: {
         instances: normalizeEffectsForSchema10(project.effects.instances)
-      }
+      },
+      ultra: sanitizeUltraProjectData(project.ultra)
     };
     const rigItems = getRigTimelineItems(normalizedBase);
     const normalized: MineMotionProject = {
@@ -320,7 +331,8 @@ export class ProjectSerializer {
             ? "linear"
             : "nearest",
         biomeTint: withBiomeTintDefaults(project.minecraftResources?.biomeTint),
-        materials: withMinecraftMaterialDefaults(project.minecraftResources?.materials)
+        materials: withMinecraftMaterialDefaults(project.minecraftResources?.materials),
+        water: withWaterRenderDefaults(project.minecraftResources?.water)
       },
       lighting,
       rigs: {
@@ -331,9 +343,7 @@ export class ProjectSerializer {
       effects: {
         instances: effects
       },
-      audio: {
-        clips: audioClips
-      },
+      audio: sanitizeProjectAudio({ ...project.audio, clips: audioClips }),
       postProcessing: withPostProcessingDefaults(project.postProcessing),
       renderSettings: {
         ...createDefaultRenderSettings(),
@@ -342,6 +352,13 @@ export class ProjectSerializer {
       exportSettings: withExportSettingsDefaults(project.exportSettings),
       ffmpegSettings: withFfmpegSettingsDefaults(project.ffmpegSettings),
       renderQueue: sanitizeRenderQueue(project.renderQueue),
+      production: sanitizeProductionData(project.production, {
+        ...(project as MineMotionProject),
+        production: project.production as MineMotionProject["production"]
+      } as MineMotionProject),
+      simulations: sanitizeSimulationProject(project.simulations),
+      ultra: sanitizeUltraProjectData(project.ultra),
+      creationSuite: sanitizeMinecraftCreationSuite(project.creationSuite),
       performanceSettings: {
         showDiagnostics: project.performanceSettings?.showDiagnostics ?? true,
         targetFps: project.performanceSettings?.targetFps ?? 60,
@@ -409,6 +426,7 @@ export class ProjectSerializer {
       importedChunkRanges: Array.isArray(world.importedChunkRanges)
         ? world.importedChunkRanges
         : [],
+      importProfiles: sanitizeWorldImportProfiles(world.importProfiles),
       importedChunks,
       unknownBlockMappings: world.unknownBlockMappings ?? {},
       unknownBlockCount: world.unknownBlockCount ?? 0,
@@ -434,7 +452,9 @@ export class ProjectSerializer {
       renderOptions: world.renderOptions ?? {
         showChunkBorders: true,
         showWorldOrigin: true
-      }
+      },
+      sceneOverrides: withWorldSceneOverridesDefaults(world.sceneOverrides),
+      sourcePolicy: READ_ONLY_WORLD_SOURCE_POLICY
     };
   }
 
@@ -608,6 +628,14 @@ export class ProjectSerializer {
 
     if (!project.minecraftResources || !project.lighting) {
       throw new Error("Project file is missing Phase 8 environment data.");
+    }
+
+    if (!project.ultra) {
+      throw new Error("Project file is missing Ultra production data.");
+    }
+
+    if (!project.creationSuite) {
+      throw new Error("Project file is missing Minecraft creation suite data.");
     }
 
     if (!Array.isArray(project.animation.tracks)) {

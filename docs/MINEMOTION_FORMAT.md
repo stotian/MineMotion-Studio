@@ -1,55 +1,46 @@
-# MineMotion Package Format
+# MineMotion package format
 
-`.minemotion` files are Phase 3 project packages. The current implementation is
-a JSON payload with MIME type `application/vnd.minemotion.package+json`.
+`.minemotion` is a versioned **stored ZIP** package. The archive is deliberately
+simple and bounded so MineMotion can verify every entry before hydrating a
+project.
 
-## Top-Level Shape
+## Required entries
 
-```json
-{
-  "packageFormat": "minemotion-package-json",
-  "manifest": {},
-  "project": {},
-  "assets": {
-    "models": {},
-    "skins": {},
-    "blockbench": {},
-    "audio": {},
-    "thumbnails": {},
-    "metadata": {}
-  }
-}
+```text
+package-index.json
+manifest.json
+project.json
+assets/metadata.json
 ```
 
-## Manifest
+The index identifies package format `minemotion-zip`, schema version `1`, the
+three metadata entries, and every asset category/path pair. Asset data uses
+reviewed prefixes such as `assets/models/`, `assets/skins/`, `audio/`, and
+`world/cache/`.
 
-The manifest stores:
+## Safety rules
 
-- format name
-- package schema version
-- MineMotion app version
-- created and modified timestamps
-- project name and author
-- asset count
-- plugin requirements
-- package warnings
-- compatibility metadata
+The reader rejects unsupported compression, encryption, data descriptors,
+unsafe or traversal paths, duplicate names, duplicate indexed assets, CRC
+failures, missing entries, category/path mismatches, excessive entry counts,
+oversized entries, and oversized total extraction. The writer enforces the
+same count and size ceilings before creating the archive.
 
-## Assets
+## Project and assets
 
-The package embeds:
+`project.json` contains the schema-10 serializable project. Assets are stored as
+separate ZIP entries and referenced through the package index. Portable world
+chunks are stored once as a versioned palette cache when embedding is enabled.
+Reference-only saves omit runtime chunks and record that the read-only source
+must be selected again.
 
-- OBJ raw strings under `assets.models`
-- skin data URLs under `assets.skins`
-- Blockbench raw JSON under `assets.blockbench`
-- audio data URLs under `assets.audio`
-- asset library metadata under `assets.metadata.assetLibrary`
-
-World import metadata and optional chunk caches are stored in package metadata.
-Rig poses, skin references, bone tracks, and Blockbench model metadata are
-stored in the embedded project JSON.
+The project document may contain an `ultra` schema-1 subdocument. It stores
+bounded plain-data records and capability contracts for Phases 36–600 and never embeds video references,
+GPU resources, processes or executable graph code. Historical schema-10
+projects without this field open with an empty default Ultra document.
 
 ## Compatibility
 
-Legacy `.mmsproj` JSON files remain importable. The Export panel can still
-download a legacy `.mmsproj` file for compatibility.
+Historical JSON `.minemotion` packages with package format
+`minemotion-package-json` still open and migrate. Legacy `.mmsproj` JSON remains
+importable/exportable for compatibility. New saves use the ZIP format.

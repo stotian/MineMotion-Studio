@@ -8,6 +8,8 @@ import {
   type SetStateAction
 } from "react";
 import { downloadBrowserBlob } from "../../export/BrowserDownload";
+import { openNativeProjectFile, saveNativeFile } from "../../desktop/NativeFileWorkflow";
+import { isTauriRuntimeAvailable } from "../../core/capabilities/CapabilityRegistry";
 import { HistoryStack } from "../../history/HistoryStack";
 import type { LocalizationDiagnosticCode } from "../../localization/LocalizationDiagnostics";
 import type {
@@ -19,6 +21,7 @@ import {
   type AppSettings
 } from "../../settings/AppSettings";
 import {
+  clearProjectAutosave,
   hasProjectAutosave,
   loadProjectAutosave,
   saveProjectAutosave
@@ -29,7 +32,7 @@ import {
   createLegacyProjectArtifact,
   createProjectPackageArtifact,
   createRecentProjectEntry,
-  parseProjectWorkspacePayload
+  parseProjectWorkspaceBytes
 } from "./ProjectWorkspacePersistence";
 
 export type ProjectUpdater =
@@ -58,22 +61,30 @@ export interface ProjectWorkspaceController {
   projectRef: MutableRefObject<MineMotionProject>;
   projectInputRef: MutableRefObject<HTMLInputElement | null>;
   isDirty: boolean;
+  recoveryCandidate: import("../ProjectAutosave").LoadedProjectAutosave | null;
+  recoveryError: string;
   replacementVersion: number;
   setDirty: Dispatch<SetStateAction<boolean>>;
   setProject: (updater: ProjectUpdater) => void;
   commitProject: (updater: ProjectUpdater, label: string) => boolean;
+  confirmDiscardChanges: () => boolean;
   replaceProject: (
     nextProject: MineMotionProject,
     label: string,
     options?: ProjectReplacementOptions
   ) => boolean;
   createNewProject: (beforeReplace?: () => void) => boolean;
-  saveProject: () => void;
+  saveProject: () => Promise<void>;
   exportLegacyProject: () => void;
-  openProjectPicker: () => void;
-  loadProjectFile: (file: File, beforeReplace?: () => void) => Promise<boolean>;
+  openProjectPicker: () => Promise<void>;
+  loadProjectFile: (
+    file: File,
+    beforeReplace?: () => void
+  ) => Promise<boolean>;
   undo: () => void;
   redo: () => void;
+  restoreRecovery: () => void;
+  discardRecovery: () => void;
 }
 
 export function useProjectWorkspaceController({
@@ -88,6 +99,8 @@ export function useProjectWorkspaceController({
   );
   const [isDirty, setIsDirty] = useState(false);
   const [replacementVersion, setReplacementVersion] = useState(0);
+  const [recoveryCandidate, setRecoveryCandidate] = useState<import("../ProjectAutosave").LoadedProjectAutosave | null>(null);
+  const [recoveryError, setRecoveryError] = useState("");
   const historyRef = useRef(new HistoryStack<MineMotionProject>());
   const projectRef = useRef(project);
   const projectInputRef = useRef<HTMLInputElement | null>(null);
@@ -99,11 +112,6 @@ export function useProjectWorkspaceController({
     projectRef.current = nextProject;
     setProjectState(nextProject);
   }, []);
-
-  const confirmDiscardChanges = useCallback(() => {
-    if (!isDirty) return true;
-    return window.confirm(tr("app.confirmDiscard"));
-  }, [isDirty, tr]);
 
   const commitProject = useCallback(
     (updater: ProjectUpdater, label: string) => {
@@ -119,6 +127,11 @@ export function useProjectWorkspaceController({
     },
     [setProject]
   );
+
+  const confirmDiscardChanges = useCallback(() => {
+    if (!isDirty) return true;
+    return window.confirm(tr("app.confirmDiscard"));
+  }, [isDirty, tr]);
 
   const replaceProject = useCallback(
     (
@@ -141,22 +154,27 @@ export function useProjectWorkspaceController({
   const createNewProject = useCallback(
     (beforeReplace?: () => void) =>
       replaceProject(createInitialProject(settings), tr("app.newProject"), {
-        beforeReplace
+        beforeReplace,
+        dirty: true
       }),
     [replaceProject, settings, tr]
   );
 
-  const saveProject = useCallback(() => {
+  const saveProject = useCallback(async () => {
     blurActiveElement();
     const currentProject = projectRef.current;
     const artifact = createProjectPackageArtifact(currentProject);
-    downloadBrowserBlob(artifact.blob, artifact.filename);
-    setSettings((currentSettings) =>
-      SettingsStore.addRecentProject(
-        currentSettings,
-        createRecentProjectEntry(currentProject, artifact.filename, "download")
-      )
-    );
+    let recentId = artifact.filename;
+    let storageHint: import("../../settings/AppSettings").RecentProjectEntry["storageHint"] = "download";
+    if (isTauriRuntimeAvailable()) {
+      const path = await saveNativeFile({ suggestedName: artifact.filename, extensions: ["minemotion"], data: new Uint8Array(await artifact.blob.arrayBuffer()) });
+      if (!path) { setStatus("Save cancelled."); return; }
+      recentId = path;
+      storageHint = "native";
+    } else {
+      downloadBrowserBlob(artifact.blob, artifact.filename);
+    }
+    setSettings((currentSettings) => SettingsStore.addRecentProject(currentSettings, createRecentProjectEntry(currentProject, recentId, storageHint)));
     setIsDirty(false);
     setStatus(tr("app.projectSaved", { filename: artifact.filename }));
   }, [setSettings, setStatus, tr]);
@@ -167,23 +185,35 @@ export function useProjectWorkspaceController({
       const artifact = createLegacyProjectArtifact(projectRef.current);
       downloadBrowserBlob(artifact.blob, artifact.filename);
       setStatus(tr("app.legacyExported", { filename: artifact.filename }));
-    } catch {
+    } catch (error) {
       setStatus(
         diagnostic("PROJECT_SCHEMA9_VFX_UNSUPPORTED", "app.legacyVfxUnsupported")
       );
     }
   }, [diagnostic, setStatus, tr]);
 
-  const openProjectPicker = useCallback(() => {
-    projectInputRef.current?.click();
-  }, []);
+  const openProjectPicker = useCallback(async () => {
+    if (!isTauriRuntimeAvailable()) { projectInputRef.current?.click(); return; }
+    if (!confirmDiscardChanges()) return;
+    const selected = await openNativeProjectFile();
+    if (!selected) return;
+    try {
+      const loadedProject = parseProjectWorkspaceBytes(selected.data);
+      historyRef.current.clear();
+      setProject(loadedProject);
+      setIsDirty(false);
+      setReplacementVersion((version) => version + 1);
+      setSettings((currentSettings) => SettingsStore.addRecentProject(currentSettings, createRecentProjectEntry(loadedProject, selected.path, "native")));
+      setStatus(tr("app.projectLoaded", { name: loadedProject.projectName }));
+    } catch { setStatus(diagnostic("PROJECT_LOAD_FAILED", "app.projectLoadFailed")); }
+  }, [confirmDiscardChanges, diagnostic, setProject, setSettings, setStatus, tr]);
 
   const loadProjectFile = useCallback(
     async (file: File, beforeReplace?: () => void) => {
       if (!confirmDiscardChanges()) return false;
       beforeReplace?.();
       try {
-        const loadedProject = parseProjectWorkspacePayload(await file.text());
+        const loadedProject = parseProjectWorkspaceBytes(new Uint8Array(await file.arrayBuffer()));
         historyRef.current.clear();
         setProject(loadedProject);
         setIsDirty(false);
@@ -196,7 +226,7 @@ export function useProjectWorkspaceController({
         );
         setStatus(tr("app.projectLoaded", { name: loadedProject.projectName }));
         return true;
-      } catch {
+      } catch (error) {
         setStatus(diagnostic("PROJECT_LOAD_FAILED", "app.projectLoadFailed"));
         return false;
       }
@@ -227,27 +257,29 @@ export function useProjectWorkspaceController({
   }, [setProject, setStatus, tr]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !hasProjectAutosave(window.localStorage)) {
-      return;
-    }
-    if (!window.confirm(tr("app.confirmAutosave"))) return;
-
+    if (typeof window === "undefined" || !hasProjectAutosave(window.localStorage)) return;
     try {
-      const recovered = loadProjectAutosave(window.localStorage);
-      if (!recovered) return;
-      historyRef.current.clear();
-      setProject(recovered.project);
-      setIsDirty(true);
-      setReplacementVersion((version) => version + 1);
-      setStatus(
-        recovered.source === "backup"
-          ? tr("app.autosaveBackupRestored")
-          : tr("app.autosaveRestored")
-      );
-    } catch {
-      setStatus(diagnostic("AUTOSAVE_RECOVERY_FAILED", "app.recoveryFailed"));
+      setRecoveryCandidate(loadProjectAutosave(window.localStorage));
+    } catch (error) {
+      setRecoveryError(error instanceof Error ? error.message : diagnostic("AUTOSAVE_RECOVERY_FAILED", "app.recoveryFailed"));
     }
-  }, [diagnostic, setProject, setStatus, tr]);
+  }, [diagnostic]);
+
+  const restoreRecovery = useCallback(() => {
+    if (!recoveryCandidate) return;
+    historyRef.current.clear();
+    setProject(recoveryCandidate.project);
+    setIsDirty(true);
+    setReplacementVersion((version) => version + 1);
+    setStatus(recoveryCandidate.source === "backup" ? tr("app.autosaveBackupRestored") : tr("app.autosaveRestored"));
+    setRecoveryCandidate(null);
+  }, [recoveryCandidate, setProject, setStatus, tr]);
+
+  const discardRecovery = useCallback(() => {
+    if (typeof window !== "undefined") clearProjectAutosave(window.localStorage);
+    setRecoveryCandidate(null);
+    setRecoveryError("");
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -257,7 +289,7 @@ export function useProjectWorkspaceController({
       try {
         saveProjectAutosave(window.localStorage, project);
         setStatus(tr("app.autosaved", { name: project.projectName }));
-      } catch {
+      } catch (error) {
         setStatus(diagnostic("AUTOSAVE_SAVE_FAILED", "app.autosaveFailed"));
       }
     }, settings.general.autosaveIntervalSeconds * 1000);
@@ -278,10 +310,13 @@ export function useProjectWorkspaceController({
     projectRef,
     projectInputRef,
     isDirty,
+    recoveryCandidate,
+    recoveryError,
     replacementVersion,
     setDirty: setIsDirty,
     setProject,
     commitProject,
+    confirmDiscardChanges,
     replaceProject,
     createNewProject,
     saveProject,
@@ -289,7 +324,9 @@ export function useProjectWorkspaceController({
     openProjectPicker,
     loadProjectFile,
     undo,
-    redo
+    redo,
+    restoreRecovery,
+    discardRecovery
   };
 }
 

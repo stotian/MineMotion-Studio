@@ -1,4 +1,4 @@
-import type { SkyPresetId } from "../renderer/SkySystem";
+import type { SkyPresetId } from "../renderer/SkyTypes";
 import type { EffectType } from "../effects/EffectTypes";
 import type { PostProcessingPresetId } from "../rendering/postprocessing/PostProcessingTypes";
 import type { Command } from "./Command";
@@ -57,13 +57,6 @@ export function createBuiltinCommands(
       title: t("commands.loadProject"),
       group: "Project",
       run: actions.loadProject
-    },
-    {
-      id: "project.savePackage",
-      title: t("commands.savePackage"),
-      group: "Project",
-      shortcut: "Ctrl+S",
-      run: actions.savePackage
     },
     {
       id: "project.exportLegacy",

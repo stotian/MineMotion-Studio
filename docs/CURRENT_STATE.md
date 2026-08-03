@@ -1,403 +1,84 @@
-# Current State
+# Current state
 
-MineMotion Studio `0.8.2` uses project schema 10.
+MineMotion Studio remains version `0.8.2`. It targets project schema `10`, settings schema `2`, `.minemotion` stored-ZIP package schema `1`, template schema `1`, and extension API `1.0`. The target v1 public contracts are frozen, but the product is **not released as v1.0**.
 
-Phase 14 architecture consolidation, the complete Phase 15 native VFX
-foundation, Phase 19 advanced rigging, and Phase 20.1-20.11 renderer/import
-reliability work are finished. Low-level contracts have stable ownership under
-`src/core`, and typed deterministic VFX, editing, schema 10 persistence,
-preview/export budgets, explicit renderer ownership, and stale-safe cancellable
-world import now coexist.
+## Source state
 
-## Working Systems
+- GitHub `main` readback during this recovery session: `9e42943408379fee247a314542c8134be8f25a82`.
+- Local completion branch: `agent/complete-v1-phases-26-35`.
+- Local implementation covers Phases 20–35 through the Phase 35 fail-closed release audit.
+- Completion-pack progress: **285/298 tasks (95.64%)** locally evidenced; **13** tasks require external release evidence.
 
-- React/Three.js editor shell, viewport, inspector, outliner, timeline, settings, templates, commands, autosave, and undo/redo.
-- Minecraft Java world import MVP with bounded modern palette chunks.
-- World import decodes clone-safe chunk work in a reusable module worker and
-  uses abort signals plus monotonic operation IDs so only the latest scan/import
-  can commit project/history state.
-- Ten noncritical panels and six import/export workflow families load only on
-  invocation with localized loading/error containment. The measured main bundle
-  is 103.04 kB smaller than the Phase 20.10 baseline.
-- Steve/Alex rigs, skins, poses, bone tracks, animation presets, attachments,
-  and bounded hierarchy-aware static Blockbench geometry import.
-- Resource pack/material/lighting studio MVP with atmosphere and environment keys.
-- Timeline, Dopesheet, Graph view, markers, reusable clips, and ordered NLA
-  animation layers.
-- Cinematic preset effects and post-processing preview/export overlays.
-- `.minemotion`/`.mmsproj` save/load and migrations from schemas 1-9 to 10.
-- Production render queue, validation, estimates, PNG/ZIP/WebM/WAV/package/metadata output, final camera, render logs, and native FFmpeg bridge.
-- Windows Tauri debug application plus MSI/NSIS generation.
-- Stable core contracts for IDs, frame time/playback, scene entities, schema,
-  migrations, validation, and typed engine errors.
-- Central evidence-based capability registry. Existing WebM, WAV, and Tauri
-  support helpers delegate to it.
-- Documented service boundaries for future extraction from `App.tsx`.
-- Typed `src/vfx/core` definitions, pure instances, parameter schemas,
-  validation, and registry behavior.
-- A schema 9 compatibility adapter derived from the existing effect registry.
-  It preserves every legacy field, inclusive timing, targets, parameters, and
-  deterministic fallback seeds, and rejects lossy reverse conversion.
-- A pure deterministic VFX frame evaluator with fixed hash/PRNG vectors,
-  explicit frame/FPS/context-seed/quality inputs, inclusive timing, resolved
-  defaults, stable local-frame randomness, and JSON-safe primitive inputs.
-- Versioned renderer-neutral primitive contracts and pure evaluators for burst
-  particles, jittered beams, explicit-point trails, expanding rings, and light
-  pulses, with hard allocation caps and deterministic quality refinement.
-- A pure validated effects timeline controller for insert/edit/move/trim,
-  duplicate, copy/paste, enable, priority, delete, and deterministic lane sync.
-- Effects Library, timeline blocks/handles, and committed Inspector controls
-  perform real edits through whole-project history, including undo/redo and
-  save/package round-trip.
-- Foreign timeline lanes are canonicalized as bounded plain data, while schema
-  10 keeps one enriched effects authority and disabled effects remain selectable.
-- Legacy world-effect rendering is bounded to 64 active effects and 4,096 burst
-  particles per frame; glow bursts use instancing instead of one mesh per cube.
-- Effect Inspector controls are generated from the canonical VFX parameter
-  schema for number, integer, boolean, color, and enum kinds. Metadata, defaults,
-  bounds, units, runtime support, and deferred animation support are visible.
-- Valid edits reuse the synchronized command/history path; invalid legacy values can
-  be restored to their schema default while unknown finite legacy keys survive
-  edits, save/reload, packages, undo, and redo.
-- VFX color values are restricted to safe hex or named tokens at validation and
-  renderer boundaries.
-- Schema 10 embeds one validated native VFX record in each existing effect and
-  persists native version, seed, transform, entity/bone target, parameters,
-  local-frame parameter keyframes, blend, layer, and preview/export qualities.
-- Project JSON, packages, autosave, history, and production package export
-  preserve native VFX. Autosave retains a rollback copy, and schema 9 export
-  fails explicitly when native-only data would be lost.
-- One pure native prepared-frame contract now feeds Three.js world VFX, React
-  overlays, PNG/sequence, composited WebM, and FFmpeg staging. Local parameter
-  keyframes evaluate from effect-local time and missing targets emit warnings.
-- Final render state applies the selected VFX flag before painting;
-  `includeVfx=false` produces an empty prepared frame for every VFX layer.
-- Shared frame preparation enforces pre-allocation global caps of 64 effects,
-  4,096 particles, 8,192 segments, and 10,000 combined work units, with
-  deterministic project-order allocation and structured diagnostics.
-- Scene root rebuild/dispose recursively releases owned Three.js geometries,
-  materials, textures, render targets, skeletons, instance buffers, and roots.
-  Explicitly shared Minecraft materials and skin textures remain cache-owned.
-- WebM capture releases image bitmaps, MediaStream tracks, and recorder listeners
-  across normal export, repeated retry, cancellation, startup failure, and error.
-- Effects command execution retains its public API but hostile input validation
-  and project/native-VFX validation now have focused modules. All 41 command
-  characterization tests pass unchanged after the extraction.
-- A frozen Phase 16 built-in preset catalog joins metadata to existing effect
-  and native definitions. The Effects Library consumes it directly.
-- Catalog construction fails closed on corrupt records, duplicate IDs/definitions,
-  invalid schema/duration/quality/category/tags, missing assets/localization,
-  incompatible project schema, false stable claims, and excessive budgets.
-- The 12 existing entries are compatibility/experimental, not falsely counted
-  toward the 60 native stable preset target.
-- A versioned native recipe layer composes the existing five primitive kinds.
-  It validates, clones, freezes, and aggregate-budgets all descriptors before
-  the global allocator permits primitive sample generation.
-- Eight combat entries use that path and the existing schema 10 collection:
-  combat sparks/impact, sword slash, parry, ground slam, landing dust, critical
-  hit, and hit stop. Their parameters are live-preview editable and JSON/package
-  persistence continues through the existing serializer and VfxRegistry view.
-- Native world primitives render in the shared Three.js viewport/export canvas.
-  Hit stop samples the animated pose at its start while preserving the global
-  VFX/environment frame; excluding VFX from final export excludes the hold.
-- One built-in recipe registry now resolves both combat and electric families.
-  Eight electric presets cover strike, storm, beam, aura, charge, sparks, chain
-  lightning, and a layered weapon trail with all exposed parameters live.
-- Dense electric storm combinations are regression-tested against the shared
-  segment cap and are rejected before geometry/sample allocation.
-- Eight native fire/explosion presets add flame, smoke, layered explosion,
-  embers, debris, dust, Nether fire, and soul fire using the same runtime.
-- Eight native magic/energy presets add aura, beam, projectile, portal,
-  teleport, heal, corruption, and power-up using all primitive kinds.
-- Ten native environment presets add weather, atmosphere, dimension, cave, and
-  firefly fields with catalog-declared Primitive V1 direction limitations.
-- Eight native screen/cinematic presets share evaluated parameters across
-  viewport and Canvas export: flash, shake, glitch, bars, bloom, vignette,
-  freeze, and color drain.
-- Ten native movement/trail presets cover dash, weapon, projectile, footsteps,
-  running, falling, flying, Elytra, Ender pearl, and swimming. The catalog now
-  contains 60 stable native recipes and 72 entries total.
-- The Effects Library provides text search, category and cumulative tag filters,
-  favorites, recents, and All/Built-in/Custom source views. Personal state is
-  versioned and bounded in local storage, outside project serialization.
-- All 60 native presets have deterministic generated SVG previews scheduled one
-  idle task at a time and stored in a fail-soft versioned local cache. The 60
-  pass stable eligibility/integration gates; 12 legacy entries remain non-stable.
-- Four deterministic benchmark projects lock exact family, particle-cap,
-  segment-cap, and balanced-dense allocation behavior through package reload.
-- A dedicated VFX Studio creates blank drafts or immutable derived copies of all
-  60 stable built-ins. Versioned authoring documents contain only bounded,
-  structured-cloneable primitive, emitter, and restricted modifier stack data.
-- Pure authoring commands edit stack order/content and duration/target/quality.
-  Ordered tint/opacity/scale modifiers compile to deeply frozen, budgeted
-  Primitive V1 descriptors and deterministic live SVG previews.
-- Closed `.minemotion-vfx` manifest V1 and bounded in-memory ZIP32 extraction
-  validate versions, IDs, licenses, dependencies, permissions, declared assets,
-  PNG dimensions, authoring data, and compiled budgets while rejecting code,
-  traversal, archive bombs, malformed ZIP metadata, and undeclared files.
-- Canonical package writing sorts JSON/lists/entries, fixes ZIP timestamps, and
-  self-validates before delivery. VFX Studio exports drafts and inspects package
-  preview, work, licenses, permissions, assets, dependencies, and readiness
-  without installing or mutating local state.
-- A bounded versioned local registry reparses canonical archives on load and
-  supports install, compatible update, enable, disable, inspect, and uninstall.
-  Built-in IDs and enabled dependency graphs are protected; corrupt storage
-  fails soft without deleting recoverable payloads.
-- Closed asset handlers resolve bounded PNG, signed audio, box model, gradient,
-  curve, localization, and parameter-only restricted shader data. JSON structure
-  is bounded and unavailable templates explicitly use Primitive V1 material.
-- Enabled installed packages appear as generated-preview custom cards in the
-  existing Effects Library and insert `customVfx` records into the existing
-  effect collection/lane. Their schema 10 `nativeVfx.customRecipe` embeds
-  validated compiled descriptors and package/document provenance.
-- Custom recipes survive timeline edits/duplication, history, JSON, project
-  packages, autosave, preview, and export preparation. Local package state is
-  used only for availability diagnostics; missing/disabled/version-changed
-  sources stay visible without making the project unreadable.
-- Two checked-in CC0 `.minemotion-vfx` examples are reproducibly generated from
-  declarative sources through the production writer/reader and protected by
-  exact-byte plus SHA-256 drift verification.
-- The complete author/import/lifecycle/security guide is published. Node-graph
-  research defers a second editor/runtime until a bounded versioned graph can
-  prove a capability unavailable in the ordered stack.
-- One localization service owns typed English/French catalogs, system or
-  explicit locale resolution, fallback, interpolation, plurals, date/number/
-  duration/timecode formatting, pseudolocalization, and parity validation.
-- App language is a persisted `system`/`en`/`fr` preference outside project
-  state. Primary production workflows, diagnostics, shortcuts, and help switch
-  live; raw-string and long/small-layout regression gates protect coverage.
-- Validated package localization data may override only VFX package display name
-  and description. Exact/language matching falls back to immutable manifest
-  content and never executes or changes project data.
-- A versioned bounded rig contract validates the existing preset hierarchies and
-  sanitizes current character vectors, attachments, and saved poses.
-- Global `animation.tracks` are authoritative for bone motion. Legacy character
-  `boneKeyframes` migrate missing frames and remain a regenerated compatibility
-  projection across JSON, schema 9, packages, autosave, and history.
-- The pure two-bone IK solver handles reachable and clamped-unreachable targets,
-  deterministic pole fallback, per-joint component limits, and influence. It
-  reports finite analytic joint/end positions and hierarchical rotations.
-- Steve/Alex hand and foot controls provide deterministic live preview and
-  atomic bake-to-keyframes through the authoritative global bone tracks.
-- Renderer-neutral preset terrain data and an indexed runtime sampler resolve
-  bounded supporting surfaces for imported chunks or active terrain presets.
-  Fixed-world left/right foot anchors bake inclusive grounded ranges atomically,
-  reject unreachable frames without partial keys, and reduce root-motion slide.
-- Bounded head/camera/object look-at controls select animated entities or custom
-  world positions, preview from session state, and atomically bake existing
-  rotation tracks. The pure solver matches renderer `XYZ` and camera `YXZ`;
-  head mapping accounts for character transform, root, body, and scale.
-- Session-only character root, left/right hand, and camera motion paths derive
-  from global tracks and ordered NLA layers. Rig Studio reports range, remapped
-  key points, duration, distance, and samples; disposed viewport overlays are
-  excluded from render preview/export.
-- Existing NLA tracks persist six fixed animation-layer kinds. Bounded scoped
-  override, relative-additive, and VFX-metadata modes compose after global
-  tracks in playback, preview, export, IK, look-at, and motion paths.
-- Localized layer mute/weight/clip placement and VFX-reference controls reuse
-  project history. Schema 10, guarded schema 9, packages, autosave, and undo/
-  redo preserve the layer data without another timeline or effect authority.
-- A bounded deterministic procedural contract defines ten generator kinds.
-  Idle, walk, run, crouch-walk, jump, landing, recoil, hit-reaction,
-  sword-swing, and turn recipes create one reusable clip plus editable global
-  bone keys in one history operation from localized Rig Studio controls.
-- Dopesheet selections support redundant-key removal, tolerance-based noise
-  reduction, and time-weighted value smoothing. Endpoints are preserved and
-  no-op cleanup does not enter history.
-- Selected global-key ranges support duration-bounded deterministic looping,
-  easing-aware reverse, and renderer-consistent rig/transform mirroring.
-  Collisions fail atomically and successful actions reuse one history entry.
-- A session-only detached pose clipboard supports compatible-bone paste and
-  0-100% blend. Preset apply, paste, blend, mirror, and reset reject locked or
-  unchanged targets without empty history checkpoints.
-- Validated attachments inherit production bone animation, can be remapped and
-  managed in Rig Studio, and resolve real imported OBJ geometry through the
-  shared preview/export renderer.
-- Validated effects commands reuse cached adapted definitions and skip redundant
-  one-record sanitation after whole-project validation. The 4,097-effect legacy
-  repair regression improved from 17.6 s to 2.31 s with identical persistence.
-- The production viewport reports bounded live FPS/frame percentiles, dropped
-  frames, Three.js calls/geometry/texture counters, project object/chunk/effect
-  counts, renderer startup, and optional Chromium heap usage. Diagnostics remain
-  session-only and outside render capture and project persistence.
-- Immutable version 1 performance budgets qualify Minimum/Recommended devices
-  and Draft/High/Final workloads. Pure ordered evaluation separates advisory
-  overruns from hard limits and never changes quality automatically.
-- Renderer objects carry semantic world/character/prop/VFX/helper ownership and
-  an opaque/container/transparent pass tag. The final WebGL canvas excludes
-  editor helpers while Three.js retains depth-based scene ordering.
-- The production renderer invalidates material caches on deterministic context
-  changes, prunes inactive skin textures after old-root disposal, and clears
-  both caches at shutdown. Parsed OBJ replacements and temporary geometry have
-  explicit ownership.
-- Audio elements/context/nodes, WebM bitmaps/tracks/listeners, Blob URLs,
-  scheduled callbacks, renderer controls/listeners/RAF, and owned Three.js
-  resources have bounded cleanup paths.
-- Bounded pure culling classifies semantic layer, camera-distance, and frustum
-  sphere decisions for scene roots. Selected editor objects fail visible, final
-  distance equals camera far, and invalid/overflow work never disappears.
-- Imported block instances are grouped by material within independent chunk
-  roots; live telemetry reports visible/tested roots and chunks by cull reason.
-- A bounded batch estimator records exact global-versus-chunk-local calls and
-  submitted/rejected instances. Chunk-local batching stays inside the default
-  Draft world-call allowance and all chunks share one cube geometry per build.
+A recovered GitHub snapshot containing 710 source files was compared byte-for-byte with the current tree: all 710 still exist, 579 remain identical, 131 were intentionally modified, 225 were added, and none were removed. Static analysis then inspected the complete current source graph.
 
-## Partial Systems
+## What is implemented after Phase 25
 
-- Known preset visuals still use a bounded compatibility map over prepared
-  native frames; primitive V1 descriptors are not yet the visual renderer for
-  every preset. This preserves appearance while runtime data is canonical.
-- Viewport IK/look-at gizmos, separate eye expression overlays, Blockbench
-  auto-rigging, animated resource textures, secure plugin execution, native
-  dialogs, and direct path editing are not implemented.
+- Seven persistent professional workspaces with responsive/resizable panels, searchable help, schema-driven inspector, improved outliner/timeline, light/high-contrast/reduced-motion presentation, and truthful capability indicators.
+- Versioned asset catalog with embedded/reference/cache policies, integrity, asynchronous thumbnails, duplicate detection, relink, dependency inspection, reversible cleanup, package portability, and bounded worker-oriented import paths.
+- Frame-accurate audio offsets/fades/gain/pan/mute, waveform cache, markers/phonemes, cancellable deterministic WAV mixdown, stems, timing metadata, and FFmpeg handoff.
+- Shared preview/offline post plan and eight real passes: beauty, alpha, world, characters, VFX, depth, normals, and object ID.
+- Seven deterministic procedural simulation families with Draft/Final budgets, cancellation, editable bakes, cache invalidation, and reload support.
+- Nine legal production templates, generated samples, preset packs, tutorials, benchmarks, previews, dependencies, custom-template round trips, and legal CI validation.
+- First-launch/onboarding/help/accessibility and complete user/developer/recovery/troubleshooting documentation with link validation.
+- Four-target distribution definitions, native CI matrices, associations, manifests, checksums, updater-off policy, signing/notarization guidance, and honest zero-support-claim status until artifacts pass.
+- Public-beta truth, migration, corruption, stress, compatibility, golden-project, diagnostics, issue, performance-threshold, and release-decision matrices.
+- Frozen v1 contracts, security/legal source gate, third-party notices, guarded release workflow, draft notes, post-release backlog, and machine-readable fail-closed release evidence.
 
-## Absent Systems
+## Ultra milestone after the v1 completion branch
 
-- Remaining pose/expression/Blockbench rigging milestones,
-  shot/take manager, plugin SDK/sandbox, AI assistance, collaboration, and
-  additional community locale data files.
-- A distinct completed Phase 13 premium polish release.
+- The Ultra registry and master instruction plan now cover **Phases 36–600: 565 total phases**.
+- Phases **36–83** retain their five typed legacy domain engines and persistence model.
+- Phases **84–135** add dedicated deterministic source engines for offline final rendering, Minecraft-native modeling, professional animation editing, integrated editorial finishing and production workflow simplification.
+- Phases **136–600** add 465 explicit versioned capability contracts executed through 31 specialized program engines. Every contract includes dependencies, three deliverables, resource budgets, reversible operators, fallbacks, evidence type, a stable source owner and a unique acceptance test ID.
+- `npm run verify:ultra` passes **565 phase tests, 52 dedicated Phase 84–135 foundation tests, 1,263 top-level assertions and 7,986 internal phase-contract assertions**.
+- The Ultra subdocument round trip preserves all **565/565 phase records**; historical projects without Ultra data still migrate to an empty schema-1 subdocument.
+- The complete generated instruction source is `docs/ULTRA_MASTER_PLAN_PHASES_84_600.md`; its canonical machine-readable registry is `src/ultra/roadmap/UltraRoadmap84To600.json`.
+- This is a source/program-engine foundation, not a claim that all 465 later capabilities are production-complete artist-facing tools. Artistic quality, real-video mocap quality, final GPU parity, native interoperability and large-scale hardware performance remain evidence-blocked.
 
-## Evidence
+## Minecraft Director and Studio Pro foundation — real Phases 601–814
 
-- 129 frontend test files and 555 passing tests.
-- Typecheck/build/audit green.
-- Cargo check and 2 Rust tests green.
-- Tauri debug installers green; release profile blocked by host Smart App Control.
-- FFmpeg codec execution unverified because FFmpeg is not installed locally.
+- The first **214 functional registry entries**, numbered 601–814, form the Director and Studio Pro foundation. Unlike the Phase 136–600 contracts, each entry maps to an implemented operation, an existing source owner and a unique acceptance ID executed by the Director gate.
+- Phases **601–715** retain the film-starting layer: shot recipes, complete sequence generation, synchronized camera cuts, shot editing, looks, actor/Minecraft choreography, dialogue performance, cinematic beats/events, environment and sound direction, blocking, preflight/repair and production-document exports.
+- Phases **716–814** add the Studio Pro layer: ten physical-lens profiles, six professional camera moves, subject focus/framing/tracking, horizon stabilization, persistent take ratings/favorites/rejections/notes/tags/revisions, take comparison, shot batch tools, eight real scene-light rigs, animation-polish actions, continuity analysis/repairs, a production render pipeline, six-department film quality scoring/repair and non-destructive creative variants that snapshot camera, lighting, post-processing and render passes per shot.
+- The Production workspace exposes these operations directly. Take review data survives project sanitization/reload, reviewed takes can be compared and selected, and the render queue now shows production take/revision/pass metadata.
+- Scene `light` entities now create real Three.js point lights in the shared viewport/export renderer instead of existing only as project records. Studio rigs therefore illuminate the scene and can cast shadows; generated lights remain removable and bounded to 16 visible scene lights.
+- The studio render pipeline builds distinct preview, final and compositing plans, selects selected/approved/active takes, prevents duplicate jobs, estimates workload, orders and prioritizes jobs, retries/cancels work, removes stale revisions, synchronizes queue settings after shot edits and exports a JSON queue manifest.
+- The Phase 814 baseline passed **214/214 functional phases and acceptance IDs with 603 assertions**; the current combined Phase 1014 gate is reported below.
+- Canonical mappings: `docs/DIRECTOR_REAL_PHASES_601_715.md` and `docs/DIRECTOR_STUDIO_PRO_PHASES_716_814.md`.
+- This is meaningful functional source completion, but it is not yet evidence that MineMotion matches Blender as a general-purpose DCC. Dependency-backed UI tests, actual WebGL image review, complete film rendering, native builds, codec validation and measured GPU performance remain blocked or uncollected.
 
-## Architecture Checkpoint
+## Minecraft Creation Suite milestone — real Phases 815–1014
 
-- `ProjectFile.ts` still owns product schema but re-exports generic scene types
-  from `src/core/scene`.
-- `CURRENT_PROJECT_SCHEMA_VERSION` is the runtime source of truth for schema 10.
-- Generated IDs are centralized; deterministic seeded IDs are a separate API.
-- Existing effects remain preset-based. Phase 15 must adapt `effects.instances`
-  and the existing effects timeline lane instead of adding parallel project data.
-- Phase 15.1 keeps those legacy paths authoritative and exposes a derived,
-  structured-cloneable VFX view. Project schema remains 9.
-- Phase 15.2 evaluates frames without hidden state. Seed composition is
-  versioned and typed; FPS and quality do not reshuffle the random stream, and
-  a local frame can be evaluated in any order without reset or replay.
-- Phase 15.3 caps every generated record family before allocation. Geometry is
-  local to cloned placement data; quality adds stable indexed detail rather than
-  rebuilding a different random stream.
-- Phase 15.4 keeps `effects.instances` authoritative. Pure commands regenerate
-  one effects lane and create one history checkpoint only for a real edit.
-  Parameter keyframes remain deferred because schema 9 cannot represent them.
-- Phase 15.5 derives Inspector behavior from those definitions rather than a
-  copied UI schema. The controller validates known values and permits bounded,
-  one-key repair of invalid schema 9 legacy data without accepting new unknown
-  keys. Schema 10 persists native fields and local parameter keyframes.
-- Phase 15.6 keeps one effects collection: the legacy projection remains active
-  for current UI/rendering while a synchronized `nativeVfx` record is persisted.
-  Schema 10 shared-field mismatches, malformed native data, and future versions
-  fail closed.
-- Phase 15.7 evaluates the synchronized native record for all preview/export
-  preparation, safely resolves entity/bone references, and composes WebM from
-  the same captured frames as PNG/FFmpeg. The legacy visual map remains until
-  primitive parity is proven.
-- Phase 15.8 budgets the shared prepared stack before any visual allocation and
-  makes GPU ownership explicit. Rebuilds dispose owned resources once, while
-  cache resources are marked shared and released only by their cache owner.
-- Phase 15.9 preserves the effects controller API while separating validation
-  ownership, and closes the phase with the complete configured gate green.
-- Phase 17.1 layers a declarative authoring document over Primitive V1. Built-in
-  callbacks are evaluated then cloned; functions and unrestricted shaders are
-  absent, and no parallel effect collection or node graph is introduced.
-- Phase 17.2 applies restricted modifiers as ordered transformations of earlier
-  descriptors, then reuses Primitive V1 validation, evaluation, and budgets.
-- Phase 17.3 uses a closed ZIP32 profile and keeps extraction as validated
-  in-memory data; reading never implies installation or filesystem writes.
-- Phase 17.4 makes package bytes canonical and keeps inspection a read-only
-  boundary before any local registry mutation.
-- Phase 17.5 stores canonical archives rather than partial reconstructed package
-  state and revalidates all enabled dependency relationships on load.
-- Phase 17.6 keeps package assets declarative and uses a real default-material
-  fallback when a restricted built-in shader template is unavailable.
-- Phase 17.7 persists compiled custom descriptors in the existing schema 10
-  native record. The local registry is provenance/availability state, not a
-  runtime dependency or second project authority; schema 9 rollback fails
-  explicitly for records it cannot represent.
-- Phase 17.8 ships deterministic examples and documentation while retaining the
-  ordered stack as the sole authoring authority. A future graph must compile
-  into the current Primitive V1/runtime path and meet explicit entry criteria.
-- Phase 18 keeps locale preference in app settings and all translation logic in
-  one service/context. Project schema, stable error codes, technical identifiers,
-  paths, and user-authored content remain unchanged by locale selection.
-- Phase 19.1 keeps schema 10 unchanged and designates the existing global
-  animation timeline as the sole bone-animation authority. The per-character
-  track array survives only as a synchronized legacy projection.
-- Phase 19.2 keeps IK evaluation pure and renderer-neutral. Production controls
-  and bake must target the consolidated timeline in 19.3.
-- Phase 19.3 keeps IK controls session-local and commits each successful
-  two-track bake through the existing project/history path.
-- Phase 19.4 derives ground and fixed-anchor samples without adding project
-  fields or a second timeline, then converts every fixed world target to local
-  leg IK and atomically bakes the reachable inclusive range.
-- Phase 19.5 keeps look-at state session-only and bakes existing rotation tracks.
-- Phase 19.6 derives motion paths without persisted path data or render helpers.
-- Phase 19.7 reuses NLA persistence for ordered layers and centralizes sampling
-  after global tracks without adding a layer store or effect timing authority.
-- Phase 19.8 emits ordinary reusable clips and global keys from bounded,
-  session-only procedural settings.
-- Phase 19.9 transforms the existing Dopesheet selection immutably and commits
-  only real track changes through the current history path.
-- Phase 19.10 keeps copied pose state outside project persistence and applies
-  pose operations atomically through the existing whole-project history.
-- Phase 19.11 derives attachment motion from sampled parent bones and keeps
-  authoring in the existing bounded character attachment collection.
-- Phase 19.12 parses current Blockbench outliners and legacy groups, then bakes
-  bounded cube/group pivots and rotations into deterministic static OBJ output.
-  Texture and clip metadata are reported honestly, while one authoritative
-  Blockbench asset collection is reconciled across all persistence boundaries.
-- Phase 19.13 maps only unique exact/alias Blockbench groups automatically,
-  persists preset-scoped manual choices, and converts supported numeric rotation
-  animators into deterministic reusable clips on the global timeline.
-- Phase 19.14 adds optional bounded blink/anger/sadness/confidence/surprise/fear
-  pixel overlays as head children in the shared rig renderer. Missing or invalid
-  settings leave standard skin geometry unchanged.
-- Phase 19.15 closes advanced rigging with a composite persistence/history/
-  timeline/preview/export regression while retaining all specialized tests.
-- Phase 20.1 samples the existing render loop and `renderer.info` at a bounded
-  UI cadence. It adds no alternate profiler, project fields, or render path.
-- Phase 20.2 keeps device qualification distinct from renderer quality. Budget
-  results are deterministic evidence records, not an automatic degradation
-  mechanism or a persisted project preference.
-- Phase 20.3 treats transparency as a cross-cutting material pass rather than a
-  competing object owner. Semantic tags support later culling/diagnostics, but
-  do not introduce fragile global render-order values or camera masks.
-- Phase 20.4 keeps explicitly shared GPU resources alive across ordinary scene
-  rebuilds, then releases them only through their single renderer cache owner.
-  This order prevents both premature disposal and progressive stale-cache growth.
-- Phase 20.5 keeps pure decisions separate from the Three.js adapter. Runtime
-  visibility is derived every frame and never becomes project visibility data.
-- Phase 20.6 retains material and skin caches only across identical contexts/
-  assets and shares geometry within one owned build. It does not cache mutable
-  scene trees or claim hardware frame-time results from analytic work counts.
-- Phase 20.7 gives fixed VFX geometry, material slots, and particle instance
-  buffers one bounded renderer owner. Dynamic line/ring geometry stays
-  frame-owned, while owned and pooled instance attributes each have exactly one
-  disposal path.
-- Phase 20.8 makes production material, texture, skin, and OBJ caches
-  renderer-owned. Visible consumers drive lazy OBJ/skin retention; persistent
-  project payloads remain authoritative and every cached GPU resource has one
-  invalidation/shutdown owner.
-- Phase 20.9 transfers compressed chunk copies to one import-owned module worker
-  for decompression/NBT/palette decoding. The same pure decoder is the
-  deterministic fallback; DOM, Three.js, bounded archive, and idle thumbnail
-  paths stay on their justified owners.
-- Phase 20.10 gives scans/imports one latest-operation controller, propagates
-  abort through file/decode/yield boundaries, terminates active worker decoding,
-  rejects mismatched IDs, and cancels on project/world lifecycle changes.
-  World-import orchestration is extracted from `App.tsx`, reducing it to 2,474
-  lines without introducing persisted operation state.
-- Phase 20.11 defers closed panels and guarded Blockbench/resource-pack/render/
-  export workflows while leaving startup-critical React/Three.js/editor code
-  static. Main JavaScript falls from 1,542.64 to 1,439.60 kB; the remaining
-  >500 kB warning stays visible for later architecture work.
-- Phase 20.12 moves the project document lifecycle behind the existing
-  `src/project/workspace` boundary: one project ref, history, dirty handling,
-  browser save/load, schema 9 legacy export, and autosave remain authoritative.
-  App-level selection/world-import coordination stays explicit; the JSON
-  `.minemotion` path is unchanged. `App.tsx` is 1,856 lines.
+- The Director registry now contains **414 contiguous functional phases, 601–1014**. The Creation Suite adds exactly **200 implemented operations**, each with an existing source owner and an acceptance ID executed by the same fail-closed gate.
+- World Studio stores seed, Java version, loader target and bounded chunk area. It can create an optimized blank stage or deterministic proxy terrain, and it streams only bounded imported chunks around the active camera using near/medium/far LOD simplification.
+- Exact Mojang or modded world generation is not fabricated: exact terrain requires importing the matching world save. The proxy is for fast staging and layout.
+- Mod support parses safe manifests and connects user-imported resource packs, OBJ and Blockbench assets. It never executes Fabric, Forge, NeoForge or Quilt JAR code.
+- Building is non-destructive and includes fill/replace/clone, twelve structures, line/sphere/cylinder brushes, layer mirror/duplicate and reusable blueprints. Modeling includes primitives, templates, transforms, cleanup, world extraction, OBJ export and scene synchronization.
+- Rigging includes Steve, Alex and distinct Vanilla mob skeletons, bounded crowds, formations, shared animation/pose operations and editable voxel-model auto-rigging whose custom geometry is rendered and reload-safe.
+- Collision can be disabled globally or independently for world/entity interactions. Profiles, helpers, ground snap, overlap resolution and timeline sampling/baking are available.
+- Twenty quick VFX, sixteen post finishes, a non-destructive ordered post stack, three performance targets and a portable package exporter complete the workflow.
+- A six-tab Production interface exposes the suite. Canonical mapping: `docs/MINECRAFT_CREATION_SUITE_PHASES_815_1014.md`.
+- `npm run verify:director` passes **414/414 functional phases, 14 shot recipes, 18 generated sequence shots, 8 animated camera tracks and 787 assertions**.
+- This remains source-level functional evidence. Full dependency-backed builds/tests, reviewed WebGL frames, native installers, codecs and measured hardware/film evidence remain fail-closed.
+
+## Validation passed in this environment
+
+- 783 TypeScript/TSX files: syntax audit passed.
+- Every relative TypeScript import resolves.
+- 1,917 EN and 1,917 FR keys with exact parity.
+- No empty catches or explicit `any` remain in the audited source.
+- Architecture ceilings: `App.tsx` 1,891/1,900; `TimelinePanel.tsx` 987/1,000.
+- Template, documentation-link, onboarding-documentation, cross-platform, release-input, beta-contract and security/legal scripts pass.
+- Targeted strict TypeScript/runtime checks for release contracts and the release evaluator pass.
+- JSON integrity and `git diff --check` pass.
+
+## External blockers
+
+- Locked dependency installation cannot complete in this container: the internal npm gateway does not provide the locked Tauri package and direct public-registry installation stalls. The package itself exists publicly; the blocker is this environment, not the project manifest.
+- Without dependencies, the complete project typecheck, Vitest suite, Vite build, npm audit, VFX example verification and post-build budget cannot run.
+- Rust/Cargo and real OS installer runners are unavailable.
+- Manual visual QA has not been completed.
+- GitHub does not contain the local completion commits; remote CI and publication cannot run.
+- No signing, tagging or publication authorization is available.
+
+See `docs/PHASE_35_RELEASE_GATE.md` and `distribution/v1-release-evidence.json`.

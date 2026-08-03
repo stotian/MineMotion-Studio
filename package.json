@@ -16,14 +16,31 @@
     "verify:architecture": "node scripts/verify-app-size.mjs",
     "typecheck": "tsc --noEmit",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "verify:performance-regressions": "node scripts/verify-performance-regressions.mjs",
+    "verify:templates": "node scripts/validate-templates.mjs",
+    "verify:docs": "node scripts/validate-doc-links.mjs && node scripts/verify-clean-onboarding.mjs",
+    "verify:cross-platform": "node scripts/verify-cross-platform.mjs",
+    "verify:release-inputs": "node scripts/release/verify-release-inputs.mjs",
+    "release:manifest": "node scripts/release/generate-release-manifest.mjs",
+    "verify:beta-contract": "node scripts/verify-beta-contract.mjs",
+    "verify:contracts": "node scripts/release/verify-release-inputs.mjs && node scripts/validate-templates.mjs",
+    "verify:security-legal": "node scripts/verify-security-legal.mjs",
+    "verify:v1-gate": "node scripts/verify-v1-gate.mjs",
+    "generate:notices": "node scripts/generate-third-party-notices.mjs",
+    "verify:ultra": "node scripts/verify-ultra-phases.mjs",
+    "generate:ultra-roadmap": "node scripts/generate-ultra-roadmap.mjs",
+    "verify:ultra-roadmap": "node scripts/generate-ultra-roadmap.mjs --verify",
+    "verify:director": "node scripts/verify-director-workflow.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "three": "^0.173.0"
+    "three": "^0.173.0",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
+    "@tauri-apps/plugin-fs": "^2.5.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.1.0",

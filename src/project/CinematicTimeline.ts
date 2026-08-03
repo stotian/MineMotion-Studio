@@ -29,6 +29,17 @@ export function syncCinematicTimeline(
     };
   });
   const rigItems = getRigTimelineItems(project);
+  const cameraItems: TimelineItem[] = project.production.shots
+    .filter((shot) => shot.enabled && shot.activeTake)
+    .sort((a, b) => a.startFrame - b.startFrame)
+    .map((shot) => ({
+      id: `item_${shot.id}`,
+      type: "camera",
+      label: shot.name,
+      targetId: shot.cameraId,
+      startFrame: shot.startFrame,
+      durationFrames: Math.max(1, shot.endFrame - shot.startFrame + 1)
+    }));
   const environmentItems: TimelineItem[] = project.lighting.keyframes.map(
     (keyframe) => ({
       id: `item_${keyframe.id}`,
@@ -45,6 +56,14 @@ export function syncCinematicTimeline(
   const defaults = createDefaultTimelineTracks();
   const timelineTracks = defaults.map((defaultTrack) => {
     const existing = existingTracks.find((track) => track.id === defaultTrack.id);
+    if (defaultTrack.type === "camera") {
+      return {
+        ...(existing ?? defaultTrack),
+        id: defaultTrack.id,
+        type: defaultTrack.type,
+        items: cameraItems
+      };
+    }
     if (defaultTrack.type === "rig") {
       return {
         ...(existing ?? defaultTrack),

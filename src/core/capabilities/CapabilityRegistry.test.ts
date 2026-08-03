@@ -33,6 +33,11 @@ describe("CapabilityRegistry", () => {
     ]);
     expect(registry.get("ffmpeg").status).toBe("requires-native");
     expect(registry.get("plugin-sandbox").status).toBe("disabled");
+    expect(registry.rendererBackendPlan()).toMatchObject({
+      status: "ready",
+      productionBackend: "webgl2",
+      experimentalWebGpuSelected: false
+    });
   });
 
   it("requires positive FFmpeg evidence in Tauri", () => {
@@ -58,6 +63,20 @@ describe("CapabilityRegistry", () => {
     });
 
     expect(registry.supports("webm-recording")).toBe(false);
+  });
+
+  it("does not promote detected WebGPU without a production fallback", () => {
+    const registry = CapabilityRegistry.detect({
+      probe: { ...WEB_PROBE, webgl: false, webgl2: false, webgpu: true }
+    });
+
+    expect(registry.get("webgpu").status).toBe("experimental");
+    expect(registry.rendererBackendPlan()).toMatchObject({
+      status: "unavailable",
+      productionBackend: null,
+      experimentalWebGpuDetected: true,
+      experimentalWebGpuSelected: false
+    });
   });
 
   it("returns an immutable, complete capability list", () => {

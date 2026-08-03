@@ -1,8 +1,10 @@
+import type { Vector3Tuple } from "../core/scene/SceneTypes";
 import type {
   EnvironmentKeyframe,
   EnvironmentKeyframeValues,
   LightingMoodPresetId,
-  LightingSettings
+  LightingSettings,
+  WeatherMode
 } from "./LightingTypes";
 import { DEFAULT_LIGHTING_SETTINGS, getLightingMoodPreset } from "./LightingPresets";
 
@@ -23,17 +25,17 @@ export function withLightingDefaults(
     ? value.presetId
     : DEFAULT_LIGHTING_SETTINGS.presetId;
   const preset = getLightingMoodPreset(presetId).settings;
-  const direction = Array.isArray(value?.sunDirection) && value.sunDirection.length === 3
-    ? value.sunDirection.map((component) => finite(component, 0)) as [number, number, number]
-    : [...preset.sunDirection] as [number, number, number];
 
   return {
     ...preset,
     ...value,
     presetId,
-    sunDirection: direction,
+    sunDirection: vector(value?.sunDirection, preset.sunDirection),
     sunColor: color(value?.sunColor, preset.sunColor),
     sunIntensity: clamp(value?.sunIntensity, 0, 8, preset.sunIntensity),
+    moonDirection: vector(value?.moonDirection, preset.moonDirection),
+    moonColor: color(value?.moonColor, preset.moonColor),
+    moonIntensity: clamp(value?.moonIntensity, 0, 8, preset.moonIntensity),
     ambientColor: color(value?.ambientColor, preset.ambientColor),
     ambientIntensity: clamp(value?.ambientIntensity, 0, 4, preset.ambientIntensity),
     shadowsEnabled: value?.shadowsEnabled ?? preset.shadowsEnabled,
@@ -44,6 +46,11 @@ export function withLightingDefaults(
     timeOfDay: wrap24(value?.timeOfDay ?? preset.timeOfDay),
     animateTimeOfDay: value?.animateTimeOfDay ?? preset.animateTimeOfDay,
     dayLengthFrames: Math.max(1, Math.round(finite(value?.dayLengthFrames, preset.dayLengthFrames))),
+    weather: weather(value?.weather, preset.weather),
+    weatherIntensity: clamp(value?.weatherIntensity, 0, 1, preset.weatherIntensity),
+    weatherSeed: Math.trunc(clamp(value?.weatherSeed, -2_147_483_648, 2_147_483_647, preset.weatherSeed)),
+    windDirection: vector(value?.windDirection, preset.windDirection),
+    windSpeed: clamp(value?.windSpeed, 0, 8, preset.windSpeed),
     keyframes: sanitizeKeyframes(value?.keyframes)
   };
 }
@@ -65,10 +72,14 @@ function sanitizeValues(value: unknown): EnvironmentKeyframeValues {
   const record = isRecord(value) ? value : {};
   return {
     sunIntensity: clamp(record.sunIntensity, 0, 8, DEFAULT_LIGHTING_SETTINGS.sunIntensity),
+    moonIntensity: clamp(record.moonIntensity, 0, 8, DEFAULT_LIGHTING_SETTINGS.moonIntensity),
     ambientIntensity: clamp(record.ambientIntensity, 0, 4, DEFAULT_LIGHTING_SETTINGS.ambientIntensity),
     fogDensity: clamp(record.fogDensity, 0, 0.2, DEFAULT_LIGHTING_SETTINGS.fogDensity),
     fogColor: color(record.fogColor, DEFAULT_LIGHTING_SETTINGS.fogColor),
     timeOfDay: wrap24(finite(record.timeOfDay, DEFAULT_LIGHTING_SETTINGS.timeOfDay)),
+    weather: weather(record.weather, DEFAULT_LIGHTING_SETTINGS.weather),
+    weatherIntensity: clamp(record.weatherIntensity, 0, 1, DEFAULT_LIGHTING_SETTINGS.weatherIntensity),
+    windSpeed: clamp(record.windSpeed, 0, 8, DEFAULT_LIGHTING_SETTINGS.windSpeed),
     bloomIntensity: clamp(record.bloomIntensity, 0, 2, 0.05),
     vignetteAmount: clamp(record.vignetteAmount, 0, 1, 0.18),
     grainAmount: clamp(record.grainAmount, 0, 1, 0),
@@ -89,6 +100,21 @@ function isMoodPresetId(value: unknown): value is LightingMoodPresetId {
     "storm-fight",
     "anime-impact-lighting"
   ].includes(value);
+}
+
+function weather(value: unknown, fallback: WeatherMode): WeatherMode {
+  return value === "rain" || value === "snow" || value === "storm" || value === "clear"
+    ? value
+    : fallback;
+}
+
+function vector(value: unknown, fallback: Vector3Tuple): Vector3Tuple {
+  if (!Array.isArray(value) || value.length !== 3) return [...fallback];
+  return [
+    finite(value[0], fallback[0]),
+    finite(value[1], fallback[1]),
+    finite(value[2], fallback[2])
+  ];
 }
 
 function color(value: unknown, fallback: string): string {

@@ -23,4 +23,20 @@ describe("McaFileReader", () => {
     expect(header.locations[0].offsetSector).toBe(2);
     expect(header.locations[0].timestamp).toBe(123);
   });
+
+  it("rejects payloads that escape their allocated sectors", () => {
+    const buffer = new ArrayBuffer(4096 * 4);
+    const view = new DataView(buffer);
+    view.setUint32(4096 * 2, 5000, false);
+
+    expect(() => McaFileReader.readChunkPayload(buffer, {
+      localX: 0,
+      localZ: 0,
+      chunkX: 0,
+      chunkZ: 0,
+      offsetSector: 2,
+      sectorCount: 1,
+      timestamp: 0
+    })).toThrow(/invalid payload length/i);
+  });
 });

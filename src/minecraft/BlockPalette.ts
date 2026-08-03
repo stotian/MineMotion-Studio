@@ -71,12 +71,40 @@ export const BLOCK_PALETTE: Record<BlockId, BlockDefinition> = {
     transparent: true,
     opacity: 0.55
   },
+  lava: {
+    id: "lava",
+    label: "Lava",
+    color: "#ff5a1f",
+    transparent: false,
+    opacity: 1
+  },
   glass: {
     id: "glass",
     label: "Glass",
     color: "#b7ecff",
     transparent: true,
     opacity: 0.35
+  },
+  glowstone: {
+    id: "glowstone",
+    label: "Glowstone",
+    color: "#ffd37a",
+    transparent: false,
+    opacity: 1
+  },
+  torch: {
+    id: "torch",
+    label: "Torch",
+    color: "#ffb14a",
+    transparent: true,
+    opacity: 1
+  },
+  redstone_lamp: {
+    id: "redstone_lamp",
+    label: "Redstone Lamp",
+    color: "#ff9c45",
+    transparent: false,
+    opacity: 1
   },
   sand: {
     id: "sand",

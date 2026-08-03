@@ -1,4 +1,6 @@
+import { getBlockDefinition } from "../BlockPalette";
 import type { ImportedChunkData } from "../import/MinecraftChunkTypes";
+import type { BlockId } from "../MinecraftWorldTypes";
 import type { BlockFaceDirection, VisibleBlockSample } from "./ChunkMeshTypes";
 
 const DIRECTIONS: Array<[BlockFaceDirection, number, number, number]> = [
@@ -12,18 +14,21 @@ const DIRECTIONS: Array<[BlockFaceDirection, number, number, number]> = [
 
 export class BlockFaceCuller {
   static visibleBlocks(chunks: ImportedChunkData[]): VisibleBlockSample[] {
-    const occupied = new Set<string>();
+    const occupied = new Map<string, BlockId>();
     for (const chunk of chunks) {
       for (const block of chunk.blocks) {
-        occupied.add(key(block.x, block.y, block.z));
+        occupied.set(key(block.x, block.y, block.z), block.id);
       }
     }
 
     const visible: VisibleBlockSample[] = [];
     for (const chunk of chunks) {
       for (const block of chunk.blocks) {
-        const exposedFaces = DIRECTIONS.filter(
-          ([, dx, dy, dz]) => !occupied.has(key(block.x + dx, block.y + dy, block.z + dz))
+        const exposedFaces = DIRECTIONS.filter(([, dx, dy, dz]) =>
+          isFaceVisible(
+            block.id,
+            occupied.get(key(block.x + dx, block.y + dy, block.z + dz))
+          )
         ).map(([direction]) => direction);
         if (exposedFaces.length === 0) continue;
         visible.push({
@@ -34,6 +39,13 @@ export class BlockFaceCuller {
     }
     return visible;
   }
+}
+
+function isFaceVisible(current: BlockId, neighbor: BlockId | undefined): boolean {
+  if (!neighbor) return true;
+  if (neighbor === current) return false;
+  return getBlockDefinition(current).transparent ||
+    getBlockDefinition(neighbor).transparent;
 }
 
 function key(x: number, y: number, z: number): string {

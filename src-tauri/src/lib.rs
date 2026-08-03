@@ -1,7 +1,12 @@
 use serde::Serialize;
+use std::collections::HashMap;
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Child, Command, Stdio};
+use std::sync::{Arc, Mutex, OnceLock};
+use std::thread;
+use std::time::Duration;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -66,7 +71,17 @@ fn ffmpeg_write_file(job_id: String, filename: String, data: Vec<u8>) -> Result<
 }
 
 #[tauri::command]
-fn ffmpeg_run_job(
+async fn ffmpeg_run_job(
+    job_id: String,
+    executable: String,
+    args: Vec<String>,
+) -> Result<FfmpegRunResult, String> {
+    tauri::async_runtime::spawn_blocking(move || run_ffmpeg_job_blocking(job_id, executable, args))
+        .await
+        .map_err(|error| format!("FFmpeg worker task failed: {error}"))?
+}
+
+fn run_ffmpeg_job_blocking(
     job_id: String,
     executable: String,
     args: Vec<String>,
@@ -79,27 +94,101 @@ fn ffmpeg_run_job(
     ffmpeg_version(&executable)?;
     validate_ffmpeg_args(&args)?;
 
-    let output = Command::new(&executable)
+    if ffmpeg_processes()
+        .lock()
+        .map_err(|_| "FFmpeg process registry is unavailable.")?
+        .contains_key(&job_id)
+    {
+        return Err("An FFmpeg process is already registered for this job.".into());
+    }
+    let mut child = Command::new(&executable)
         .args(&args)
         .current_dir(&directory)
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .map_err(|error| format!("Could not start FFmpeg: {error}"))?;
+    let stdout_reader = child.stdout.take().map(|mut pipe| thread::spawn(move || {
+        let mut output = String::new();
+        let _ = pipe.read_to_string(&mut output);
+        output
+    }));
+    let stderr_reader = child.stderr.take().map(|mut pipe| thread::spawn(move || {
+        let mut output = String::new();
+        let _ = pipe.read_to_string(&mut output);
+        output
+    }));
+    let handle = Arc::new(Mutex::new(child));
+    {
+        let mut processes = ffmpeg_processes().lock().map_err(|_| "FFmpeg process registry is unavailable.")?;
+        processes.insert(job_id.clone(), Arc::clone(&handle));
+    }
 
-    Ok(FfmpegRunResult {
-        success: output.status.success(),
-        exit_code: output.status.code(),
-        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
-    })
+    let status_result = loop {
+        let result = handle
+            .lock()
+            .map_err(|_| "FFmpeg process lock failed.")?
+            .try_wait()
+            .map_err(|error| format!("Could not inspect FFmpeg: {error}"));
+        match result {
+            Ok(Some(status)) => break Ok(status),
+            Ok(None) => thread::sleep(Duration::from_millis(50)),
+            Err(error) => break Err(error),
+        }
+    };
+    ffmpeg_processes()
+        .lock()
+        .map_err(|_| "FFmpeg process registry is unavailable.")?
+        .remove(&job_id);
+    let status = status_result?;
+    let stdout = stdout_reader
+        .map(|reader| reader.join().unwrap_or_else(|_| "FFmpeg stdout reader failed.".into()))
+        .unwrap_or_default();
+    let stderr = stderr_reader
+        .map(|reader| reader.join().unwrap_or_else(|_| "FFmpeg stderr reader failed.".into()))
+        .unwrap_or_default();
+    Ok(FfmpegRunResult { success: status.success(), exit_code: status.code(), stdout, stderr })
+}
+
+#[tauri::command]
+fn ffmpeg_cancel_job(job_id: String) -> Result<bool, String> {
+    job_directory(&job_id)?;
+    let handle = ffmpeg_processes().lock().map_err(|_| "FFmpeg process registry is unavailable.")?.get(&job_id).cloned();
+    let Some(handle) = handle else { return Ok(false); };
+    let result = {
+        let mut child = handle.lock().map_err(|_| "FFmpeg process lock failed.")?;
+        child.kill()
+    };
+    match result {
+        Ok(()) => Ok(true),
+        Err(error) if error.kind() == std::io::ErrorKind::InvalidInput => Ok(false),
+        Err(error) => Err(format!("Could not cancel FFmpeg: {error}")),
+    }
+}
+
+fn ffmpeg_processes() -> &'static Mutex<HashMap<String, Arc<Mutex<Child>>>> {
+    static PROCESSES: OnceLock<Mutex<HashMap<String, Arc<Mutex<Child>>>>> = OnceLock::new();
+    PROCESSES.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 #[tauri::command]
 fn ffmpeg_cleanup_job(job_id: String) -> Result<(), String> {
     let directory = job_directory(&job_id)?;
-    if directory.exists() {
-        fs::remove_dir_all(directory).map_err(|error| error.to_string())?;
+    let _ = ffmpeg_cancel_job(job_id.clone())?;
+    for _ in 0..40 {
+        let running = ffmpeg_processes()
+            .lock()
+            .map_err(|_| "FFmpeg process registry is unavailable.")?
+            .contains_key(&job_id);
+        if !running {
+            if directory.exists() {
+                fs::remove_dir_all(directory).map_err(|error| error.to_string())?;
+            }
+            return Ok(());
+        }
+        thread::sleep(Duration::from_millis(50));
     }
-    Ok(())
+    Err("FFmpeg process did not stop before cleanup timeout.".into())
 }
 
 fn normalized_executable(executable: &str) -> String {
@@ -294,11 +383,14 @@ fn expect_arg(args: &[String], index: &mut usize, expected: &str) -> Result<(), 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             detect_ffmpeg,
             ffmpeg_create_job,
             ffmpeg_write_file,
             ffmpeg_run_job,
+            ffmpeg_cancel_job,
             ffmpeg_cleanup_job
         ])
         .run(tauri::generate_context!())

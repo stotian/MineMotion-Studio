@@ -1,0 +1,15 @@
+{
+  "kind": "logic-plugin",
+  "id": "example.safe-text-importer",
+  "name": "Example Text Importer",
+  "version": "1.0.0",
+  "apiVersion": "1.0",
+  "minMineMotionVersion": "0.8.2",
+  "author": "MineMotion SDK",
+  "description": "Demonstrates a message-only importer capability.",
+  "entry": "worker.js",
+  "permissions": ["registerImporters"],
+  "dependencies": [],
+  "capabilities": ["import.parse-text"],
+  "license": { "id": "MIT" }
+}

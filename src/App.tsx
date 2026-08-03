@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { AssetManager } from "./assets/AssetManager";
 import { ObjImporter } from "./assets/ObjImporter";
 import * as deferredWorkflows from "./workflows/DeferredWorkflowModules";
@@ -37,10 +38,11 @@ import type {
   LightingMoodPresetId,
   LightingSettings
 } from "./lighting/LightingTypes";
-import { pluginRegistry } from "./plugins/PluginRegistry";
+import { useExtensionWorkspace } from "./plugins/useExtensionWorkspace";
 import { applyCameraPreset } from "./presets/CameraPresets";
 import { presetRegistry } from "./presets/PresetRegistry";
 import { syncCinematicTimeline } from "./project/CinematicTimeline";
+import { applyProductionCameraCut } from "./production/director/ShotRuntime";
 import type {
   CameraEntity,
   MineMotionProject,
@@ -54,13 +56,13 @@ import {
   createObjEntity,
   createSceneCamera,
   findObject,
+  setActiveCamera,
   updateObjectLocked,
   updateObjectName,
   updateObjectTransform,
   updateObjectVisibility,
   updateProjectSettings
 } from "./project/ProjectStore";
-import { useProjectWorkspaceController } from "./project/workspace/useProjectWorkspaceController";
 import {
   getPostProcessingPreset,
   POST_PROCESSING_PRESETS
@@ -77,25 +79,37 @@ import {
   formatLocalizedDiagnostic,
   type LocalizationDiagnosticCode
 } from "./localization/LocalizationDiagnostics";
-import { type SkyPresetId } from "./renderer/SkySystem";
+import type { SkyPresetId } from "./renderer/SkyTypes";
 import { Viewport } from "./renderer/Viewport";
 import { MinecraftSkinImporter } from "./rigs/MinecraftSkinImporter";
 import { getSelectedCharacterId, parseRigBoneSelection } from "./rigs/RigSelection";
 import { useRigWorkspaceController } from "./rigs/RigWorkspaceController";
 import { useRigConstraintWorkspace } from "./rigs/useRigConstraintWorkspace";
 import { SettingsStore, type AppSettings } from "./settings/AppSettings";
+import { useApplicationReliability } from "./reliability/useApplicationReliability";
+import { getRuntimeCapabilityRegistry } from "./core/capabilities/CapabilityRegistry";
 import { templateRegistry } from "./templates/TemplateRegistry";
+import { useProjectWorkspaceController } from "./project/workspace/useProjectWorkspaceController";
 import { TopBar } from "./ui/TopBar";
+import { WorkspaceFrame } from "./ui/workspaces/WorkspaceFrame";
+import { getWorkspaceDefinition } from "./ui/workspaces/WorkspaceRegistry";
+import { activateWorkspace, setWorkspacePanelCollapsed, updateWorkspaceLayout } from "./ui/workspaces/WorkspaceLayoutController";
+import { useEditorShortcuts } from "./ui/workspaces/useEditorShortcuts";
+import { RecoveryDialog } from "./ui/RecoveryDialog";
 import { EffectsLibraryPanel } from "./ui/effects/EffectsLibraryPanel";
 import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
 import {
+  AssetLibraryPanel,
+  AudioWorkspacePanel,
   CommandPalette,
   ExportPanel,
+  FirstLaunchExperience,
   HelpPanel,
   LightingStudioPanel,
   PluginManagerPanel,
+  ProductionWorkspacePanel,
   RigStudioPanel,
   SettingsModal,
   TemplatePicker,
@@ -139,6 +153,8 @@ export function App() {
     projectRef,
     projectInputRef,
     isDirty,
+    recoveryCandidate,
+    recoveryError,
     replacementVersion,
     setDirty: setIsDirty,
     setProject,
@@ -150,7 +166,9 @@ export function App() {
     openProjectPicker: handleLoadProject,
     loadProjectFile,
     undo: handleUndo,
-    redo: handleRedo
+    redo: handleRedo,
+    restoreRecovery,
+    discardRecovery
   } = useProjectWorkspaceController({
     settings,
     setSettings,
@@ -166,6 +184,8 @@ export function App() {
   const [resetCameraRequest, setResetCameraRequest] = useState(0);
   const [focusWorldRequest, setFocusWorldRequest] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [assetsOpen, setAssetsOpen] = useState(false);
+  const [audioOpen, setAudioOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [pluginsOpen, setPluginsOpen] = useState(false);
   const [commandsOpen, setCommandsOpen] = useState(false);
@@ -175,9 +195,10 @@ export function App() {
   const [lightingStudioOpen, setLightingStudioOpen] = useState(false);
   const [worldImportOpen, setWorldImportOpen] = useState(false);
   const [vfxWorkspaceOpen, setVfxWorkspaceOpen] = useState(false);
-  const [plugins, setPlugins] = useState(() => pluginRegistry.list());
+  const [productionOpen, setProductionOpen] = useState(false);
   const [vfxPackageRegistry, setVfxPackageRegistry] =
     useState<VfxPackageRegistry>(() => createEmptyVfxPackageRegistry());
+  const extensionWorkspace = useExtensionWorkspace({ settings, setSettings, setStatus });
 
   const worldInputRef = useRef<HTMLInputElement | null>(null);
   const objInputRef = useRef<HTMLInputElement | null>(null);
@@ -188,6 +209,7 @@ export function App() {
   const resourcePackFolderInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const lastPlaybackTimeRef = useRef<number | null>(null);
+  const playbackEndFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -205,12 +227,12 @@ export function App() {
       cancelled = true;
     };
   }, []);
-  const presets = useMemo(() => presetRegistry.snapshot(), []);
+  const presets = useMemo(() => presetRegistry.snapshot(), [extensionWorkspace.registryRevision]);
   const rigPosePresets = useMemo(
     () => [...presets.rigPose, ...project.rigs.savedPoses],
     [presets.rigPose, project.rigs.savedPoses]
   );
-  const templates = useMemo(() => templateRegistry.list(), []);
+  const templates = useMemo(() => templateRegistry.list(), [extensionWorkspace.registryRevision]);
   const effectPresets = useMemo(() => builtinVfxPresetCatalog.list(), []);
   const selectedObject = useMemo(
     () => findObject(project, selectedObjectId)?.entity ?? null,
@@ -228,10 +250,13 @@ export function App() {
   const animatedProject = useMemo(() => {
     const timelineFrame = project.animation.currentFrame;
     const sampled = sampleProjectAnimationWithVfxTiming(project, timelineFrame);
+    const directed = project.animation.isPlaying || project.renderSettings.renderPreviewEnabled
+      ? applyProductionCameraCut(sampled, timelineFrame)
+      : sampled;
     return sampleEnvironmentProject(
       {
-        ...sampled,
-        animation: { ...sampled.animation, currentFrame: timelineFrame }
+        ...directed,
+        animation: { ...directed.animation, currentFrame: timelineFrame }
       },
       timelineFrame
     );
@@ -242,13 +267,7 @@ export function App() {
     animatedProject
   );
   const displayProject = rigConstraints.displayProject;
-  useEffect(() => {
-    SettingsStore.save(settings);
-    document.documentElement.style.setProperty(
-      "--ui-scale",
-      String(settings.editor.uiScale)
-    );
-  }, [settings]);
+  const reliability = useApplicationReliability({ settings, project, setSettings, setStatus });
 
   useProjectAudioPlayback(project);
 
@@ -266,14 +285,16 @@ export function App() {
         const elapsedSeconds = (time - lastTime) / 1000;
         const frameStep = elapsedSeconds * currentProject.animation.fps;
         const nextFrame = currentProject.animation.currentFrame + frameStep;
-        const reachedEnd = nextFrame >= currentProject.animation.durationFrames;
+        const playbackEnd = playbackEndFrameRef.current ?? currentProject.animation.durationFrames;
+        const reachedEnd = nextFrame >= playbackEnd;
+        if (reachedEnd) playbackEndFrameRef.current = null;
 
         return {
           ...currentProject,
           animation: {
             ...currentProject.animation,
             currentFrame: reachedEnd
-              ? currentProject.animation.durationFrames
+              ? playbackEnd
               : Math.round(nextFrame),
             isPlaying: reachedEnd ? false : currentProject.animation.isPlaying
           }
@@ -295,6 +316,16 @@ export function App() {
     selectWorld: handleWorldSelected,
     updateOptions: handleWorldImportOptionsChange,
     importChunks: handleImportWorldChunks,
+    reimportChangedChunks: handleReimportChangedWorldChunks,
+    unloadSelectedChunks: handleUnloadSelectedWorldChunks,
+    hideSelectedChunks: handleHideSelectedWorldChunks,
+    showAllChunks: handleShowAllWorldChunks,
+    addSceneMarker: handleAddWorldSceneMarker,
+    addSceneProp: handleAddWorldSceneProp,
+    removeSceneItem: handleRemoveWorldSceneItem,
+    saveImportProfile: handleSaveWorldImportProfile,
+    applyImportProfile: handleApplyWorldImportProfile,
+    deleteImportProfile: handleDeleteWorldImportProfile,
     cancel: handleCancelWorldImport,
     reset: resetWorldImport
   } = useWorldImportOperations({
@@ -343,9 +374,15 @@ export function App() {
     setStatus,
     tr
   });
+  const workspaceLayout = settings.editor.workspace;
+  const workspaceDefinition = getWorkspaceDefinition(workspaceLayout.activeWorkspace);
+  const timelineVisible = workspaceDefinition.visiblePanels.includes("timeline") &&
+    !workspaceLayout.collapsedPanels.includes("timeline");
+  const capabilityWarnings = useMemo(() =>
+    getRuntimeCapabilityRegistry().list().filter((capability) => capability.status === "unavailable").length,
+  [ffmpegDetection.available]);
 
   useEffect(() => {
-    if (replacementVersion === 0) return;
     setSelectedObjectId(
       project.scene.characters[0]?.id ?? project.scene.cameras[0]?.id ?? null
     );
@@ -1088,6 +1125,8 @@ export function App() {
           lighting: {
             ...preset.settings,
             sunDirection: [...preset.settings.sunDirection],
+            moonDirection: [...preset.settings.moonDirection],
+            windDirection: [...preset.settings.windDirection],
             keyframes: currentProject.lighting.keyframes
           },
           postProcessing: {
@@ -1279,10 +1318,17 @@ export function App() {
   );
 
   const handleSetFrame = useCallback((frame: number) => {
+    playbackEndFrameRef.current = null;
     setProject((currentProject) => ({
       ...currentProject,
       animation: setCurrentFrame(currentProject.animation, frame)
     }));
+  }, []);
+
+  const handlePreviewFrames = useCallback((startFrame: number, endFrame: number) => {
+    playbackEndFrameRef.current = Math.max(startFrame, endFrame);
+    lastPlaybackTimeRef.current = null;
+    setProject((currentProject) => ({ ...currentProject, animation: { ...setCurrentFrame(currentProject.animation, startFrame), isPlaying: true } }));
   }, []);
 
   const handleUpdateAnimation = useCallback(
@@ -1314,6 +1360,7 @@ export function App() {
   );
 
   const handleTogglePlayback = useCallback(() => {
+    playbackEndFrameRef.current = null;
     setProject((currentProject) => ({
       ...currentProject,
       animation: {
@@ -1342,6 +1389,11 @@ export function App() {
     setStatus(tr("app.cameraReset"));
   }, []);
 
+  const handleSetActiveCamera = useCallback((cameraId: string) => {
+    commitProject((currentProject) => setActiveCamera(currentProject, cameraId), "Set active camera");
+    setStatus(tr("app.activeCameraChanged"));
+  }, [commitProject]);
+
   const handleApplyCameraPreset = useCallback(
     (presetId: string) => {
       if (!selectedObjectId) return;
@@ -1366,25 +1418,6 @@ export function App() {
     [commitProject, selectedObjectId]
   );
 
-  const handleTogglePlugin = useCallback(
-    (pluginId: string, enabled: boolean) => {
-      pluginRegistry.setEnabled(pluginId, enabled);
-      setPlugins(pluginRegistry.list());
-      setSettings((currentSettings) => ({
-        ...currentSettings,
-        plugins: {
-          ...currentSettings.plugins,
-          disabledPluginIds: enabled
-            ? currentSettings.plugins.disabledPluginIds.filter(
-                (id) => id !== pluginId
-              )
-            : [...new Set([...currentSettings.plugins.disabledPluginIds, pluginId])]
-        }
-      }));
-      setStatus(tr("app.pluginState", { state: tr(enabled ? "common.enabled" : "common.disabled"), id: pluginId }));
-    },
-    []
-  );
 
   const handleLoadSampleScene = useCallback(() => {
     handleNewProjectFromTemplate("sunset-showcase");
@@ -1447,85 +1480,21 @@ export function App() {
     ]
   );
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase();
-      const target = event.target as HTMLElement | null;
-      const isTextInput =
-        target?.tagName === "INPUT" ||
-        target?.tagName === "TEXTAREA" ||
-        target?.tagName === "SELECT" ||
-        target?.isContentEditable === true;
-      if ((event.ctrlKey || event.metaKey) && key === "p") {
-        event.preventDefault();
-        setCommandsOpen(true);
-      }
-      if ((event.ctrlKey || event.metaKey) && key === "s") {
-        event.preventDefault();
-        handleSaveProject();
-      }
-      if (
-        !isTextInput &&
-        (event.ctrlKey || event.metaKey) &&
-        key === "z" &&
-        !event.shiftKey
-      ) {
-        event.preventDefault();
-        handleUndo();
-      }
-      if (
-        !isTextInput &&
-        (((event.ctrlKey || event.metaKey) && key === "y") ||
-          ((event.ctrlKey || event.metaKey) && event.shiftKey && key === "z"))
-      ) {
-        event.preventDefault();
-        handleRedo();
-      }
-      if (!isTextInput && (event.ctrlKey || event.metaKey) && key === "d") {
-        event.preventDefault();
-        if (selectedEffectId) {
-          const effect = projectRef.current.effects.instances.find(
-            (candidate) => candidate.id === selectedEffectId
-          );
-          if (effect) {
-            handleEffectTimelineCommand({
-              type: "duplicate",
-              effectId: effect.id,
-              newEffectId: createId("effect"),
-              startFrame: effect.startFrame + 1
-            });
-          }
-        } else {
-          handleDuplicateSelectedObject();
-        }
-      }
-      if (!isTextInput && event.key === "Delete") {
-        event.preventDefault();
-        if (selectedEffectId) {
-          handleDeleteEffect(selectedEffectId);
-        } else {
-          handleDeleteSelectedObject();
-        }
-      }
-      if (!isTextInput && event.code === "Space") {
-        event.preventDefault();
-        handleTogglePlayback();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    handleDeleteEffect,
-    handleDeleteSelectedObject,
-    handleDuplicateSelectedObject,
-    handleEffectTimelineCommand,
-    handleRedo,
-    handleSaveProject,
-    handleTogglePlayback,
-    handleUndo,
-    selectedEffectId
-  ]);
+  useEditorShortcuts(useMemo(() => ({
+    projectRef,
+    selectedEffectId,
+    openCommandPalette: () => setCommandsOpen(true),
+    saveProject: handleSaveProject,
+    undo: handleUndo,
+    redo: handleRedo,
+    duplicateObject: handleDuplicateSelectedObject,
+    deleteObject: handleDeleteSelectedObject,
+    deleteEffect: handleDeleteEffect,
+    editEffect: handleEffectTimelineCommand,
+    togglePlayback: handleTogglePlayback
+  }), [projectRef, selectedEffectId, handleSaveProject, handleUndo, handleRedo,
+    handleDuplicateSelectedObject, handleDeleteSelectedObject, handleDeleteEffect,
+    handleEffectTimelineCommand, handleTogglePlayback]));
 
   const statusDetails = [
     localization.t("status.selected", { name: selectedObjectLabel(
@@ -1551,11 +1520,27 @@ export function App() {
 
   return (
     <LocalizationProvider service={localization}>
-    <main className="app-shell" lang={localization.language}>
+      <FirstLaunchExperience templates={templates} recentProjects={settings.general.recentProjects} recoveryAvailable={Boolean(recoveryCandidate)} onCreateTemplate={handleNewProjectFromTemplate} onOpenProject={handleLoadProject} onOpenTemplates={() => setTemplatesOpen(true)} onRestoreRecovery={restoreRecovery} onOpenHelp={() => setHelpOpen(true)} />
+      <RecoveryDialog
+        candidate={recoveryCandidate}
+        error={recoveryError}
+        onRestore={restoreRecovery}
+        onDiscard={discardRecovery}
+      />
+    <main
+      className={`app-shell workspace-density-${workspaceLayout.density}`}
+      lang={localization.language}
+      style={{ "--workspace-timeline-height": timelineVisible ? `${workspaceLayout.timelineHeight}px` : "0px" } as CSSProperties}
+    >
       <TopBar
         projectName={project.projectName}
         isPlaying={project.animation.isPlaying}
         isDirty={isDirty}
+        autosaveEnabled={settings.general.autosaveEnabled}
+        exporting={isExporting}
+        capabilityWarnings={capabilityWarnings}
+        workspaceId={workspaceLayout.activeWorkspace}
+        onWorkspaceChange={(workspace) => setSettings((current) => activateWorkspace(current, workspace))}
         renderPreviewEnabled={project.renderSettings.renderPreviewEnabled}
         onNewProject={handleNewProject}
         onNewProjectFromTemplate={() => setTemplatesOpen(true)}
@@ -1567,20 +1552,32 @@ export function App() {
         onImportObj={handleImportObj}
         onTogglePlayback={handleTogglePlayback}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenAssets={() => setAssetsOpen(true)}
+        onOpenAudio={() => setAudioOpen(true)}
         onOpenPlugins={() => setPluginsOpen(true)}
         onOpenCommands={() => setCommandsOpen(true)}
         onOpenExport={() => setExportOpen(true)}
         onOpenRigStudio={() => setRigStudioOpen(true)}
         onOpenLightingStudio={() => setLightingStudioOpen(true)}
         onOpenVfxWorkspace={() => setVfxWorkspaceOpen(true)}
+        onOpenProduction={() => setProductionOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
         onToggleRenderPreview={handleToggleRenderPreview}
       />
-      <div className="workspace">
+      <WorkspaceFrame
+        layout={workspaceLayout}
+        onLayoutChange={(patch) => setSettings((current) => updateWorkspaceLayout(current, patch))}
+        onPanelCollapsedChange={(panel, collapsed) =>
+          setSettings((current) => setWorkspacePanelCollapsed(current, panel, collapsed))
+        }
+      >
         <OutlinerPanel
           project={project}
           selectedObjectId={selectedObjectId}
           onSelectObject={handleSelectObject}
+          onToggleVisibility={handleToggleVisibility}
+          onToggleLocked={handleToggleLocked}
+          onSetActiveCamera={handleSetActiveCamera}
         />
         <EffectsLibraryPanel
           presets={effectPresets}
@@ -1642,7 +1639,8 @@ export function App() {
           onResetSkin={handleResetSkin}
           onChangeRigPreset={rigWorkspace.changeRigPreset}
         />
-      </div>
+      </WorkspaceFrame>
+      <div className="workspace-timeline-slot" hidden={!timelineVisible}>
       <TimelinePanel
         project={project}
         selectedObjectId={selectedObjectId}
@@ -1655,10 +1653,18 @@ export function App() {
         onEditEffectTimeline={handleEffectTimelineCommand}
         onUpdateAnimation={handleUpdateAnimation}
       />
-      <div className="status-bar">
+      </div>
+      <div className="status-bar" role="status" aria-live="polite" aria-atomic="true">
         <span>{status}</span>
         <strong>{statusDetails}</strong>
       </div>
+      <AudioWorkspacePanel open={audioOpen} project={project} onProjectChange={(next) => { setProject(next); setIsDirty(true); }} onClose={() => setAudioOpen(false)} />
+      <AssetLibraryPanel
+        open={assetsOpen}
+        project={project}
+        onProjectChange={(nextProject) => { setProject(nextProject); setIsDirty(true); }}
+        onClose={() => setAssetsOpen(false)}
+      />
       <SettingsModal
         open={settingsOpen}
         appSettings={settings}
@@ -1666,18 +1672,27 @@ export function App() {
         onClose={() => setSettingsOpen(false)}
         onAppSettingsChange={setSettings}
         onProjectSettingsChange={handleProjectSettingsChange}
+        onExportSupportBundle={reliability.exportSupportBundle}
+        onResetSettings={reliability.resetSettings}
       />
       <TemplatePicker
         open={templatesOpen}
         templates={templates}
+        currentProject={project}
         onClose={() => setTemplatesOpen(false)}
         onCreateFromTemplate={handleNewProjectFromTemplate}
       />
       <PluginManagerPanel
         open={pluginsOpen}
-        plugins={plugins}
+        extensions={extensionWorkspace.extensions}
+        logs={extensionWorkspace.logs}
+        safeMode={extensionWorkspace.safeMode}
         onClose={() => setPluginsOpen(false)}
-        onTogglePlugin={handleTogglePlugin}
+        onInstallFile={extensionWorkspace.installFile}
+        onToggleExtension={extensionWorkspace.setEnabled}
+        onTrustExtension={extensionWorkspace.setTrusted}
+        onUninstallExtension={extensionWorkspace.uninstall}
+        onSafeModeChange={extensionWorkspace.setSafeMode}
       />
       <CommandPalette
         open={commandsOpen}
@@ -1751,6 +1766,16 @@ export function App() {
         onRegistryChange={setVfxPackageRegistry}
         onClose={() => setVfxWorkspaceOpen(false)}
       />
+      <ProductionWorkspacePanel
+        open={productionOpen}
+        project={project}
+        projectSaved={!isDirty}
+        ffmpegAvailable={ffmpegDetection.available}
+        onClose={() => setProductionOpen(false)}
+        onProjectChange={(nextProject, label) => commitProject(nextProject, label)}
+        onSetFrame={handleSetFrame}
+        onPreviewFrames={handlePreviewFrames}
+      />
       <WorldImportPanel
         open={worldImportOpen}
         scan={worldScan}
@@ -1762,6 +1787,16 @@ export function App() {
         onChooseWorldFolder={handleChooseWorldFolder}
         onOptionsChange={handleWorldImportOptionsChange}
         onImportChunks={handleImportWorldChunks}
+        onReimportChangedChunks={handleReimportChangedWorldChunks}
+        onUnloadSelectedChunks={handleUnloadSelectedWorldChunks}
+        onHideSelectedChunks={handleHideSelectedWorldChunks}
+        onShowAllChunks={handleShowAllWorldChunks}
+        onAddSceneMarker={handleAddWorldSceneMarker}
+        onAddSceneProp={handleAddWorldSceneProp}
+        onRemoveSceneItem={handleRemoveWorldSceneItem}
+        onSaveImportProfile={handleSaveWorldImportProfile}
+        onApplyImportProfile={handleApplyWorldImportProfile}
+        onDeleteImportProfile={handleDeleteWorldImportProfile}
         onCancelImport={handleCancelWorldImport}
         onFocusWorld={handleFocusWorld}
         onUnloadWorld={handleUnloadWorld}

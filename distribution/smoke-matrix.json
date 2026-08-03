@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "tests": ["clean-install", "upgrade", "uninstall", "open-associated-project", "save-reopen", "autosave-recovery", "ffmpeg-detect-cancel", "missing-asset-relink", "safe-mode"],
+  "results": []
+}

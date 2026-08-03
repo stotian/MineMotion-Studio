@@ -1,0 +1,14 @@
+{
+  "kind": "content-pack",
+  "id": "your-name.your-pack",
+  "name": "Your Pack",
+  "version": "1.0.0",
+  "apiVersion": "1.0",
+  "minMineMotionVersion": "0.8.2",
+  "author": "Your Name",
+  "description": "Describe the pack.",
+  "license": { "id": "MIT" },
+  "dependencies": [],
+  "capabilities": [],
+  "data": {}
+}

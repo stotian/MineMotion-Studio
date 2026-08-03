@@ -200,3 +200,32 @@ The build warning remains because the largest source-map contributors include
 startup-critical Three.js, React DOM, viewport/timeline/inspector, localization,
 and renderer code. Phase 20.11 neither raises the warning threshold nor invents
 a vendor split that would load the same bytes before the editor becomes usable.
+
+## Advisory diagnostics
+
+The viewport evaluates its bounded metrics snapshot against the Draft quality
+budget and displays at most three hard-limit-first recommendations. The report
+is read-only and does not alter project data, visibility, effects, world radius,
+or quality. Missing measurements are not inferred.
+
+## Reproducible scene fixtures
+
+Five deterministic fixtures represent small, medium, large-world, VFX-fight,
+and storm workloads. They use fixed IDs/timestamps, expected complexity and
+Draft classifications, stable VFX benchmark expectations, and JSON round-trip
+coverage. They are software regression inputs, not hardware FPS claims.
+
+## Renderer backend policy
+
+WebGL2 is the primary production backend and existing WebGL is the fallback.
+WebGPU detection remains experimental evidence only. A runtime with WebGPU but
+without a production WebGL backend reports unavailable rather than silently
+using an incomplete path.
+
+## Regression gates
+
+The measured Phase 20 baseline and ceilings are recorded in
+`PerformanceRegressionBaselines` and one shared JSON threshold file. CI checks
+main JavaScript <= 1,520,000 bytes, all JavaScript <= 1,700,000 bytes, and worker
+JavaScript <= 30,000 bytes after the production build. Architecture checks keep
+`App.tsx` <= 1,900 lines and `TimelinePanel.tsx` <= 1,000 lines.

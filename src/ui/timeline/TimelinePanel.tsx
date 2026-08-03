@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ChartSpline,
   Clipboard,
@@ -9,18 +9,20 @@ import {
   Pause,
   Play,
   Scissors,
+  Rows3,
   SkipBack,
   SkipForward,
   StepBack,
   StepForward,
-  Trash2
+  Trash2,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react";
 import type {
   KeyframeInterpolation,
   MineMotionProject,
   ReusableAnimationClip,
-  TimelineData,
-  TimelineItem
+  TimelineData
 } from "../../project/ProjectFile";
 import { createId, findObject } from "../../project/ProjectStore";
 import {
@@ -28,12 +30,8 @@ import {
   type EffectTimelineClipboardV1,
   type EffectTimelineCommand
 } from "../../effects/EffectTimelineController";
-import {
-  getTimelineFrameAtPosition,
-  getTimelineMoveStartFrame
-} from "../../effects/EffectTimelineTrack";
 import { getSelectedCharacterId } from "../../rigs/RigSelection";
-import { createAnimationEditorState } from "../../animation/editor/AnimationEditorStore";
+import { createAnimationEditorState, updateAnimationEditorState } from "../../animation/editor/AnimationEditorStore";
 import { copyKeyframes, pasteKeyframes } from "../../animation/editor/KeyframeClipboard";
 import {
   deleteSelectedKeyframes,
@@ -75,38 +73,15 @@ import {
 import { Dopesheet } from "../../animation/editor/Dopesheet";
 import { GraphEditor } from "../../animation/editor/GraphEditor";
 import { useLocalization } from "../../localization/LocalizationContext";
-
-const EFFECT_TIMELINE_DRAG_TYPE = "application/x-minemotion-effect-timeline";
-const CLIP_LAYER_KINDS: readonly AnimationLayerKind[] = [
-  "base",
-  "upperBody",
-  "headLook",
-  "handAdjustment",
-  "additiveMotion"
-];
-const ANIMATION_LAYER_TRANSLATION_KEYS = {
-  base: "timeline.layer.base",
-  upperBody: "timeline.layer.upperBody",
-  headLook: "timeline.layer.headLook",
-  handAdjustment: "timeline.layer.handAdjustment",
-  additiveMotion: "timeline.layer.additiveMotion",
-  vfxSync: "timeline.layer.vfxSync"
-} as const;
-
-interface EffectTimelineDragPayload {
-  mode: "move" | "trim-start" | "trim-end";
-  effectId: string;
-  durationFrames: number;
-  grabOffsetFrames: number;
-}
-
-function setEffectTimelineDragData(
-  event: React.DragEvent<HTMLElement>,
-  payload: EffectTimelineDragPayload
-) {
-  event.dataTransfer.effectAllowed = "move";
-  event.dataTransfer.setData(EFFECT_TIMELINE_DRAG_TYPE, JSON.stringify(payload));
-}
+import {
+  ANIMATION_LAYER_TRANSLATION_KEYS,
+  CLIP_LAYER_KINDS
+} from "./TimelineConstants";
+import {
+  NlaView,
+  TimelineView,
+  TimelineViewButton as ViewButton
+} from "./TimelineViews";
 
 interface TimelinePanelProps {
   project: MineMotionProject;
@@ -402,6 +377,15 @@ export function TimelinePanel({
           />
         </label>
         <button type="button" onClick={addMarker}>{t("timeline.addMarker")}</button>
+        <button type="button" title={t("timeline.zoomOut")} disabled={editor.zoom <= 0.5}
+          onClick={() => setEditor((current) => updateAnimationEditorState(current, { zoom: current.zoom / 1.25 }))}><ZoomOut size={14} /></button>
+        <output className="timeline-zoom-label" aria-label={t("timeline.zoom")}>{Math.round(editor.zoom * 100)}%</output>
+        <button type="button" title={t("timeline.zoomIn")} disabled={editor.zoom >= 8}
+          onClick={() => setEditor((current) => updateAnimationEditorState(current, { zoom: current.zoom * 1.25 }))}><ZoomIn size={14} /></button>
+        <button type="button" title={t("timeline.toggleDensity")}
+          onClick={() => setEditor((current) => updateAnimationEditorState(current, { density: current.density === "compact" ? "comfortable" : "compact" }))}>
+          <Rows3 size={14} /> {t(editor.density === "compact" ? "timeline.densityComfortable" : "timeline.densityCompact")}
+        </button>
         <button type="button" disabled={!selectedObjectId} onClick={onAddKeyframe}>
           {t("timeline.addKey")}
         </button>
@@ -928,7 +912,8 @@ export function TimelinePanel({
         </span>
       </div>
 
-      <div className="animation-editor-content">
+      <div className={`animation-editor-content timeline-density-${editor.density}`}>
+        <div className="timeline-zoom-surface" style={{ width: `${editor.zoom * 100}%` }}>
         {editor.view === "timeline" && (
           <TimelineView
             project={project}
@@ -995,417 +980,8 @@ export function TimelinePanel({
             }
           />
         )}
+        </div>
       </div>
     </footer>
-  );
-}
-
-function ViewButton({
-  active,
-  label,
-  icon,
-  onClick
-}: {
-  active: boolean;
-  label: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button type="button" className={active ? "selected" : ""} onClick={onClick}>
-      {icon}
-      {label}
-    </button>
-  );
-}
-
-function TimelineView({
-  project,
-  selectedTracks,
-  selectedEffectId,
-  onSetFrame,
-  onSelectEffect,
-  onEditEffectTimeline
-}: {
-  project: MineMotionProject;
-  selectedTracks: MineMotionProject["animation"]["tracks"];
-  selectedEffectId: string | null;
-  onSetFrame: (frame: number) => void;
-  onSelectEffect: (effectId: string) => void;
-  onEditEffectTimeline: (command: EffectTimelineCommand) => void;
-}) {
-  const localization = useLocalization();
-  const t = localization.t.bind(localization);
-  const { animation } = project;
-  const duration = Math.max(1, animation.durationFrames);
-  const markerFrames = new Set(
-    selectedTracks.flatMap((track) => track.keyframes.map((keyframe) => keyframe.frame))
-  );
-  const ticks = Array.from({ length: 21 }, (_, index) =>
-    Math.round((duration / 20) * index)
-  );
-  const disabledEffectIds = new Set(
-    project.effects.instances
-      .filter((effect) => !effect.enabled)
-      .map((effect) => effect.id)
-  );
-  return (
-    <div className="timeline-track professional-timeline">
-      <input
-        aria-label={t("timeline.scrubberAria")}
-        type="range"
-        min={0}
-        max={duration}
-        value={animation.currentFrame}
-        onChange={(event) => onSetFrame(Number(event.target.value))}
-      />
-      <div className="timeline-ruler timeline-ruler-21">
-        {ticks.map((tick) => <span key={tick}>{tick}</span>)}
-      </div>
-      <div className="keyframe-lane">
-        {Array.from(markerFrames).map((frame) => (
-          <button
-            key={frame}
-            type="button"
-            className="keyframe-marker"
-            style={{ left: `${(frame / duration) * 100}%` }}
-            title={t("timeline.frameTitle", { frame })}
-            onClick={() => onSetFrame(frame)}
-          />
-        ))}
-        {animation.markers.map((marker) => (
-          <button
-            key={marker.id}
-            type="button"
-            className="timeline-named-marker"
-            style={{ left: `${(marker.frame / duration) * 100}%`, color: marker.color }}
-            title={`${marker.name} @ ${marker.frame}`}
-            onClick={() => onSetFrame(marker.frame)}
-          >
-            {marker.name}
-          </button>
-        ))}
-      </div>
-      {animation.timelineTracks
-        .filter((track) => track.items.length > 0 || ["rig", "effect", "audio", "sky"].includes(track.type))
-        .map((track) => (
-          <TimelineBlockLane
-            key={track.id}
-            label={track.name}
-            durationFrames={duration}
-            items={track.items}
-            selectedEffectId={selectedEffectId}
-            disabledEffectIds={disabledEffectIds}
-            acceptsEffectDrop={track.type === "effect"}
-            onSetFrame={onSetFrame}
-            onSelectEffect={onSelectEffect}
-            onEditEffectTimeline={onEditEffectTimeline}
-          />
-        ))}
-    </div>
-  );
-}
-
-function NlaView({
-  project,
-  onSetFrame,
-  onToggleMute,
-  onUpdateLayer
-}: {
-  project: MineMotionProject;
-  onSetFrame: (frame: number) => void;
-  onToggleMute: (instanceId: string, muted: boolean) => void;
-  onUpdateLayer: (
-    layerId: string,
-    patch: {
-      muted?: boolean;
-      weight?: number;
-      vfxEffectIds?: string[];
-    }
-  ) => void;
-}) {
-  const localization = useLocalization();
-  const t = localization.t.bind(localization);
-  if (project.animation.nlaTracks.length === 0) {
-    return <p className="timeline-empty">{t("timeline.nlaEmpty")}</p>;
-  }
-  const duration = Math.max(1, project.animation.durationFrames);
-  return (
-    <div className="nla-editor">
-      {project.animation.nlaTracks.map((track) => (
-        <div key={track.id} className="nla-row">
-          <div className="nla-layer-controls">
-            <span>
-              {findObject(project, track.targetId)?.entity.name ?? track.name}
-              {" · "}
-              <strong>
-                {t(ANIMATION_LAYER_TRANSLATION_KEYS[getNlaLayerKind(track)])}
-              </strong>
-            </span>
-            <label>
-              <input
-                type="checkbox"
-                checked={track.muted === true}
-                onChange={(event) =>
-                  onUpdateLayer(track.id, { muted: event.target.checked })
-                }
-              />
-              {t("timeline.layerMuted")}
-            </label>
-            {getNlaLayerKind(track) !== "vfxSync" && (
-              <label>
-                {t("timeline.layerWeight")}
-                <input
-                  type="number"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={track.weight ?? 1}
-                  onChange={(event) =>
-                    onUpdateLayer(track.id, {
-                      weight: event.target.valueAsNumber
-                    })
-                  }
-                />
-              </label>
-            )}
-            {getNlaLayerKind(track) === "vfxSync" && (
-              <label>
-                {t("timeline.layerEffects")}
-                <select
-                  multiple
-                  aria-label={t("timeline.layerEffectsAria")}
-                  value={track.vfxEffectIds ?? []}
-                  onChange={(event) =>
-                    onUpdateLayer(track.id, {
-                      vfxEffectIds: [...event.target.selectedOptions].map(
-                        (option) => option.value
-                      )
-                    })
-                  }
-                >
-                  {project.effects.instances.map((effect) => (
-                    <option key={effect.id} value={effect.id}>
-                      {effect.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
-          <div className="nla-clip-lane">
-            {track.clips.map((instance) => {
-              const source = project.animation.clips.find((clip) => clip.id === instance.clipId);
-              return (
-                <button
-                  key={instance.id}
-                  type="button"
-                  className={instance.muted ? "nla-clip muted" : "nla-clip"}
-                  style={{
-                    left: `${(instance.startFrame / duration) * 100}%`,
-                    width: `${Math.max(2, (instance.durationFrames / duration) * 100)}%`
-                  }}
-                  title={`${source?.name ?? t("timeline.missingClip")} @ ${instance.startFrame}`}
-                  onClick={() => onSetFrame(instance.startFrame)}
-                  onDoubleClick={() => onToggleMute(instance.id, !instance.muted)}
-                >
-                  {source?.name ?? t("timeline.missing")}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function TimelineBlockLane({
-  label,
-  durationFrames,
-  items,
-  selectedEffectId,
-  disabledEffectIds,
-  acceptsEffectDrop,
-  onSetFrame,
-  onSelectEffect,
-  onEditEffectTimeline
-}: {
-  label: string;
-  durationFrames: number;
-  items: TimelineItem[];
-  selectedEffectId: string | null;
-  disabledEffectIds: ReadonlySet<string>;
-  acceptsEffectDrop: boolean;
-  onSetFrame: (frame: number) => void;
-  onSelectEffect: (effectId: string) => void;
-  onEditEffectTimeline: (command: EffectTimelineCommand) => void;
-}) {
-  const localization = useLocalization();
-  const t = localization.t.bind(localization);
-  const laneRef = useRef<HTMLDivElement>(null);
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!acceptsEffectDrop) return;
-    const raw = event.dataTransfer.getData(EFFECT_TIMELINE_DRAG_TYPE);
-    if (!raw) return;
-    event.preventDefault();
-    try {
-      const payload = JSON.parse(raw) as EffectTimelineDragPayload;
-      if (
-        !payload ||
-        typeof payload.effectId !== "string" ||
-        !["move", "trim-start", "trim-end"].includes(payload.mode)
-      ) {
-        return;
-      }
-      const bounds = event.currentTarget.getBoundingClientRect();
-      const frame = getTimelineFrameAtPosition(
-        event.clientX,
-        bounds.left,
-        bounds.width,
-        durationFrames
-      );
-      if (payload.mode === "move") {
-        onEditEffectTimeline({
-          type: "move",
-          effectId: payload.effectId,
-          startFrame: getTimelineMoveStartFrame(
-            frame,
-            payload.grabOffsetFrames,
-            payload.durationFrames,
-            durationFrames
-          )
-        });
-      } else if (payload.mode === "trim-start") {
-        onEditEffectTimeline({
-          type: "trim-start",
-          effectId: payload.effectId,
-          startFrame: frame
-        });
-      } else {
-        onEditEffectTimeline({
-          type: "trim-end",
-          effectId: payload.effectId,
-          endFrame: frame
-        });
-      }
-    } catch {
-      // Ignore foreign or malformed drag payloads.
-    }
-  };
-
-  return (
-    <div className="timeline-block-lane" aria-label={t("timeline.laneAria", { label })}>
-      <span>{label}</span>
-      <div
-        ref={laneRef}
-        onDragOver={(event) => {
-          if (
-            acceptsEffectDrop &&
-            event.dataTransfer.types.includes(EFFECT_TIMELINE_DRAG_TYPE)
-          ) {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "move";
-          }
-        }}
-        onDrop={acceptsEffectDrop ? handleDrop : undefined}
-      >
-        {items.map((item) => {
-          const effectId = acceptsEffectDrop ? item.effectId : undefined;
-          const className = `timeline-block ${effectId === selectedEffectId ? "selected" : ""} ${effectId && disabledEffectIds.has(effectId) ? "disabled-effect" : ""} ${item.type}`;
-          const title = `${item.label} @ ${item.startFrame}${effectId && disabledEffectIds.has(effectId) ? ` (${t("timeline.disabledSuffix")})` : ""}`;
-          const style = {
-            left: `${(item.startFrame / durationFrames) * 100}%`,
-            width: `${Math.max(1, (item.durationFrames / durationFrames) * 100)}%`
-          };
-          const selectItem = () => {
-            onSetFrame(item.startFrame);
-            if (effectId) onSelectEffect(effectId);
-          };
-
-          if (!effectId) {
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className={className}
-                style={style}
-                title={title}
-                onClick={selectItem}
-              >
-                {item.label}
-              </button>
-            );
-          }
-
-          const dragPayload = {
-            effectId,
-            durationFrames: item.durationFrames,
-            grabOffsetFrames: 0
-          };
-          return (
-            <div key={item.id} className="timeline-block-shell" style={style}>
-              <button
-                type="button"
-                className={className}
-                title={t("timeline.dragMove", { title })}
-                draggable
-                onDragStart={(event) => {
-                  const bounds = laneRef.current?.getBoundingClientRect();
-                  if (!bounds) {
-                    event.preventDefault();
-                    return;
-                  }
-                  const pointerFrame = getTimelineFrameAtPosition(
-                    event.clientX,
-                    bounds.left,
-                    bounds.width,
-                    durationFrames
-                  );
-                  setEffectTimelineDragData(event, {
-                    ...dragPayload,
-                    grabOffsetFrames: pointerFrame - item.startFrame,
-                    mode: "move"
-                  });
-                }}
-                onClick={selectItem}
-              >
-                {item.label}
-              </button>
-              <button
-                type="button"
-                className="timeline-trim-handle start"
-                aria-label={t("timeline.trimItemStart", { name: item.label })}
-                title={t("timeline.dragTrimStart")}
-                draggable
-                onClick={(event) => event.stopPropagation()}
-                onDragStart={(event) => {
-                  event.stopPropagation();
-                  setEffectTimelineDragData(event, {
-                    ...dragPayload,
-                    mode: "trim-start"
-                  });
-                }}
-              />
-              <button
-                type="button"
-                className="timeline-trim-handle end"
-                aria-label={t("timeline.trimItemEnd", { name: item.label })}
-                title={t("timeline.dragTrimEnd")}
-                draggable
-                onClick={(event) => event.stopPropagation()}
-                onDragStart={(event) => {
-                  event.stopPropagation();
-                  setEffectTimelineDragData(event, {
-                    ...dragPayload,
-                    mode: "trim-end"
-                  });
-                }}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 }

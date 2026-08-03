@@ -23,7 +23,13 @@ describe("ResourcePackScanner", () => {
       },
       {
         path: "My Pack/assets/minecraft/textures/block/water_still.png.mcmeta",
-        bytes: encoder.encode("{}")
+        bytes: encoder.encode(JSON.stringify({
+          animation: {
+            frametime: 2,
+            interpolate: true,
+            frames: [0, { index: 1, time: 4 }]
+          }
+        }))
       },
       {
         path: "My Pack/assets/minecraft/textures/block/water_still.png",
@@ -39,6 +45,14 @@ describe("ResourcePackScanner", () => {
       "water_still"
     ]);
     expect(scan.textures[1].animated).toBe(true);
+    expect(scan.textures[1].animation).toEqual({
+      frameTimeTicks: 2,
+      interpolate: true,
+      frames: [
+        { index: 0 },
+        { index: 1, timeTicks: 4 }
+      ]
+    });
   });
 
   it("keeps texture scanning available when pack.mcmeta is absent", () => {

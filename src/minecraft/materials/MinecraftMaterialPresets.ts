@@ -150,6 +150,10 @@ export function isMaterialPresetId(value: unknown): value is MinecraftMaterialPr
 function inferPresetId(blockId: BlockId): MinecraftMaterialPresetId | null {
   if (blockId === "oak_leaves") return "leaves";
   if (blockId === "water") return "water";
+  if (blockId === "lava") return "lava-emissive";
+  if (blockId === "glowstone") return "glowstone-emissive";
+  if (blockId === "torch") return "torch-emissive";
+  if (blockId === "redstone_lamp") return "redstone-lamp-emissive";
   if (blockId === "glass") return "glass";
   if (blockId === "air") return "transparent";
   return null;

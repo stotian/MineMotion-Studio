@@ -1,5 +1,6 @@
 import type { MineMotionProject } from "./ProjectFile";
 import { ProjectSerializer } from "./ProjectSerializer";
+import { appendRecoverySnapshot } from "../recovery/RecoverySnapshotStore";
 
 export const PROJECT_AUTOSAVE_KEY = "minemotion.autosave.project.v1";
 export const PROJECT_AUTOSAVE_BACKUP_KEY =
@@ -13,6 +14,12 @@ export interface ProjectAutosaveStorage {
 export interface LoadedProjectAutosave {
   project: MineMotionProject;
   source: "primary" | "backup";
+}
+
+let lastRecoverySnapshotWarning: string | null = null;
+
+export function getLastRecoverySnapshotWarning(): string | null {
+  return lastRecoverySnapshotWarning;
 }
 
 export function hasProjectAutosave(storage: ProjectAutosaveStorage): boolean {
@@ -33,6 +40,14 @@ export function saveProjectAutosave(
   }
   try {
     storage.setItem(PROJECT_AUTOSAVE_KEY, serialized);
+    try {
+      appendRecoverySnapshot(storage as Storage, project);
+      lastRecoverySnapshotWarning = null;
+    } catch (snapshotError) {
+      lastRecoverySnapshotWarning = snapshotError instanceof DOMException
+        ? snapshotError.name
+        : "RECOVERY_SNAPSHOT_WRITE_FAILED";
+    }
   } catch (error) {
     if (previous !== null) {
       try {
@@ -79,4 +94,9 @@ export function loadProjectAutosave(
   throw primaryError instanceof Error
     ? primaryError
     : new Error("Project autosave recovery failed.");
+}
+
+export function clearProjectAutosave(storage: Pick<Storage, "removeItem">): void {
+  storage.removeItem(PROJECT_AUTOSAVE_KEY);
+  storage.removeItem(PROJECT_AUTOSAVE_BACKUP_KEY);
 }

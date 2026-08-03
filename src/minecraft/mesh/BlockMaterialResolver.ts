@@ -4,12 +4,14 @@ import {
   type MinecraftMaterialContext
 } from "../../renderer/MinecraftMaterialSystem";
 import type { BlockId } from "../MinecraftWorldTypes";
+import type { BlockTextureFace } from "../resources/ResourcePackTypes";
 
 export class BlockMaterialResolver {
   static resolve(
     blockId: BlockId,
-    context?: MinecraftMaterialContext
+    context?: MinecraftMaterialContext,
+    face: BlockTextureFace = "all"
   ): THREE.MeshStandardMaterial {
-    return getMaterialForBlock(blockId, context);
+    return getMaterialForBlock(blockId, context, face);
   }
 }

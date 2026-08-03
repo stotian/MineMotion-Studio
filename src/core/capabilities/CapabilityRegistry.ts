@@ -1,3 +1,7 @@
+import {
+  createRendererBackendPlan,
+  type RendererBackendPlan
+} from "../../renderer/RendererBackendPolicy";
 export type CapabilityId =
   | "webgl"
   | "webgl2"
@@ -271,13 +275,16 @@ function buildCapabilities(
 export class CapabilityRegistry {
   private readonly capabilities: Readonly<Record<CapabilityId, Capability>>;
   private readonly codecs: readonly string[];
+  private readonly backendPlan: RendererBackendPlan;
 
   private constructor(
     capabilities: Readonly<Record<CapabilityId, Capability>>,
-    codecs: readonly string[]
+    codecs: readonly string[],
+    backendPlan: RendererBackendPlan
   ) {
     this.capabilities = capabilities;
     this.codecs = Object.freeze([...codecs]);
+    this.backendPlan = backendPlan;
   }
 
   static detect(options: CapabilityDetectionOptions = {}): CapabilityRegistry {
@@ -292,7 +299,8 @@ export class CapabilityRegistry {
     ];
     return new CapabilityRegistry(
       buildCapabilities(probe, options.ffmpeg),
-      [...new Set(codecs)]
+      [...new Set(codecs)],
+      createRendererBackendPlan(probe)
     );
   }
 
@@ -310,6 +318,10 @@ export class CapabilityRegistry {
 
   supportedCodecs(): readonly string[] {
     return this.codecs;
+  }
+
+  rendererBackendPlan(): RendererBackendPlan {
+    return this.backendPlan;
   }
 }
 

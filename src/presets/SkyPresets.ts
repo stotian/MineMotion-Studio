@@ -1,3 +1,3 @@
-export { SKY_PRESETS } from "../renderer/SkySystem";
-export type { SkyPreset, SkyPresetId } from "../renderer/SkySystem";
+export { SKY_PRESETS } from "../renderer/SkyTypes";
+export type { SkyPreset, SkyPresetId } from "../renderer/SkyTypes";
 

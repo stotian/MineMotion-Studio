@@ -179,7 +179,8 @@ export function scheduleBuiltinVfxPresetPreviews(
   presets: readonly BuiltinVfxPreset[],
   storage: Pick<Storage, "getItem" | "setItem">,
   onReady: (presetId: string, dataUrl: string) => void,
-  scheduler: VfxPreviewScheduler = scheduleVfxPreviewIdle
+  scheduler: VfxPreviewScheduler = scheduleVfxPreviewIdle,
+  onWarning: (presetId: string, code: "VFX_PREVIEW_GENERATION_FAILED") => void = () => undefined
 ): () => void {
   const queue = presets.filter(
     (preset) => preset.metadata.compatibility.runtime === "native-primitives"
@@ -199,7 +200,7 @@ export function scheduleBuiltinVfxPresetPreviews(
         writeCachedVfxPresetPreview(storage, preset, dataUrl);
         onReady(preset.metadata.id, dataUrl);
       } catch {
-        // Keep the catalog usable and retry generation on the next application run.
+        onWarning(preset.metadata.id, "VFX_PREVIEW_GENERATION_FAILED");
       }
     }
     cancelScheduled = scheduler(next);

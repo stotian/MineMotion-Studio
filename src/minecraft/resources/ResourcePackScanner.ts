@@ -5,6 +5,7 @@ import type {
   ResourcePackAsset,
   ResourcePackEntry,
   ResourcePackMetadata,
+  ResourcePackResolutionReport,
   ResourcePackScanResult,
   ResourcePackTextureAsset
 } from "./ResourcePackTypes";
@@ -36,10 +37,13 @@ export class ResourcePackScanner {
     const metadata = metadataEntry
       ? parsePackMetadata(new TextDecoder().decode(metadataEntry.bytes))
       : createMissingMetadata();
-    const metadataPaths = new Set(
+    const animationMetadata = new Map(
       normalizedEntries
         .filter((entry) => entry.path.toLowerCase().endsWith(".png.mcmeta"))
-        .map((entry) => entry.path.toLowerCase())
+        .map((entry) => [
+          entry.path.toLowerCase(),
+          parseAnimationMetadata(new TextDecoder().decode(entry.bytes))
+        ])
     );
     const textures = normalizedEntries
       .filter((entry) => {
@@ -53,7 +57,9 @@ export class ResourcePackScanner {
           .replace(/\\/g, "/")
           .toLowerCase(),
         bytes: entry.bytes,
-        animated: metadataPaths.has(`${entry.path.toLowerCase()}.mcmeta`)
+        animated: animationMetadata.has(`${entry.path.toLowerCase()}.mcmeta`),
+        animation:
+          animationMetadata.get(`${entry.path.toLowerCase()}.mcmeta`) ?? null
       }))
       .sort((left, right) => left.path.localeCompare(right.path));
     const warnings: string[] = [];
@@ -82,7 +88,8 @@ export function sanitizeResourcePackTextureAssets(value: unknown): ResourcePackT
   if (!Array.isArray(value)) return [];
   return value.filter(isResourcePackTextureAsset).map((texture) => ({
     ...texture,
-    animated: texture.animated ?? false
+    animated: texture.animated ?? false,
+    animation: sanitizeAnimationMetadata(texture.animation)
   }));
 }
 
@@ -113,9 +120,79 @@ export function sanitizeResourcePackAssets(value: unknown): ResourcePackAsset[] 
           : new Date(index).toISOString(),
       warnings: Array.isArray(pack.warnings)
         ? pack.warnings.filter((warning): warning is string => typeof warning === "string")
-        : []
+        : [],
+      ...(isResolutionReport(pack.resolutionReport)
+        ? { resolutionReport: pack.resolutionReport }
+        : {})
     }];
   });
+}
+
+
+function parseAnimationMetadata(raw: string) {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!isRecord(parsed) || !isRecord(parsed.animation)) return null;
+  const frameTimeTicks = finiteInteger(parsed.animation.frametime, 1, 1, 1200);
+  const interpolate = parsed.animation.interpolate === true;
+  const frames = Array.isArray(parsed.animation.frames)
+    ? parsed.animation.frames.slice(0, 4096).flatMap((frame) => {
+        if (typeof frame === "number" && Number.isInteger(frame) && frame >= 0) {
+          return [{ index: frame }];
+        }
+        if (!isRecord(frame)) return [];
+        const index = finiteInteger(frame.index, -1, 0, 1_000_000);
+        if (index < 0) return [];
+        const timeTicks = finiteInteger(frame.time, frameTimeTicks, 1, 1200);
+        return [{ index, timeTicks }];
+      })
+    : [];
+  return { frameTimeTicks, interpolate, frames };
+}
+
+function sanitizeAnimationMetadata(value: unknown) {
+  if (!isRecord(value)) return null;
+  const frameTimeTicks = finiteInteger(value.frameTimeTicks, 1, 1, 1200);
+  const frames = Array.isArray(value.frames)
+    ? value.frames.slice(0, 4096).flatMap((frame) => {
+        if (!isRecord(frame)) return [];
+        const index = finiteInteger(frame.index, -1, 0, 1_000_000);
+        if (index < 0) return [];
+        return [{
+          index,
+          ...(frame.timeTicks === undefined
+            ? {}
+            : { timeTicks: finiteInteger(frame.timeTicks, frameTimeTicks, 1, 1200) })
+        }];
+      })
+    : [];
+  return {
+    frameTimeTicks,
+    interpolate: value.interpolate === true,
+    frames
+  };
+}
+
+function finiteInteger(
+  value: unknown,
+  fallback: number,
+  minimum: number,
+  maximum: number
+): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(maximum, Math.max(minimum, Math.trunc(value)))
+    : fallback;
+}
+
+function isResolutionReport(value: unknown): value is ResourcePackResolutionReport {
+  return isRecord(value) &&
+    typeof value.resolvedFaces === "number" &&
+    typeof value.fallbackFaces === "number" &&
+    Array.isArray(value.missing);
 }
 
 function parsePackMetadata(raw: string): ResourcePackMetadata {

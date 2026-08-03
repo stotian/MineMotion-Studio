@@ -5,6 +5,7 @@ import {
   createMinecraftMaterialContextSignature,
   getMaterialForBlock,
   MinecraftMaterialCache,
+  resolveAnimationFrame,
   type MinecraftMaterialContext
 } from "./MinecraftMaterialSystem";
 import {
@@ -29,6 +30,12 @@ function context(
         ...DEFAULT_MINECRAFT_MATERIAL_SETTINGS,
         defaultPresetId,
         overrides
+      },
+      water: {
+        opacity: 0.58,
+        roughness: 0.24,
+        animationSpeed: 1,
+        emissiveIntensity: 0
       }
     }
   };
@@ -37,6 +44,23 @@ function context(
 afterEach(() => {
   clearMinecraftMaterialCache();
   vi.restoreAllMocks();
+
+  it("keeps per-face materials separate and resolves deterministic animation frames", () => {
+    const materialContext = context("solid");
+    const top = getMaterialForBlock("grass_block", materialContext, "top");
+    const side = getMaterialForBlock("grass_block", materialContext, "side");
+    expect(top).not.toBe(side);
+    expect(resolveAnimationFrame({
+      frameTimeTicks: 2,
+      interpolate: false,
+      frames: [{ index: 0 }, { index: 2, timeTicks: 4 }]
+    }, 4, 99)).toBe(0);
+    expect(resolveAnimationFrame({
+      frameTimeTicks: 2,
+      interpolate: false,
+      frames: [{ index: 0 }, { index: 2, timeTicks: 4 }]
+    }, 4, 100)).toBe(2);
+  });
 });
 
 describe("Minecraft material cache", () => {

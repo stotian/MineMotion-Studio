@@ -1,4 +1,4 @@
-import type { ExportSettings } from "../ExportTypes";
+import type { ExportRenderPass, ExportSettings } from "../ExportTypes";
 import { createId } from "../../core/ids/Id";
 
 export type RenderJobStatus =
@@ -17,6 +17,15 @@ export interface RenderJobLogEntry {
   createdAt: string;
 }
 
+export interface RenderJobProductionMetadata {
+  shotId: string;
+  takeGroupId: string;
+  takeNumber: number;
+  revision: number;
+  renderPass: ExportRenderPass;
+  outputFolder: string;
+}
+
 export interface RenderJob {
   id: string;
   name: string;
@@ -27,6 +36,7 @@ export interface RenderJob {
   error: string;
   outputPath: string;
   logs: RenderJobLogEntry[];
+  production?: RenderJobProductionMetadata;
   createdAt: string;
   updatedAt: string;
 }

@@ -30,13 +30,11 @@ export function createLegacyProjectArtifact(
 }
 
 export function parseProjectWorkspacePayload(raw: string): MineMotionProject {
-  return PackageReader.looksLikePackage(raw)
-    ? PackageReader.parse(raw)
-    : ProjectSerializer.parse(raw);
+  return PackageReader.looksLikePackage(raw) ? PackageReader.parse(raw) : ProjectSerializer.parse(raw);
 }
 
 export function parseProjectWorkspaceBytes(bytes: Uint8Array): MineMotionProject {
-  return parseProjectWorkspacePayload(new TextDecoder().decode(bytes));
+  return PackageReader.parseBytes(bytes);
 }
 
 export function createRecentProjectEntry(

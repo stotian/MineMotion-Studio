@@ -53,6 +53,7 @@ function sanitizeJob(value: unknown, index: number): RenderJob[] {
     message: typeof source.message === "string" ? source.message : "",
     error: typeof source.error === "string" ? source.error : "",
     outputPath: typeof source.outputPath === "string" ? source.outputPath : "",
+    production: sanitizeProductionMetadata(source.production),
     logs: Array.isArray(source.logs)
       ? source.logs.flatMap((entry, logIndex) => {
           if (!entry || typeof entry !== "object") return [];
@@ -68,4 +69,21 @@ function sanitizeJob(value: unknown, index: number): RenderJob[] {
     createdAt: typeof source.createdAt === "string" ? source.createdAt : now,
     updatedAt: typeof source.updatedAt === "string" ? source.updatedAt : now
   }];
+}
+
+function sanitizeProductionMetadata(value: unknown): RenderJob["production"] {
+  if (!value || typeof value !== "object") return undefined;
+  const source = value as NonNullable<RenderJob["production"]>;
+  const pass = ["beauty", "alpha", "world", "characters", "vfx", "depth", "normals", "object-id"].includes(source.renderPass)
+    ? source.renderPass
+    : "beauty";
+  if (typeof source.shotId !== "string" || !source.shotId) return undefined;
+  return {
+    shotId: source.shotId,
+    takeGroupId: typeof source.takeGroupId === "string" ? source.takeGroupId : source.shotId,
+    takeNumber: Math.max(1, Math.round(Number(source.takeNumber) || 1)),
+    revision: Math.max(1, Math.round(Number(source.revision) || 1)),
+    renderPass: pass,
+    outputFolder: typeof source.outputFolder === "string" ? source.outputFolder : ""
+  };
 }

@@ -1,25 +1,8 @@
 import * as THREE from "three";
 import type { LightingSettings, ResolvedLightingState } from "../lighting/LightingTypes";
 import { resolveLightingAtFrame } from "../lighting/LightingController";
-
-export type SkyPresetId =
-  | "Day"
-  | "Sunset"
-  | "Night"
-  | "Storm"
-  | "Nether"
-  | "End"
-  | "Custom";
-
-export interface SkyPreset {
-  id: SkyPresetId;
-  label: string;
-  background: string;
-  fog: string;
-  ambientIntensity: number;
-  directionalIntensity: number;
-  directionalColor: string;
-}
+import type { SkyPreset, SkyPresetId } from "./SkyTypes";
+export type { SkyPreset, SkyPresetId } from "./SkyTypes";
 
 export const SKY_PRESETS: Record<SkyPresetId, SkyPreset> = {
   Day: {
@@ -99,7 +82,9 @@ export class SkySystem {
   ): ResolvedLightingState | null {
     const preset = SKY_PRESETS[presetId];
     const resolved = lighting ? resolveLightingAtFrame(lighting, frame) : null;
-    const background = resolved?.animateTimeOfDay
+    const useResolvedBackground = resolved &&
+      (resolved.animateTimeOfDay || resolved.weather !== "clear");
+    const background = useResolvedBackground
       ? resolved.backgroundColor
       : presetId === "Custom"
         ? customColor

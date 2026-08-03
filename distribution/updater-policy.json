@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "enabled": false,
+  "reason": "The secure updater is disabled until signed release artifacts, key rotation, rollback, and update-channel infrastructure are validated."
+}

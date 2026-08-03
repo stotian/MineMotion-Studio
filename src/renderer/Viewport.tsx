@@ -20,6 +20,8 @@ import {
   shouldIncludeProjectVfx
 } from "../vfx/runtime/VfxProjectFrame";
 import { useLocalization } from "../localization/LocalizationContext";
+import type { TranslationKey } from "../localization/LocalizationTypes";
+import { createOptimizationRecommendationReport } from "../performance/OptimizationRecommendations";
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
 
@@ -49,6 +51,10 @@ export function Viewport({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<SceneRenderer | null>(null);
   const [metrics, setMetrics] = useState<RendererMetricsSnapshot | null>(null);
+  const optimizationReport = useMemo(
+    () => metrics ? createOptimizationRecommendationReport(metrics, "draft") : null,
+    [metrics]
+  );
   const handleMetrics = useCallback((snapshot: RendererMetricsSnapshot) => {
     setMetrics(snapshot);
   }, []);
@@ -339,6 +345,28 @@ export function Viewport({
                   : t("viewport.metrics.unavailable")
               })}
             </span>
+            {optimizationReport && (
+              <span
+                className={`performance-budget-status ${optimizationReport.evaluation.status}`}
+              >
+                {t("viewport.metrics.budget", {
+                  profile: t("viewport.metrics.profile.draft"),
+                  status: t(
+                    `viewport.metrics.status.${optimizationReport.evaluation.status}` as TranslationKey
+                  )
+                })}
+              </span>
+            )}
+            {optimizationReport?.recommendations.map((recommendation) => (
+              <span
+                key={recommendation.metric}
+                className={`performance-recommendation ${recommendation.severity}`}
+              >
+                {t(
+                  `viewport.metrics.recommendation.${recommendation.code}` as TranslationKey
+                )}
+              </span>
+            ))}
           </div>
         )}
       <div className="post-bloom-overlay" style={bloomStyle} />

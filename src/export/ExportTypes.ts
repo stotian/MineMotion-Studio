@@ -12,6 +12,9 @@ export type ExportFormat =
   | "audio_metadata";
 
 export type ExportQuality = "draft" | "medium" | "high";
+export type ExportRenderPass = "beauty" | "alpha" | "world" | "characters" | "vfx" | "depth" | "normals" | "object-id";
+
+import type { PostProcessingSettings } from "../rendering/postprocessing/PostProcessingTypes";
 
 export interface ExportSettings {
   format: ExportFormat;
@@ -28,6 +31,8 @@ export interface ExportSettings {
   cameraId: "active" | "viewport" | string;
   quality: ExportQuality;
   outputName: string;
+  renderPass: ExportRenderPass;
+  postProcessingOverride?: PostProcessingSettings;
 }
 
 export interface ExportValidationResult {

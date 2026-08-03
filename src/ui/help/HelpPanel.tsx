@@ -1,4 +1,7 @@
 import { HelpCircle } from "lucide-react";
+import { useState } from "react";
+import { searchContextualHelp } from "../../onboarding/ContextualHelp";
+import type { TranslationKey } from "../../localization/LocalizationTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 
 interface HelpPanelProps {
@@ -10,6 +13,8 @@ interface HelpPanelProps {
 export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
+  const [query, setQuery] = useState("");
+  const contextualHelp = searchContextualHelp(query);
   if (!open) return null;
 
   return (
@@ -51,6 +56,9 @@ export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) 
             <li>{t("help.worldImport")}</li>
             <li>{t("help.save")}</li>
           </ul>
+          <h3>{t("help.contextual")}</h3>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("help.search")} aria-label={t("help.search")} />
+          <ul>{contextualHelp.map((entry) => <li key={entry.id}><strong>{t(entry.titleKey as TranslationKey)}</strong><span>{t(entry.bodyKey as TranslationKey)}</span><code>{entry.docPath}</code></li>)}</ul>
           <h3>{t("help.shortcuts")}</h3>
           <ul>
             <li>{t("help.shortcut.commands")}</li>

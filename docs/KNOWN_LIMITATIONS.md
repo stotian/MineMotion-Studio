@@ -19,16 +19,16 @@ still required before changing code.
 | LIM-010 | `SceneRenderer` recreates effect geometry/materials and clears roots without complete object-tree disposal | Yes | P3 | 15.8 | RESOLVED |
 | LIM-011 | Preview/export consumers previously bypassed the typed evaluator | Yes | P2 | 15.7 | RESOLVED |
 | LIM-012 | Entity/bone targets now resolve safely with warnings, but several registered parameters remain visually ignored by compatibility visuals | Yes | P4 | 16 | PARTIALLY_RESOLVED |
-| LIM-013 | `App.tsx` and several panels own excessive orchestration | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
+| LIM-013 | `App.tsx` and several panels own excessive orchestration; project/export/world-import/rig boundaries are extracted, while timeline and remaining composition stay large | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
 | LIM-014 | `Animator.sampleProject` clones the broad project object while tracks exist | Yes | P3 | 20 | OPEN |
 | LIM-015 | Static scene nodes and world geometry are rebuilt on project updates; imported OBJ parsing/resources are now cached per active source | Yes | P3 | 20 | PARTIALLY_RESOLVED |
 | LIM-016 | IK is not connected to the production character workflow | Yes | P4 | 19 | RESOLVED |
 | LIM-017 | Blockbench rig mapping and numeric rotation clips are supported, but textured preview, position/scale channels, expressions, and advanced interpolation remain explicit unsupported features | Yes | P4 | 21/future | PARTIALLY_RESOLVED |
-| LIM-018 | Animated resource-pack textures are detected but not played | Yes | P4 | 21 | OPEN |
-| LIM-019 | Per-face resource-pack rendering remains incomplete | Yes | P4 | 21 | OPEN |
-| LIM-020 | World import is intentionally bounded and older pre-flattening/decompression cases remain limited | Yes | P4 | 21 | OPEN |
+| LIM-018 | Supported vertical-strip resource-pack animations were detected but not played | Yes | P4 | 21 | RESOLVED |
+| LIM-019 | Per-face resource-pack rendering remains incomplete | Yes | P4 | 21 | RESOLVED |
+| LIM-020 | Modern bounded world import is production-ready; complete pre-flattening IDs, entities/block entities, arbitrary models, and mod render APIs remain unsupported | Yes | P4 | 21/future | PARTIALLY_RESOLVED_HONEST |
 | LIM-021 | External executable plugins remain disabled; no permissioned sandbox or SDK exists | Yes | P4 | 23 | OPEN_SAFE_DEFAULT |
-| LIM-022 | Service interfaces exist, but concrete domain controllers remain largely inside `App.tsx` | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
+| LIM-022 | Concrete project, export, world-import, rig, and constraint controllers now exist, but remaining timeline/VFX/panel coordination still lives in large composition modules | Yes | P3/P4 | Incremental | PARTIALLY_RESOLVED |
 | LIM-023 | The main JavaScript bundle was reduced from 1,542.64 to 1,439.60 kB through measured dynamic boundaries, but startup-critical React/Three.js/editor code still triggers Vite’s 500 kB warning | Yes | P3 | 20.11/20.12-13 | PARTIALLY_RESOLVED_MEASURED |
 | LIM-024 | Platforms other than Windows are not validated | Yes | P4 | 24 | OPEN |
 | LIM-025 | Primitive V1 covers five renderer-neutral kinds and a burst emitter; advanced emitters/modifiers, overlays, and camera primitives remain absent | Yes | P4 | 15/16 | OPEN |
@@ -60,6 +60,10 @@ still required before changing code.
 | LIM-051 | Dynamic VFX line/ring geometry remains frame-owned because evaluated vertices/topology change; its hardware allocation cost is not yet calibrated | Yes | P3 | 20.15 | OPEN_MEASUREMENT |
 | LIM-052 | Visible-block mesh preparation remains coupled to synchronous renderer rebuilds, and atlas generation has no OffscreenCanvas compatibility gate | Yes | P3 | 20/future renderer | OPEN_ARCHITECTURE |
 | LIM-053 | World-import cancellation is observed between chunks, but an active worker decode has no AbortSignal/operation-level stale-result guard yet | Yes | P3 | 20.10 | RESOLVED |
+| LIM-054 | Ultra Phases 36–600 provide persistent source foundations and 31 Phase 136–600 program engines, but not every phase has its final dedicated artist-facing runtime/editor | Yes | P4 | Ultra follow-up | OPEN_HONEST_UI |
+| LIM-055 | Ultra rendering/VFX/color contracts are deterministic plain data; final Three.js shader/compositor parity and reviewed GPU captures remain unvalidated | Yes | P2/P4 | 76–85 | EVIDENCE_BLOCKED |
+| LIM-056 | Assisted mocap stores bounded observations and corrections but does not bundle a neural pose-estimation model or a licensed visual benchmark set | Yes | P4 | 43/future | OPEN_HONEST_CAPABILITY |
+| LIM-057 | Crowd, destruction, physics and battle source models are bounded and deterministic, but their highest-scale targets require measured hardware calibration | Yes | P3 | 65–75/126–127 | OPEN_MEASUREMENT |
 
 ## Phase 15.1 Outcome
 
@@ -150,3 +154,26 @@ from the stable preset count; the non-visual color-grade marker is explicitly
 experimental and cannot be added from the library. Generated thumbnails remain
 `pending` until the preview/cache milestone, and native content families begin
 in 16.2.
+
+## Phase 20 completion limitations
+
+- WebGPU is not a production renderer. Detection does not imply feature parity,
+  export support, resource ownership, or selection.
+- Performance recommendations are advisory and currently evaluate the Draft
+  profile only in the viewport diagnostics overlay.
+- Benchmark fixtures provide deterministic software classifications, not
+  measured FPS across user hardware.
+- The Phase 20 local recovery changes have not passed the repository's complete
+  dependency-based gate because the configured registry lacks locked transitive
+  packages. GitHub write access also remains blocked, so remote CI acceptance is
+  not claimed.
+
+## Phases 26–35 release limitations
+
+- The application remains version `0.8.2`; the frozen `1.0.0` contracts are a target, not a published release.
+- No Windows, macOS, or Linux platform is claimed as supported until a real signed/unsigned-as-documented artifact passes its smoke matrix.
+- The configured recovery registry cannot provide `@tauri-apps/plugin-fs@2.5.1`; full dependency-backed typecheck, tests, build, audit and VFX example verification are unrun.
+- Rust/Cargo, native installers, real FFmpeg platform smoke tests and manual visual QA are unavailable in this environment.
+- Performance thresholds exist, but production-bundle and native GPU evidence remain unmeasured.
+- GitHub `main` does not contain the Phase 20–35 local commits, so remote CI, candidate tags and publication are not evidence.
+- The release evaluator is intentionally red and the updater remains disabled.

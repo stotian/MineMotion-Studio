@@ -88,7 +88,12 @@ export class McaFileReader {
 
     const view = new DataView(buffer);
     const length = view.getUint32(byteOffset, false);
-    if (length <= 1 || byteOffset + 4 + length > buffer.byteLength) {
+    const allocatedBytes = location.sectorCount * SECTOR_BYTES;
+    if (
+      length <= 1 ||
+      length + 4 > allocatedBytes ||
+      byteOffset + 4 + length > buffer.byteLength
+    ) {
       throw new Error(
         `Chunk ${location.chunkX},${location.chunkZ} has an invalid payload length.`
       );

@@ -9,7 +9,12 @@ export type RigPresetId =
   | "zombie"
   | "skeleton"
   | "creeper"
-  | "enderman";
+  | "enderman"
+  | "villager"
+  | "pig"
+  | "cow"
+  | "wolf"
+  | "spider";
 
 export type MinecraftSkinModelType = "steve" | "alex" | "unknown";
 
@@ -117,6 +122,25 @@ export interface BlockbenchBoneMappingOverride {
   rigPresetId: RigPresetId;
   sourceGroupId: string;
   targetBoneId: string | null;
+}
+
+
+export interface RiggedVoxelCube {
+  id: string;
+  name: string;
+  boneId: string;
+  position: RigVector3Tuple;
+  size: RigVector3Tuple;
+  color: string;
+  materialName: string;
+  visible: boolean;
+}
+
+export interface CharacterCustomGeometry {
+  schemaVersion: 1;
+  sourceModelId: string | null;
+  hideDefaultGeometry: boolean;
+  cubes: RiggedVoxelCube[];
 }
 
 export interface RigProjectData {

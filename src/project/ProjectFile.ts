@@ -1,6 +1,6 @@
-import type { SkyPresetId } from "../renderer/SkySystem";
+import type { SkyPresetId } from "../renderer/SkyTypes";
 import type { BlockPaletteStyle } from "../settings/SettingsTypes";
-import type { AudioClip } from "../audio/AudioTypes";
+import type { ProjectAudioData } from "../audio/AudioTypes";
 import type { AssetLibraryData } from "../assets/library/AssetRecord";
 import type { EffectInstance } from "../effects/EffectTypes";
 import type { ExportSettings } from "../export/ExportTypes";
@@ -10,6 +10,7 @@ import type {
   ImportedChunkData,
   ImportedChunkRange,
   MinecraftDimensionId,
+  WorldImportProfile,
   WorldImportPerformanceEstimate,
   WorldRenderOptions
 } from "../minecraft/import/MinecraftChunkTypes";
@@ -21,10 +22,15 @@ import type {
   ResourcePackAsset
 } from "../minecraft/resources/ResourcePackTypes";
 import type {
+  WorldSceneOverrides,
+  WorldSourcePolicy
+} from "../minecraft/staging/WorldSceneOverrides";
+import type {
   BoneAnimationTrack,
   BlockbenchModelAsset,
   CharacterAttachment,
   CharacterExpressionOverlay,
+  CharacterCustomGeometry,
   MinecraftSkinAsset,
   RigPresetId,
   RigProjectData
@@ -35,10 +41,14 @@ import type {
   TransformData,
   Vector3Tuple
 } from "../core/scene/SceneTypes";
+import type { ShotProductionData } from "../production/ShotTypes";
+import type { SimulationProjectData } from "../simulation/SimulationTypes";
 import type {
   AnimationLayerBlendMode,
   AnimationLayerKind
 } from "../animation/layers/AnimationLayerTypes";
+import type { UltraProjectData } from "../ultra/UltraTypes";
+import type { MinecraftCreationSuiteData } from "../minecraft/studio/MinecraftStudioTypes";
 
 export type {
   SceneEntity,
@@ -64,6 +74,7 @@ export interface CharacterEntity extends SceneEntity {
   expression?: CharacterExpressionOverlay;
   attachments?: CharacterAttachment[];
   boneKeyframes?: BoneAnimationTrack[];
+  customGeometry?: CharacterCustomGeometry;
 }
 
 export interface CameraEntity extends SceneEntity {
@@ -94,7 +105,7 @@ export interface ImportedObjAsset {
 }
 
 export interface WorldDimensionSummary {
-  id: "overworld" | "nether" | "end";
+  id: MinecraftDimensionId;
   label: string;
   regionFiles: string[];
   estimatedChunks?: number;
@@ -109,6 +120,7 @@ export interface ImportedWorldSummary {
   dimensions: WorldDimensionSummary[];
   selectedDimension?: MinecraftDimensionId;
   importedChunkRanges?: ImportedChunkRange[];
+  importProfiles?: WorldImportProfile[];
   importedChunks?: ImportedChunkData[];
   unknownBlockMappings?: Record<string, string>;
   unknownBlockCount?: number;
@@ -119,8 +131,19 @@ export interface ImportedWorldSummary {
     generatedAt: string;
     chunkCount: number;
     blockCount: number;
+    formatVersion?: number;
+    fingerprint?: string;
+    estimatedBytes?: number;
+    resourcePackId?: string | null;
+    invalidatedAt?: string;
+    invalidationReason?: string;
+    cacheAssetPath?: string;
+    cacheCodec?: string;
+    sizeWarning?: "warning" | "critical";
   };
   renderOptions?: WorldRenderOptions;
+  sceneOverrides?: WorldSceneOverrides;
+  sourcePolicy?: WorldSourcePolicy;
   sourcePathMissing?: boolean;
   importedAt: string;
   notes: string[];
@@ -200,6 +223,7 @@ export interface TimelineMarker {
   name: string;
   frame: number;
   color: string;
+  type?: import("../production/ShotTypes").ProductionMarkerType;
 }
 
 export interface ReusableAnimationClipTrack {
@@ -294,14 +318,16 @@ export interface MineMotionProject {
   effects: {
     instances: EffectInstance[];
   };
-  audio: {
-    clips: AudioClip[];
-  };
+  audio: ProjectAudioData;
   postProcessing: PostProcessingSettings;
   renderSettings: RenderSettings;
   exportSettings: ExportSettings;
   ffmpegSettings: FfmpegSettings;
   renderQueue: RenderQueueState;
+  production: ShotProductionData;
+  simulations: SimulationProjectData;
+  ultra: UltraProjectData;
+  creationSuite: MinecraftCreationSuiteData;
   performanceSettings: {
     showDiagnostics: boolean;
     targetFps: number;

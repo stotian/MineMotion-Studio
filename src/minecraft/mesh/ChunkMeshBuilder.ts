@@ -15,7 +15,7 @@ export class ChunkMeshBuilder {
     group.userData.objectId = "world";
     group.userData.objectType = "world";
     const visibleBlocks = GreedyMesher.compactVisibleBlocks(chunks);
-    let cubeGeometry: THREE.BoxGeometry | null = null;
+    const faceGeometries = createFaceGeometries();
     const renderedChunks = chunks.map((chunk) => {
       const chunkObject = new THREE.Group();
       chunkObject.name = `Chunk ${chunk.chunkX},${chunk.chunkZ}`;
@@ -28,31 +28,41 @@ export class ChunkMeshBuilder {
         Math.floor(block.z / 16) === chunk.chunkZ
       );
       for (const blockId of listRenderableBlockIds()) {
-        const samples = chunkBlocks.filter((block) => block.id === blockId);
-        if (samples.length === 0) continue;
-        cubeGeometry ??= new THREE.BoxGeometry(1, 1, 1);
-        const mesh = new THREE.InstancedMesh(
-          cubeGeometry,
-          BlockMaterialResolver.resolve(blockId, options.materialContext),
-          samples.length
-        );
-        mesh.name = `imported_${blockId}`;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        mesh.userData.objectId = "world";
-        mesh.userData.objectType = "world";
-
-        const matrix = new THREE.Matrix4();
-        samples.forEach((block, index) => {
-          matrix.makeTranslation(
-            block.x + 0.5,
-            block.y + 0.5,
-            block.z + 0.5
+        const blockSamples = chunkBlocks.filter((block) => block.id === blockId);
+        if (blockSamples.length === 0) continue;
+        for (const direction of FACE_DIRECTIONS) {
+          const samples = blockSamples.filter((block) =>
+            block.exposedFaces.includes(direction)
           );
-          mesh.setMatrixAt(index, matrix);
-        });
-        mesh.instanceMatrix.needsUpdate = true;
-        chunkObject.add(mesh);
+          if (samples.length === 0) continue;
+          const mesh = new THREE.InstancedMesh(
+            faceGeometries[direction],
+            BlockMaterialResolver.resolve(
+              blockId,
+              options.materialContext,
+              textureFaceForDirection(direction)
+            ),
+            samples.length
+          );
+          mesh.name = `imported_${blockId}_${direction}`;
+          mesh.castShadow = blockId !== "water" && blockId !== "glass";
+          mesh.receiveShadow = true;
+          mesh.userData.objectId = "world";
+          mesh.userData.objectType = "world";
+          mesh.userData.blockFace = direction;
+
+          const matrix = new THREE.Matrix4();
+          samples.forEach((block, index) => {
+            matrix.makeTranslation(
+              block.x + 0.5,
+              block.y + 0.5,
+              block.z + 0.5
+            );
+            mesh.setMatrixAt(index, matrix);
+          });
+          mesh.instanceMatrix.needsUpdate = true;
+          chunkObject.add(mesh);
+        }
       }
       group.add(chunkObject);
       return {
@@ -85,6 +95,49 @@ export class ChunkMeshBuilder {
       helpers: helpers.children.length > 0 ? helpers : null
     };
   }
+}
+
+
+const FACE_DIRECTIONS = [
+  "east",
+  "west",
+  "up",
+  "down",
+  "south",
+  "north"
+] as const;
+
+type FaceDirection = (typeof FACE_DIRECTIONS)[number];
+
+function createFaceGeometries(): Record<FaceDirection, THREE.PlaneGeometry> {
+  const east = new THREE.PlaneGeometry(1, 1);
+  east.rotateY(Math.PI / 2);
+  east.translate(0.5, 0, 0);
+  const west = new THREE.PlaneGeometry(1, 1);
+  west.rotateY(-Math.PI / 2);
+  west.translate(-0.5, 0, 0);
+  const up = new THREE.PlaneGeometry(1, 1);
+  up.rotateX(-Math.PI / 2);
+  up.translate(0, 0.5, 0);
+  const down = new THREE.PlaneGeometry(1, 1);
+  down.rotateX(Math.PI / 2);
+  down.translate(0, -0.5, 0);
+  const south = new THREE.PlaneGeometry(1, 1);
+  south.translate(0, 0, 0.5);
+  const north = new THREE.PlaneGeometry(1, 1);
+  north.rotateY(Math.PI);
+  north.translate(0, 0, -0.5);
+  return { east, west, up, down, south, north };
+}
+
+function textureFaceForDirection(
+  direction: FaceDirection
+): "side" | "top" | "bottom" | "front" | "back" {
+  if (direction === "up") return "top";
+  if (direction === "down") return "bottom";
+  if (direction === "south") return "front";
+  if (direction === "north") return "back";
+  return "side";
 }
 
 function createChunkBorder(chunk: ImportedChunkData): THREE.LineSegments {

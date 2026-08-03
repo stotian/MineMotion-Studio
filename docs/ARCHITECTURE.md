@@ -82,6 +82,11 @@ flowchart LR
 - `src/performance`: FPS sampling, resource tracking, and disposal helpers.
 - `src/plugins`: manifest, permissions, API shape, registry, loader, and
   built-in plugin metadata.
+- `src/ultra`: versioned Phases 36–600 production records and capability contracts, bounded migration,
+  dependency/domain validation, and pure engines for performance, directing,
+  Minecraft entities, world simulation, rendering, VFX graphs, compositing,
+  and color management. It is a project subdocument, not a second project or
+  timeline authority.
 - `src-tauri`: Tauri v2 desktop shell and restricted FFmpeg staging commands.
 
 ## Project System
@@ -104,6 +109,9 @@ adding:
 - imported world chunk metadata
 - rig presets, skin metadata, bone animation tracks, and Blockbench metadata
 - render queue history and FFmpeg settings
+- optional schema-1 Ultra production data for Phases 36–600; older schema-10
+  projects receive an empty bounded Ultra subdocument without changing their
+  existing scene, timeline, assets, audio, VFX or export data
 
 ## Rendering
 
@@ -154,8 +162,15 @@ existing WebM, audio, and Tauri support helpers delegate to the central
 capability registry.
 
 Service interfaces identify scene, timeline, render, VFX, audio, asset,
-project, export, and plugin boundaries. They document future extraction from
-`App.tsx`; they are deliberately not a new runtime container.
+project, export, and plugin boundaries. They are deliberately not a generic
+runtime container. Concrete focused controllers now own rig/constraints,
+world-import operations, export workflow, and the project document lifecycle.
+
+`useProjectWorkspaceController` is the single React authority for project state,
+whole-project history, dirty confirmation, autosave, open/save, recent-project
+metadata, and undo/redo. Pure package/legacy serialization helpers sit beside
+it. `App.tsx` supplies localization/status and domain invalidation callbacks and
+remains the composition root; no event bus or parallel project store exists.
 
 ## Rig constraint control flow
 
@@ -192,7 +207,8 @@ store exists.
 Ground sampling derives an indexed runtime view from renderer-neutral preset
 data or embedded imported chunks. No project store, animation authority,
 constraint track, or event bus was added. The measured Phase 19.3 baseline was
-2,839 lines; the Phase 19.5 checkpoint remains 2,678 lines and is enforced by
+2,839 lines. After world-import, export, and project workspace extraction,
+`App.tsx` is 1,855 lines and a 1,900-line ceiling is enforced by
 `npm run verify:architecture`.
 
 VFX frame evaluation is counter-addressed rather than stateful. A versioned
@@ -224,3 +240,24 @@ copyrighted audio.
 Plugin extension points now include effects, post-processing presets, SFX,
 render presets, and timeline item types. External plugin JavaScript execution is
 still disabled.
+
+## Phase 20 presentation and performance boundaries
+
+`TimelinePanel` remains the timeline composition/controller surface. Pure
+layout derivation lives in `TimelineViewModel`; Timeline/NLA JSX and drag
+presentation live in `TimelineViews`; shared bounded layer constants live in
+`TimelineConstants`. Children receive current project data and callbacks only,
+so they cannot create a second timeline or history authority.
+
+`OptimizationRecommendations` evaluates immutable renderer snapshots against an
+existing performance budget and returns read-only advisory data. It cannot
+apply a project patch or select a quality profile.
+
+`PerformanceBenchmarkScenes` creates fresh deterministic project fixtures and
+reuses stable VFX benchmark fixtures. `RendererBackendPolicy` is a pure
+capability-to-plan boundary: WebGL2/WebGL remain production backends and WebGPU
+is never selected by detection alone.
+
+Bundle and source-size regression ceilings share one JSON configuration. The
+post-build verifier measures emitted assets; the architecture verifier measures
+reviewed composition files.

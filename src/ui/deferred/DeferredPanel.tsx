@@ -2,7 +2,6 @@ import {
   Component,
   Suspense,
   lazy,
-  type ComponentProps,
   type ComponentType,
   type ReactNode
 } from "react";
@@ -55,11 +54,10 @@ class DeferredPanelErrorBoundary extends Component<
   }
 }
 
-export function createDeferredPanel<Panel extends ComponentType<any>>(
-  loader: () => Promise<{ default: Panel }>
-): Panel {
+export function createDeferredPanel<Props extends DeferredPanelProps>(
+  loader: () => Promise<{ default: ComponentType<Props> }>
+): ComponentType<Props> {
   const LazyPanel = lazy(loader);
-  type Props = ComponentProps<Panel>;
 
   function DeferredPanel(props: Props) {
     const localization = useLocalization();
@@ -92,5 +90,5 @@ export function createDeferredPanel<Panel extends ComponentType<any>>(
     );
   }
 
-  return DeferredPanel as Panel;
+  return DeferredPanel;
 }

@@ -19,7 +19,7 @@ export function RenderQueuePanel({
   return (
     <div className="render-queue">
       <div className="render-queue-header">
-        <strong>{localization.plural({ one: "queue.jobs.one", other: "queue.jobs.other" }, queue.jobs.length)}</strong>
+        <div><strong>{localization.plural({ one: "queue.jobs.one", other: "queue.jobs.other" }, queue.jobs.length)}</strong><small>{t("queue.summary", { queued: queue.jobs.filter((job) => job.status === "queued").length, running: queue.jobs.filter((job) => job.status === "running").length, complete: queue.jobs.filter((job) => job.status === "complete").length })}</small></div>
         <button type="button" onClick={onClearFinished} disabled={queue.jobs.length === 0}>
           <Trash2 size={14} />
           {t("queue.clearFinished")}
@@ -38,6 +38,7 @@ export function RenderQueuePanel({
                   <span>
                     {formatLabel(job.settings.format)} | {job.settings.width}x{job.settings.height} | {job.settings.fps} FPS
                   </span>
+                  {job.production && <span>{t("queue.productionMeta", { take: job.production.takeNumber, revision: job.production.revision, pass: job.production.renderPass })}</span>}
                 </div>
                 <div className="render-job-actions">
                   <button

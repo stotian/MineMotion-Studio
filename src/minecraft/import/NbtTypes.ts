@@ -48,6 +48,13 @@ export function tagBigIntArray(tag: NbtTag | undefined): bigint[] | undefined {
     : undefined;
 }
 
+export function tagNumberArray(tag: NbtTag | undefined): number[] | undefined {
+  return (tag?.type === "intArray" || tag?.type === "byteArray") &&
+    Array.isArray(tag.value)
+    ? (tag.value as number[])
+    : undefined;
+}
+
 export function tagList<T = unknown>(tag: NbtTag | undefined): T[] | undefined {
   return tag?.type === "list" && Array.isArray(tag.value)
     ? (tag.value as T[])

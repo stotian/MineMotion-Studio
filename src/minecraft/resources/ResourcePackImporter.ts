@@ -3,6 +3,7 @@ import {
   ResourcePackValidationError
 } from "./ResourcePackErrors";
 import { normalizeResourcePath, ResourcePackScanner } from "./ResourcePackScanner";
+import { TextureResolver } from "./TextureResolver";
 import type {
   ResourcePackAsset,
   ResourcePackEntry,
@@ -41,7 +42,7 @@ export class ResourcePackImporter {
   ): ResourcePackAsset {
     const scan = ResourcePackScanner.scan(entries);
     const id = createPackId(name);
-    return {
+    const asset: ResourcePackAsset = {
       id,
       name: name.replace(/\.zip$/i, "") || "Resource Pack",
       sourceKind,
@@ -53,11 +54,20 @@ export class ResourcePackImporter {
         mimeType: "image/png",
         dataUrl: `data:image/png;base64,${encodeBase64(texture.bytes)}`,
         byteLength: texture.bytes.byteLength,
-        animated: texture.animated
+        animated: texture.animated,
+        animation: texture.animation
       })),
       importedAt: new Date().toISOString(),
-      warnings: scan.warnings
+      warnings: [...scan.warnings]
     };
+    const resolutionReport = TextureResolver.createResolutionReport(asset);
+    asset.resolutionReport = resolutionReport;
+    if (resolutionReport.fallbackFaces > 0) {
+      asset.warnings.push(
+        `${resolutionReport.fallbackFaces} mapped block faces will use fallback materials.`
+      );
+    }
+    return asset;
   }
 }
 

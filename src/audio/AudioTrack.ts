@@ -7,7 +7,9 @@ export function createAudioTimelineItems(
     .map((clip) => ({
       clipId: clip.id,
       startFrame: clip.startFrame,
-      durationFrames: clip.durationFrames
+      durationFrames: clip.durationFrames,
+      role: clip.role,
+      muted: clip.muted
     }))
     .sort((left, right) => left.startFrame - right.startFrame);
 }

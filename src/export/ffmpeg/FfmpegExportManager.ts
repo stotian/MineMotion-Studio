@@ -60,8 +60,15 @@ export class FfmpegExportSession {
     return plan;
   }
 
+
+  async cancel(): Promise<boolean> {
+    if (this.closed || !isTauriRuntime()) return false;
+    return await invoke<boolean>("ffmpeg_cancel_job", { jobId: this.jobId });
+  }
+
   async cleanup(): Promise<void> {
     if (this.closed || !isTauriRuntime()) return;
+    await this.cancel().catch(() => false);
     this.closed = true;
     await invoke<void>("ffmpeg_cleanup_job", { jobId: this.jobId });
   }

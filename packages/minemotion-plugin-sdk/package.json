@@ -1,0 +1,9 @@
+{
+  "name": "@minemotion/plugin-sdk",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Versioned contracts and examples for MineMotion Studio content packs and sandboxed extensions.",
+  "exports": { ".": "./src/index.ts" },
+  "files": ["src", "examples", "templates", "README.md"]
+}

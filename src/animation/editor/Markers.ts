@@ -1,16 +1,19 @@
 import type { TimelineMarker } from "../../project/ProjectFile";
+import { PRODUCTION_MARKER_TYPES, type ProductionMarkerType } from "../../production/ShotTypes";
 import { createId } from "../../core/ids/Id";
 
 export function createTimelineMarker(
   name: string,
   frame: number,
-  color = "#f7d56b"
+  color = "#f7d56b",
+  type: ProductionMarkerType = "note"
 ): TimelineMarker {
   return {
     id: createId("marker"),
     name: name.trim() || "Marker",
     frame: Math.max(0, Math.round(frame)),
-    color: /^#[0-9a-f]{6}$/i.test(color) ? color : "#f7d56b"
+    color: /^#[0-9a-f]{6}$/i.test(color) ? color : "#f7d56b",
+    type
   };
 }
 
@@ -45,7 +48,10 @@ export function parseMarkers(raw: string): TimelineMarker[] {
       color:
         typeof marker.color === "string" && /^#[0-9a-f]{6}$/i.test(marker.color)
           ? marker.color
-          : "#f7d56b"
+          : "#f7d56b",
+      type: (PRODUCTION_MARKER_TYPES as readonly string[]).includes(marker.type ?? "")
+        ? marker.type as ProductionMarkerType
+        : "note"
     }];
   }).sort((left, right) => left.frame - right.frame);
 }

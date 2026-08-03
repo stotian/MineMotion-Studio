@@ -34,7 +34,9 @@ export function CommandPalette({
     const normalized = query.trim().toLowerCase();
     if (!normalized) return commands;
     return commands.filter((command) =>
-      `${command.title} ${command.group}`.toLowerCase().includes(normalized)
+      `${command.title} ${command.group} ${command.shortcut ?? ""}`
+        .toLowerCase()
+        .includes(normalized)
     );
   }, [commands, query]);
 

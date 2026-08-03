@@ -1,5 +1,19 @@
 import { createDeferredPanel } from "./DeferredPanel";
 
+
+
+export const AudioWorkspacePanel = createDeferredPanel(() =>
+  import("../audio/AudioWorkspacePanel").then((module) => ({
+    default: module.AudioWorkspacePanel
+  }))
+);
+
+export const AssetLibraryPanel = createDeferredPanel(() =>
+  import("../assets/AssetLibraryPanel").then((module) => ({
+    default: module.AssetLibraryPanel
+  }))
+);
+
 export const SettingsModal = createDeferredPanel(() =>
   import("../settings/SettingsModal").then((module) => ({
     default: module.SettingsModal
@@ -48,6 +62,13 @@ export const VfxWorkspacePanel = createDeferredPanel(() =>
   }))
 );
 
+
+export const ProductionWorkspacePanel = createDeferredPanel(() =>
+  import("../production/ProductionWorkspacePanel").then((module) => ({
+    default: module.ProductionWorkspacePanel
+  }))
+);
+
 export const WorldImportPanel = createDeferredPanel(() =>
   import("../world/WorldImportPanel").then((module) => ({
     default: module.WorldImportPanel
@@ -60,7 +81,16 @@ export const HelpPanel = createDeferredPanel(() =>
   }))
 );
 
+
+export const FirstLaunchExperience = createDeferredPanel(() =>
+  import("../onboarding/FirstLaunchExperience").then((module) => ({
+    default: module.FirstLaunchExperience
+  }))
+);
+
 export const DEFERRED_PANEL_IDS = Object.freeze([
+  "audio",
+  "assets",
   "settings",
   "templates",
   "plugins",
@@ -69,6 +99,8 @@ export const DEFERRED_PANEL_IDS = Object.freeze([
   "rig-studio",
   "lighting-studio",
   "vfx-studio",
+  "production",
   "world-import",
-  "help"
+  "help",
+  "first-launch"
 ] as const);

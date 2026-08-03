@@ -1,25 +1,46 @@
-# World Import Limitations
+# World Import Support Matrix And Limitations
 
-Phase 4 is a real import MVP, not a full Minecraft renderer.
+Phase 21 is a bounded animation-set importer, not a Minecraft server or complete
+world editor.
 
-## Current Limits
+## Supported production path
 
-- No resource-pack texture loading.
-- No biome tinting yet.
-- Heightmaps are not used for rendering decisions yet.
-- Entities, tile entities, fluids simulation, lighting, and block models are not
-  decoded.
-- Older non-palette chunk formats are not fully supported.
-- Compressed payloads require browser `DecompressionStream` support.
-- `.minemotion` stores metadata and optional imported chunk cache, not the full
-  source Minecraft world.
+| Area | Status |
+| --- | --- |
+| Current Java Anvil region discovery | Supported |
+| Overworld, Nether, End, custom dimension folders | Supported |
+| Modern palette/state properties | Supported |
+| Negative Y and current world height | Supported |
+| Modern padded and legacy continuous packed states | Supported |
+| Corrupt chunk/region isolation | Supported with warnings |
+| Coordinate/radius/region/chunk preview selection | Supported |
+| Spawn defaults and saved import profiles | Supported |
+| Cancellation, estimates, reimport, changed-chunk reuse, unload | Supported |
+| Source-world writes | Never performed |
+| ZIP/folder resource packs and per-face textures | Supported within limits |
+| Vertical-strip `.png.mcmeta` animations | Supported |
+| Transparent/emissive/water/leaves/biome tint fallbacks | Supported |
+| Time, sun, moon, fog, rain, snow, storm, Nether/End moods | Supported |
+| Scene-only props/visibility/markers/anchors/collision | Supported |
+| Versioned embedded portable chunk cache | Supported |
+| Reference-only world package | Supported; source must be reselected |
 
-## Performance Limits
+## Not supported or intentionally partial
 
-The importer defaults to small bounded imports. Increase limits carefully:
+- Complete pre-flattening numeric ID/data compatibility.
+- Entities, block entities, structures, POI, maps, ticks, inventories, commands,
+  redstone simulation, fluid simulation, or world saving.
+- Arbitrary resource-pack block models, multipart/model predicates, connected
+  textures, custom shaders, OptiFine/CIT, or mod render APIs.
+- ZIP64 or encrypted resource-pack archives.
+- Automatic reopening of a local browser folder after a reference-only project
+  is closed; the user must reselect the source.
+- Pixel-identical Minecraft lighting, biome blending, water shaders, or weather.
 
-- max region files
-- max chunks
-- max vertical sections
+## Safety and performance bounds
 
-Large imports can create many block instances and increase browser memory use.
+The importer limits region files, chunk candidates, decoded chunks, vertical
+sections, NBT collections/depth, resource-pack entries/expanded bytes, cache
+chunks/blocks/states, and preview radius. Large embedded caches warn at 64 MiB
+and become critical at 256 MiB. These are guardrails, not promises that every
+machine can render the maximum safely.

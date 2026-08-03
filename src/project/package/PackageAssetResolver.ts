@@ -8,6 +8,7 @@ export function resolvePackagedTextAsset(
     data.assets.models[packagePath] ??
     data.assets.audio[packagePath] ??
     data.assets.resourcePacks?.[packagePath] ??
+    data.assets.worldCaches?.[packagePath] ??
     null
   );
 }

@@ -45,6 +45,11 @@ export function validatePackageData(
     warnings.push(...data.manifest.warnings);
   }
 
+  const cachePath = data.project?.world?.cachedMesh?.cacheAssetPath;
+  if (cachePath && !data.assets?.worldCaches?.[cachePath]) {
+    warnings.push(`Portable world cache asset is missing: ${cachePath}.`);
+  }
+
   return {
     valid: errors.length === 0,
     errors,

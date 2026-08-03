@@ -1,6 +1,7 @@
 import { DEFAULT_APP_SETTINGS } from "./DefaultSettings";
 import type { AppSettings } from "./SettingsTypes";
 import type { AppLanguagePreference } from "../localization/LocalizationTypes";
+import { sanitizeWorkspaceLayout } from "./WorkspaceSettings";
 
 function languagePreference(value: unknown): AppLanguagePreference {
   return value === "en" || value === "fr" || value === "system"
@@ -20,7 +21,7 @@ export class SettingsSerializer {
 
   static withDefaults(settings: Partial<AppSettings> = {}): AppSettings {
     return {
-      schemaVersion: 1,
+      schemaVersion: 2,
       general: {
         ...DEFAULT_APP_SETTINGS.general,
         ...settings.general,
@@ -35,7 +36,8 @@ export class SettingsSerializer {
       },
       editor: {
         ...DEFAULT_APP_SETTINGS.editor,
-        ...settings.editor
+        ...settings.editor,
+        workspace: sanitizeWorkspaceLayout(settings.editor?.workspace)
       },
       minecraft: {
         ...DEFAULT_APP_SETTINGS.minecraft,

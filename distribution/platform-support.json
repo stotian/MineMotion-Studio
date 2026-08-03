@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "supportPolicy": "No platform is supported until a signed or explicitly unsigned candidate artifact passes its complete smoke matrix.",
+  "platforms": [
+    { "id": "windows-x64", "minimum": "Windows 10 22H2", "targets": ["msi", "nsis"], "status": "unvalidated", "supportClaimed": false },
+    { "id": "macos-arm64", "minimum": "macOS 13", "targets": ["dmg", "app"], "status": "unvalidated", "supportClaimed": false },
+    { "id": "macos-x64", "minimum": "macOS 13", "targets": ["dmg", "app"], "status": "unvalidated", "supportClaimed": false },
+    { "id": "linux-x64", "minimum": "Ubuntu 22.04 LTS or compatible", "targets": ["appimage", "deb"], "status": "unvalidated", "supportClaimed": false }
+  ]
+}

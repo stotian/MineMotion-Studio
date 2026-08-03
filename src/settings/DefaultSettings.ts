@@ -1,7 +1,8 @@
 import type { AppSettings } from "./SettingsTypes";
+import { DEFAULT_WORKSPACE_LAYOUT } from "./WorkspaceSettings";
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   general: {
     language: "system",
     autosaveEnabled: true,
@@ -28,10 +29,15 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   editor: {
     theme: "dark",
     uiScale: 1,
+    textScale: 1,
+    reducedMotion: false,
+    highContrast: false,
+    colorVisionMode: "normal",
     snapToGrid: false,
     transformStep: 0.1,
     rotationStepDegrees: 5,
-    defaultInterpolationMode: "linear"
+    defaultInterpolationMode: "linear",
+    workspace: { ...DEFAULT_WORKSPACE_LAYOUT, collapsedPanels: [] }
   },
   minecraft: {
     defaultSkyPreset: "Day",
@@ -44,6 +50,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     pluginFolderPath: "",
     allowExperimentalPlugins: false,
     pluginWarningAccepted: false,
-    disabledPluginIds: []
+    disabledPluginIds: [],
+    safeMode: false
   }
 };

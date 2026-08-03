@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "targetVersion": "1.0.0",
+  "status": "V1_BLOCKED",
+  "gates": [
+    {
+      "id": "workflow-projects",
+      "category": "workflow",
+      "status": "pass",
+      "evidence": [
+        "project serializer/package/recovery runtime matrices"
+      ]
+    },
+    {
+      "id": "workflow-templates",
+      "category": "workflow",
+      "status": "pass",
+      "evidence": [
+        "nine generated legal templates and template validator"
+      ]
+    },
+    {
+      "id": "workflow-worlds",
+      "category": "workflow",
+      "status": "pass",
+      "evidence": [
+        "bounded Java Anvil import matrices with honest limitations"
+      ]
+    },
+    {
+      "id": "workflow-animation-vfx-audio",
+      "category": "workflow",
+      "status": "pass",
+      "evidence": [
+        "golden projects and deterministic runtime modules"
+      ]
+    },
+    {
+      "id": "workflow-export-handoff",
+      "category": "workflow",
+      "status": "pass",
+      "evidence": [
+        "eight pass contracts, WAV stems and production handoff tests"
+      ]
+    },
+    {
+      "id": "clean-install",
+      "category": "engineering",
+      "status": "blocked",
+      "evidence": [
+        "npm ci --ignore-scripts --no-audit attempted on 2026-07-29"
+      ],
+      "blocker": "Configured registry returned E404 for @tauri-apps/plugin-fs@2.5.1; no complete node_modules tree was retained."
+    },
+    {
+      "id": "typecheck-tests-build-audit",
+      "category": "engineering",
+      "status": "blocked",
+      "evidence": [
+        "659 TS/TSX files syntax-audited; all relative imports resolved; 1,387 EN/FR keys match; targeted strict TypeScript checks pass"
+      ],
+      "blocker": "The locked npm install failed, so full project tsc, Vitest, Vite build, npm audit, and dependency-backed VFX example verification cannot run."
+    },
+    {
+      "id": "native-artifacts",
+      "category": "distribution",
+      "status": "blocked",
+      "evidence": [
+        "four-target distribution matrix and native CI definitions exist"
+      ],
+      "blocker": "rustc and cargo are unavailable locally; no platform installer artifact has a completed smoke-test result."
+    },
+    {
+      "id": "migrations-portability",
+      "category": "engineering",
+      "status": "pass",
+      "evidence": [
+        "schemas 1-10 migration matrix and ZIP round trips"
+      ]
+    },
+    {
+      "id": "security-defaults",
+      "category": "security",
+      "status": "pass",
+      "evidence": [
+        "bounded ZIP, read-only worlds, explicit plugin trust, redacted diagnostics, updater disabled"
+      ]
+    },
+    {
+      "id": "licenses-assets",
+      "category": "security",
+      "status": "pass",
+      "evidence": [
+        "template/content validation and third-party notices"
+      ]
+    },
+    {
+      "id": "manual-visual-qa",
+      "category": "quality",
+      "status": "not-run",
+      "evidence": [
+        "docs/MANUAL_VISUAL_QA.md contains the reproducible checklist"
+      ],
+      "blocker": "No interactive browser/native visual test session was completed in this environment."
+    },
+    {
+      "id": "performance-budgets",
+      "category": "quality",
+      "status": "blocked",
+      "evidence": [
+        "source-level benchmark contracts and regression thresholds pass"
+      ],
+      "blocker": "dist/index.html does not exist because the production build could not run; native GPU budgets still require measured target systems."
+    },
+    {
+      "id": "remote-ci",
+      "category": "engineering",
+      "status": "blocked",
+      "evidence": [
+        "GitHub main readback still reports 9e42943408379fee247a314542c8134be8f25a82"
+      ],
+      "blocker": "The local Phase 20-35 commits are not on GitHub; connector writes previously returned 403 and the local remote is a recovery bundle."
+    },
+    {
+      "id": "version-tag-artifacts",
+      "category": "publication",
+      "status": "blocked",
+      "evidence": [
+        "public contracts target 1.0.0 while application files intentionally remain 0.8.2"
+      ],
+      "blocker": "Version bump, stable tag, and official release artifacts are forbidden until every preceding gate is pass."
+    },
+    {
+      "id": "authorized-publication",
+      "category": "publication",
+      "status": "blocked",
+      "evidence": [],
+      "blocker": "No explicit publication authorization or protected release credentials are available."
+    }
+  ],
+  "lastEvaluated": "2026-07-29",
+  "localEnvironment": {
+    "node": "22.16.0",
+    "npm": "10.9.2",
+    "rustc": "unavailable",
+    "cargo": "unavailable",
+    "npmInstallResult": "E404: @tauri-apps/plugin-fs@2.5.1 unavailable from configured registry",
+    "githubMain": "9e42943408379fee247a314542c8134be8f25a82",
+    "localHeadBeforeFinalDocs": "eeffe35dc25ec44487e09835efa3ede1403a3cb8"
+  }
+}

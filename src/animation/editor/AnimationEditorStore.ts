@@ -10,6 +10,8 @@ export interface AnimationEditorState {
   clipboard: KeyframeClipboardData;
   snapEnabled: boolean;
   snapInterval: number;
+  zoom: number;
+  density: "comfortable" | "compact";
   expandedTargets: string[];
 }
 
@@ -20,6 +22,8 @@ export function createAnimationEditorState(): AnimationEditorState {
     clipboard: { entries: [], durationFrames: 0 },
     snapEnabled: true,
     snapInterval: 1,
+    zoom: 1,
+    density: "comfortable",
     expandedTargets: []
   };
 }
@@ -31,6 +35,8 @@ export function updateAnimationEditorState(
   return {
     ...state,
     ...patch,
-    snapInterval: Math.max(1, Math.round(patch.snapInterval ?? state.snapInterval))
+    snapInterval: Math.max(1, Math.round(patch.snapInterval ?? state.snapInterval)),
+    zoom: Math.min(8, Math.max(0.5, patch.zoom ?? state.zoom)),
+    density: patch.density === "compact" ? "compact" : patch.density === "comfortable" ? "comfortable" : state.density
   };
 }

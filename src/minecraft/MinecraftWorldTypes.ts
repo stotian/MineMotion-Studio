@@ -1,4 +1,4 @@
-import type { Vector3Tuple } from "../project/ProjectFile";
+import type { Vector3Tuple } from "../core/scene/SceneTypes";
 
 export type BlockId =
   | "air"
@@ -11,7 +11,11 @@ export type BlockId =
   | "oak_log"
   | "oak_leaves"
   | "water"
+  | "lava"
   | "glass"
+  | "glowstone"
+  | "torch"
+  | "redstone_lamp"
   | "sand"
   | "gravel"
   | "snow"
@@ -42,7 +46,7 @@ export interface ChunkData {
 
 export interface RegionFileSummary {
   path: string;
-  dimension: "overworld" | "nether" | "end";
+  dimension: string;
   regionX: number | null;
   regionZ: number | null;
   chunkLocations?: number;

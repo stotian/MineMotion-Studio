@@ -28,6 +28,7 @@ export interface RendererLayerDefinition {
 
 export interface RendererLayerVisibilityInput {
   readonly mode: RendererLayerMode;
+  readonly renderPass?: "beauty" | "alpha" | "world" | "characters" | "vfx" | "depth" | "normals" | "object-id";
   readonly includeVfx: boolean;
   readonly includePost: boolean;
   readonly includeOverlays: boolean;
@@ -80,14 +81,16 @@ export const RENDERER_LAYER_DEFINITIONS: Readonly<
 export function resolveRendererLayerVisibility(
   input: RendererLayerVisibilityInput
 ): RendererLayerVisibility {
+  const pass = input.renderPass ?? "beauty";
+  const isolated = input.mode === "final" && !["beauty", "alpha", "depth", "normals", "object-id"].includes(pass);
   return Object.freeze({
-    world: true,
-    characters: true,
-    props: true,
+    world: !isolated || pass === "world",
+    characters: !isolated || pass === "characters",
+    props: !isolated,
     transparency: true,
-    vfx: input.includeVfx,
-    post: input.includePost,
-    overlays: input.includeOverlays,
+    vfx: input.includeVfx && (!isolated || pass === "vfx"),
+    post: input.includePost && !isolated,
+    overlays: input.includeOverlays && !isolated,
     helpers: input.mode === "editor"
   });
 }

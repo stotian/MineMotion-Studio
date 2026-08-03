@@ -1,6 +1,10 @@
 import type { BlockId } from "../MinecraftWorldTypes";
 
-export type MinecraftDimensionId = "overworld" | "nether" | "end";
+export type MinecraftDimensionId =
+  | "overworld"
+  | "nether"
+  | "end"
+  | `custom:${string}`;
 
 export interface MinecraftRegionFileRef {
   path: string;
@@ -38,6 +42,8 @@ export interface MinecraftWorldScan {
 export interface MinecraftBlockSample {
   id: BlockId;
   minecraftName: string;
+  stateKey?: string;
+  properties?: Readonly<Record<string, string>>;
   x: number;
   y: number;
   z: number;
@@ -56,6 +62,13 @@ export interface ImportedChunkData {
   blocks: MinecraftBlockSample[];
   unknownBlocks: Record<string, number>;
   warnings: string[];
+  dataVersion?: number;
+  status?: string;
+  biomePalette?: string[];
+  legacyBiomeIds?: number[];
+  heightmaps?: Record<string, number[]>;
+  sourceTimestamp?: number;
+  contentFingerprint?: string;
 }
 
 export interface ImportedChunkRange {
@@ -66,6 +79,22 @@ export interface ImportedChunkRange {
   maxChunks: number;
   maxRegionFiles: number;
   maxVerticalSections: number;
+}
+
+export interface WorldImportProfile {
+  id: string;
+  name: string;
+  createdAt: string;
+  dimension: MinecraftDimensionId;
+  centerChunkX: number;
+  centerChunkZ: number;
+  radiusChunks: number;
+  maxChunks: number;
+  maxRegionFiles: number;
+  maxVerticalSections: number;
+  showChunkBorders: boolean;
+  showWorldOrigin: boolean;
+  embedImportedChunkCache: boolean;
 }
 
 export interface WorldImportPerformanceEstimate {

@@ -1,0 +1,19 @@
+{
+  "kind": "content-pack",
+  "id": "example.cinematic-cameras",
+  "name": "Example Cinematic Cameras",
+  "version": "1.0.0",
+  "apiVersion": "1.0",
+  "minMineMotionVersion": "0.8.2",
+  "author": "MineMotion SDK",
+  "description": "Two safe camera presets with no executable code.",
+  "license": { "id": "MIT", "attribution": "MineMotion SDK example" },
+  "dependencies": [],
+  "capabilities": ["presets.camera"],
+  "data": {
+    "cameraPresets": [
+      { "id": "example-hero-low", "name": "Hero low angle", "description": "Low dramatic framing.", "fov": 38, "transform": { "position": [4, 1.4, 6], "rotation": [-8, 34, 0], "scale": [1, 1, 1] } },
+      { "id": "example-wide-establishing", "name": "Wide establishing", "description": "High wide scene opener.", "fov": 58, "transform": { "position": [14, 9, 14], "rotation": [-32, 45, 0], "scale": [1, 1, 1] } }
+    ]
+  }
+}

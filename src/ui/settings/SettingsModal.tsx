@@ -1,8 +1,8 @@
 import { Settings } from "lucide-react";
 import type { AppSettings } from "../../settings/AppSettings";
 import type { ProjectSettings } from "../../project/ProjectFile";
-import type { SkyPresetId } from "../../renderer/SkySystem";
-import { SKY_PRESETS } from "../../renderer/SkySystem";
+import type { SkyPresetId } from "../../renderer/SkyTypes";
+import { SKY_PRESETS } from "../../renderer/SkyTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { AppLanguagePreference } from "../../localization/LocalizationTypes";
 
@@ -13,6 +13,8 @@ interface SettingsModalProps {
   onClose: () => void;
   onAppSettingsChange: (settings: AppSettings) => void;
   onProjectSettingsChange: (settings: ProjectSettings) => void;
+  onExportSupportBundle: (includeProjectSummary: boolean) => void;
+  onResetSettings: () => void;
 }
 
 export function SettingsModal({
@@ -21,7 +23,9 @@ export function SettingsModal({
   projectSettings,
   onClose,
   onAppSettingsChange,
-  onProjectSettingsChange
+  onProjectSettingsChange,
+  onExportSupportBundle,
+  onResetSettings
 }: SettingsModalProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
@@ -239,7 +243,7 @@ export function SettingsModal({
                 }
               >
                 <option value="dark">{t("settings.theme.dark")}</option>
-                <option value="light">{t("settings.theme.lightPlaceholder")}</option>
+                <option value="light">{t("settings.theme.light")}</option>
               </select>
             </label>
             <NumberSetting
@@ -258,6 +262,31 @@ export function SettingsModal({
                 })
               }
             />
+            <NumberSetting
+              label={t("settings.textScale")}
+              value={appSettings.editor.textScale}
+              min={0.85}
+              max={1.5}
+              step={0.05}
+              onChange={(value) => onAppSettingsChange({ ...appSettings, editor: { ...appSettings.editor, textScale: value } })}
+            />
+            <label className="checkbox-label">
+              <input type="checkbox" checked={appSettings.editor.reducedMotion} onChange={(event) => onAppSettingsChange({ ...appSettings, editor: { ...appSettings.editor, reducedMotion: event.target.checked } })} />
+              {t("settings.reducedMotion")}
+            </label>
+            <label className="checkbox-label">
+              <input type="checkbox" checked={appSettings.editor.highContrast} onChange={(event) => onAppSettingsChange({ ...appSettings, editor: { ...appSettings.editor, highContrast: event.target.checked } })} />
+              {t("settings.highContrast")}
+            </label>
+            <label>
+              {t("settings.colorVision")}
+              <select value={appSettings.editor.colorVisionMode} onChange={(event) => onAppSettingsChange({ ...appSettings, editor: { ...appSettings.editor, colorVisionMode: event.target.value as AppSettings["editor"]["colorVisionMode"] } })}>
+                <option value="normal">{t("settings.colorVision.normal")}</option>
+                <option value="protanopia">{t("settings.colorVision.protanopia")}</option>
+                <option value="deuteranopia">{t("settings.colorVision.deuteranopia")}</option>
+                <option value="tritanopia">{t("settings.colorVision.tritanopia")}</option>
+              </select>
+            </label>
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -375,6 +404,14 @@ export function SettingsModal({
                 })
               }
             />
+          </section>
+
+          <section>
+            <h3>{t("settings.reliability")}</h3>
+            <p className="empty-note">{t("settings.supportPrivacy")}</p>
+            <button type="button" onClick={() => onExportSupportBundle(false)}>{t("settings.exportSupport")}</button>
+            <button type="button" onClick={() => onExportSupportBundle(true)}>{t("settings.exportSupportWithSummary")}</button>
+            <button type="button" className="danger-action" onClick={onResetSettings}>{t("settings.reset")}</button>
           </section>
 
           <section>

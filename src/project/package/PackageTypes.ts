@@ -11,6 +11,7 @@ export interface MineMotionPackageData {
     blockbench: Record<string, string>;
     resourcePacks: Record<string, string>;
     audio: Record<string, string>;
+    worldCaches?: Record<string, string>;
     thumbnails: Record<string, string>;
     metadata: Record<string, unknown>;
   };

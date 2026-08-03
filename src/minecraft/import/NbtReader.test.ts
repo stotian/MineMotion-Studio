@@ -30,3 +30,26 @@ describe("NbtReader", () => {
     ).rejects.toMatchObject({ name: "AbortError" });
   });
 });
+
+it("rejects hostile collection lengths before allocating", () => {
+  expect(() =>
+    NbtReader.parseUncompressed(
+      new Uint8Array([
+        10, 0, 0,
+        7, 0, 1, 120,
+        127, 255, 255, 255
+      ])
+    )
+  ).toThrow("exceeds limit");
+});
+
+it("rejects nesting deeper than the reviewed limit", () => {
+  const bytes: number[] = [10, 0, 0];
+  for (let depth = 0; depth < 66; depth += 1) {
+    bytes.push(10, 0, 1, 97);
+  }
+  bytes.push(...Array.from({ length: 67 }, () => 0));
+  expect(() => NbtReader.parseUncompressed(new Uint8Array(bytes))).toThrow(
+    "nesting depth exceeds limit"
+  );
+});

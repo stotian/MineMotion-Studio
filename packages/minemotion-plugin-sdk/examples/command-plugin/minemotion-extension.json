@@ -1,0 +1,15 @@
+{
+  "kind": "logic-plugin",
+  "id": "example.shot-report-command",
+  "name": "Example Shot Report Command",
+  "version": "1.0.0",
+  "apiVersion": "1.0",
+  "minMineMotionVersion": "0.8.2",
+  "author": "MineMotion SDK",
+  "description": "Computes a report from a structured project summary.",
+  "entry": "worker.js",
+  "permissions": ["registerTools"],
+  "dependencies": [],
+  "capabilities": ["analysis.shot-summary"],
+  "license": { "id": "MIT" }
+}

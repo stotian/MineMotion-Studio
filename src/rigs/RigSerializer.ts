@@ -2,7 +2,7 @@ import type { CharacterEntity, MineMotionProject } from "../project/ProjectFile"
 import { getDefaultBoneRotations } from "./RigDefinition";
 import { getRigDefinition, normalizeRigPresetId } from "./MinecraftRigPresets";
 import { createDefaultCharacterAttachments } from "./RigInstance";
-import type { RigProjectData, RigVector3Tuple } from "./RigTypes";
+import type { CharacterCustomGeometry, RigProjectData, RigVector3Tuple } from "./RigTypes";
 import {
   RIG_CONTRACT_LIMITS,
   sanitizeRigAttachments,
@@ -39,7 +39,8 @@ export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntit
       definition,
       createDefaultCharacterAttachments()
     ),
-    boneKeyframes: character.boneKeyframes ?? []
+    boneKeyframes: character.boneKeyframes ?? [],
+    customGeometry: sanitizeCustomGeometry(character.customGeometry, new Set(definition.bones.map((bone) => bone.id)))
   };
 }
 
@@ -76,4 +77,31 @@ export function getRigTimelineItems(project: MineMotionProject) {
         durationFrames: Math.max(1, last - first)
       };
     });
+}
+
+function sanitizeCustomGeometry(
+  value: CharacterCustomGeometry | undefined,
+  validBones: Set<string>
+): CharacterCustomGeometry | undefined {
+  if (!value || value.schemaVersion !== 1 || !Array.isArray(value.cubes)) return undefined;
+  const cubes = value.cubes.slice(0, 4096).flatMap((cube, index) => {
+    if (!cube || typeof cube !== "object" || !validBones.has(cube.boneId)) return [];
+    const size = sanitizeRigVector(cube.size, [1, 1, 1]).map((entry) => Math.max(0.01, Math.min(256, Math.abs(entry)))) as RigVector3Tuple;
+    return [{
+      id: typeof cube.id === "string" && cube.id ? cube.id.slice(0, 128) : `rigged_cube_${index}`,
+      name: typeof cube.name === "string" && cube.name.trim() ? cube.name.trim().slice(0, 120) : `Rigged cube ${index + 1}`,
+      boneId: cube.boneId,
+      position: sanitizeRigVector(cube.position, [0, 0, 0]),
+      size,
+      color: typeof cube.color === "string" && /^#[0-9a-fA-F]{6}$/.test(cube.color) ? cube.color : "#8f8f8f",
+      materialName: typeof cube.materialName === "string" ? cube.materialName.trim().slice(0, 120) || "voxel" : "voxel",
+      visible: cube.visible !== false
+    }];
+  });
+  return {
+    schemaVersion: 1,
+    sourceModelId: typeof value.sourceModelId === "string" ? value.sourceModelId.slice(0, 128) : null,
+    hideDefaultGeometry: value.hideDefaultGeometry !== false,
+    cubes
+  };
 }

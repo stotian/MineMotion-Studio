@@ -81,17 +81,22 @@ and optional bars.
 
 ## Import A Minecraft World
 
-1. Click **Open World**.
-2. Select a Minecraft Java Edition world folder.
-3. MineMotion scans `level.dat`, Overworld `region/`, Nether `DIM-1/region/`,
-   and End `DIM1/region/`.
-4. In **World Import**, choose the dimension, center chunk, radius, max chunks,
-   max region files, and max vertical sections.
-5. Click **Import Chunks**.
-6. Use **Focus World** to frame the imported chunks in the viewport.
+1. Click **Open World** and select a Minecraft Java Edition world folder.
+2. MineMotion scans `level.dat`, standard dimensions, and discovered custom
+   `dimensions/.../region` folders without modifying them.
+3. Choose the dimension, center chunk, radius, region/chunk bounds, and vertical
+   section limit. Click a region or top-down chunk cell to recenter quickly.
+4. Review the conservative region/chunk/block/memory estimate.
+5. Optionally save the current selection as an import profile.
+6. Choose whether the selected chunk cache should be embedded in `.minemotion`.
+7. Click **Import Chunks**. Later, use **Update Changed Chunks** or unload only
+   the selected area.
+8. Use staging controls to hide chunks or add temporary props, markers, VFX
+   anchors, and collision helpers. These never change the Minecraft save.
 
-The importer does not load the whole world by default. It imports a bounded
-chunk range around spawn or manual chunk coordinates.
+The importer never loads the whole world by default. An embedded cache makes the
+selected set portable. A reference-only save is smaller but requires selecting
+the read-only source world again after reopening.
 
 ## Work With Minecraft Rigs
 

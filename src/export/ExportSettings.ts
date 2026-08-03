@@ -1,5 +1,6 @@
 import type { MineMotionProject } from "../project/ProjectFile";
 import type { ExportSettings, ExportValidationResult } from "./ExportTypes";
+import { withPostProcessingDefaults } from "../rendering/postprocessing/PostProcessingPresets";
 import {
   validateProductionExport,
   type ExportCapabilities
@@ -19,7 +20,8 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   includeAudio: true,
   cameraId: "active",
   quality: "high",
-  outputName: "render"
+  outputName: "render",
+  renderPass: "beauty"
 };
 
 export function createDefaultExportSettings(
@@ -47,7 +49,11 @@ export function withExportSettingsDefaults(
     fps: Math.max(1, Math.round(settings?.fps ?? defaults.fps)),
     width: Math.max(1, Math.round(settings?.width ?? defaults.width)),
     height: Math.max(1, Math.round(settings?.height ?? defaults.height)),
-    outputName: sanitizeOutputName(settings?.outputName ?? defaults.outputName)
+    outputName: sanitizeOutputName(settings?.outputName ?? defaults.outputName),
+    postProcessingOverride: settings?.postProcessingOverride ? withPostProcessingDefaults(settings.postProcessingOverride) : undefined,
+    renderPass: ["beauty", "alpha", "world", "characters", "vfx", "depth", "normals", "object-id"].includes(settings?.renderPass ?? "")
+      ? settings!.renderPass!
+      : defaults.renderPass
   };
 }
 

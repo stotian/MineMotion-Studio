@@ -1,10 +1,8 @@
 import type { AssetLibraryData } from "./AssetRecord";
+import { normalizeAssetLibrary } from "./AssetCatalog";
 
 export function sanitizeAssetLibrary(
   library: Partial<AssetLibraryData> | undefined
 ): AssetLibraryData {
-  return {
-    records: Array.isArray(library?.records) ? library.records : [],
-    warnings: Array.isArray(library?.warnings) ? library.warnings : []
-  };
+  return normalizeAssetLibrary(library);
 }

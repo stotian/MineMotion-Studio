@@ -12,7 +12,8 @@ import {
 import { LIGHTING_MOOD_PRESETS } from "../../lighting/LightingPresets";
 import type {
   LightingMoodPresetId,
-  LightingSettings
+  LightingSettings,
+  WeatherMode
 } from "../../lighting/LightingTypes";
 import {
   MINECRAFT_MATERIAL_PRESETS
@@ -125,7 +126,7 @@ export function LightingStudioPanel({
           <section>
             <h3>
               <Sun size={15} />
-              {t("lighting.sunAmbient")}
+              {t("lighting.sunMoonAmbient")}
             </h3>
             <SliderField
               label={t("lighting.sunIntensity")}
@@ -157,6 +158,24 @@ export function LightingStudioPanel({
               label={t("lighting.sunDirection")}
               value={lighting.sunDirection}
               onChange={(sunDirection) => onUpdateLighting({ sunDirection })}
+            />
+            <SliderField
+              label={t("lighting.moonIntensity")}
+              value={lighting.moonIntensity}
+              min={0}
+              max={3}
+              step={0.01}
+              onChange={(moonIntensity) => onUpdateLighting({ moonIntensity })}
+            />
+            <ColorField
+              label={t("lighting.moonColor")}
+              value={lighting.moonColor}
+              onChange={(moonColor) => onUpdateLighting({ moonColor })}
+            />
+            <VectorField
+              label={t("lighting.moonDirection")}
+              value={lighting.moonDirection}
+              onChange={(moonDirection) => onUpdateLighting({ moonDirection })}
             />
             <label className="checkbox-label">
               <input
@@ -213,6 +232,49 @@ export function LightingStudioPanel({
               step={1}
               onChange={(dayLengthFrames) =>
                 onUpdateLighting({ dayLengthFrames: Math.max(1, Math.round(dayLengthFrames)) })
+              }
+            />
+            <label>
+              {t("lighting.weather")}
+              <select
+                value={lighting.weather}
+                onChange={(event) =>
+                  onUpdateLighting({ weather: event.target.value as WeatherMode })
+                }
+              >
+                <option value="clear">{t("lighting.weatherClear")}</option>
+                <option value="rain">{t("lighting.weatherRain")}</option>
+                <option value="snow">{t("lighting.weatherSnow")}</option>
+                <option value="storm">{t("lighting.weatherStorm")}</option>
+              </select>
+            </label>
+            <SliderField
+              label={t("lighting.weatherIntensity")}
+              value={lighting.weatherIntensity}
+              min={0}
+              max={1}
+              step={0.01}
+              onChange={(weatherIntensity) => onUpdateLighting({ weatherIntensity })}
+            />
+            <SliderField
+              label={t("lighting.windSpeed")}
+              value={lighting.windSpeed}
+              min={0}
+              max={8}
+              step={0.05}
+              onChange={(windSpeed) => onUpdateLighting({ windSpeed })}
+            />
+            <VectorField
+              label={t("lighting.windDirection")}
+              value={lighting.windDirection}
+              onChange={(windDirection) => onUpdateLighting({ windDirection })}
+            />
+            <NumberField
+              label={t("lighting.weatherSeed")}
+              value={lighting.weatherSeed}
+              step={1}
+              onChange={(weatherSeed) =>
+                onUpdateLighting({ weatherSeed: Math.round(weatherSeed) })
               }
             />
             <div className="lighting-keyframe-row">
@@ -411,6 +473,58 @@ export function LightingStudioPanel({
                 }
               />
             </div>
+            <SliderField
+              label={t("lighting.waterOpacity")}
+              value={resources.water.opacity}
+              min={0.05}
+              max={1}
+              step={0.01}
+              onChange={(opacity) =>
+                onUpdateResources({
+                  ...resources,
+                  water: { ...resources.water, opacity }
+                })
+              }
+            />
+            <SliderField
+              label={t("lighting.waterRoughness")}
+              value={resources.water.roughness}
+              min={0}
+              max={1}
+              step={0.01}
+              onChange={(roughness) =>
+                onUpdateResources({
+                  ...resources,
+                  water: { ...resources.water, roughness }
+                })
+              }
+            />
+            <SliderField
+              label={t("lighting.waterAnimationSpeed")}
+              value={resources.water.animationSpeed}
+              min={0}
+              max={8}
+              step={0.05}
+              onChange={(animationSpeed) =>
+                onUpdateResources({
+                  ...resources,
+                  water: { ...resources.water, animationSpeed }
+                })
+              }
+            />
+            <SliderField
+              label={t("lighting.waterEmissive")}
+              value={resources.water.emissiveIntensity}
+              min={0}
+              max={2}
+              step={0.01}
+              onChange={(emissiveIntensity) =>
+                onUpdateResources({
+                  ...resources,
+                  water: { ...resources.water, emissiveIntensity }
+                })
+              }
+            />
           </section>
 
           <section className="lighting-wide-section">

@@ -36,11 +36,13 @@ import type {
 } from "../../project/ProjectFile";
 import { findObject } from "../../project/ProjectStore";
 import type { PostProcessingSettings } from "../../rendering/postprocessing/PostProcessingTypes";
-import { SKY_PRESETS, type SkyPresetId } from "../../renderer/SkySystem";
+import { SKY_PRESETS } from "../../renderer/SkySystem";
+import type { SkyPresetId } from "../../renderer/SkyTypes";
 import { getRigDefinition, MINECRAFT_RIG_PRESETS } from "../../rigs/MinecraftRigPresets";
 import { parseRigBoneSelection } from "../../rigs/RigSelection";
 import type { RigPresetId } from "../../rigs/RigTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
+import { TRANSFORM_VECTOR_SCHEMA, updateTransformVector } from "./InspectorSchema";
 
 interface InspectorPanelProps {
   project: MineMotionProject;
@@ -898,30 +900,17 @@ function EntityInspector({
           {t(entity.locked ? "inspector.locked" : "inspector.unlocked")}
         </button>
       </div>
-      <VectorEditor
-        label={t("inspector.position")}
-        value={entity.transform.position}
-        disabled={entity.locked}
-        onChange={(position) =>
-          onUpdateTransform({ ...entity.transform, position })
-        }
-      />
-      <VectorEditor
-        label={t("inspector.rotation")}
-        value={entity.transform.rotation}
-        disabled={entity.locked}
-        onChange={(rotation) =>
-          onUpdateTransform({ ...entity.transform, rotation })
-        }
-      />
-      <VectorEditor
-        label={t("inspector.scale")}
-        value={entity.transform.scale}
-        step={0.1}
-        min={0.01}
-        disabled={entity.locked}
-        onChange={(scale) => onUpdateTransform({ ...entity.transform, scale })}
-      />
+      {TRANSFORM_VECTOR_SCHEMA.map((field) => (
+        <VectorEditor
+          key={field.id}
+          label={t(field.labelKey)}
+          value={entity.transform[field.id]}
+          step={field.step}
+          min={field.min}
+          disabled={field.lockedByEntity && entity.locked}
+          onChange={(value) => onUpdateTransform(updateTransformVector(entity.transform, field.id, value))}
+        />
+      ))}
       <div className="inspector-actions">
         <button type="button" onClick={onAddKeyframe}>
           <KeyRound size={15} />
