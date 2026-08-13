@@ -10,6 +10,7 @@ import { useLocalization } from "../../localization/LocalizationContext";
 interface DeferredPanelProps {
   open: boolean;
   onClose: () => void;
+  [key: string]: unknown;
 }
 
 interface BoundaryProps {
@@ -55,7 +56,7 @@ class DeferredPanelErrorBoundary extends Component<
 }
 
 export function createDeferredPanel<Props extends DeferredPanelProps>(
-  loader: () => Promise<{ default: ComponentType<Props> }>
+  loader: () => Promise<{ default: ComponentType<any> }>
 ): ComponentType<Props> {
   const LazyPanel = lazy(loader);
 

@@ -16,3 +16,5 @@ export interface SkyPreset {
   directionalIntensity: number;
   directionalColor: string;
 }
+
+export { SKY_PRESETS } from "./SkySystem";
