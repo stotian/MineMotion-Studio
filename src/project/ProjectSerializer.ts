@@ -69,15 +69,7 @@ type UnknownProject = Omit<Partial<MineMotionProject>, "schemaVersion"> & {
 export class ProjectSerializer {
   static serialize(project: MineMotionProject): string {
     const normalized = ProjectSerializer.toSerializableProject(project);
-    const updatedProject: MineMotionProject = {
-      ...normalized,
-      metadata: {
-        ...normalized.metadata,
-        updatedAt: new Date().toISOString()
-      }
-    };
-
-    return JSON.stringify(updatedProject, null, 2);
+    return JSON.stringify(normalized, null, 2);
   }
 
   static serializeLegacyV9(project: MineMotionProject): string {

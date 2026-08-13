@@ -12,7 +12,7 @@ import { validateAssetImportBatch } from "../../assets/library/AssetImportPolicy
 import { generateThumbnailsBounded } from "../../assets/library/AssetThumbnail";
 import { useLocalization } from "../../localization/LocalizationContext";
 
-interface AssetLibraryPanelProps {
+export interface AssetLibraryPanelProps {
   open: boolean;
   project: MineMotionProject;
   onProjectChange: (project: MineMotionProject) => void;
@@ -96,7 +96,7 @@ export function AssetLibraryPanel({ open, project, onProjectChange, onClose }: A
           {visible.map((asset) => (
             <article key={asset.id} className={`asset-card ${selectedIds.includes(asset.id) ? "is-selected" : ""}`} onClick={() => toggleSelection(asset.id)}>
               <div className="asset-thumbnail">{thumbnails.get(asset.id) ? <img src={thumbnails.get(asset.id)} alt="" /> : <span>{asset.type}</span>}</div>
-              <div className="asset-card-copy"><strong>{asset.name}</strong><span>{asset.type} · {localization.formatNumber(asset.sizeBytes)} B</span><small>{asset.storagePolicy} · {asset.integrity.status} · {asset.references.length} ref.</small></div>
+              <div className="asset-card-copy"><strong>{asset.name}</strong><span>{t("assets.cardMeta", { type: asset.type, size: localization.formatNumber(asset.sizeBytes), storage: asset.storagePolicy, integrity: asset.integrity.status, references: asset.references.length })}</span></div>
               <button type="button" className={asset.favorite ? "is-active" : ""} aria-label={t("assets.toggleFavorite")} onClick={(event) => { event.stopPropagation(); updateLibrary(setAssetFavorite(library, asset.id, !asset.favorite)); }}><Heart size={14} /></button>
             </article>
           ))}

@@ -3,6 +3,10 @@ import type { TranslationCatalog } from "./en";
 export const FR_TRANSLATIONS = Object.freeze({
   "common.close": "Fermer",
   "common.loading": "Chargement...",
+  "common.remove": "Supprimer",
+  "assets.cardMeta": "{type} · {size} o · {storage} · {integrity} · {references} références",
+  "creation.mods.rowMeta": "{version} · {loader} · {entities} entités · {blocks} blocs",
+  "studioPro.variants.option": "{name} · {rating}/5 · {focalLength} mm",
   "common.enabled": "Activé",
   "common.disabled": "Désactivé",
   "common.none": "Aucun",

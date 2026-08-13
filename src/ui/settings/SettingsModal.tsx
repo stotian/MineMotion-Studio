@@ -6,7 +6,7 @@ import { SKY_PRESETS } from "../../renderer/SkyTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { AppLanguagePreference } from "../../localization/LocalizationTypes";
 
-interface SettingsModalProps {
+export interface SettingsModalProps {
   open: boolean;
   appSettings: AppSettings;
   projectSettings: ProjectSettings;

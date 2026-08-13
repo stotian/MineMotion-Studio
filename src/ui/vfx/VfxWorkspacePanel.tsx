@@ -59,7 +59,7 @@ import { formatLocalizedDiagnostic } from "../../localization/LocalizationDiagno
 import { resolveVfxPackagePresentation } from "../../vfx/package/VfxPackageLocalization";
 import { downloadBrowserBlob } from "../../export/BrowserDownload";
 
-interface VfxWorkspacePanelProps {
+export interface VfxWorkspacePanelProps {
   open: boolean;
   presets: readonly BuiltinVfxPreset[];
   registry: VfxPackageRegistry;

@@ -4,7 +4,7 @@ This repository is developed through long, validated phases. Read this file befo
 
 ## Start Here
 
-1. Read `docs/PHASE_PROGRESS.md`.
+1. Read `docs/MILESTONE_PROGRESS.md`.
 2. Read `docs/CURRENT_STATE.md`.
 3. Read `docs/NEXT_SESSION.md`.
 4. Read relevant entries in `docs/TECHNICAL_DECISIONS.md`.

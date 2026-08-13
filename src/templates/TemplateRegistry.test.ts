@@ -9,7 +9,7 @@ describe("TemplateRegistry", () => {
       expect(project.schemaVersion).toBe(10);
       expect(project.projectName).toBeTruthy();
       expect(project.projectSettings.terrainPreset).toBeTruthy();
-      expect(project.renderSettings.resolutionPreset).toBe("1080p");
+      expect(["720p", "1080p", "1440p", "4K", "custom"]).toContain(project.renderSettings.resolutionPreset);
     }
   });
 

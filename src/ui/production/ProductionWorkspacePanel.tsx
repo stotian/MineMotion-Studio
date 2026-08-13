@@ -23,7 +23,7 @@ import { SimulationWorkspaceSection } from "../simulation/SimulationWorkspaceSec
 import { UltraStudioSection } from "./UltraStudioSection";
 import { DirectorAssistantSection } from "./DirectorAssistantSection";
 
-interface ProductionWorkspacePanelProps {
+export interface ProductionWorkspacePanelProps {
   open: boolean;
   project: MineMotionProject;
   projectSaved: boolean;
@@ -208,7 +208,7 @@ export function ProductionWorkspacePanel({
   );
 }
 
-function togglePass(passes: RenderPassId[], pass: RenderPassId, enabled: boolean): RenderPassId[] {
+function togglePass(passes: readonly RenderPassId[], pass: RenderPassId, enabled: boolean): RenderPassId[] {
   const next = enabled ? [...passes, pass] : passes.filter((candidate) => candidate !== pass);
   return [...new Set(next)].length > 0 ? [...new Set(next)] : ["beauty"];
 }

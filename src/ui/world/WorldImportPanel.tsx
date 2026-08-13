@@ -20,7 +20,7 @@ import { useLocalization } from "../../localization/LocalizationContext";
 import type { TranslationKey } from "../../localization/LocalizationTypes";
 import { formatLocalizedDiagnostic } from "../../localization/LocalizationDiagnostics";
 
-interface WorldImportPanelProps {
+export interface WorldImportPanelProps {
   open: boolean;
   scan: MinecraftWorldScan | null;
   project: MineMotionProject;

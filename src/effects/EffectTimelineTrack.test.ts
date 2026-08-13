@@ -108,7 +108,7 @@ describe("EffectTimelineTrack", () => {
     expect(effectLanes[0].id).toBe("track_effects_main");
     expect(effectLanes[0].items).toEqual(createEffectTimelineLaneItems(effects));
     expect(synced.animation.timelineTracks).toContainEqual(customLane);
-    expect(project.animation.timelineTracks).toHaveLength(8);
+    expect(project.animation.timelineTracks).toHaveLength(9);
   });
 
   it("maps pointer drops to clamped deterministic timeline frames", () => {

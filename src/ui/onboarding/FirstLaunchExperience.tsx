@@ -7,7 +7,7 @@ import { completeOnboardingStep, loadOnboarding, saveOnboarding } from "../../on
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { TranslationKey } from "../../localization/LocalizationTypes";
 
-interface FirstLaunchExperienceProps {
+export interface FirstLaunchExperienceProps {
   templates: ProjectTemplate[];
   recentProjects: RecentProjectEntry[];
   recoveryAvailable: boolean;

@@ -11,7 +11,7 @@ export function createSimpleHash(input: string | Uint8Array): string {
 export async function createAssetHash(input: string | Uint8Array): Promise<string> {
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
   if (globalThis.crypto?.subtle) {
-    const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes as BufferSource);
     return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
   }
   return `fnv1a-${createSimpleHash(bytes)}`;

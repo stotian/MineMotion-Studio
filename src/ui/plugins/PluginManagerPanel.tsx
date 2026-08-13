@@ -4,7 +4,7 @@ import type { ExtensionLogEntry } from "../../plugins/ExtensionTypes";
 import type { ManagedExtension } from "../../plugins/ExtensionManager";
 import { useLocalization } from "../../localization/LocalizationContext";
 
-interface PluginManagerPanelProps {
+export interface PluginManagerPanelProps {
   open: boolean;
   extensions: ManagedExtension[];
   logs: ExtensionLogEntry[];

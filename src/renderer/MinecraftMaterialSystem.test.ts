@@ -44,7 +44,9 @@ function context(
 afterEach(() => {
   clearMinecraftMaterialCache();
   vi.restoreAllMocks();
+});
 
+describe("Minecraft material cache", () => {
   it("keeps per-face materials separate and resolves deterministic animation frames", () => {
     const materialContext = context("solid");
     const top = getMaterialForBlock("grass_block", materialContext, "top");
@@ -61,9 +63,6 @@ afterEach(() => {
       frames: [{ index: 0 }, { index: 2, timeTicks: 4 }]
     }, 4, 100)).toBe(2);
   });
-});
-
-describe("Minecraft material cache", () => {
   it("includes default material settings in cache identity", () => {
     const solid = getMaterialForBlock("stone", context("solid"));
     const water = getMaterialForBlock("stone", context("water"));

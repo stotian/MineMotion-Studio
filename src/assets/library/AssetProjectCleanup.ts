@@ -30,6 +30,7 @@ export function removeUnusedProjectAssets(
       clips: project.animation.clips.filter((clip) => !selected.has(clip.id))
     },
     audio: {
+      ...project.audio,
       clips: project.audio.clips.filter((clip) => !selected.has(clip.id))
     },
     assetLibrary,

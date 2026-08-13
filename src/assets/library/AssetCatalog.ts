@@ -9,6 +9,10 @@ import type {
 
 const CURRENT_ASSET_LIBRARY_SCHEMA = 2 as const;
 
+type AssetLibraryInput = Omit<Partial<AssetLibraryData>, "records"> & {
+  records?: Array<Partial<AssetRecord> & Pick<AssetRecord, "id" | "name" | "type">>;
+};
+
 export function createEmptyAssetLibrary(): AssetLibraryData {
   return {
     schemaVersion: CURRENT_ASSET_LIBRARY_SCHEMA,
@@ -58,7 +62,7 @@ export function normalizeAssetRecord(record: Partial<AssetRecord> & Pick<AssetRe
   };
 }
 
-export function normalizeAssetLibrary(library: Partial<AssetLibraryData> | undefined): AssetLibraryData {
+export function normalizeAssetLibrary(library: AssetLibraryInput | undefined): AssetLibraryData {
   const records = Array.isArray(library?.records)
     ? library.records.filter(hasIdentity).map((record) => normalizeAssetRecord(record))
     : [];

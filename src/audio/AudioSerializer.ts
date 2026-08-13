@@ -33,7 +33,9 @@ export function sanitizeAudioClips(clips: Partial<AudioClip>[] | undefined): Aud
   return clips.slice(0, 10_000).map(withAudioClipDefaults);
 }
 
-export function sanitizeProjectAudio(audio: Partial<ProjectAudioData> | undefined): ProjectAudioData {
+export function sanitizeProjectAudio(
+  audio: (Partial<Omit<ProjectAudioData, "clips">> & { clips?: Partial<AudioClip>[] }) | undefined
+): ProjectAudioData {
   return {
     schemaVersion: 2,
     clips: sanitizeAudioClips(audio?.clips),

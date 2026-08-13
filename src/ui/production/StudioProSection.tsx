@@ -270,7 +270,7 @@ export function StudioProSection({ project, primaryId, secondaryId, onProjectCha
           <label>{t("studioPro.variants.variant")}
             <select value={activeVariantId} onChange={(event) => setSelectedVariantId(event.target.value)} disabled={variantComparison.length === 0}>
               {variantComparison.length === 0 && <option value="">{t("studioPro.variants.none")}</option>}
-              {variantComparison.map((variant) => <option value={variant.id} key={variant.id}>{variant.name} · {variant.rating}/5 · {variant.focalLength} mm</option>)}
+              {variantComparison.map((variant) => <option value={variant.id} key={variant.id}>{t("studioPro.variants.option", { name: variant.name, rating: variant.rating, focalLength: variant.focalLength })}</option>)}
             </select>
           </label>
           <label>{t("studioPro.variants.name")}

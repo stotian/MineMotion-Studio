@@ -895,6 +895,7 @@ export function App() {
           syncCinematicTimeline({
             ...currentProject,
             audio: {
+              ...currentProject.audio,
               clips: [...currentProject.audio.clips, clip]
             }
           }),
@@ -916,6 +917,7 @@ export function App() {
           syncCinematicTimeline({
             ...currentProject,
             audio: {
+              ...currentProject.audio,
               clips: [...currentProject.audio.clips, clip]
             }
           }),

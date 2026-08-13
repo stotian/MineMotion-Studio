@@ -13,6 +13,11 @@ import { sanitizeBlockbenchModelAssets } from "./blockbench/BlockbenchAssetContr
 import { sanitizeCharacterExpression } from "./expressions/ExpressionOverlay";
 
 export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntity {
+  const {
+    expression: _expression,
+    customGeometry: _customGeometry,
+    ...baseCharacter
+  } = character;
   const rigPreset = normalizeRigPresetId(character.rigPreset);
   const definition = getRigDefinition(rigPreset);
   const defaults = getDefaultBoneRotations(definition);
@@ -23,8 +28,13 @@ export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntit
     boneRotations[boneId] = sanitizeRigVector(rotation, defaults[boneId]);
   }
 
+  const expression = sanitizeCharacterExpression(character.expression);
+  const customGeometry = sanitizeCustomGeometry(
+    character.customGeometry,
+    new Set(definition.bones.map((bone) => bone.id))
+  );
   return {
-    ...character,
+    ...baseCharacter,
     rigPreset,
     modelType: character.modelType ?? definition.modelType,
     selectedBoneId:
@@ -33,14 +43,14 @@ export function sanitizeCharacterRig(character: CharacterEntity): CharacterEntit
         : "body",
     boneRotations,
     skin: character.skin ?? null,
-    expression: sanitizeCharacterExpression(character.expression),
+    ...(expression ? { expression } : {}),
     attachments: sanitizeRigAttachments(
       character.attachments,
       definition,
       createDefaultCharacterAttachments()
     ),
     boneKeyframes: character.boneKeyframes ?? [],
-    customGeometry: sanitizeCustomGeometry(character.customGeometry, new Set(definition.bones.map((bone) => bone.id)))
+    ...(customGeometry ? { customGeometry } : {})
   };
 }
 

@@ -114,8 +114,10 @@ export function createDefaultTimelineTracks(): TimelineTrackLane[] {
   ];
 }
 
-export function createInitialProject(appSettings?: AppSettings): MineMotionProject {
-  const now = new Date().toISOString();
+export function createInitialProject(
+  appSettings?: AppSettings,
+  now = new Date().toISOString()
+): MineMotionProject {
   const projectSettings = createDefaultProjectSettings(appSettings);
 
   const defaultCamera: CameraEntity = {
@@ -261,6 +263,9 @@ export function createInitialProject(appSettings?: AppSettings): MineMotionProje
     }
   };
 }
+
+/** Backward-compatible name retained for workspace and outliner integrations. */
+export const createDefaultProject = createInitialProject;
 
 export function createCharacter(
   name = "Minecraft Character",

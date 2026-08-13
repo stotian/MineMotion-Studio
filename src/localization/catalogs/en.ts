@@ -1,6 +1,10 @@
 export const EN_TRANSLATIONS = Object.freeze({
   "common.close": "Close",
   "common.loading": "Loading...",
+  "common.remove": "Remove",
+  "assets.cardMeta": "{type} · {size} B · {storage} · {integrity} · {references} references",
+  "creation.mods.rowMeta": "{version} · {loader} · {entities} entities · {blocks} blocks",
+  "studioPro.variants.option": "{name} · {rating}/5 · {focalLength} mm",
   "common.enabled": "Enabled",
   "common.disabled": "Disabled",
   "common.none": "None",

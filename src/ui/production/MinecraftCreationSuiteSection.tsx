@@ -197,7 +197,7 @@ export function MinecraftCreationSuiteSection({ project, onProjectChange }: Mine
         </div>
         <div className="render-job-list">
           {suite.worldStudio.mods.map((mod) => <article className="render-job" key={mod.id}>
-            <div><strong>{mod.name}</strong><span>{mod.version} · {mod.loader} · {mod.entityIds.length} entities · {mod.blockIds.length} blocks</span></div>
+            <div><strong>{mod.name}</strong><span>{t("creation.mods.rowMeta", { version: mod.version, loader: mod.loader, entities: mod.entityIds.length, blocks: mod.blockIds.length })}</span></div>
             <div className="render-job-actions">
               <button type="button" onClick={() => apply(setModEnabled(project, mod.id, !mod.enabled), "Toggle mod manifest")}>{mod.enabled ? t("common.enabled") : t("common.disabled")}</button>
               <button type="button" onClick={() => { const result = bindImportedAssetsToMod(project, mod.id); apply(result.project, "Bind imported mod assets", t("creation.mods.bound", { assets: discoverImportedModAssets(result.project, mod.id).discovered.length })); }}>{t("creation.mods.bindAssets")}</button>

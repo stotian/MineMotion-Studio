@@ -24,6 +24,19 @@ export function applySafeContentPack(
         name: template.name,
         description: template.description,
         category: template.category,
+        schemaVersion: 1,
+        templateVersion: 1,
+        preview: {
+          accent: "#66b3ff",
+          icon: "empty",
+          aspectRatio: "16:9",
+          summary: template.description
+        },
+        dependencies: [],
+        estimatedSizeBytes: serialized.length,
+        license: "MineMotion-generated",
+        attribution: `Imported from ${pack.name}`,
+        tags: ["content-pack"],
         create: () => ProjectSerializer.parse(serialized)
       });
     } catch (error) { warnings.push(error instanceof Error ? error.message : "Template registration failed."); }

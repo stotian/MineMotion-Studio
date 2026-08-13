@@ -46,7 +46,7 @@ const EXPORT_PRESET_KEYS: Readonly<Record<string, TranslationKey>> = {
   "low-file-size-webm": "export.preset.webmSmall"
 };
 
-interface ExportPanelProps {
+export interface ExportPanelProps {
   open: boolean;
   project: MineMotionProject;
   progress: ExportProgressState;

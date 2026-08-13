@@ -8,7 +8,7 @@ import { createAudioMarker } from "../../audio/AudioMarkers";
 import type { AudioTrackRole } from "../../audio/AudioTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 
-interface AudioWorkspacePanelProps {
+export interface AudioWorkspacePanelProps {
   open: boolean;
   project: MineMotionProject;
   onProjectChange: (project: MineMotionProject) => void;

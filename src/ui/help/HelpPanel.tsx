@@ -4,7 +4,7 @@ import { searchContextualHelp } from "../../onboarding/ContextualHelp";
 import type { TranslationKey } from "../../localization/LocalizationTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 
-interface HelpPanelProps {
+export interface HelpPanelProps {
   open: boolean;
   onClose: () => void;
   onLoadSampleScene: () => void;

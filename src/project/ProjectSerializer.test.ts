@@ -132,7 +132,7 @@ describe("ProjectSerializer", () => {
     expect(parsed.postProcessing.enabled).toBe(true);
     expect(parsed.exportSettings.fps).toBe(project.animation.fps);
     expect(parsed.packageMetadata.preferredFormat).toBe(".minemotion");
-    expect(parsed.animation.timelineTracks).toHaveLength(6);
+    expect(parsed.animation.timelineTracks).toHaveLength(7);
     expect(parsed.assets.blockbench).toEqual([]);
   });
 

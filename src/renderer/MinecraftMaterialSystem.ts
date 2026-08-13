@@ -215,7 +215,7 @@ export function resolveAnimationFrame(
   timeMs: number
 ): number {
   const safeFrameCount = Math.max(1, Math.floor(frameCount));
-  const frames = metadata.frames.length > 0
+  const frames: ResourcePackAnimationMetadata["frames"] = metadata.frames.length > 0
     ? metadata.frames.filter((frame) => frame.index < safeFrameCount)
     : Array.from({ length: safeFrameCount }, (_, index) => ({ index }));
   if (frames.length === 0) return 0;

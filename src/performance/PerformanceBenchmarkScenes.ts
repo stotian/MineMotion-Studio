@@ -9,6 +9,7 @@ import {
   createInitialProject,
   createObjEntity
 } from "../project/ProjectStore";
+import { ProjectSerializer } from "../project/ProjectSerializer";
 import type { ImportedChunkData } from "../minecraft/import/MinecraftChunkTypes";
 import {
   getVfxBenchmarkScene,
@@ -189,11 +190,12 @@ function createScene(definition: SceneDefinition): PerformanceBenchmarkScene {
 function createProject(definition: SceneDefinition): MineMotionProject {
   const source = definition.vfxBenchmarkId
     ? getVfxBenchmarkScene(definition.vfxBenchmarkId)?.createProject()
-    : createInitialProject();
+    : createInitialProject(undefined, FIXED_TIME);
   if (!source) throw new Error(`Missing VFX benchmark: ${definition.vfxBenchmarkId}`);
 
   source.projectName = `Performance Benchmark - ${definition.id}`;
   source.projectSettings.projectName = source.projectName;
+  if (!definition.vfxBenchmarkId) source.scene.characters[0].id = "benchmark_primary_character";
   source.metadata.createdAt = FIXED_TIME;
   source.metadata.updatedAt = FIXED_TIME;
   source.animation.currentFrame = definition.frame;
@@ -234,7 +236,7 @@ function createProject(definition: SceneDefinition): MineMotionProject {
       }
     : null;
 
-  return source;
+  return ProjectSerializer.parse(ProjectSerializer.serialize(source));
 }
 
 function benchmarkCharacter(index: number): CharacterEntity {

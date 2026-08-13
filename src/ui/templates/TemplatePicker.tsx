@@ -32,7 +32,7 @@ const CATEGORY_KEYS = {
   mood: "templates.category.mood"
 } as const satisfies Record<ProjectTemplate["category"], TranslationKey>;
 
-interface TemplatePickerProps {
+export interface TemplatePickerProps {
   open: boolean;
   templates: ProjectTemplate[];
   currentProject: MineMotionProject;

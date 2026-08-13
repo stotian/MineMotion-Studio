@@ -13,7 +13,7 @@ describe("CinematicTimeline", () => {
     const project = syncCinematicTimeline({
       ...createInitialProject(),
       effects: { instances: [effect] },
-      audio: { clips: [clip] }
+      audio: { ...createInitialProject().audio, clips: [clip] }
     });
 
     expect(

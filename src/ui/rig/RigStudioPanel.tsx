@@ -33,7 +33,7 @@ interface RigStudioWorkspaces {
   expressionWorkspace: RigExpressionWorkspace;
 }
 
-interface RigStudioPanelProps {
+export interface RigStudioPanelProps {
   open: boolean;
   project: MineMotionProject;
   selectedObjectId: string | null;

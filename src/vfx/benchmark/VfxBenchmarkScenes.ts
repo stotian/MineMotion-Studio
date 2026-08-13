@@ -7,6 +7,7 @@ import type { VfxFrameWork } from "../runtime/VfxFrameBudget";
 import { normalizeEffectsForSchema10 } from "../serialization/VfxProjectMigration";
 
 export const VFX_BENCHMARK_SCENE_VERSION = 1 as const;
+const BENCHMARK_TIME = "2026-01-01T00:00:00.000Z";
 
 export interface VfxBenchmarkSceneExpectation {
   requested: VfxFrameWork;
@@ -29,7 +30,7 @@ function createBenchmarkProject(
   sceneId: string,
   effectTypes: readonly EffectType[]
 ): MineMotionProject {
-  const project = createInitialProject();
+  const project = createInitialProject(undefined, BENCHMARK_TIME);
   const targetId = "character_vfx_benchmark";
   project.projectName = `VFX Benchmark - ${sceneId}`;
   project.projectSettings.projectName = project.projectName;

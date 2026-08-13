@@ -79,7 +79,7 @@ export interface ShotCreativeVariant {
   lighting: LightingSettings;
   lights: ShotLightVariantSnapshot[];
   postProcessing: PostProcessingSettings;
-  renderPasses: RenderPassId[];
+  renderPasses: readonly RenderPassId[];
   createdAt: string;
   updatedAt: string;
 }
@@ -96,7 +96,7 @@ export interface ProductionShot {
   thumbnail?: ShotReferenceImage;
   referenceImages: ShotReferenceImage[];
   renderPreset: ExportSettings;
-  renderPasses: RenderPassId[];
+  renderPasses: readonly RenderPassId[];
   postProcessingOverride?: PostProcessingSettings;
   outputName: string;
   outputFolder: string;

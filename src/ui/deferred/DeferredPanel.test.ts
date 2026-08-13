@@ -34,6 +34,8 @@ describe("deferred panel contract", () => {
 
   it("keeps deferred surfaces and workflows explicit and bounded", () => {
     expect(DEFERRED_PANEL_IDS).toEqual([
+      "audio",
+      "assets",
       "settings",
       "templates",
       "plugins",
@@ -42,8 +44,10 @@ describe("deferred panel contract", () => {
       "rig-studio",
       "lighting-studio",
       "vfx-studio",
+      "production",
       "world-import",
-      "help"
+      "help",
+      "first-launch"
     ]);
     expect(DEFERRED_WORKFLOW_IDS).toEqual([
       "blockbench-import",

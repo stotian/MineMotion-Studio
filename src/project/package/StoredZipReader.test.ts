@@ -10,6 +10,7 @@ describe("StoredZipReader", () => {
   });
   it("rejects unsafe paths", async () => {
     const blob = createStoredZip([{ filename: "../escape", data: new Uint8Array() }]);
-    expect(() => readStoredZip(new Uint8Array(await blob.arrayBuffer()))).toThrow(/Unsafe ZIP/);
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    expect(() => readStoredZip(bytes)).toThrow(/Unsafe ZIP/);
   });
 });

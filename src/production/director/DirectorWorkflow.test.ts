@@ -95,12 +95,12 @@ import { DIRECTOR_FEATURE_PHASES } from "./DirectorFeatureRegistry";
 import { runDirectorAcceptance } from "./DirectorAcceptance";
 
 describe("Director real feature registry", () => {
-  it("keeps phases 601-715 contiguous, unique and fully executable", () => {
-    expect(DIRECTOR_FEATURE_PHASES).toHaveLength(115);
+  it("keeps phases 601-1014 contiguous, unique and fully executable", () => {
+    expect(DIRECTOR_FEATURE_PHASES).toHaveLength(414);
     expect(DIRECTOR_FEATURE_PHASES[0].phase).toBe(601);
-    expect(DIRECTOR_FEATURE_PHASES.at(-1)?.phase).toBe(715);
-    expect(new Set(DIRECTOR_FEATURE_PHASES.map((feature) => feature.id)).size).toBe(115);
-    expect(new Set(DIRECTOR_FEATURE_PHASES.map((feature) => feature.acceptanceId)).size).toBe(115);
-    expect(runDirectorAcceptance().features).toBe(115);
+    expect(DIRECTOR_FEATURE_PHASES.at(-1)?.phase).toBe(1014);
+    expect(new Set(DIRECTOR_FEATURE_PHASES.map((feature) => feature.id)).size).toBe(414);
+    expect(new Set(DIRECTOR_FEATURE_PHASES.map((feature) => feature.acceptanceId)).size).toBe(414);
+    expect(runDirectorAcceptance().features).toBe(414);
   });
 });

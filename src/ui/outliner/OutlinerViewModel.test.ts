@@ -10,7 +10,7 @@ describe("outliner view model", () => {
 
   it("reports placeholder rigs, missing assets, and active-camera drift", () => {
     const project = createDefaultProject();
-    project.scene.characters[0].rigPreset = "zombie";
+    project.scene.characters[0].rigPreset = "generic_blocky";
     project.scene.importedObjects.push(createObjEntity("missing-asset", "Missing"));
     project.scene.cameras[0].active = false;
     expect(collectOutlinerWarnings(project).map((warning) => warning.code)).toEqual([

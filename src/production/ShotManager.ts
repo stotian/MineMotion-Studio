@@ -53,7 +53,9 @@ export function createProductionShot(
     referenceImages: sanitizeReferenceImages(options.referenceImages),
     renderPreset,
     renderPasses: sanitizeRenderPasses(options.renderPasses),
-    postProcessingOverride: options.postProcessingOverride ? withPostProcessingDefaults(options.postProcessingOverride) : undefined,
+    ...(options.postProcessingOverride
+      ? { postProcessingOverride: withPostProcessingDefaults(options.postProcessingOverride) }
+      : {}),
     outputName: sanitizeOutputName(options.outputName ?? name),
     outputFolder: sanitizeOutputFolder(options.outputFolder ?? name),
     enabled: options.enabled ?? true,
@@ -382,7 +384,7 @@ function sanitizeStoryboardCard(
   }];
 }
 
-function sanitizeRenderPasses(values: RenderPassId[] | undefined): RenderPassId[] {
+function sanitizeRenderPasses(values: readonly RenderPassId[] | undefined): RenderPassId[] {
   if (!Array.isArray(values)) return ["beauty"];
   const passes = [...new Set(values.filter((value): value is RenderPassId =>
     (REAL_RENDER_PASSES as readonly string[]).includes(value)

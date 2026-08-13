@@ -16,7 +16,7 @@ const GROUP_KEYS = {
   Post: "commands.group.post"
 } as const satisfies Record<Command["group"], TranslationKey>;
 
-interface CommandPaletteProps {
+export interface CommandPaletteProps {
   commands: Command[];
   open: boolean;
   onClose: () => void;

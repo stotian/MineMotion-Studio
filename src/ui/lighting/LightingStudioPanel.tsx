@@ -30,7 +30,7 @@ import type {
 import type { PostProcessingSettings } from "../../rendering/postprocessing/PostProcessingTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 
-interface LightingStudioPanelProps {
+export interface LightingStudioPanelProps {
   open: boolean;
   lighting: LightingSettings;
   postProcessing: PostProcessingSettings;

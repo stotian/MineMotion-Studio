@@ -735,7 +735,7 @@ export function createUltraPhaseArtifact(
         graphId: `ultra_80_${sequence}`,
         eventName: "minecraft.portal.activate",
         maximumParticles: 1024,
-        fallbackPresetId: null,
+        fallbackPresetId: "nativeExplosion",
         tested: true
       };
       return append("rendering", "minecraftEffects", record);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialProject } from "../../project/ProjectStore";
+import { createProductionShot } from "../ShotManager";
 import { prepareDialogueSequence } from "./DialogueDirector";
 import { buildDirectorSequence } from "./DirectorSequenceBuilder";
 import {
@@ -48,8 +49,7 @@ describe("StudioRenderPipeline", () => {
 
   it("deduplicates, estimates, manifests and synchronizes production jobs", () => {
     const initial = createInitialProject();
-    const shot = {
-      ...initial.production.shots[0],
+    const shot = createProductionShot(initial, {
       id: "shot_pipeline",
       takeGroupId: "take_pipeline",
       name: "SH010",
@@ -62,8 +62,8 @@ describe("StudioRenderPipeline", () => {
       rejected: false,
       revision: 1,
       takeNumber: 1,
-      renderPasses: ["beauty"] as const
-    };
+      renderPasses: ["beauty"]
+    });
     const project = {
       ...initial,
       production: { ...initial.production, shots: [shot], activeShotId: shot.id }

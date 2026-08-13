@@ -53,8 +53,8 @@ describe("imported chunk render ownership", () => {
       [-1, 0, 1],
       [0, 0, 1]
     ]);
-    const firstMesh = result.chunks[0].object.children[0];
-    const secondMesh = result.chunks[1].object.children[0];
+    const firstMesh = result.chunks[0].object.children.find((child) => child.userData.blockFace === "up")!;
+    const secondMesh = result.chunks[1].object.children.find((child) => child.userData.blockFace === "up")!;
     expect(firstMesh).toBeInstanceOf(THREE.InstancedMesh);
     expect(secondMesh).toBeInstanceOf(THREE.InstancedMesh);
     expect((firstMesh as THREE.InstancedMesh).geometry).toBe(

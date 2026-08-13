@@ -18,6 +18,7 @@ export interface TakeComparisonRow {
   favorite: boolean;
   rejected: boolean;
   approved: boolean;
+  activeTake: boolean;
   status: ProductionShot["status"];
   durationFrames: number;
   cameraId: string;
@@ -140,6 +141,7 @@ export function compareTakeGroup(project: MineMotionProject, takeGroupId: string
       favorite: shot.favorite,
       rejected: shot.rejected,
       approved: shot.approved,
+      activeTake: shot.activeTake,
       status: shot.status,
       durationFrames: shot.endFrame - shot.startFrame + 1,
       cameraId: shot.cameraId,
