@@ -17,7 +17,7 @@ import { createShotHandoffManifest, createShotRenderJobs } from "../../productio
 import { validateProductionShot } from "../../production/ShotValidation";
 import { PRODUCTION_MARKER_TYPES, REAL_RENDER_PASSES, type ProductionMarkerType, type ProductionShot, type RenderPassId, type ShotReferenceImage } from "../../production/ShotTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
-import { isExperimentalFeatureEnabled } from "../../experimental/FeatureFlags";
+import { useExperimentalFeature } from "../../experimental/useExperimentalFeature";
 import { CrowdPrototypePanel } from "../experimental/CrowdPrototypePanel";
 import { IsometricTurntablePanel } from "../experimental/IsometricTurntablePanel";
 import { SimulationWorkspaceSection } from "../simulation/SimulationWorkspaceSection";
@@ -48,8 +48,8 @@ export function ProductionWorkspacePanel({
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
-  const crowdsEnabled = isExperimentalFeatureEnabled("procedural-crowds");
-  const turntableEnabled = isExperimentalFeatureEnabled("isometric-turntable");
+  const crowdsEnabled = useExperimentalFeature("procedural-crowds");
+  const turntableEnabled = useExperimentalFeature("isometric-turntable");
   const selected = useMemo(
     () => project.production.shots.find((shot) => shot.id === project.production.activeShotId) ?? project.production.shots[0] ?? null,
     [project.production]

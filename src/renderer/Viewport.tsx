@@ -25,7 +25,7 @@ import { createOptimizationRecommendationReport } from "../performance/Optimizat
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
 import type { BuildSequenceSettings } from "../experimental/buildsequencer/BuildSequenceTypes";
-import { isExperimentalFeatureEnabled } from "../experimental/FeatureFlags";
+import { useExperimentalFeature } from "../experimental/useExperimentalFeature";
 import { BuildSequencerControls } from "../ui/experimental/BuildSequencerControls";
 
 interface ViewportProps {
@@ -51,7 +51,7 @@ export function Viewport({
 }: ViewportProps) {
   // Experimental Build Sequencer reveal is session-only viewport state.
   const [buildReveal, setBuildReveal] = useState<BuildSequenceSettings | null>(null);
-  const buildSequencerEnabled = isExperimentalFeatureEnabled("build-sequencer");
+  const buildSequencerEnabled = useExperimentalFeature("build-sequencer");
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const containerRef = useRef<HTMLDivElement | null>(null);

@@ -5,6 +5,8 @@ import type { SkyPresetId } from "../../renderer/SkyTypes";
 import { SKY_PRESETS } from "../../renderer/SkyTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { AppLanguagePreference } from "../../localization/LocalizationTypes";
+import { setExperimentalFeatureEnabled } from "../../experimental/FeatureFlags";
+import { useExperimentalFeature } from "../../experimental/useExperimentalFeature";
 
 export interface SettingsModalProps {
   open: boolean;
@@ -29,6 +31,11 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
+  const experimentalFeatures = [
+    { id: "build-sequencer", enabled: useExperimentalFeature("build-sequencer"), label: t("experimental.buildSequencer") },
+    { id: "isometric-turntable", enabled: useExperimentalFeature("isometric-turntable"), label: t("experimental.turntable") },
+    { id: "procedural-crowds", enabled: useExperimentalFeature("procedural-crowds"), label: t("experimental.crowds") }
+  ] as const;
   if (!open) return null;
 
   return (
@@ -558,6 +565,21 @@ export function SettingsModal({
             <p className="empty-note">
               {t("settings.plugins.executionDisabled")}
             </p>
+          </section>
+
+          <section>
+            <h3>{t("settings.experimental")}</h3>
+            <p className="empty-note">{t("settings.experimentalNote")}</p>
+            {experimentalFeatures.map((feature) => (
+              <label key={feature.id} className="checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={feature.enabled}
+                  onChange={(event) => setExperimentalFeatureEnabled(feature.id, event.target.checked)}
+                />
+                {feature.label}
+              </label>
+            ))}
           </section>
         </div>
       </section>
