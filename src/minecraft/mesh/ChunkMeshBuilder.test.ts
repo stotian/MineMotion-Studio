@@ -33,6 +33,22 @@ afterEach(() => {
 });
 
 describe("imported chunk render ownership", () => {
+  it("captures per-instance block positions only when requested", () => {
+    const off = ChunkMeshBuilder.buildImportedChunks([chunk(0, 0)], {
+      showChunkBorders: false,
+      showWorldOrigin: false
+    });
+    const on = ChunkMeshBuilder.buildImportedChunks([chunk(0, 0)], {
+      showChunkBorders: false,
+      showWorldOrigin: false,
+      captureBlockPositions: true
+    });
+    const meshOff = off.chunks[0].object.children.find((child) => child.userData.blockFace === "up") as THREE.InstancedMesh;
+    const meshOn = on.chunks[0].object.children.find((child) => child.userData.blockFace === "up") as THREE.InstancedMesh;
+    expect(meshOff.userData.blockPositions).toBeUndefined();
+    expect(meshOn.userData.blockPositions).toEqual([[0, 0, 0]]);
+  });
+
   it("keeps instancing inside independently cullable chunk groups", () => {
     const result = ChunkMeshBuilder.buildImportedChunks(
       [chunk(-1, -1), chunk(0, 0)],

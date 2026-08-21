@@ -61,6 +61,9 @@ export class ChunkMeshBuilder {
             mesh.setMatrixAt(index, matrix);
           });
           mesh.instanceMatrix.needsUpdate = true;
+          if (options.captureBlockPositions) {
+            mesh.userData.blockPositions = samples.map((block) => [block.x, block.y, block.z]);
+          }
           chunkObject.add(mesh);
         }
       }

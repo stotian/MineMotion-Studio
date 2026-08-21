@@ -24,6 +24,9 @@ import type { TranslationKey } from "../localization/LocalizationTypes";
 import { createOptimizationRecommendationReport } from "../performance/OptimizationRecommendations";
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
+import type { BuildSequenceSettings } from "../experimental/buildsequencer/BuildSequenceTypes";
+import { isExperimentalFeatureEnabled } from "../experimental/FeatureFlags";
+import { BuildSequencerControls } from "../ui/experimental/BuildSequencerControls";
 
 interface ViewportProps {
   project: MineMotionProject;
@@ -46,6 +49,9 @@ export function Viewport({
   viewportSettings,
   motionPath
 }: ViewportProps) {
+  // Experimental Build Sequencer reveal is session-only viewport state.
+  const [buildReveal, setBuildReveal] = useState<BuildSequenceSettings | null>(null);
+  const buildSequencerEnabled = isExperimentalFeatureEnabled("build-sequencer");
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -81,9 +87,10 @@ export function Viewport({
       project,
       selectedObjectId,
       viewportSettings,
-      motionPath
+      motionPath,
+      buildReveal
     );
-  }, [motionPath, project, selectedObjectId, viewportSettings]);
+  }, [buildReveal, motionPath, project, selectedObjectId, viewportSettings]);
 
   const selectedCamera = useMemo(() => {
     const lookup = findObject(project, selectedObjectId);
@@ -279,6 +286,13 @@ export function Viewport({
           <span>{localization.plural({ one: "viewport.importedChunks.one", other: "viewport.importedChunks.other" }, project.world.importedChunks.length)}</span>
         ) : null}
       </div>
+      {buildSequencerEnabled && (
+        <BuildSequencerControls
+          hasWorld={Boolean(project.world?.importedChunks?.length)}
+          value={buildReveal}
+          onChange={setBuildReveal}
+        />
+      )}
       <div
         ref={containerRef}
         className="viewport-canvas"

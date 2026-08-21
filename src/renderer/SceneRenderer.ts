@@ -58,6 +58,9 @@ import {
 } from "./ObjAssetCache";
 import type { MinecraftMaterialContext } from "./MinecraftMaterialSystem";
 import type { Vector3Tuple } from "../core/scene/SceneTypes";
+import type { BuildSequenceSettings } from "../experimental/buildsequencer/BuildSequenceTypes";
+import { deriveBuildSequence } from "../experimental/buildsequencer/BuildSequencerSession";
+import { applyBuildReveal, revealFrameByCoord } from "../experimental/buildsequencer/BuildRevealApplication";
 
 export interface SceneRendererOptions {
   container: HTMLElement;
@@ -132,6 +135,7 @@ interface WorldStructuralSignature {
   showWorldOrigin: boolean;
   terrainPreset: string;
   materialContextSignature: string;
+  captureBlockPositions: boolean;
 }
 
 function isSameCharacterFingerprint(
@@ -175,7 +179,8 @@ function isSameWorldSignature(
     a.showChunkBorders === b.showChunkBorders &&
     a.showWorldOrigin === b.showWorldOrigin &&
     a.terrainPreset === b.terrainPreset &&
-    a.materialContextSignature === b.materialContextSignature
+    a.materialContextSignature === b.materialContextSignature &&
+    a.captureBlockPositions === b.captureBlockPositions
   );
 }
 
@@ -258,6 +263,13 @@ export class SceneRenderer {
     object: THREE.Object3D;
     registration: ThreeCullingRegistration;
   }> = [];
+  // Experimental Build Sequencer reveal (session-only; null when inactive).
+  private buildRevealSettings: BuildSequenceSettings | null = null;
+  private buildRevealCache: {
+    world: MineMotionProject["world"] | null;
+    settings: BuildSequenceSettings;
+    lookup: Map<string, number>;
+  } | null = null;
   private animationFrame = 0;
   private selectedObjectId: string | null = null;
   private cachedSelectedObjectId: string | null = null;
@@ -326,8 +338,10 @@ export class SceneRenderer {
     project: MineMotionProject,
     selectedObjectId: string | null,
     viewportSettings?: ViewportSettings,
-    motionPath: SampledMotionPath | null = null
+    motionPath: SampledMotionPath | null = null,
+    buildReveal: BuildSequenceSettings | null = null
   ): void {
+    this.buildRevealSettings = buildReveal;
     this.project = project;
     this.selectedObjectId = selectedObjectId;
     this.layerVisibility = resolveRendererLayerVisibility({
@@ -367,7 +381,35 @@ export class SceneRenderer {
       project,
       project.renderSettings.renderPreviewEnabled ? null : motionPath
     );
+    this.applyBuildRevealToWorld(project);
     this.updateSelectionBox();
+  }
+
+  // Experimental: reveal the imported build block-by-block over the timeline.
+  // The lookup is recomputed only when the world or settings change; each frame
+  // just toggles instance visibility for the current frame.
+  private applyBuildRevealToWorld(project: MineMotionProject): void {
+    const settings = this.buildRevealSettings;
+    if (!settings) {
+      if (this.buildRevealCache) {
+        applyBuildReveal(this.worldGroup, null, 0);
+        this.buildRevealCache = null;
+      }
+      return;
+    }
+    if (
+      !this.buildRevealCache ||
+      this.buildRevealCache.world !== (project.world ?? null) ||
+      this.buildRevealCache.settings !== settings
+    ) {
+      const view = deriveBuildSequence(project, settings);
+      this.buildRevealCache = {
+        world: project.world ?? null,
+        settings,
+        lookup: revealFrameByCoord(view)
+      };
+    }
+    applyBuildReveal(this.worldGroup, this.buildRevealCache.lookup, project.animation.currentFrame);
   }
 
   lookThroughCamera(camera: CameraEntity): void {
@@ -560,7 +602,8 @@ export class SceneRenderer {
       showChunkBorders: this.layerVisibility.helpers,
       showWorldOrigin: this.layerVisibility.helpers,
       terrainPreset: project.projectSettings.terrainPreset,
-      materialContextSignature
+      materialContextSignature,
+      captureBlockPositions: this.buildRevealSettings !== null
     };
 
     if (
@@ -598,7 +641,8 @@ export class SceneRenderer {
           showWorldOrigin:
             this.layerVisibility.helpers &&
             (world?.renderOptions?.showWorldOrigin ?? true),
-          materialContext
+          materialContext,
+          captureBlockPositions: this.buildRevealSettings !== null
         }
       );
       imported.object.name = `Imported World: ${world?.sourceName ?? "Minecraft World"}`;
