@@ -1,4 +1,4 @@
-export type ExperimentalFeatureId = "procedural-crowds";
+export type ExperimentalFeatureId = "procedural-crowds" | "build-sequencer";
 const STORAGE_PREFIX = "minemotion.experimental.";
 export function isExperimentalFeatureEnabled(id: ExperimentalFeatureId): boolean {
   if (typeof window === "undefined") return false;
