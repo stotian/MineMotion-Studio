@@ -24,6 +24,13 @@ export type BuildRevealStrategy =
   | { kind: "radial"; origin: readonly [number, number, number]; direction: BuildDirection }
   | { kind: "scatter"; seed: number };
 
+/**
+ * Cinematic pacing of the reveal over time. It warps *when* blocks appear while
+ * preserving their order: a timelapse that eases in starts slow and accelerates,
+ * ease-out finishes with a settle, ease-in-out does both. Defaults to linear.
+ */
+export type BuildPacing = "linear" | "ease-in" | "ease-out" | "ease-in-out";
+
 export interface BuildSequenceSettings {
   strategy: BuildRevealStrategy;
   startFrame: number;
@@ -31,6 +38,8 @@ export interface BuildSequenceSettings {
   durationFrames: number;
   /** Per-block fade-in length in frames (>= 0). 0 is an instant block pop. */
   fadeFrames?: number;
+  /** Cinematic acceleration of the reveal. Defaults to "linear". */
+  pacing?: BuildPacing;
 }
 
 /** A minimal structural block position; MinecraftBlockSample satisfies it. */

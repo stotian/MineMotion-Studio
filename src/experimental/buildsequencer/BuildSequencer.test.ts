@@ -158,6 +158,56 @@ describe("BuildSequencer core", () => {
     });
   });
 
+  describe("cinematic pacing", () => {
+    // A 101-block line so reveal ranks spread uniformly along the axis.
+    const line: BuildBlockPoint[] = Array.from({ length: 101 }, (_, x) => ({ x, y: 0, z: 0 }));
+    const base = { strategy: { kind: "scan", axis: "x", direction: "ascending" } as const, startFrame: 0, durationFrames: 100, fadeFrames: 0 };
+    const midFrame = 50;
+    const revealedAtMid = (pacing: BuildSequenceSettings["pacing"]) =>
+      revealedBlockCount(buildBuildSchedule(line, { ...base, pacing }), midFrame);
+
+    it("defaults to linear", () => {
+      expect(buildBuildSchedule(line, base).revealFrames).toEqual(
+        buildBuildSchedule(line, { ...base, pacing: "linear" }).revealFrames
+      );
+    });
+
+    it("orders reveal density ease-in < linear < ease-out at the midpoint", () => {
+      const easeIn = revealedAtMid("ease-in");
+      const linear = revealedAtMid("linear");
+      const easeOut = revealedAtMid("ease-out");
+      expect(easeIn).toBeLessThan(linear); // slow start
+      expect(linear).toBeLessThan(easeOut); // fast start
+      expect(linear).toBeGreaterThanOrEqual(50); // roughly half by the midpoint
+    });
+
+    it("keeps ease-in-out symmetric and slow at both ends", () => {
+      const schedule = buildBuildSchedule(line, { ...base, pacing: "ease-in-out" });
+      expect(revealedBlockCount(schedule, midFrame)).toBe(51); // half by the midpoint
+      // Fewer revealed in the first quarter than the linear pace (slow start).
+      const linear = buildBuildSchedule(line, { ...base, pacing: "linear" });
+      expect(revealedBlockCount(schedule, 25)).toBeLessThan(revealedBlockCount(linear, 25));
+    });
+
+    it("preserves order, completeness and monotonicity under every pacing", () => {
+      for (const pacing of ["linear", "ease-in", "ease-out", "ease-in-out"] as const) {
+        const schedule = buildBuildSchedule(line, { ...base, pacing });
+        expect(revealedBlockCount(schedule, base.startFrame - 1)).toBe(0);
+        expect(revealedBlockCount(schedule, schedule.completeFrame)).toBe(line.length);
+        // Reveal frames never decrease along the sweep axis (order preserved).
+        for (let i = 1; i < line.length; i += 1) {
+          expect(schedule.revealFrames[i]).toBeGreaterThanOrEqual(schedule.revealFrames[i - 1]);
+        }
+      }
+    });
+
+    it("rejects an unknown pacing", () => {
+      expect(() =>
+        buildBuildSchedule(line, { ...base, pacing: "bounce" as unknown as BuildSequenceSettings["pacing"] })
+      ).toThrow(/unknown build pacing/i);
+    });
+  });
+
   describe("degenerate and invalid inputs", () => {
     it("returns an empty schedule for no blocks", () => {
       const schedule = buildBuildSchedule([], settingsFor({ kind: "scatter", seed: 5 }));

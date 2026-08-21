@@ -31,6 +31,7 @@ export function buildBuildSchedule(
   const durationFrames = Math.max(0, requireFiniteInteger(settings.durationFrames, "durationFrames"));
   const fadeFrames = Math.max(0, requireFiniteInteger(settings.fadeFrames ?? 0, "fadeFrames"));
   validateStrategy(settings.strategy);
+  validatePacing(settings.pacing);
 
   const warnings: string[] = [];
   const blockCount = blocks.length;
@@ -55,12 +56,16 @@ export function buildBuildSchedule(
     return revealKey(block, settings.strategy);
   });
 
-  const revealFrames =
+  const pacing = settings.pacing ?? "linear";
+  const normalized =
     settings.strategy.kind === "layer"
-      ? assignSteppedFrames(keys, settings.strategy.direction, startFrame, durationFrames)
+      ? normalizedStepped(keys, settings.strategy.direction)
       : settings.strategy.kind === "scatter"
-        ? assignRankedFrames(keys, blocks, "ascending", startFrame, durationFrames)
-        : assignContinuousFrames(keys, settings.strategy.direction, startFrame, durationFrames);
+        ? normalizedRanked(keys, blocks, "ascending")
+        : normalizedContinuous(keys, settings.strategy.direction);
+  const revealFrames = normalized.map(
+    (t) => startFrame + Math.round(applyPacing(t, pacing) * durationFrames)
+  );
 
   const distinctSteps = new Set(revealFrames).size;
   const lastRevealFrame = revealFrames.reduce((max, frame) => Math.max(max, frame), startFrame);
@@ -130,13 +135,11 @@ function axisValue(block: BuildBlockPoint, axis: BuildAxis): number {
   return axis === "x" ? block.x : axis === "y" ? block.y : block.z;
 }
 
-// Continuous sweep: reveal frame is proportional to where the key sits between
-// the minimum and maximum, so a plane appears to glide across the structure.
-function assignContinuousFrames(
+// Continuous sweep: normalized position is where the key sits between the
+// minimum and maximum, so a plane appears to glide across the structure.
+function normalizedContinuous(
   keys: readonly number[],
-  direction: "ascending" | "descending",
-  startFrame: number,
-  durationFrames: number
+  direction: "ascending" | "descending"
 ): number[] {
   let min = Infinity;
   let max = -Infinity;
@@ -147,18 +150,15 @@ function assignContinuousFrames(
   const span = max - min;
   return keys.map((key) => {
     const normalized = span === 0 ? 0 : (key - min) / span;
-    const oriented = direction === "descending" ? 1 - normalized : normalized;
-    return startFrame + Math.round(oriented * durationFrames);
+    return direction === "descending" ? 1 - normalized : normalized;
   });
 }
 
 // Discrete layers: every distinct key value is one step, so a whole plane of
 // blocks pops in together, then the next.
-function assignSteppedFrames(
+function normalizedStepped(
   keys: readonly number[],
-  direction: "ascending" | "descending",
-  startFrame: number,
-  durationFrames: number
+  direction: "ascending" | "descending"
 ): number[] {
   const distinct = [...new Set(keys)].sort((a, b) => a - b);
   if (direction === "descending") distinct.reverse();
@@ -166,19 +166,16 @@ function assignSteppedFrames(
   const lastStep = distinct.length - 1;
   return keys.map((key) => {
     const index = stepIndex.get(key) ?? 0;
-    const normalized = lastStep <= 0 ? 0 : index / lastStep;
-    return startFrame + Math.round(normalized * durationFrames);
+    return lastStep <= 0 ? 0 : index / lastStep;
   });
 }
 
 // Seeded assembly: rank blocks by their content-addressed hash so the reveal
 // order is pseudo-random but perfectly reproducible.
-function assignRankedFrames(
+function normalizedRanked(
   keys: readonly number[],
   blocks: readonly BuildBlockPoint[],
-  direction: "ascending" | "descending",
-  startFrame: number,
-  durationFrames: number
+  direction: "ascending" | "descending"
 ): number[] {
   const order = keys.map((_, index) => index).sort((a, b) => {
     if (keys[a] !== keys[b]) return keys[a] - keys[b];
@@ -192,12 +189,35 @@ function assignRankedFrames(
   });
   if (direction === "descending") order.reverse();
   const lastRank = order.length - 1;
-  const frames = new Array<number>(keys.length);
+  const normalized = new Array<number>(keys.length);
   order.forEach((blockIndex, rank) => {
-    const normalized = lastRank <= 0 ? 0 : rank / lastRank;
-    frames[blockIndex] = startFrame + Math.round(normalized * durationFrames);
+    normalized[blockIndex] = lastRank <= 0 ? 0 : rank / lastRank;
   });
-  return frames;
+  return normalized;
+}
+
+// Monotonic easing over [0,1], so pacing never changes reveal order — only its
+// timing. Quadratic in/out with a smooth in-out.
+function applyPacing(t: number, pacing: import("./BuildSequenceTypes").BuildPacing): number {
+  const clamped = t <= 0 ? 0 : t >= 1 ? 1 : t;
+  switch (pacing) {
+    case "ease-in":
+      // Slow start: early-ranked blocks are delayed, so the reveal accelerates.
+      return 1 - (1 - clamped) * (1 - clamped);
+    case "ease-out":
+      // Fast start that decelerates into a settle.
+      return clamped * clamped;
+    case "ease-in-out":
+      // Slow start and slow settle with a burst through the middle. This is the
+      // inverse of easeInOutQuad so the reveal *progress* (not the rank map) is
+      // the eased S-curve.
+      return clamped < 0.5
+        ? Math.sqrt(clamped / 2)
+        : 1 - Math.sqrt((1 - clamped) / 2);
+    case "linear":
+    default:
+      return clamped;
+  }
 }
 
 function validateStrategy(strategy: BuildRevealStrategy): void {
@@ -220,6 +240,13 @@ function validateStrategy(strategy: BuildRevealStrategy): void {
       return;
     default:
       throw new TypeError(`Unknown build strategy: ${String((strategy as { kind: unknown }).kind)}`);
+  }
+}
+
+function validatePacing(pacing: import("./BuildSequenceTypes").BuildPacing | undefined): void {
+  if (pacing === undefined) return;
+  if (pacing !== "linear" && pacing !== "ease-in" && pacing !== "ease-out" && pacing !== "ease-in-out") {
+    throw new TypeError(`Unknown build pacing: ${String(pacing)}`);
   }
 }
 
