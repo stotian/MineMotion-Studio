@@ -27,11 +27,14 @@ for (const [relativePath, ceiling] of Object.entries(reviewedLineCeilings)) {
   }
 }
 
+const require = createRequire(import.meta.url);
+// Run the local TypeScript compiler through Node so the script is portable:
+// spawning the bare "tsc" name fails on Windows where the binary is tsc.cmd.
+const tscBin = require.resolve("typescript/bin/tsc");
 await rm(outDir, { recursive: true, force: true });
 try {
-  execFileSync("tsc", ["-p", "tsconfig.ultra.json"], { cwd: root, stdio: "inherit" });
+  execFileSync(process.execPath, [tscBin, "-p", "tsconfig.ultra.json"], { cwd: root, stdio: "inherit" });
   await writeFile(path.join(outDir, "package.json"), JSON.stringify({ type: "commonjs" }));
-  const require = createRequire(import.meta.url);
   const { runUltraAcceptance } = require(path.join(outDir, "ultra", "UltraAcceptance.js"));
   const result = runUltraAcceptance();
   if (result.phaseCount !== 565) throw new Error(`Expected 565 Ultra phases, received ${result.phaseCount}.`);

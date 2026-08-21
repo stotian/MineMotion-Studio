@@ -31,10 +31,12 @@ Toutes les gates de vérification locales passent (`verify:locales`,
 `verify:vfx-examples`, `verify:architecture`, `verify:templates`,
 `verify:docs`, `verify:cross-platform`, `verify:release-inputs`,
 `verify:beta-contract`, `verify:contracts`, `verify:security-legal`,
-`verify:ultra-roadmap`, `verify:director`, `verify:performance-regressions`).
-Deux scripts avaient un défaut de portabilité Windows désormais corrigé :
+`verify:ultra`, `verify:ultra-roadmap`, `verify:director`,
+`verify:performance-regressions`).
+Plusieurs scripts avaient un défaut de portabilité Windows désormais corrigé :
 `validate-doc-links` construisait un chemin `C:\C:\…` via `URL.pathname`, et
-`verify-director-workflow` lançait `tsc` par son nom nu (échec sur `tsc.cmd`).
+`verify-director-workflow` comme `verify-ultra-phases` lançaient `tsc` par son
+nom nu (échec sur `tsc.cmd`).
 
 La release reste `V1_BLOCKED` : `verify:v1-gate` reste rouge par conception
 (8/16), car les preuves manquantes exigent un accès externe (toolchain
