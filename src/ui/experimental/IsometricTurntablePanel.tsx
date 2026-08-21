@@ -1,30 +1,19 @@
 import { useState } from "react";
 import { useLocalization } from "../../localization/LocalizationContext";
-import type { MineMotionProject, Vector3Tuple } from "../../project/ProjectFile";
+import type { MineMotionProject } from "../../project/ProjectFile";
 import { bakeIsometricTurntable } from "../../experimental/showcase/IsometricTurntable";
+import { computeBuildBounds } from "../../experimental/showcase/BuildBounds";
 
 interface IsometricTurntablePanelProps {
   project: MineMotionProject;
   onProjectChange: (project: MineMotionProject, label: string) => void;
 }
 
-// A sensible orbit centre: the world spawn, else the centroid of placed scene
-// objects, else the origin at eye height.
-function deriveCenter(project: MineMotionProject): Vector3Tuple {
-  if (project.world?.spawn) return [...project.world.spawn];
-  const positions = [
-    ...project.scene.characters.map((entity) => entity.transform.position),
-    ...project.scene.importedObjects.map((entity) => entity.transform.position)
-  ];
-  if (positions.length === 0) return [0, 2, 0];
-  const sum = positions.reduce<Vector3Tuple>((acc, p) => [acc[0] + p[0], acc[1] + p[1], acc[2] + p[2]], [0, 0, 0]);
-  return [sum[0] / positions.length, sum[1] / positions.length + 1, sum[2] / positions.length];
-}
-
 export function IsometricTurntablePanel({ project, onProjectChange }: IsometricTurntablePanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
-  const [radius, setRadius] = useState(16);
+  const bounds = computeBuildBounds(project);
+  const [radius, setRadius] = useState(() => Math.round(bounds.radius));
   const [elevation, setElevation] = useState(30);
   const [duration, setDuration] = useState(240);
   const [turns, setTurns] = useState(1);
@@ -48,7 +37,7 @@ export function IsometricTurntablePanel({ project, onProjectChange }: IsometricT
         disabled={!hasCamera}
         onClick={() => onProjectChange(
           bakeIsometricTurntable(project, cameraId, {
-            center: deriveCenter(project),
+            center: bounds.center,
             radius: Math.max(1, radius),
             elevationDegrees: elevation,
             startFrame: 0,
