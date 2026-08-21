@@ -27,5 +27,17 @@ stable et survivent à JSON, package, autosave et export schéma 9 guardé. La
 vérification porte sur les plans de rendu, sans revendiquer de rendu pixel, de
 codec ni d'installateur.
 
-La release reste `V1_BLOCKED`. Aucun installateur, support plateforme ou codec
-desktop ne doit être présenté comme validé sans preuve collectée.
+Toutes les gates de vérification locales passent (`verify:locales`,
+`verify:vfx-examples`, `verify:architecture`, `verify:templates`,
+`verify:docs`, `verify:cross-platform`, `verify:release-inputs`,
+`verify:beta-contract`, `verify:contracts`, `verify:security-legal`,
+`verify:ultra-roadmap`, `verify:director`, `verify:performance-regressions`).
+Deux scripts avaient un défaut de portabilité Windows désormais corrigé :
+`validate-doc-links` construisait un chemin `C:\C:\…` via `URL.pathname`, et
+`verify-director-workflow` lançait `tsc` par son nom nu (échec sur `tsc.cmd`).
+
+La release reste `V1_BLOCKED` : `verify:v1-gate` reste rouge par conception
+(8/16), car les preuves manquantes exigent un accès externe (toolchain
+Rust/Tauri, registre, CI distante, matériel de référence, autorisation de
+publication). Aucun installateur, support plateforme ou codec desktop ne doit
+être présenté comme validé sans preuve collectée.

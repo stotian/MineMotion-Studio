@@ -5,11 +5,14 @@ import path from "node:path";
 
 const root = process.cwd();
 const outDir = path.join(root, ".director-build");
+const require = createRequire(import.meta.url);
+// Run the local TypeScript compiler through Node so the script is portable:
+// spawning the bare "tsc" name fails on Windows where the binary is tsc.cmd.
+const tscBin = require.resolve("typescript/bin/tsc");
 await rm(outDir, { recursive: true, force: true });
 try {
-  execFileSync("tsc", ["-p", "tsconfig.director.json"], { cwd: root, stdio: "inherit" });
+  execFileSync(process.execPath, [tscBin, "-p", "tsconfig.director.json"], { cwd: root, stdio: "inherit" });
   await writeFile(path.join(outDir, "package.json"), JSON.stringify({ type: "commonjs" }));
-  const require = createRequire(import.meta.url);
   const { runDirectorAcceptance } = require(path.join(outDir, "production", "director", "DirectorAcceptance.js"));
   const { DIRECTOR_FEATURE_PHASES } = require(path.join(outDir, "production", "director", "DirectorFeatureRegistry.js"));
   for (const feature of DIRECTOR_FEATURE_PHASES) {

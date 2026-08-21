@@ -1,6 +1,7 @@
 import { readFile, readdir, stat } from "node:fs/promises";
-import { dirname, join, normalize, resolve } from "node:path";
-const root = resolve(new URL("..", import.meta.url).pathname);
+import { dirname, join, normalize } from "node:path";
+import { fileURLToPath } from "node:url";
+const root = fileURLToPath(new URL("..", import.meta.url));
 const docsDir = join(root, "docs");
 const files = (await readdir(docsDir)).filter((name) => name.endsWith(".md"));
 const errors = [];
