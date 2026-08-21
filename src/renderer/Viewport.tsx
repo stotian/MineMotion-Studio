@@ -291,6 +291,7 @@ export function Viewport({
           hasWorld={Boolean(project.world?.importedChunks?.length)}
           value={buildReveal}
           onChange={setBuildReveal}
+          timelineFrames={project.animation.durationFrames}
         />
       )}
       <div

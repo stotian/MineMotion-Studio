@@ -11,9 +11,11 @@ interface BuildSequencerControlsProps {
   hasWorld: boolean;
   value: BuildSequenceSettings | null;
   onChange: (value: BuildSequenceSettings | null) => void;
+  /** Timeline length used as the default reveal duration when enabling. */
+  timelineFrames?: number;
 }
 
-const DEFAULT_SETTINGS: BuildSequenceSettings = {
+const BASE_SETTINGS: BuildSequenceSettings = {
   strategy: { kind: "layer", axis: "y", direction: "ascending" },
   startFrame: 0,
   durationFrames: 120,
@@ -40,11 +42,15 @@ function strategyForKind(kind: StrategyKind, previous: BuildRevealStrategy): Bui
   }
 }
 
-export function BuildSequencerControls({ hasWorld, value, onChange }: BuildSequencerControlsProps) {
+export function BuildSequencerControls({ hasWorld, value, onChange, timelineFrames }: BuildSequencerControlsProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const enabled = value !== null;
-  const settings = value ?? DEFAULT_SETTINGS;
+  const defaultSettings: BuildSequenceSettings = {
+    ...BASE_SETTINGS,
+    durationFrames: timelineFrames && timelineFrames > 0 ? Math.round(timelineFrames) : BASE_SETTINGS.durationFrames
+  };
+  const settings = value ?? defaultSettings;
 
   return (
     <section className="experimental-build-panel" aria-label={t("buildSequencer.ariaLabel")}>
@@ -53,7 +59,7 @@ export function BuildSequencerControls({ hasWorld, value, onChange }: BuildSeque
           type="checkbox"
           checked={enabled}
           disabled={!hasWorld}
-          onChange={(event) => onChange(event.target.checked ? DEFAULT_SETTINGS : null)}
+          onChange={(event) => onChange(event.target.checked ? defaultSettings : null)}
         />
         {t("buildSequencer.enable")}
       </label>
