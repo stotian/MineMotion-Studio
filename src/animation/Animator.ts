@@ -14,7 +14,21 @@ export class Animator {
       return project;
     }
 
-    let nextProject: MineMotionProject = structuredClone(project);
+    // Only scene entities are animated, so clone the scene collections and share
+    // the rest of the project (world chunks, effects, audio, assets…) by
+    // reference instead of deep-cloning the whole project every frame.
+    // applyTrackValue writes only into these fresh arrays and replaces entities
+    // immutably, so the input project is never mutated.
+    let nextProject: MineMotionProject = {
+      ...project,
+      scene: {
+        ...project.scene,
+        characters: [...project.scene.characters],
+        cameras: [...project.scene.cameras],
+        importedObjects: [...project.scene.importedObjects],
+        lights: [...project.scene.lights]
+      }
+    };
 
     for (const track of project.animation.tracks) {
       const value = sampleVectorTrack(track.keyframes, frame);
