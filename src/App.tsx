@@ -116,6 +116,8 @@ import {
   WorldImportPanel
 } from "./ui/deferred/DeferredPanelRegistry";
 
+import { ErrorBoundary } from "./reliability/ErrorBoundary";
+
 const Viewport = lazy(() => import("./renderer/Viewport").then(({ Viewport: component }) => ({ default: component })));
 
 export function App() {
@@ -1604,6 +1606,12 @@ export function App() {
           onImportAudio={handleImportAudio}
           onAddBuiltinSfx={handleAddBuiltinSfx}
         />
+        <ErrorBoundary
+          context="3D viewport"
+          fallback={() => (
+            <div className="viewport-loading" role="alert">{localization.t("app.viewportError")}</div>
+          )}
+        >
         <Suspense fallback={<div className="viewport-loading" aria-live="polite">{localization.t("app.viewportLoading")}</div>}>
         <Viewport
           project={displayProject}
@@ -1616,6 +1624,7 @@ export function App() {
           motionPath={rigConstraints.motionPathSession.path}
         />
         </Suspense>
+        </ErrorBoundary>
         <InspectorPanel
           project={project}
           selectedObjectId={selectedObjectId}

@@ -1132,6 +1132,7 @@ export const EN_TRANSLATIONS = Object.freeze({
   "graph.curvesAria": "{property} animation curves",
   "app.ready": "Ready. Professional animation, resource-pack, and lighting systems loaded.",
   "app.viewportLoading": "Initializing the 3D view…",
+  "app.viewportError": "The 3D view failed to start (WebGL may be unavailable). The rest of the editor still works.",
   "app.confirmAutosave": "A MineMotion autosave was found in this browser. Restore it?",
   "app.autosaveBackupRestored": "Primary autosave was invalid; the retained backup was restored.",
   "app.autosaveRestored": "Autosaved project restored from browser storage.",
