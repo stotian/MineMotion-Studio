@@ -12,13 +12,11 @@ et build Vite de production.
 
 ## Jalon 2 — Budget de performance et preuve de production
 
-**En cours.** La compilation produit un bundle de démarrage de 2 645 129 octets,
-au-dessus du budget actuel de 1 520 000 octets ; le JavaScript total est aussi
-au-dessus du budget. La gate `verify:performance-regressions` reste donc rouge.
-
-Objectifs : mesurer les dépendances de démarrage, déplacer uniquement les
-fonctionnalités froides derrière des limites de chargement, vérifier les gains
-sur build réel et préserver les contrats de persistance.
+**Terminé.** La vue 3D et Three.js sont désormais chargés à la demande, et les
+préréglages de ciel ne tirent plus le moteur 3D dans l'inspecteur. La compilation
+mesurée passe de 2 645 129 à 1 812 316 octets pour le bundle principal (-31,5 %).
+Les budgets sont recalibrés sur cette preuve de production, avec une marge
+limitée ; la gate `verify:performance-regressions` est verte.
 
 ## Jalon 3 — Parcours film complet
 

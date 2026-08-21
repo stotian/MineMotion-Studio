@@ -1098,6 +1098,7 @@ export const FR_TRANSLATIONS = Object.freeze({
   "graph.bezierPlaceholder": "Bézier (provisoire)",
   "graph.curvesAria": "Courbes d’animation de {property}",
   "app.ready": "Prêt. Les systèmes professionnels d’animation, de packs de ressources et d’éclairage sont chargés.",
+  "app.viewportLoading": "Initialisation de la vue 3D…",
   "app.confirmAutosave": "Une sauvegarde automatique MineMotion a été trouvée dans ce navigateur. La restaurer ?",
   "app.autosaveBackupRestored": "La sauvegarde automatique principale était invalide ; la copie de secours conservée a été restaurée.",
   "app.autosaveRestored": "Projet restauré depuis la sauvegarde automatique du navigateur.",

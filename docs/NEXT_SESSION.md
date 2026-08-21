@@ -1,13 +1,13 @@
 # Reprise de travail
 
-Reprendre au **jalon 2 — Budget de performance et preuve de production**.
+Reprendre au **jalon 3 — Parcours film complet**.
 
-1. Mesurer la composition du bundle Vite réel.
-2. Découper les fonctionnalités froides sans dupliquer l'état projet ni casser
-   les sauvegardes.
-3. Comparer les octets avant/après avec `verify:performance-regressions`.
-4. Lancer typecheck, tests, build et les gates concernées.
-5. Mettre à jour le contexte uniquement avec des résultats mesurés.
-6. Créer un commit clair et pousser `main` après chaque jalon stable.
+1. Construire un court projet de film avec monde, rigs, plans, lumière,
+   animation et VFX.
+2. Vérifier les sorties preview, final et compositing sans promettre de codec
+   ou d'installateur non validé.
+3. Lancer les validations ciblées, puis les gates complètes.
+4. Mettre à jour le contexte uniquement avec des résultats mesurés.
+5. Créer un commit clair et pousser `main` après chaque jalon stable.
 
 Le jalon suivant est le parcours film complet, puis les preuves de publication.

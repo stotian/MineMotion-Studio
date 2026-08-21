@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { AssetManager } from "./assets/AssetManager";
 import { ObjImporter } from "./assets/ObjImporter";
@@ -80,7 +80,6 @@ import {
   type LocalizationDiagnosticCode
 } from "./localization/LocalizationDiagnostics";
 import type { SkyPresetId } from "./renderer/SkyTypes";
-import { Viewport } from "./renderer/Viewport";
 import { MinecraftSkinImporter } from "./rigs/MinecraftSkinImporter";
 import { getSelectedCharacterId, parseRigBoneSelection } from "./rigs/RigSelection";
 import { useRigWorkspaceController } from "./rigs/RigWorkspaceController";
@@ -116,6 +115,8 @@ import {
   VfxWorkspacePanel,
   WorldImportPanel
 } from "./ui/deferred/DeferredPanelRegistry";
+
+const Viewport = lazy(() => import("./renderer/Viewport").then(({ Viewport: component }) => ({ default: component })));
 
 export function App() {
   const [settings, setSettings] = useState<AppSettings>(() =>
@@ -1603,6 +1604,7 @@ export function App() {
           onImportAudio={handleImportAudio}
           onAddBuiltinSfx={handleAddBuiltinSfx}
         />
+        <Suspense fallback={<div className="viewport-loading" aria-live="polite">{localization.t("app.viewportLoading")}</div>}>
         <Viewport
           project={displayProject}
           selectedObjectId={selectedObjectId}
@@ -1613,6 +1615,7 @@ export function App() {
           viewportSettings={settings.viewport}
           motionPath={rigConstraints.motionPathSession.path}
         />
+        </Suspense>
         <InspectorPanel
           project={project}
           selectedObjectId={selectedObjectId}

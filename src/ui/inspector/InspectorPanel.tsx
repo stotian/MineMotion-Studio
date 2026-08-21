@@ -36,8 +36,7 @@ import type {
 } from "../../project/ProjectFile";
 import { findObject } from "../../project/ProjectStore";
 import type { PostProcessingSettings } from "../../rendering/postprocessing/PostProcessingTypes";
-import { SKY_PRESETS } from "../../renderer/SkySystem";
-import type { SkyPresetId } from "../../renderer/SkyTypes";
+import { SKY_PRESETS, type SkyPresetId } from "../../renderer/SkyTypes";
 import { getRigDefinition, MINECRAFT_RIG_PRESETS } from "../../rigs/MinecraftRigPresets";
 import { parseRigBoneSelection } from "../../rigs/RigSelection";
 import type { RigPresetId } from "../../rigs/RigTypes";

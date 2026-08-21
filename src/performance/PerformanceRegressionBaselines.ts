@@ -1,14 +1,14 @@
 import thresholds from "./performance-regression-thresholds.json";
 
-export const PERFORMANCE_REGRESSION_BASELINE_VERSION = 1 as const;
+export const PERFORMANCE_REGRESSION_BASELINE_VERSION = 2 as const;
 
-export const PHASE_20_MEASUREMENTS = Object.freeze({
+export const MILESTONE_2_MEASUREMENTS = Object.freeze({
   bundle: Object.freeze({
-    beforeMainJavascriptBytes: 1_542_640,
-    afterSplitMainJavascriptBytes: 1_439_600,
-    afterSplitMainGzipBytes: 397_660,
-    afterSplitDeferredJavascriptBytes: 110_640,
-    workerJavascriptBytes: 7_610
+    beforeMainJavascriptBytes: 2_645_129,
+    afterSplitMainJavascriptBytes: 1_812_316,
+    afterSplitMainGzipBytes: 346_600,
+    afterSplitDeferredJavascriptBytes: 878_527,
+    workerJavascriptBytes: 11_441
   }),
   architecture: Object.freeze({
     appBeforeProjectWorkspaceLines: 2_014,
@@ -26,6 +26,6 @@ export const PHASE_20_MEASUREMENTS = Object.freeze({
   })
 });
 
-export const PHASE_20_REGRESSION_THRESHOLDS = Object.freeze({
+export const MILESTONE_2_REGRESSION_THRESHOLDS = Object.freeze({
   ...thresholds
 });

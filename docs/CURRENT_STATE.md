@@ -13,8 +13,10 @@ Les validations locales obtenues pendant le jalon de stabilisation sont :
 - `npm test -- --run` : 179 fichiers, 1 293 tests réussis ;
 - `npm run build` : réussi.
 
-La gate de budget post-build est encore rouge : le bundle de démarrage et le
-JavaScript total dépassent leur budget. C'est le travail actif du jalon 2.
+Le jalon 2 est validé : le bundle principal est passé de 2 645 129 à
+1 812 316 octets (-31,5 %). Three.js et la vue 3D ne bloquent plus le premier
+affichage ; le budget mesuré de l'application avancée est contrôlé par la gate
+post-build.
 
 La release reste `V1_BLOCKED`. Aucun installateur, support plateforme ou codec
 desktop ne doit être présenté comme validé sans preuve collectée.
