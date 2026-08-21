@@ -16,6 +16,17 @@ export class ChunkMeshBuilder {
     group.userData.objectType = "world";
     const visibleBlocks = GreedyMesher.compactVisibleBlocks(chunks);
     const faceGeometries = createFaceGeometries();
+    // Group blocks by chunk once, then by block id and face, so meshing is a
+    // single linear pass instead of repeated per-id/per-face array scans. Blocks
+    // stay in their original order, so instance and mesh ordering is unchanged.
+    type VisibleBlock = (typeof visibleBlocks)[number];
+    const blocksByChunk = new Map<string, VisibleBlock[]>();
+    for (const block of visibleBlocks) {
+      const key = `${Math.floor(block.x / 16)},${Math.floor(block.z / 16)}`;
+      const bucket = blocksByChunk.get(key);
+      if (bucket) bucket.push(block);
+      else blocksByChunk.set(key, [block]);
+    }
     const renderedChunks = chunks.map((chunk) => {
       const chunkObject = new THREE.Group();
       chunkObject.name = `Chunk ${chunk.chunkX},${chunk.chunkZ}`;
@@ -23,18 +34,23 @@ export class ChunkMeshBuilder {
       chunkObject.userData.objectType = "worldChunk";
       chunkObject.userData.chunkX = chunk.chunkX;
       chunkObject.userData.chunkZ = chunk.chunkZ;
-      const chunkBlocks = visibleBlocks.filter((block) =>
-        Math.floor(block.x / 16) === chunk.chunkX &&
-        Math.floor(block.z / 16) === chunk.chunkZ
-      );
+      const chunkBlocks = blocksByChunk.get(`${chunk.chunkX},${chunk.chunkZ}`) ?? [];
+      const samplesByIdFace = new Map<string, Map<string, VisibleBlock[]>>();
+      for (const block of chunkBlocks) {
+        let faces = samplesByIdFace.get(block.id);
+        if (!faces) { faces = new Map(); samplesByIdFace.set(block.id, faces); }
+        for (const face of block.exposedFaces) {
+          const arr = faces.get(face);
+          if (arr) arr.push(block);
+          else faces.set(face, [block]);
+        }
+      }
       for (const blockId of listRenderableBlockIds()) {
-        const blockSamples = chunkBlocks.filter((block) => block.id === blockId);
-        if (blockSamples.length === 0) continue;
+        const faces = samplesByIdFace.get(blockId);
+        if (!faces) continue;
         for (const direction of FACE_DIRECTIONS) {
-          const samples = blockSamples.filter((block) =>
-            block.exposedFaces.includes(direction)
-          );
-          if (samples.length === 0) continue;
+          const samples = faces.get(direction);
+          if (!samples || samples.length === 0) continue;
           const mesh = new THREE.InstancedMesh(
             faceGeometries[direction],
             BlockMaterialResolver.resolve(
