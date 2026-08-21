@@ -1,4 +1,4 @@
-import { Animator } from "../Animator";
+import { Animator, shallowCloneProjectScene } from "../Animator";
 import type {
   CharacterEntity,
   MineMotionProject,
@@ -31,7 +31,9 @@ export function sampleProjectWithAnimationLayers(
       warnings: []
     };
   }
-  let next = baseProject === project ? structuredClone(project) : baseProject;
+  // applyEntityValues only replaces scene entities (immutably) in fresh arrays,
+  // so a scene-only clone is enough and avoids a per-frame deep clone.
+  let next = baseProject === project ? shallowCloneProjectScene(project) : baseProject;
   const activeLayerIds: string[] = [];
   const vfxEffectIds: string[] = [];
   const warnings: string[] = [];

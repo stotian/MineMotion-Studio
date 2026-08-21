@@ -5,6 +5,24 @@ import type {
 } from "../project/ProjectFile";
 import { sampleVectorTrack } from "./Interpolation";
 
+/**
+ * Clone only the scene collections, sharing the rest of the project (world,
+ * effects, audio, assets…) by reference. Enough for per-frame samplers that
+ * replace scene entities immutably, and far cheaper than a deep clone.
+ */
+export function shallowCloneProjectScene(project: MineMotionProject): MineMotionProject {
+  return {
+    ...project,
+    scene: {
+      ...project.scene,
+      characters: [...project.scene.characters],
+      cameras: [...project.scene.cameras],
+      importedObjects: [...project.scene.importedObjects],
+      lights: [...project.scene.lights]
+    }
+  };
+}
+
 export class Animator {
   static sampleProject(
     project: MineMotionProject,
@@ -15,20 +33,10 @@ export class Animator {
     }
 
     // Only scene entities are animated, so clone the scene collections and share
-    // the rest of the project (world chunks, effects, audio, assets…) by
-    // reference instead of deep-cloning the whole project every frame.
+    // the rest of the project by reference instead of deep-cloning every frame.
     // applyTrackValue writes only into these fresh arrays and replaces entities
     // immutably, so the input project is never mutated.
-    let nextProject: MineMotionProject = {
-      ...project,
-      scene: {
-        ...project.scene,
-        characters: [...project.scene.characters],
-        cameras: [...project.scene.cameras],
-        importedObjects: [...project.scene.importedObjects],
-        lights: [...project.scene.lights]
-      }
-    };
+    let nextProject: MineMotionProject = shallowCloneProjectScene(project);
 
     for (const track of project.animation.tracks) {
       const value = sampleVectorTrack(track.keyframes, frame);
