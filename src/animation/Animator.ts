@@ -23,6 +23,14 @@ export function shallowCloneProjectScene(project: MineMotionProject): MineMotion
   };
 }
 
+type SceneCollection = "characters" | "cameras" | "importedObjects" | "lights";
+const SCENE_COLLECTIONS: readonly SceneCollection[] = [
+  "characters",
+  "cameras",
+  "importedObjects",
+  "lights"
+];
+
 export class Animator {
   static sampleProject(
     project: MineMotionProject,
@@ -38,82 +46,83 @@ export class Animator {
     // immutably, so the input project is never mutated.
     let nextProject: MineMotionProject = shallowCloneProjectScene(project);
 
+    // Resolve every entity's location once, so applying a track is O(1) instead
+    // of scanning all four collections per track per frame.
+    const locations = Animator.buildEntityLocations(nextProject);
     for (const track of project.animation.tracks) {
       const value = sampleVectorTrack(track.keyframes, frame);
       if (!value) {
         continue;
       }
-      nextProject = Animator.applyTrackValue(
-        nextProject,
-        track.targetId,
-        track.property,
-        value
-      );
+      Animator.applyTrackValue(nextProject, locations, track.targetId, track.property, value);
     }
 
     return nextProject;
   }
 
+  private static buildEntityLocations(
+    project: MineMotionProject
+  ): Map<string, { collection: SceneCollection; index: number }> {
+    const locations = new Map<string, { collection: SceneCollection; index: number }>();
+    for (const collection of SCENE_COLLECTIONS) {
+      const list = project.scene[collection];
+      for (let index = 0; index < list.length; index += 1) {
+        // First matching collection wins, matching the previous scan order.
+        if (!locations.has(list[index].id)) {
+          locations.set(list[index].id, { collection, index });
+        }
+      }
+    }
+    return locations;
+  }
+
   private static applyTrackValue(
     project: MineMotionProject,
+    locations: Map<string, { collection: SceneCollection; index: number }>,
     targetId: string,
     property: AnimatableProperty,
     value: [number, number, number]
-  ): MineMotionProject {
-    const collections = [
-      "characters",
-      "cameras",
-      "importedObjects",
-      "lights"
-    ] as const;
+  ): void {
+    const location = locations.get(targetId);
+    if (!location) {
+      return;
+    }
+    const { collection, index } = location;
+    const entity = project.scene[collection][index];
 
-    for (const collection of collections) {
-      const index = project.scene[collection].findIndex(
-        (entity) => entity.id === targetId
-      );
-      if (index === -1) {
-        continue;
-      }
-
-      const entity = project.scene[collection][index];
-
-      if (collection === "characters" && property.startsWith("bone.rotation.")) {
-        const boneId = property.replace("bone.rotation.", "");
-        project.scene.characters[index] = {
-          ...project.scene.characters[index],
-          boneRotations: {
-            ...project.scene.characters[index].boneRotations,
-            [boneId]: [...value]
-          }
-        };
-        return project;
-      }
-
-      if (property.startsWith("bone.rotation.")) {
-        return project;
-      }
-
-      const transform: TransformData = {
-        position: [...entity.transform.position],
-        rotation: [...entity.transform.rotation],
-        scale: [...entity.transform.scale]
+    if (collection === "characters" && property.startsWith("bone.rotation.")) {
+      const boneId = property.replace("bone.rotation.", "");
+      project.scene.characters[index] = {
+        ...project.scene.characters[index],
+        boneRotations: {
+          ...project.scene.characters[index].boneRotations,
+          [boneId]: [...value]
+        }
       };
-
-      if (property === "transform.position") {
-        transform.position = [...value];
-      } else if (property === "transform.rotation") {
-        transform.rotation = [...value];
-      } else {
-        transform.scale = [...value];
-      }
-
-      project.scene[collection][index] = {
-        ...entity,
-        transform
-      };
-      return project;
+      return;
     }
 
-    return project;
+    if (property.startsWith("bone.rotation.")) {
+      return;
+    }
+
+    const transform: TransformData = {
+      position: [...entity.transform.position],
+      rotation: [...entity.transform.rotation],
+      scale: [...entity.transform.scale]
+    };
+
+    if (property === "transform.position") {
+      transform.position = [...value];
+    } else if (property === "transform.rotation") {
+      transform.rotation = [...value];
+    } else {
+      transform.scale = [...value];
+    }
+
+    project.scene[collection][index] = {
+      ...entity,
+      transform
+    } as never;
   }
 }
