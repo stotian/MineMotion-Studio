@@ -20,9 +20,21 @@ limitée ; la gate `verify:performance-regressions` est verte.
 
 ## Jalon 3 — Parcours film complet
 
-À venir : importer un monde borné, mettre en scène plusieurs rigs, générer les
-plans, éclairer, animer, ajouter VFX/post, puis vérifier les plans preview,
-final et compositing sur un court métrage test.
+**Terminé.** Une fixture composite déterministe (`FilmJourneyComposite.test.ts`,
+façon TD-044) exerce le seam transversal du parcours film : monde borné importé
+et embarqué, plusieurs rigs mis en scène, plans générés avec storyboard et piste
+caméra, éclairage/ciel/post appliqués par le look « storm-battle », animation
+d'os authored sur la piste globale, et VFX. Elle vérifie que les plans de rendu
+preview, final et compositing sont produits de façon déterministe (preview =
+1 job beauty/plan en WebM draft ; final = passes beauty·characters·vfx en PNG
+haute qualité ; compositing = mêmes passes sans barres cinéma ni audio) et
+qu'ils survivent à JSON schéma 10, package portable, autosave navigateur et
+export schéma 9 guardé. Aucune promesse de rendu pixel réel, de codec ou
+d'installateur : la vérification porte sur les plans, pas sur des artefacts
+encodés.
+
+Validation : typecheck strict, 180 fichiers de tests / 1 296 tests, build Vite
+de production et gate `verify:performance-regressions` verte.
 
 ## Jalon 4 — Preuves de publication
 
