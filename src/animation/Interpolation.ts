@@ -21,7 +21,12 @@ export function sampleVectorTrack(
     return null;
   }
 
-  const sorted = [...keyframes].sort((a, b) => a.frame - b.frame);
+  // Playback samples every track every frame, so avoid the per-sample clone and
+  // sort when the keyframes are already ordered (the common case for maintained
+  // tracks). Only unsorted input pays for a sorted copy.
+  const sorted = isSortedByFrame(keyframes)
+    ? keyframes
+    : [...keyframes].sort((a, b) => a.frame - b.frame);
 
   if (frame <= sorted[0].frame) {
     return [...sorted[0].value];
@@ -32,18 +37,27 @@ export function sampleVectorTrack(
     return [...last.value];
   }
 
-  for (let index = 0; index < sorted.length - 1; index += 1) {
-    const left = sorted[index];
-    const right = sorted[index + 1];
-    if (frame >= left.frame && frame <= right.frame) {
-      const span = right.frame - left.frame || 1;
-      const t = applyInterpolationCurve(
-        left.interpolation ?? "linear",
-        (frame - left.frame) / span
-      );
-      return lerpVector3(left.value, right.value, t);
-    }
+  // Binary search for the segment [left, right] that brackets `frame`.
+  let lo = 0;
+  let hi = sorted.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (sorted[mid].frame <= frame) lo = mid;
+    else hi = mid - 1;
   }
+  const left = sorted[lo];
+  const right = sorted[lo + 1];
+  const span = right.frame - left.frame || 1;
+  const t = applyInterpolationCurve(
+    left.interpolation ?? "linear",
+    (frame - left.frame) / span
+  );
+  return lerpVector3(left.value, right.value, t);
+}
 
-  return null;
+function isSortedByFrame(keyframes: Keyframe<Vector3Tuple>[]): boolean {
+  for (let index = 1; index < keyframes.length; index += 1) {
+    if (keyframes[index].frame < keyframes[index - 1].frame) return false;
+  }
+  return true;
 }
