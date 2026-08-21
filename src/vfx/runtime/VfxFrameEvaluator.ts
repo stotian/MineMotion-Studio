@@ -203,9 +203,15 @@ function resolveParameters(
       (left, right) =>
         left.localFrame - right.localFrame || compareText(left.id, right.id)
     );
-    const previous = [...ordered]
-      .reverse()
-      .find((keyframe) => keyframe.localFrame <= localFrame);
+    // The last keyframe at or before the frame; scan backwards to avoid cloning
+    // and reversing the array every frame.
+    let previous: (typeof ordered)[number] | undefined;
+    for (let index = ordered.length - 1; index >= 0; index -= 1) {
+      if (ordered[index].localFrame <= localFrame) {
+        previous = ordered[index];
+        break;
+      }
+    }
     if (!previous) continue;
     const next = ordered.find(
       (keyframe) => keyframe.localFrame > previous.localFrame
