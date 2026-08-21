@@ -1,6 +1,12 @@
 # Reprise de travail
 
-Reprendre au **jalon 4 — Preuves de publication**.
+Reprendre au **jalon 4 — Preuves de publication (desktop / Microsoft Store)**.
+
+Cap produit : livrer MineMotion comme application desktop téléchargeable de type
+Blender, visée Microsoft Store. Voir `docs/MICROSOFT_STORE.md`. Le build natif
+local est bloqué par Smart App Control ; le build passe par le CI cloud
+(`.github/workflows/desktop.yml`). MSIX/soumission en attente de l'identité
+Partner Center.
 
 1. Collecter des preuves réelles : builds natifs, installateurs, codecs, QA
    visuelle, mesures matériel et CI distante.
