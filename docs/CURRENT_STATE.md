@@ -10,7 +10,7 @@ existantes ; aucun format de persistance n'a été remplacé.
 Les validations locales obtenues sont :
 
 - `npm run typecheck` : réussi ;
-- `npm test -- --run` : 180 fichiers, 1 296 tests réussis ;
+- `npm test -- --run` : 1 402 tests réussis (passe complète stable à concurrence réduite ; la passe pleinement parallèle est flaky par timeout sur machine chargée) ;
 - `npm run build` : réussi ;
 - `npm run verify:performance-regressions` : verte ;
 - `npm audit` : 0 vulnérabilité.
@@ -38,8 +38,27 @@ Plusieurs scripts avaient un défaut de portabilité Windows désormais corrigé
 `verify-director-workflow` comme `verify-ultra-phases` lançaient `tsc` par son
 nom nu (échec sur `tsc.cmd`).
 
-La release reste `V1_BLOCKED` : `verify:v1-gate` reste rouge par conception
-(8/16), car les preuves manquantes exigent un accès externe (toolchain
-Rust/Tauri, registre, CI distante, matériel de référence, autorisation de
-publication). Aucun installateur, support plateforme ou codec desktop ne doit
-être présenté comme validé sans preuve collectée.
+Application desktop : le build natif Tauri échoue localement à cause de Smart
+App Control (`os error 4551`, réglage de sécurité Windows). Le workflow CI
+`.github/workflows/desktop.yml` construit désormais les installateurs Windows
+`.msi`/`.exe` dans le cloud (runner sans SAC) et les publie en artefacts
+téléchargeables. Ces installateurs ne sont **pas signés** ; la signature et la
+soumission Microsoft Store dépendent d'une identité Partner Center à créer (voir
+`docs/MICROSOFT_STORE.md`).
+
+Fonctionnalités expérimentales nativement Minecraft, activables dans Réglages →
+Fonctionnalités expérimentales (voir `docs/EXPERIMENTAL_FEATURES.md`) : Build
+Sequencer (révélation bloc-par-bloc, assemblage/désassemblage), turntable de
+présentation isométrique + plan statique, foules procédurales. Déterministes,
+bornées, testées, sans changement de schéma.
+
+Performance de lecture/export durcie : suppression des clones profonds du projet
+entier par frame, carte d'entités O(1) pour l'application des pistes,
+échantillonnage de keyframes sans tri par appel, construction des meshes de
+monde en une passe linéaire.
+
+La release reste `V1_BLOCKED` : `verify:v1-gate` reste rouge par conception,
+car les preuves manquantes (signature, CI distante attestée, matériel de
+référence, autorisation de publication) exigent un accès externe. Aucun
+installateur signé, support plateforme ou codec desktop ne doit être présenté
+comme validé sans preuve collectée.
