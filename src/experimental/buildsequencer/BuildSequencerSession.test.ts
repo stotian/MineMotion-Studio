@@ -84,6 +84,15 @@ describe("BuildSequencerSession project integration", () => {
     expect(revealed).toEqual([{ x: 0, y: 0, z: 0 }]);
   });
 
+  it("empties the build over time in disassemble mode", () => {
+    const world = worldWith([[block(0, 0, 0), block(0, 5, 0), block(0, 10, 0)]]);
+    const view = deriveBuildSequence(projectWithWorld(world), { ...SETTINGS, mode: "disassemble", durationFrames: 20 });
+    // Fully standing before the first removal, gone by completion.
+    expect(revealedWorldBlockCount(view, view.schedule.startFrame - 1)).toBe(3);
+    expect(revealedWorldBlockCount(view, view.schedule.completeFrame)).toBe(0);
+    expect(revealedBlocksAtFrame(view, view.schedule.startFrame - 1)).toHaveLength(3);
+  });
+
   it("warns and yields an empty schedule when no world is imported", () => {
     const view = deriveBuildSequence(projectWithWorld(null), SETTINGS);
     expect(view.totalWorldBlocks).toBe(0);
