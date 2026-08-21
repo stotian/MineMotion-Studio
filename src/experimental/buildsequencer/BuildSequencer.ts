@@ -32,6 +32,10 @@ export function buildBuildSchedule(
   const fadeFrames = Math.max(0, requireFiniteInteger(settings.fadeFrames ?? 0, "fadeFrames"));
   validateStrategy(settings.strategy);
   validatePacing(settings.pacing);
+  const mode = settings.mode ?? "assemble";
+  if (mode !== "assemble" && mode !== "disassemble") {
+    throw new TypeError(`Unknown build mode: ${String(mode)}`);
+  }
 
   const warnings: string[] = [];
   const blockCount = blocks.length;
@@ -39,6 +43,7 @@ export function buildBuildSchedule(
     return {
       revealFrames: [],
       strategy: settings.strategy,
+      mode,
       startFrame,
       lastRevealFrame: startFrame,
       completeFrame: startFrame + fadeFrames,
@@ -72,6 +77,7 @@ export function buildBuildSchedule(
   return {
     revealFrames,
     strategy: settings.strategy,
+    mode,
     startFrame,
     lastRevealFrame,
     completeFrame: lastRevealFrame + fadeFrames,
@@ -89,28 +95,41 @@ export function blockRevealFrame(schedule: BuildSchedule, index: number): number
   return frame;
 }
 
-/** Whether the block is at least partially visible at `frame`. */
+/**
+ * Whether the block counts as part of the shown structure at `frame`. In
+ * assemble mode a block is shown once the frame reaches its reveal; in
+ * disassemble mode it is shown until then.
+ */
 export function isBlockRevealed(schedule: BuildSchedule, index: number, frame: number): boolean {
-  return frame >= blockRevealFrame(schedule, index);
+  const reveal = blockRevealFrame(schedule, index);
+  return schedule.mode === "disassemble" ? frame < reveal : frame >= reveal;
 }
 
 /**
- * Block opacity in [0, 1] at `frame`: 0 before its reveal, ramping linearly
- * across `fadeFrames`, then a solid 1. A 0-frame fade is an instant pop.
+ * Block opacity in [0, 1] at `frame`. Assemble ramps 0 -> 1 across `fadeFrames`
+ * from the reveal frame; disassemble ramps 1 -> 0. A 0-frame fade is an instant
+ * pop or cut.
  */
 export function blockRevealOpacity(schedule: BuildSchedule, index: number, frame: number): number {
   const reveal = blockRevealFrame(schedule, index);
+  if (schedule.mode === "disassemble") {
+    if (frame < reveal) return 1;
+    if (schedule.fadeFrames <= 0) return 0;
+    const progress = (frame - reveal) / schedule.fadeFrames;
+    return progress >= 1 ? 0 : 1 - progress;
+  }
   if (frame < reveal) return 0;
   if (schedule.fadeFrames <= 0) return 1;
   const progress = (frame - reveal) / schedule.fadeFrames;
   return progress >= 1 ? 1 : progress;
 }
 
-/** How many blocks have started revealing by `frame` (cheap aggregate). */
+/** How many blocks are shown at `frame` (cheap aggregate, mode-aware). */
 export function revealedBlockCount(schedule: BuildSchedule, frame: number): number {
   let count = 0;
+  const disassemble = schedule.mode === "disassemble";
   for (const reveal of schedule.revealFrames) {
-    if (frame >= reveal) count += 1;
+    if (disassemble ? frame < reveal : frame >= reveal) count += 1;
   }
   return count;
 }

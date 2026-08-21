@@ -36,8 +36,10 @@ export function revealFrameByCoord(view: BuildSequenceView): Map<string, number>
 export function applyBuildReveal(
   worldGroup: THREE.Object3D,
   lookup: ReadonlyMap<string, number> | null,
-  frame: number
+  frame: number,
+  mode: "assemble" | "disassemble" = "assemble"
 ): void {
+  const disassemble = mode === "disassemble";
   worldGroup.traverse((object) => {
     const mesh = object as THREE.InstancedMesh;
     if (!mesh.isInstancedMesh) return;
@@ -52,7 +54,9 @@ export function applyBuildReveal(
     let changed = false;
     for (let index = 0; index < count; index += 1) {
       const revealFrame = lookup ? lookup.get(coordKey(positions[index][0], positions[index][1], positions[index][2])) : undefined;
-      const visible = lookup === null || revealFrame === undefined || frame >= revealFrame;
+      const visible = lookup === null || revealFrame === undefined
+        ? true
+        : disassemble ? frame < revealFrame : frame >= revealFrame;
       if (visible) {
         scratch.fromArray(base, index * 16);
         mesh.setMatrixAt(index, scratch);

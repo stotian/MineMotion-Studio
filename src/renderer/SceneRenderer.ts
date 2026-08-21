@@ -409,7 +409,7 @@ export class SceneRenderer {
         lookup: revealFrameByCoord(view)
       };
     }
-    applyBuildReveal(this.worldGroup, this.buildRevealCache.lookup, project.animation.currentFrame);
+    applyBuildReveal(this.worldGroup, this.buildRevealCache.lookup, project.animation.currentFrame, settings.mode ?? "assemble");
   }
 
   lookThroughCamera(camera: CameraEntity): void {

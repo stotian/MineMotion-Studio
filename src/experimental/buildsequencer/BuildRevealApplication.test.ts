@@ -129,6 +129,22 @@ describe("BuildRevealApplication", () => {
     expect(instanceScale(mesh, 2)).toBeCloseTo(1, 5);
   });
 
+  it("mirrors visibility in disassemble mode", () => {
+    const view = deriveBuildSequence(projectWith(coords.map((c) => block(...c))), { ...SETTINGS, mode: "disassemble" });
+    const lookup = revealFrameByCoord(view);
+    const group = worldMeshFor(coords);
+    const mesh = group.children[0] as THREE.InstancedMesh;
+
+    // Before the first removal the whole build is still standing.
+    applyBuildReveal(group, lookup, view.schedule.startFrame - 1, "disassemble");
+    for (let i = 0; i < coords.length; i += 1) expect(instanceScale(mesh, i)).toBeCloseTo(1, 5);
+
+    // By completion it has been taken apart (bottom layer removed first).
+    applyBuildReveal(group, lookup, view.schedule.completeFrame, "disassemble");
+    expect(instanceScale(mesh, 0)).toBeCloseTo(0, 5);
+    expect(instanceScale(mesh, 2)).toBeCloseTo(0, 5);
+  });
+
   it("ignores instanced meshes without block positions", () => {
     const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), 1);
     const matrix = new THREE.Matrix4().makeTranslation(5, 5, 5);

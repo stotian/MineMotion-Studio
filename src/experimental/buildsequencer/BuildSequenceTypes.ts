@@ -31,15 +31,24 @@ export type BuildRevealStrategy =
  */
 export type BuildPacing = "linear" | "ease-in" | "ease-out" | "ease-in-out";
 
+/**
+ * "assemble" reveals the build block-by-block (a construction timelapse).
+ * "disassemble" starts from the finished build and takes it apart in the same
+ * order (a deconstruction / dissolve shot). Defaults to "assemble".
+ */
+export type BuildMode = "assemble" | "disassemble";
+
 export interface BuildSequenceSettings {
   strategy: BuildRevealStrategy;
   startFrame: number;
   /** Frames over which every block reveals. 0 reveals the whole build at once. */
   durationFrames: number;
-  /** Per-block fade-in length in frames (>= 0). 0 is an instant block pop. */
+  /** Per-block fade length in frames (>= 0). 0 is an instant block pop. */
   fadeFrames?: number;
   /** Cinematic acceleration of the reveal. Defaults to "linear". */
   pacing?: BuildPacing;
+  /** Assemble (build up) or disassemble (take apart). Defaults to "assemble". */
+  mode?: BuildMode;
 }
 
 /** A minimal structural block position; MinecraftBlockSample satisfies it. */
@@ -53,6 +62,7 @@ export interface BuildSchedule {
   /** Reveal frame per input block, aligned to the input array order. */
   revealFrames: number[];
   strategy: BuildRevealStrategy;
+  mode: BuildMode;
   startFrame: number;
   /** Frame at which the last block starts revealing. */
   lastRevealFrame: number;

@@ -1,6 +1,7 @@
 import { useLocalization } from "../../localization/LocalizationContext";
 import type {
   BuildAxis,
+  BuildMode,
   BuildPacing,
   BuildRevealStrategy,
   BuildSequenceSettings
@@ -23,6 +24,7 @@ const DEFAULT_SETTINGS: BuildSequenceSettings = {
 type StrategyKind = BuildRevealStrategy["kind"];
 const STRATEGY_KINDS: StrategyKind[] = ["layer", "scan", "radial", "scatter"];
 const PACINGS: BuildPacing[] = ["linear", "ease-in", "ease-out", "ease-in-out"];
+const MODES: BuildMode[] = ["assemble", "disassemble"];
 
 // Preserve axis/seed/origin when switching strategies so the UI is predictable.
 function strategyForKind(kind: StrategyKind, previous: BuildRevealStrategy): BuildRevealStrategy {
@@ -58,6 +60,17 @@ export function BuildSequencerControls({ hasWorld, value, onChange }: BuildSeque
       {!hasWorld && <p className="warning-note">{t("buildSequencer.noWorld")}</p>}
       {enabled && hasWorld && (
         <div className="experimental-build-fields">
+          <label>
+            {t("buildSequencer.mode")}
+            <select
+              value={settings.mode ?? "assemble"}
+              onChange={(event) => onChange({ ...settings, mode: event.target.value as BuildMode })}
+            >
+              {MODES.map((mode) => (
+                <option key={mode} value={mode}>{t(`buildSequencer.mode.${mode}`)}</option>
+              ))}
+            </select>
+          </label>
           <label>
             {t("buildSequencer.strategy")}
             <select

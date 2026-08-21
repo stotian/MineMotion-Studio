@@ -208,6 +208,48 @@ describe("BuildSequencer core", () => {
     });
   });
 
+  describe("build direction (mode)", () => {
+    const blocks = structure();
+    const assembleSettings = settingsFor({ kind: "layer", axis: "y", direction: "ascending" }, { fadeFrames: 4 });
+    const disSettings = { ...assembleSettings, mode: "disassemble" as const };
+
+    it("records the mode on the schedule (defaulting to assemble)", () => {
+      expect(buildBuildSchedule(blocks, assembleSettings).mode).toBe("assemble");
+      expect(buildBuildSchedule(blocks, disSettings).mode).toBe("disassemble");
+    });
+
+    it("shares the same reveal frames as assemble but mirrors visibility", () => {
+      const asm = buildBuildSchedule(blocks, assembleSettings);
+      const dis = buildBuildSchedule(blocks, disSettings);
+      expect(dis.revealFrames).toEqual(asm.revealFrames);
+      // Disassemble starts full and empties out — the mirror of assemble.
+      expect(revealedBlockCount(dis, dis.startFrame - 1)).toBe(blocks.length);
+      expect(revealedBlockCount(dis, dis.completeFrame)).toBe(0);
+      // Monotonically decreasing.
+      let previous = blocks.length;
+      for (let frame = dis.startFrame - 1; frame <= dis.completeFrame; frame += 1) {
+        const count = revealedBlockCount(dis, frame);
+        expect(count).toBeLessThanOrEqual(previous);
+        previous = count;
+      }
+    });
+
+    it("fades blocks out instead of in", () => {
+      const dis = buildBuildSchedule(blocks, disSettings);
+      const reveal = blockRevealFrame(dis, 0);
+      expect(blockRevealOpacity(dis, 0, reveal - 1)).toBe(1);
+      expect(blockRevealOpacity(dis, 0, reveal)).toBe(1);
+      expect(blockRevealOpacity(dis, 0, reveal + 2)).toBeCloseTo(0.5, 5);
+      expect(blockRevealOpacity(dis, 0, reveal + 4)).toBe(0);
+    });
+
+    it("rejects an unknown mode", () => {
+      expect(() =>
+        buildBuildSchedule(blocks, { ...assembleSettings, mode: "melt" as unknown as "assemble" })
+      ).toThrow(/unknown build mode/i);
+    });
+  });
+
   describe("degenerate and invalid inputs", () => {
     it("returns an empty schedule for no blocks", () => {
       const schedule = buildBuildSchedule([], settingsFor({ kind: "scatter", seed: 5 }));

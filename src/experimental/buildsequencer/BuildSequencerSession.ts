@@ -66,11 +66,12 @@ export function deriveBuildSequence(
   };
 }
 
-/** The block positions that are at least partially revealed at `frame`. */
+/** The block positions shown at `frame` (mode-aware). */
 export function revealedBlocksAtFrame(view: BuildSequenceView, frame: number): BuildBlockPoint[] {
   const revealed: BuildBlockPoint[] = [];
+  const disassemble = view.schedule.mode === "disassemble";
   view.schedule.revealFrames.forEach((revealFrame, index) => {
-    if (frame >= revealFrame) revealed.push(view.blocks[index]);
+    if (disassemble ? frame < revealFrame : frame >= revealFrame) revealed.push(view.blocks[index]);
   });
   return revealed;
 }
