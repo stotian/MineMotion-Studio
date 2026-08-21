@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { MineMotionProject } from "../../project/ProjectFile";
-import { bakeIsometricTurntable } from "../../experimental/showcase/IsometricTurntable";
+import { bakeIsometricTurntable, frameBuildStaticShot } from "../../experimental/showcase/IsometricTurntable";
 import { computeBuildBounds } from "../../experimental/showcase/BuildBounds";
 import { computeBuildStatistics } from "../../experimental/showcase/BuildStatistics";
 
@@ -59,6 +59,20 @@ export function IsometricTurntablePanel({ project, onProjectChange }: IsometricT
         )}
       >
         {t("turntable.bake")}
+      </button>
+      <button
+        type="button"
+        disabled={!hasCamera}
+        onClick={() => onProjectChange(
+          frameBuildStaticShot(project, cameraId, {
+            center: bounds.center,
+            radius: Math.max(1, radius),
+            elevationDegrees: elevation
+          }),
+          t("turntable.staticHistoryLabel")
+        )}
+      >
+        {t("turntable.static")}
       </button>
     </section>
   );

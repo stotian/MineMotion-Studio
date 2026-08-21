@@ -5,6 +5,7 @@ import type { Vector3Tuple } from "../../project/ProjectFile";
 import {
   bakeIsometricTurntable,
   computeIsometricTurntable,
+  frameBuildStaticShot,
   type IsometricTurntableOptions
 } from "./IsometricTurntable";
 
@@ -83,6 +84,22 @@ describe("IsometricTurntable", () => {
   it("returns the original project for an unknown camera", () => {
     const project = createInitialProject();
     expect(bakeIsometricTurntable(project, "missing-camera", OPTIONS)).toBe(project);
+  });
+
+  it("frames a static shot on the active camera facing the build", () => {
+    const project = createInitialProject();
+    const cameraId = project.scene.cameras[0].id;
+    const shot = frameBuildStaticShot(project, cameraId, { center: CENTER, radius: 12, elevationDegrees: 30 });
+    const camera = shot.scene.cameras.find((c) => c.id === cameraId)!;
+    expect(horizontalRadius(camera.transform.position, CENTER)).toBeCloseTo(12, 5);
+    expect(camera.transform.rotation).toEqual(lookAtRotation(camera.transform.position, CENTER));
+    // Input not mutated.
+    expect(project.scene.cameras[0].transform.position).not.toEqual(camera.transform.position);
+  });
+
+  it("returns the original project for an unknown static-shot camera", () => {
+    const project = createInitialProject();
+    expect(frameBuildStaticShot(project, "missing", { center: CENTER, radius: 12 })).toBe(project);
   });
 
   it("rejects invalid options", () => {

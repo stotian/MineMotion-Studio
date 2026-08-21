@@ -119,6 +119,46 @@ export function bakeIsometricTurntable(
   };
 }
 
+export interface StaticShotOptions {
+  center: Vector3Tuple;
+  radius: number;
+  /** Orbit yaw for the static angle in degrees. Defaults to 45 (three-quarter). */
+  yawDegrees?: number;
+  /** Camera elevation in degrees. Defaults to 30. */
+  elevationDegrees?: number;
+}
+
+/**
+ * Place the camera at a single good isometric three-quarter angle framing the
+ * build, without animating it. Returns a new project; unknown camera → original.
+ */
+export function frameBuildStaticShot(
+  project: MineMotionProject,
+  cameraId: string,
+  options: StaticShotOptions
+): MineMotionProject {
+  if (!project.scene.cameras.some((camera) => camera.id === cameraId)) return project;
+  const center = requireFiniteVector(options.center, "center");
+  const radius = requireFinite(options.radius, "radius");
+  if (radius <= 0) throw new RangeError("Static shot radius must be positive.");
+  const yaw = requireFinite(options.yawDegrees ?? 45, "yawDegrees");
+  const elevation = clamp(requireFinite(options.elevationDegrees ?? 30, "elevationDegrees"), -89, 89);
+  const heightOffset = radius * Math.tan((elevation * Math.PI) / 180);
+  const position = cameraPositionFromOrbit(center, radius, yaw, heightOffset);
+  const rotation = lookAtRotation(position, center);
+  return {
+    ...project,
+    scene: {
+      ...project.scene,
+      cameras: project.scene.cameras.map((camera) =>
+        camera.id === cameraId
+          ? { ...camera, transform: { ...camera.transform, position: [...position], rotation: [...rotation] } }
+          : camera
+      )
+    }
+  };
+}
+
 function clamp(value: number, min: number, max: number): number {
   return value < min ? min : value > max ? max : value;
 }
