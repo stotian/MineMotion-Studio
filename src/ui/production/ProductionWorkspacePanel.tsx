@@ -19,6 +19,7 @@ import { PRODUCTION_MARKER_TYPES, REAL_RENDER_PASSES, type ProductionMarkerType,
 import { useLocalization } from "../../localization/LocalizationContext";
 import { isExperimentalFeatureEnabled } from "../../experimental/FeatureFlags";
 import { CrowdPrototypePanel } from "../experimental/CrowdPrototypePanel";
+import { IsometricTurntablePanel } from "../experimental/IsometricTurntablePanel";
 import { SimulationWorkspaceSection } from "../simulation/SimulationWorkspaceSection";
 import { UltraStudioSection } from "./UltraStudioSection";
 import { DirectorAssistantSection } from "./DirectorAssistantSection";
@@ -48,6 +49,7 @@ export function ProductionWorkspacePanel({
   const t = localization.t.bind(localization);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const crowdsEnabled = isExperimentalFeatureEnabled("procedural-crowds");
+  const turntableEnabled = isExperimentalFeatureEnabled("isometric-turntable");
   const selected = useMemo(
     () => project.production.shots.find((shot) => shot.id === project.production.activeShotId) ?? project.production.shots[0] ?? null,
     [project.production]
@@ -200,6 +202,7 @@ export function ProductionWorkspacePanel({
             <UltraStudioSection project={project} onProjectChange={onProjectChange} />
             <SimulationWorkspaceSection project={project} onProjectChange={onProjectChange} />
             {crowdsEnabled && <CrowdPrototypePanel project={project} onProjectChange={onProjectChange} />}
+            {turntableEnabled && <IsometricTurntablePanel project={project} onProjectChange={onProjectChange} />}
             <section><h3>{t("production.storyboard")}</h3><div className="storyboard-grid">{project.production.storyboard.map((card, index) => <article key={card.id}><strong>{index + 1}. {card.title}</strong><span>{card.durationFrames}{"f · "}{card.status}</span><p>{card.notes || "—"}</p></article>)}</div></section>
           </div>
         </div>
