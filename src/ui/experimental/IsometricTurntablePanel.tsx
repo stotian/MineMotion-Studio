@@ -3,6 +3,7 @@ import { useLocalization } from "../../localization/LocalizationContext";
 import type { MineMotionProject } from "../../project/ProjectFile";
 import { bakeIsometricTurntable } from "../../experimental/showcase/IsometricTurntable";
 import { computeBuildBounds } from "../../experimental/showcase/BuildBounds";
+import { computeBuildStatistics } from "../../experimental/showcase/BuildStatistics";
 
 interface IsometricTurntablePanelProps {
   project: MineMotionProject;
@@ -13,6 +14,7 @@ export function IsometricTurntablePanel({ project, onProjectChange }: IsometricT
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const bounds = computeBuildBounds(project);
+  const stats = computeBuildStatistics(project);
   const [radius, setRadius] = useState(() => Math.round(bounds.radius));
   const [elevation, setElevation] = useState(30);
   const [duration, setDuration] = useState(240);
@@ -25,6 +27,15 @@ export function IsometricTurntablePanel({ project, onProjectChange }: IsometricT
     <section className="experimental-turntable-panel" aria-label={t("turntable.ariaLabel")}>
       <h3>{t("turntable.title")}</h3>
       <p className="warning-note">{t("turntable.description")}</p>
+      {stats.totalBlocks > 0 && (
+        <p>{t("turntable.stats", {
+          blocks: localization.formatNumber(stats.totalBlocks),
+          types: localization.formatNumber(stats.uniqueBlockTypes),
+          width: stats.dimensions.width,
+          height: stats.dimensions.height,
+          depth: stats.dimensions.depth
+        })}</p>
+      )}
       <div className="form-grid three-columns">
         <label>{t("turntable.radius")}<input type="number" min={1} max={512} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
         <label>{t("turntable.elevation")}<input type="number" min={-89} max={89} value={elevation} onChange={(event) => setElevation(Number(event.target.value))} /></label>

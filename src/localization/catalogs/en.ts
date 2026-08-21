@@ -155,6 +155,7 @@ export const EN_TRANSLATIONS = Object.freeze({
   "turntable.duration": "Frames / turn",
   "turntable.turns": "Turns",
   "turntable.noCamera": "No active camera to animate.",
+  "turntable.stats": "Build: {blocks} blocks · {types} types · {width}×{height}×{depth}",
   "turntable.bake": "Bake turntable onto active camera",
   "turntable.historyLabel": "Bake isometric showcase turntable",
   "buildSequencer.ariaLabel": "Experimental build sequencer",
