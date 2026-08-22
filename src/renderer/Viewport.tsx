@@ -356,7 +356,7 @@ export function Viewport({
               {t("viewport.metrics.startupMemory", {
                 startup: localization.formatNumber(roundOne(metrics.startupMs)),
                 memory: metrics.heap
-                  ? formatMegabytes(metrics.heap.usedBytes, localization.formatNumber)
+                  ? formatMegabytes(metrics.heap.usedBytes, (value) => localization.formatNumber(value))
                   : t("viewport.metrics.unavailable")
               })}
             </span>

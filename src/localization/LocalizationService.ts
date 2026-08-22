@@ -57,6 +57,15 @@ export class LocalizationService {
     this.locale = options.pseudolocalization ? "qps-ploc" : this.language;
     this.catalog = CATALOGS[this.language];
     this.timeZone = options.timeZone;
+    // Bind formatting helpers so they keep working when passed as bare callbacks
+    // (e.g. formatMegabytes(bytes, localization.formatNumber)); an unbound call
+    // would read `this.language` off undefined and crash the subtree.
+    this.t = this.t.bind(this);
+    this.plural = this.plural.bind(this);
+    this.formatNumber = this.formatNumber.bind(this);
+    this.formatDate = this.formatDate.bind(this);
+    this.formatDuration = this.formatDuration.bind(this);
+    this.formatTimecode = this.formatTimecode.bind(this);
   }
 
   t(key: TranslationKey, values: TranslationValues = {}): string {
