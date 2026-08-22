@@ -22,6 +22,20 @@ describe("LocalizationService", () => {
     ]);
   });
 
+  it("keeps formatting helpers usable when detached from the instance", () => {
+    // Regression: formatMegabytes(bytes, localization.formatNumber) passed the
+    // method unbound, so it ran with this === undefined and threw
+    // "reading 'language'", crashing the 3D viewport in Chromium/WebView2.
+    const service = createLocalizationService({ preference: "en" });
+    const formatNumber = service.formatNumber;
+    const plural = service.plural;
+    const formatTimecode = service.formatTimecode;
+    expect(() => formatNumber(1234)).not.toThrow();
+    expect(formatNumber(1234)).toBe(service.formatNumber(1234));
+    expect(() => plural({ one: "format.effects.one", other: "format.effects.other" }, 2)).not.toThrow();
+    expect(() => formatTimecode(48, 24)).not.toThrow();
+  });
+
   it("resolves explicit and system languages with deterministic English fallback", () => {
     expect(resolveAppLocale("fr", ["en-US"])).toBe("fr");
     expect(resolveAppLocale("system", ["fr-CA", "en-US"])).toBe("fr");
