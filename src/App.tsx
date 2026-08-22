@@ -1608,8 +1608,11 @@ export function App() {
         />
         <ErrorBoundary
           context="3D viewport"
-          fallback={() => (
-            <div className="viewport-loading" role="alert">{localization.t("app.viewportError")}</div>
+          fallback={(error) => (
+            <div className="viewport-loading" role="alert">
+              <span>{localization.t("app.viewportError")}</span>
+              <pre className="viewport-error-detail">{error.message}</pre>
+            </div>
           )}
         >
         <Suspense fallback={<div className="viewport-loading" aria-live="polite">{localization.t("app.viewportLoading")}</div>}>

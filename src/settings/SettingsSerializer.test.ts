@@ -14,7 +14,7 @@ describe("SettingsSerializer", () => {
     );
 
     expect(settings.general.defaultFps).toBe(30);
-    expect(settings.general.language).toBe("system");
+    expect(settings.general.language).toBe("en");
     expect(settings.viewport.gridEnabled).toBe(true);
     expect(settings.plugins.pluginsEnabled).toBe(true);
   });
@@ -30,7 +30,7 @@ describe("SettingsSerializer", () => {
     const invalid = SettingsSerializer.parse(
       JSON.stringify({ general: { language: "unsafe-locale" } })
     );
-    expect(invalid.general.language).toBe("system");
+    expect(invalid.general.language).toBe("en");
   });
 
   it("adds recent projects without exceeding ten entries", () => {

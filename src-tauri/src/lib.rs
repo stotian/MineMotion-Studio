@@ -382,6 +382,16 @@ fn expect_arg(args: &[String], index: &mut usize, expected: &str) -> Result<(), 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Ensure the 3D viewport's WebGL context can be created even on machines
+    // where WebView2 cannot use hardware acceleration (GPU blocklisted or
+    // restricted). Without this the viewport fails to start. Set before the
+    // webview is created; respect an explicit override if the user set one.
+    if std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").is_err() {
+        std::env::set_var(
+            "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+            "--use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist",
+        );
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())

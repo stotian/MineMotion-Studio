@@ -4,7 +4,7 @@ import { DEFAULT_WORKSPACE_LAYOUT } from "./WorkspaceSettings";
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   schemaVersion: 2,
   general: {
-    language: "system",
+    language: "en",
     autosaveEnabled: true,
     autosaveIntervalSeconds: 30,
     defaultProjectDurationFrames: 300,
