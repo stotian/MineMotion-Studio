@@ -134,7 +134,7 @@ export function App() {
         systemLanguages:
           typeof navigator === "undefined"
             ? []
-            : [...navigator.languages, navigator.language]
+            : [...(navigator.languages ?? []), navigator.language].filter(Boolean)
       }),
     [settings.general.language]
   );
