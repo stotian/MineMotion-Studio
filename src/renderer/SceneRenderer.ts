@@ -271,6 +271,7 @@ export class SceneRenderer {
     lookup: Map<string, number>;
   } | null = null;
   private animationFrame = 0;
+  private resizeObserver: ResizeObserver | null = null;
   private selectedObjectId: string | null = null;
   private cachedSelectedObjectId: string | null = null;
   private cachedSelectedObject: THREE.Object3D | null = null;
@@ -330,6 +331,13 @@ export class SceneRenderer {
 
     this.renderer.domElement.addEventListener("pointerdown", this.handlePointer);
     window.addEventListener("resize", this.resize);
+    // The container often has zero size at mount (grid still settling) and can
+    // change without a window resize (panel drags), so observe it directly —
+    // otherwise the canvas stays a thin strip.
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(() => this.resize());
+      this.resizeObserver.observe(options.container);
+    }
     this.resize();
     this.animate();
   }
@@ -428,6 +436,8 @@ export class SceneRenderer {
     cancelAnimationFrame(this.animationFrame);
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointer);
     window.removeEventListener("resize", this.resize);
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     this.controller.dispose();
     disposeThreeObjectTree(this.sceneRoot);
     this.vfxResources.dispose();
