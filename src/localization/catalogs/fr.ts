@@ -1315,6 +1315,7 @@ export const FR_TRANSLATIONS = Object.freeze({
   "viewport.tool.move": "Déplacer (G)",
   "viewport.tool.rotate": "Pivoter (R)",
   "viewport.tool.scale": "Redimensionner (S)",
+  "viewport.tool.boneRotateOnly": "Les os du rig ne peuvent que pivoter",
   "viewport.zoomIn": "Zoom avant",
   "viewport.zoomOut": "Zoom arrière",
   "viewport.frameAll": "Cadrer tout",

@@ -1626,6 +1626,7 @@ export function App() {
           viewportSettings={settings.viewport}
           motionPath={rigConstraints.motionPathSession.path}
           onTransformObject={handleUpdateTransform}
+          onRotateBone={rigWorkspace.updateBoneRotation}
         />
         </Suspense>
         </ErrorBoundary>

@@ -81,6 +81,12 @@ export interface SceneRendererOptions {
   onOrientation?: (orientation: ViewportOrientation) => void;
   /** Fires while/after a transform gizmo drag changes the selected object. */
   onTransformObject?: (objectId: string, transform: TransformData) => void;
+  /** Fires while/after a rotate gizmo drag changes the selected rig bone. */
+  onRotateBone?: (
+    characterId: string,
+    boneId: string,
+    rotationDegrees: [number, number, number]
+  ) => void;
 }
 
 /**
@@ -294,6 +300,8 @@ export class SceneRenderer {
   private transformMode: TransformMode = "select";
   /** Entity the gizmo is editing; null while a bone or nothing is selected. */
   private transformTargetId: string | null = null;
+  /** Rig bone the gizmo is editing; null while an entity or nothing is selected. */
+  private transformBoneTarget: { characterId: string; boneId: string } | null = null;
   private selectedObjectId: string | null = null;
   private cachedSelectedObjectId: string | null = null;
   private cachedSelectedObject: THREE.Object3D | null = null;
@@ -497,8 +505,22 @@ export class SceneRenderer {
 
   private handleGizmoChange = (): void => {
     const object = this.transformControls?.object;
+    if (!object) return;
+
+    const bone = this.transformBoneTarget;
+    if (bone) {
+      // The pivot's local Euler is exactly what boneRotations stores (degrees,
+      // XYZ order), so this round-trips without conversion drift.
+      this.options.onRotateBone?.(bone.characterId, bone.boneId, [
+        THREE.MathUtils.radToDeg(object.rotation.x),
+        THREE.MathUtils.radToDeg(object.rotation.y),
+        THREE.MathUtils.radToDeg(object.rotation.z)
+      ]);
+      return;
+    }
+
     const objectId = this.transformTargetId;
-    if (!object || !objectId || !this.options.onTransformObject) return;
+    if (!objectId || !this.options.onTransformObject) return;
     this.options.onTransformObject(objectId, {
       position: [object.position.x, object.position.y, object.position.z],
       rotation: [
@@ -519,33 +541,53 @@ export class SceneRenderer {
     const controls = this.transformControls;
     if (!controls) return;
 
+    const detach = () => {
+      controls.detach();
+      controls.enabled = false;
+      this.transformTargetId = null;
+      this.transformBoneTarget = null;
+      if (this.transformHelper) this.transformHelper.visible = false;
+    };
+
     const selectedId = this.selectedObjectId;
-    const isEntity = Boolean(selectedId) && !parseRigBoneSelection(selectedId);
-    if (this.transformMode === "select" || !isEntity || !selectedId) {
-      controls.detach();
-      controls.enabled = false;
-      this.transformTargetId = null;
-      if (this.transformHelper) this.transformHelper.visible = false;
+    if (this.transformMode === "select" || !selectedId) {
+      detach();
       return;
     }
 
-    if (selectedId !== this.cachedSelectedObjectId) {
-      this.cachedSelectedObjectId = selectedId;
-      this.cachedSelectedObject = this.findObjectById(selectedId);
-    }
-    const target = this.cachedSelectedObject;
-    if (!target) {
-      controls.detach();
-      controls.enabled = false;
+    const bone = parseRigBoneSelection(selectedId);
+    if (bone) {
+      // A bone only stores a rotation, so translate/scale do not apply to it.
+      const pivot = this.findBonePivot(selectedId);
+      if (!pivot) {
+        detach();
+        return;
+      }
+      controls.setMode("rotate");
+      // Local space matches how boneRotations are authored.
+      controls.setSpace("local");
+      controls.attach(pivot);
+      controls.enabled = true;
       this.transformTargetId = null;
-      if (this.transformHelper) this.transformHelper.visible = false;
-      return;
+      this.transformBoneTarget = bone;
+    } else {
+      if (selectedId !== this.cachedSelectedObjectId) {
+        this.cachedSelectedObjectId = selectedId;
+        this.cachedSelectedObject = this.findObjectById(selectedId);
+      }
+      const target = this.cachedSelectedObject;
+      if (!target) {
+        detach();
+        return;
+      }
+      controls.setMode(this.transformMode);
+      controls.setSpace("world");
+      controls.attach(target);
+      controls.enabled = true;
+      this.transformTargetId = selectedId;
+      this.transformBoneTarget = null;
     }
 
-    controls.setMode(this.transformMode);
-    controls.attach(target);
-    controls.enabled = true;
-    this.transformTargetId = selectedId;
     if (this.transformHelper) {
       this.transformHelper.visible = this.layerVisibility.helpers;
     }
@@ -1439,6 +1481,21 @@ export class SceneRenderer {
   private invalidateSelectedObjectCache(): void {
     this.cachedSelectedObjectId = null;
     this.cachedSelectedObject = null;
+  }
+
+  /**
+   * Finds a bone's pivot Group. Both the pivot and its child mesh carry the
+   * same objectId, and only the pivot carries the bone's rotation — attaching
+   * the gizmo to the mesh would rotate around the wrong point.
+   */
+  private findBonePivot(objectId: string): THREE.Object3D | null {
+    let found: THREE.Object3D | null = null;
+    this.sceneRoot.traverse((child) => {
+      if (!found && child.userData.objectId === objectId && (child as THREE.Group).isGroup) {
+        found = child;
+      }
+    });
+    return found;
   }
 
   private findObjectById(objectId: string | null): THREE.Object3D | null {

@@ -55,6 +55,12 @@ interface ViewportProps {
   motionPath: SampledMotionPath | null;
   /** Applies a viewport gizmo drag to the project. */
   onTransformObject: (objectId: string, transform: TransformData) => void;
+  /** Applies a viewport rotate-gizmo drag on a rig bone. */
+  onRotateBone: (
+    characterId: string,
+    boneId: string,
+    rotationDegrees: [number, number, number]
+  ) => void;
 }
 
 export function Viewport({
@@ -66,7 +72,8 @@ export function Viewport({
   focusWorldRequest,
   viewportSettings,
   motionPath,
-  onTransformObject
+  onTransformObject,
+  onRotateBone
 }: ViewportProps) {
   // Experimental Build Sequencer reveal is session-only viewport state.
   const [buildReveal, setBuildReveal] = useState<BuildSequenceSettings | null>(null);
@@ -79,6 +86,7 @@ export function Viewport({
   const [metricsHidden, setMetricsHidden] = useState(false);
   const [orientation, setOrientation] = useState<ViewportOrientation | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>("select");
+  const boneSelected = Boolean(parseRigBoneSelection(selectedObjectId));
   // Blender shows "<collection> | <active object>" under the view label.
   const selectedName = useMemo(() => {
     if (!selectedObjectId) return t("common.none");
@@ -103,6 +111,14 @@ export function Viewport({
   const handleTransformObject = useCallback(
     (objectId: string, transform: TransformData) => {
       transformObjectRef.current(objectId, transform);
+    },
+    []
+  );
+  const rotateBoneRef = useRef(onRotateBone);
+  rotateBoneRef.current = onRotateBone;
+  const handleRotateBone = useCallback(
+    (characterId: string, boneId: string, rotation: [number, number, number]) => {
+      rotateBoneRef.current(characterId, boneId, rotation);
     },
     []
   );
@@ -144,14 +160,21 @@ export function Viewport({
       onSelectObject,
       onMetrics: handleMetrics,
       onOrientation: handleOrientation,
-      onTransformObject: handleTransformObject
+      onTransformObject: handleTransformObject,
+      onRotateBone: handleRotateBone
     });
 
     return () => {
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
-  }, [handleMetrics, handleOrientation, handleTransformObject, onSelectObject]);
+  }, [
+    handleMetrics,
+    handleOrientation,
+    handleRotateBone,
+    handleTransformObject,
+    onSelectObject
+  ]);
 
   useEffect(() => {
     rendererRef.current?.renderProject(
@@ -362,19 +385,27 @@ export function Viewport({
           { mode: "translate", icon: Move, key: "viewport.tool.move" },
           { mode: "rotate", icon: RotateCw, key: "viewport.tool.rotate" },
           { mode: "scale", icon: Maximize2, key: "viewport.tool.scale" }
-        ] as const).map(({ mode, icon: Icon, key }) => (
-          <button
-            key={mode}
-            type="button"
-            className={transformMode === mode ? "is-active" : undefined}
-            aria-pressed={transformMode === mode}
-            aria-label={t(key)}
-            title={t(key)}
-            onClick={() => setTransformMode(mode)}
-          >
-            <Icon size={16} />
-          </button>
-        ))}
+        ] as const).map(({ mode, icon: Icon, key }) => {
+          // A rig bone stores only a rotation, so move/scale cannot apply to it.
+          const disabled = boneSelected && (mode === "translate" || mode === "scale");
+          const active = boneSelected && transformMode !== "select"
+            ? mode === "rotate"
+            : transformMode === mode;
+          return (
+            <button
+              key={mode}
+              type="button"
+              className={active ? "is-active" : undefined}
+              aria-pressed={active}
+              disabled={disabled}
+              aria-label={t(key)}
+              title={disabled ? t("viewport.tool.boneRotateOnly") : t(key)}
+              onClick={() => setTransformMode(mode)}
+            >
+              <Icon size={16} />
+            </button>
+          );
+        })}
       </div>
       <ViewportGizmo
         orientation={orientation}

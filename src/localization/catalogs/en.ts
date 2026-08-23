@@ -1313,6 +1313,7 @@ export const EN_TRANSLATIONS = Object.freeze({
   "viewport.tool.move": "Move (G)",
   "viewport.tool.rotate": "Rotate (R)",
   "viewport.tool.scale": "Scale (S)",
+  "viewport.tool.boneRotateOnly": "Rig bones can only be rotated",
   "viewport.zoomIn": "Zoom in",
   "viewport.zoomOut": "Zoom out",
   "viewport.frameAll": "Frame all",
