@@ -7,12 +7,12 @@ const RADIUS = 140; // half-extent of the grid in world units
 const MINOR_STEP = 1; // fine lines every 1 unit
 const MAJOR_STEP = 8; // bold lines every 8 units
 
-// Tuned against the grey viewport background: grid lines read as slightly
-// darker grey, axes keep Blender's colour convention (X red, Z blue).
-const MINOR_COLOR = new THREE.Color("#2f2f2f");
-const MAJOR_COLOR = new THREE.Color("#282828");
-const AXIS_X_COLOR = new THREE.Color("#a83a3a"); // red, X
-const AXIS_Z_COLOR = new THREE.Color("#2f5fa8"); // blue, Z
+// Blender draws its grid LIGHTER than the viewport background (#393939), not
+// darker — darker lines of a similar value simply vanish into the ground.
+const MINOR_COLOR = new THREE.Color("#4d4d4d");
+const MAJOR_COLOR = new THREE.Color("#5e5e5e");
+const AXIS_X_COLOR = new THREE.Color("#c1524f"); // red, X
+const AXIS_Z_COLOR = new THREE.Color("#4a7ec4"); // blue, Z
 
 /**
  * Radial fade so distant lines dissolve into the background. This is applied as

@@ -14,7 +14,10 @@ export const WORKSPACE_DEFINITIONS: readonly WorkspaceDefinition[] = Object.free
     id: "layout",
     labelKey: "workspace.layout",
     descriptionKey: "workspace.layoutDescription",
-    visiblePanels: ["outliner", "effects", "inspector", "timeline"],
+    // Blender's Layout workspace is the 3D viewport plus the outliner and
+    // properties column; the effects library lives in the VFX workspace so the
+    // viewport keeps the width here.
+    visiblePanels: ["outliner", "inspector", "timeline"],
     defaultQuality: "draft"
   },
   {

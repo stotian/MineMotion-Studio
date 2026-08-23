@@ -34,7 +34,7 @@ export const DEFAULT_WORKSPACE_LAYOUT: WorkspaceLayoutSettings = Object.freeze({
   outlinerWidth: 250,
   effectsWidth: 280,
   inspectorWidth: 330,
-  timelineHeight: 310,
+  timelineHeight: 150,
   collapsedPanels: [],
   density: "comfortable"
 });
@@ -62,7 +62,7 @@ export function sanitizeWorkspaceLayout(value: unknown): WorkspaceLayoutSettings
     outlinerWidth: clampNumber(source.outlinerWidth, DEFAULT_WORKSPACE_LAYOUT.outlinerWidth, 180, 520),
     effectsWidth: clampNumber(source.effectsWidth, DEFAULT_WORKSPACE_LAYOUT.effectsWidth, 200, 560),
     inspectorWidth: clampNumber(source.inspectorWidth, DEFAULT_WORKSPACE_LAYOUT.inspectorWidth, 240, 620),
-    timelineHeight: clampNumber(source.timelineHeight, DEFAULT_WORKSPACE_LAYOUT.timelineHeight, 180, 620),
+    timelineHeight: clampNumber(source.timelineHeight, DEFAULT_WORKSPACE_LAYOUT.timelineHeight, 90, 620),
     collapsedPanels,
     density: source.density === "compact" ? "compact" : "comfortable"
   };

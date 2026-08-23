@@ -1,0 +1,609 @@
+/*
+ * BlockMotion Studio — Blender-faithful theme.
+ *
+ * This file is the authority on the application's look: palette, metrics,
+ * shell layout, area chrome and every base widget. styles.css may add
+ * component-specific layout on top, but must not redefine anything here.
+ *
+ * Values follow Blender's default dark theme so the two read as the same
+ * family of software. Blender is GPL: none of its code or artwork is used
+ * here, only the visual conventions, which are not protectable.
+ */
+
+:root {
+  /* ---- Surfaces (darkest to lightest) ---- */
+  --bl-gap: #101010;        /* the hairline between areas */
+  --bl-topbar: #1d1d1d;     /* application top bar */
+  --bl-header: #232323;     /* an editor's own header strip */
+  --bl-panel: #303030;      /* editor/panel body */
+  --bl-box: #282828;        /* nested boxes inside a panel */
+  --bl-field: #1d1d1d;      /* text/number input wells */
+  --bl-widget: #545454;     /* buttons, dropdowns, toggles */
+  --bl-widget-hi: #656565;  /* widget hover */
+  --bl-viewport: #393939;   /* 3D viewport ground colour */
+
+  /* ---- Lines ---- */
+  --bl-border: #3a3a3a;
+  --bl-border-strong: #101010;
+
+  /* ---- Text ---- */
+  --bl-text: #e5e5e5;
+  --bl-text-muted: #a0a0a0;
+  --bl-text-dim: #7a7a7a;
+
+  /* ---- Accents ---- */
+  --accent: #4772b3;        /* selection / active */
+  --accent-hi: #5680c2;     /* hover on accent */
+  --accent-text: #ffffff;
+  --bl-axis-x: #c1524f;
+  --bl-axis-y: #8bbf3f;
+  --bl-axis-z: #4a7ec4;
+  --bl-warn: #d1a53f;
+  --bl-danger: #c0453f;
+
+  /* ---- Metrics ---- */
+  --bl-radius: 4px;         /* Blender's widget corner radius */
+  --bl-radius-sm: 3px;
+  --bl-header-h: 26px;      /* editor header height */
+  --bl-topbar-h: 48px;      /* menu row + workspace tabs */
+  --bl-status-h: 22px;
+  --bl-row-h: 20px;         /* a property row */
+  --ui-scale: 1;
+
+  color-scheme: dark;
+}
+
+/* ============================ base ============================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bl-gap);
+  color: var(--bl-text);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: calc(11.5px * var(--ui-scale));
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5 {
+  margin: 0;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ========================= shell layout ========================= */
+
+/*
+ * Blender stacks: top bar, the editor area, a timeline, then a status bar.
+ * The 1px gaps between them are the window colour showing through, which is
+ * what gives Blender its "tiled areas" look.
+ */
+.app-shell {
+  height: 100%;
+  min-width: 1024px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  /* The timeline is capped against the window so a tall timeline (or a short
+     window) can never starve the 3D viewport, which must stay dominant. */
+  grid-template-rows:
+    var(--bl-topbar-h)
+    minmax(0, 1fr)
+    min(var(--workspace-timeline-height, 150px), 34vh)
+    var(--bl-status-h);
+  gap: 1px;
+  background: var(--bl-gap);
+  font-size: calc(11.5px * var(--ui-scale));
+}
+
+/* ---------------------------- top bar ---------------------------- */
+
+.top-bar {
+  display: grid;
+  grid-template-rows: 24px 1fr;
+  align-content: start;
+  min-width: 0;
+  padding: 0;
+  background: var(--bl-topbar);
+  border: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.5rem;
+  min-width: 0;
+  color: var(--bl-text-muted);
+}
+
+.brand strong {
+  display: inline;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--bl-text);
+}
+
+.brand span {
+  display: inline;
+  margin-left: 0.5rem;
+  color: var(--bl-text-dim);
+  font-size: 0.72rem;
+}
+
+.brand-short {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0 0.25rem;
+  border-radius: var(--bl-radius-sm);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+
+/* Workspace tabs: flat labels, the active one raised to the panel colour. */
+.workspace-switcher {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+  padding: 0 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.workspace-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.workspace-switcher button {
+  flex: 0 0 auto;
+  height: 21px;
+  padding: 0 0.65rem;
+  border: none;
+  border-radius: var(--bl-radius) var(--bl-radius) 0 0;
+  background: transparent;
+  color: var(--bl-text-muted);
+  font-size: 0.74rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.workspace-switcher button:hover {
+  background: #2a2a2a;
+  color: var(--bl-text);
+}
+
+.workspace-switcher button.is-active {
+  background: var(--bl-panel);
+  color: var(--bl-text);
+}
+
+/* The menu row sits beside the brand on the first line. */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.top-actions::-webkit-scrollbar {
+  display: none;
+}
+
+/* ======================== areas and panels ======================== */
+
+/*
+ * Every Blender editor is an "area": a body with its own header strip, cut
+ * from its neighbours by the window-coloured gap.
+ */
+/*
+ * Blender's default layout: a tool/library column on the left, one large 3D
+ * viewport in the centre, and the outliner stacked over the properties editor
+ * on the right. The 1px tracks between areas are the drag handles.
+ */
+.workspace {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  gap: 0;
+  background: var(--bl-gap);
+  grid-template-columns:
+    var(--workspace-effects-width, 230px)
+    1px
+    minmax(320px, 1fr)
+    1px
+    var(--workspace-inspector-width, 300px);
+  /* Blender gives the outliner roughly a third of the right column and the
+     properties editor the rest; a large min here would starve properties. */
+  grid-template-rows: minmax(64px, 0.55fr) minmax(0, 1.45fr);
+  grid-template-areas:
+    "effects re-effects viewport re-inspector outliner"
+    "effects re-effects viewport re-inspector inspector";
+}
+
+.workspace-panel-effects { grid-area: effects; }
+.workspace-viewport-slot { grid-area: viewport; display: flex; }
+.workspace-panel-outliner { grid-area: outliner; }
+.workspace-panel-inspector {
+  grid-area: inspector;
+  border-top: 1px solid var(--bl-gap);
+}
+.workspace-resizer-effects { grid-area: re-effects; }
+.workspace-resizer-inspector { grid-area: re-inspector; }
+/* The outliner/properties split is fixed; only the side columns resize. */
+.workspace-resizer-outliner { display: none; }
+
+/* A hidden panel collapses its whole column rather than leaving a gap. */
+.workspace-panel-slot[hidden],
+.workspace-resizer[hidden] {
+  display: none;
+}
+
+.panel,
+.workspace-panel-slot {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bl-panel);
+  border: none;
+  overflow: hidden;
+}
+
+.panel-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: var(--bl-header-h);
+  padding: 0 0.5rem;
+  background: var(--bl-header);
+  border-bottom: 1px solid var(--bl-border-strong);
+}
+
+.panel-header h2,
+.panel-header h3 {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--bl-text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* A collapsible property group, as in Blender's properties editor. */
+.inspector-section,
+.panel-section {
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid var(--bl-border);
+}
+
+.inspector-section h3,
+.panel-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+  color: var(--bl-text);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.inspector-section h4,
+.panel-section h4 {
+  margin: 0.4rem 0 0.25rem;
+  color: var(--bl-text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+/* ========================== form widgets ========================== */
+
+/*
+ * Blender's widgets are flat, fully rounded and uniformly sized. Property rows
+ * put the label on the left and the control on the right.
+ */
+label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: var(--bl-row-h);
+  margin: 2px 0;
+  color: var(--bl-text-muted);
+  font-size: 0.74rem;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+  height: var(--bl-row-h);
+  padding: 0 0.4rem;
+  border: 1px solid transparent;
+  border-radius: var(--bl-radius);
+  background: var(--bl-field);
+  color: var(--bl-text);
+  font: inherit;
+  font-size: 0.74rem;
+}
+
+textarea {
+  height: auto;
+  padding: 0.3rem 0.4rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  background: #262626;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 1px solid var(--accent-hi);
+  outline-offset: -1px;
+}
+
+input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  accent-color: var(--accent);
+}
+
+input[type="color"] {
+  width: 46px;
+  padding: 1px;
+  cursor: pointer;
+}
+
+input[type="range"] {
+  height: var(--bl-row-h);
+  padding: 0;
+  background: transparent;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+select {
+  cursor: pointer;
+  background: var(--bl-widget);
+}
+
+select:hover {
+  background: var(--bl-widget-hi);
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: var(--bl-row-h);
+  padding: 0 0.55rem;
+  border: none;
+  border-radius: var(--bl-radius);
+  background: var(--bl-widget);
+  color: var(--bl-text);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--bl-widget-hi);
+}
+
+button:active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button:disabled:hover {
+  background: var(--bl-widget);
+}
+
+button.primary,
+button.is-active,
+button.selected,
+button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+button.primary:hover,
+button.is-active:hover,
+button.selected:hover {
+  background: var(--accent-hi);
+}
+
+button.ghost,
+button.icon-button {
+  background: transparent;
+  color: var(--bl-text-muted);
+}
+
+button.ghost:hover,
+button.icon-button:hover {
+  background: rgb(255 255 255 / 9%);
+  color: var(--bl-text);
+}
+
+button.danger {
+  background: var(--bl-danger);
+  color: #fff;
+}
+
+/* ============================ menus ============================ */
+
+.toolbar-menu > summary {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: var(--bl-radius-sm);
+  background: transparent;
+  color: var(--bl-text-muted);
+  font-size: 0.74rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.toolbar-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.toolbar-menu > summary:hover {
+  background: rgb(255 255 255 / 9%);
+  color: var(--bl-text);
+}
+
+.toolbar-menu[open] > summary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+/* ========================== status bar ========================== */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.6rem;
+  background: var(--bl-topbar);
+  color: var(--bl-text-dim);
+  font-size: 0.72rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.status-bar span,
+.status-bar strong {
+  color: inherit;
+  font-weight: 400;
+}
+
+.status-bar strong {
+  color: var(--bl-text-muted);
+}
+
+/* ========================== scrollbars ========================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #545454 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 6px;
+  background-clip: content-box;
+  background-color: #545454;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #6a6a6a;
+}
+
+/* ======================== area resizers ======================== */
+
+.workspace-resizer {
+  background: var(--bl-gap);
+  cursor: col-resize;
+}
+
+.workspace-resizer:hover {
+  background: var(--accent);
+}
+
+.workspace-resizer[aria-orientation="horizontal"] {
+  cursor: row-resize;
+}
+
+/* ========================== empty state ========================== */
+
+.empty-note {
+  padding: 0.6rem 0.55rem;
+  color: var(--bl-text-dim);
+  font-size: 0.74rem;
+}
+
+/* ======================= accessibility modes ======================= */
+/* Preserved from the previous stylesheet: user-selectable contrast,
+   colour-vision and motion accommodations. */
+
+html[data-contrast="high"] {
+  --bl-border: #ffffff;
+  --bl-text: #ffffff;
+  --bl-text-muted: #e0e0e0;
+  filter: contrast(1.18);
+}
+
+/* Colour-blind users cannot rely on the status bar's accent hue alone, so the
+   mode is also encoded in its border style. */
+html[data-color-vision="protanopia"] .status-bar,
+html[data-color-vision="deuteranopia"] .status-bar {
+  border-top: 2px dashed var(--bl-border);
+}
+
+html[data-color-vision="tritanopia"] .status-bar {
+  border-top: 3px double var(--bl-border);
+}
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

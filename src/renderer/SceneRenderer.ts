@@ -1429,7 +1429,9 @@ export class SceneRenderer {
     this.gridRequestedVisible = settings.gridEnabled;
     this.gridFloor.visible =
       this.layerVisibility.helpers && this.gridRequestedVisible;
-    this.gridFloor.scale.setScalar(Math.max(0.25, settings.gridSize / 64));
+    // The grid is authored at a fixed 1-unit spacing over a large radius, so it
+    // is not rescaled: scaling it would stretch the spacing away from whole
+    // blocks. (The old 64-unit GridHelper was scaled to size instead.)
     this.gridFloor.userData.hideCameras = !settings.showCameraObjects;
     const qualityRatio =
       settings.renderQuality === "low"

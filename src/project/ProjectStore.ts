@@ -241,7 +241,9 @@ export function createInitialProject(
     ultra: createDefaultUltraProjectData(now),
     creationSuite: createDefaultMinecraftCreationSuite(),
     performanceSettings: {
-      showDiagnostics: true,
+      // Off by default: Blender keeps the viewport clean, and the overlay is
+      // one toggle away from the performance settings.
+      showDiagnostics: false,
       targetFps: 60,
       renderQualityDuringPlayback: "balanced",
       cacheStaticTerrain: true
