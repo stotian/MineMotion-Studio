@@ -1,17 +1,30 @@
 :root {
   --ui-scale: 1;
-  /* Compact, professional base like a desktop DCC tool (Blender-inspired). */
+  /* Authentic Blender-style desktop DCC palette. */
   font-size: 13px;
   color-scheme: dark;
   font-family:
     system-ui, -apple-system, "Segoe UI", Roboto, ui-sans-serif,
     "Helvetica Neue", Arial, sans-serif;
-  background: #141414;
-  color: #ededed;
+  /* Blender editor greys */
+  --bl-window: #1d1d1d;   /* editor / canvas background */
+  --bl-region: #262626;   /* secondary regions */
+  --bl-panel: #303030;    /* panels */
+  --bl-header: #282828;   /* header bars */
+  --bl-widget: #545454;   /* buttons / operators */
+  --bl-widget-hover: #656565;
+  --bl-field: #232323;    /* text / number fields */
+  --bl-border: #3a3a3a;
+  --bl-border-strong: #101010;
+  --bl-text: #e6e6e6;
+  --bl-text-muted: #9a9a9a;
+  --accent: #4772b3;      /* Blender selection blue */
+  --accent-hi: #5680c2;
+  --radius: 3px;
+  background: var(--bl-window);
+  color: var(--bl-text);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --accent: #5b7fbf;
-  --radius: 3px;
 }
 
 * {
@@ -57,11 +70,11 @@ select {
 }
 
 button {
-  border: 1px solid #3f3f3f;
-  color: #ededed;
-  background: #232323;
+  border: 1px solid var(--bl-border);
+  color: var(--bl-text);
+  background: var(--bl-widget);
   border-radius: var(--radius);
-  padding: 0.35rem 0.6rem;
+  padding: 0.28rem 0.6rem;
   display: inline-flex;
   gap: 0.4rem;
   align-items: center;
@@ -70,30 +83,34 @@ button {
 }
 
 button:hover:not(:disabled) {
-  background: #2e2e2e;
-  border-color: #565656;
+  background: var(--bl-widget-hover);
+}
+
+button:active:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent-hi);
 }
 
 button:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 input,
 select {
-  color: #ededed;
-  background: #191919;
-  border: 1px solid #3e3e3e;
+  color: var(--bl-text);
+  background: var(--bl-field);
+  border: 1px solid var(--bl-border);
   border-radius: var(--radius);
-  padding: 0.3rem 0.4rem;
+  padding: 0.26rem 0.42rem;
 }
 
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 1px solid var(--accent);
+  outline: 1px solid var(--accent-hi);
   outline-offset: 0;
-  border-color: var(--accent);
+  border-color: var(--accent-hi);
 }
 
 .app-shell {
@@ -101,9 +118,9 @@ select:focus-visible {
   min-width: 1180px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 52px minmax(0, 1fr) 310px 28px;
-  background: #141414;
-  font-size: calc(14px * var(--ui-scale));
+  grid-template-rows: 44px minmax(0, 1fr) 310px 26px;
+  background: var(--bl-window);
+  font-size: calc(13px * var(--ui-scale));
 }
 
 .top-bar {
@@ -113,9 +130,9 @@ select:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 0.75rem;
-  background: #1c1c1c;
-  border-bottom: 1px solid #363636;
+  padding: 0 0.6rem;
+  background: var(--bl-header);
+  border-bottom: 1px solid var(--bl-border-strong);
   overflow: hidden;
 }
 
@@ -153,8 +170,8 @@ select:focus-visible {
 }
 
 .primary-action {
-  border-color: #8392c2;
-  background: #445072;
+  border-color: var(--accent-hi);
+  background: var(--accent);
 }
 
 .toolbar-status-icon {
@@ -192,9 +209,9 @@ select:focus-visible {
   position: sticky;
   top: 0;
   z-index: 3;
-  padding: 0.72rem 0.85rem;
-  background: #1c1c1c;
-  border-bottom: 1px solid #363636;
+  padding: 0.5rem 0.7rem;
+  background: var(--bl-header);
+  border-bottom: 1px solid var(--bl-border-strong);
 }
 
 .panel-header h2 {
@@ -834,8 +851,8 @@ p.parameter-control-error {
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 0.4rem;
   padding: 0.5rem 0.65rem;
-  background: #1c1c1c;
-  border-top: 1px solid #363636;
+  background: var(--bl-panel);
+  border-top: 1px solid var(--bl-border-strong);
   overflow: hidden;
 }
 
@@ -1336,9 +1353,9 @@ p.parameter-control-error {
   justify-content: space-between;
   gap: 1rem;
   padding: 0 0.75rem;
-  background: #141414;
-  border-top: 1px solid #313131;
-  color: #9b9b9b;
+  background: var(--bl-header);
+  border-top: 1px solid var(--bl-border-strong);
+  color: var(--bl-text-muted);
   font-size: 0.76rem;
 }
 
@@ -2783,7 +2800,7 @@ html[data-motion="reduced"] *::after { animation-duration: 0.001ms !important; a
   grid-template-areas: "outliner resize-outliner effects resize-effects viewport resize-inspector inspector";
 }
 
-.workspace-panel-slot { position: relative; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.workspace-panel-slot { position: relative; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; background: var(--bl-panel); }
 .workspace-panel-slot > .panel { width: 100%; height: 100%; }
 .workspace-panel-outliner { grid-area: outliner; }
 .workspace-panel-effects { grid-area: effects; }
