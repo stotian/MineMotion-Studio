@@ -11,15 +11,14 @@ import {
   type ExpressionOverlayTone
 } from "./expressions/ExpressionOverlay";
 
-// Steve-like default palette (original colours, not Mojang's texture): tan skin,
-// dark-brown hair, teal shirt, indigo trousers.
+// Neutral mannequin palette, used when a character has no skin texture. It
+// matches DefaultRigSkin so removing a skin does not suddenly recolour the rig.
 const MATERIALS = {
-  head: createSolidMaterial("#c9986a"),
-  hair: createSolidMaterial("#3b2a17"),
-  shirt: createSolidMaterial("#179c9c"),
-  skin: createSolidMaterial("#c9986a"),
-  pants: createSolidMaterial("#3c3f86"),
-  cape: createSolidMaterial("#8a1f2e"),
+  head: createSolidMaterial("#e2e2e2"),
+  shirt: createSolidMaterial("#dcdcdc"),
+  skin: createSolidMaterial("#d0d0d0"),
+  pants: createSolidMaterial("#d0d0d0"),
+  cape: createSolidMaterial("#c4c4c4"),
   sword: createSolidMaterial("#c7d0dc"),
   item: createSolidMaterial("#74b36a")
 };
@@ -181,15 +180,6 @@ function createBoneObject(
   if (bone.id === "head") {
     const expression = createExpressionOverlayObject(character);
     if (expression) mesh.add(expression);
-  }
-
-  if (bone.id === "head" && !character.skin?.metadata.valid) {
-    const hair = new THREE.Mesh(
-      new THREE.BoxGeometry(bone.size[0] + 0.04, 0.12, bone.size[2] + 0.04),
-      MATERIALS.hair
-    );
-    hair.position.set(0, 0.08, 0);
-    mesh.add(hair);
   }
 
   return pivot;

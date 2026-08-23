@@ -312,7 +312,9 @@ select:focus-visible {
   min-width: 0;
   min-height: 0;
   position: relative;
-  background: #121212;
+  /* Blender's 3D viewport grey, with its subtle top-lighter gradient. The WebGL
+     canvas is drawn with alpha, so this is what shows behind the scene. */
+  background: linear-gradient(180deg, #414141 0%, #393939 55%, #343434 100%);
   overflow: hidden;
 }
 

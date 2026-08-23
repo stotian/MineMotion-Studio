@@ -20,7 +20,7 @@ import { DEFAULT_RENDER_QUEUE } from "../export/renderQueue/RenderQueueStore";
 import { getDefaultBoneRotations } from "../rigs/RigDefinition";
 import { getRigDefinition } from "../rigs/MinecraftRigPresets";
 import { createDefaultCharacterAttachments } from "../rigs/RigInstance";
-import { createDefaultSteveSkin } from "../rigs/DefaultSteveSkin";
+import { createDefaultRigSkin } from "../rigs/DefaultRigSkin";
 import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/LightingPresets";
 import { DEFAULT_BIOME_TINT } from "../minecraft/resources/BiomeTint";
 import { DEFAULT_WATER_RENDER_SETTINGS } from "../minecraft/resources/WaterRenderSettings";
@@ -285,7 +285,7 @@ export function createCharacter(
     modelType: "steve",
     selectedBoneId: "body",
     boneRotations: getDefaultBoneRotations(rigDefinition),
-    skin: createDefaultSteveSkin(),
+    skin: createDefaultRigSkin(),
     attachments: createDefaultCharacterAttachments(),
     boneKeyframes: []
   };

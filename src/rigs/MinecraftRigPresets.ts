@@ -31,8 +31,12 @@ function playerBones(armWidth: 3 | 4, includeCape = true): RigBone[] {
       label: "Head",
       parentId: "body",
       size: [0.8, 0.8, 0.8],
-      pivot: [0, -0.35, 0],
-      offset: [0, 0.98, 0],
+      // Pivot sits at the neck (top of the 1.2-tall torso, which spans y 1.2
+      // to 2.4 in root space) so the head turns around the neck, and the mesh
+      // is raised by half its height to rest ON the shoulders. The previous
+      // negative pivot buried the head inside the torso.
+      pivot: [0, 0.4, 0],
+      offset: [0, 1.2, 0],
       skinPart: "head"
     },
     {
@@ -159,7 +163,9 @@ const PLAYER_ATTACHMENT_POINTS: RigAttachmentPoint[] = [
     id: "head",
     label: "Head",
     boneId: "head",
-    offset: [0, 0.16, 0],
+    // Relative to the head pivot (the neck): clears the 0.8-tall skull so hats
+    // and helmets rest on the crown instead of intersecting it.
+    offset: [0, 0.84, 0],
     rotation: [0, 0, 0]
   },
   {
