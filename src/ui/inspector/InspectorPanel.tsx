@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   Bone,
+  Box,
   Camera,
   Eye,
+  Globe,
   EyeOff,
   Film,
   FlipHorizontal,
@@ -75,6 +77,9 @@ interface InspectorPanelProps {
   onChangeRigPreset: (characterId: string, presetId: RigPresetId) => void;
 }
 
+/** Blender-style property categories, switched from the icon rail. */
+type InspectorCategory = "object" | "world" | "render";
+
 export function InspectorPanel({
   project,
   selectedObjectId,
@@ -114,12 +119,22 @@ export function InspectorPanel({
   const selectedEffect =
     project.effects.instances.find((effect) => effect.id === selectedEffectId) ??
     null;
+  const [category, setCategory] = useState<InspectorCategory>("object");
+  // Picking something in the viewport should reveal its properties, not leave
+  // the user staring at the world or render tab.
+  useEffect(() => {
+    if (selectedObjectId || selectedEffectId) setCategory("object");
+  }, [selectedObjectId, selectedEffectId]);
 
   return (
-    <aside className="panel panel-right">
+    <aside className="panel panel-right inspector-panel">
       <div className="panel-header">
         <h2>{t("inspector.title")}</h2>
       </div>
+      <div className="inspector-body">
+        <InspectorTabRail active={category} onChange={setCategory} />
+        <div className="inspector-scroll">
+      {category === "world" && (
       <section className="inspector-section">
         <h3>
           <Palette size={15} />
@@ -151,12 +166,15 @@ export function InspectorPanel({
           />
         </label>
       </section>
-      <PostProcessingInspector
-        settings={project.postProcessing}
-        onUpdate={onUpdatePostProcessing}
-      />
+      )}
+      {category === "render" && (
+        <PostProcessingInspector
+          settings={project.postProcessing}
+          onUpdate={onUpdatePostProcessing}
+        />
+      )}
 
-      {selectedEffect ? (
+      {category === "object" && (selectedEffect ? (
         <EffectInspector
           effect={selectedEffect}
           timelineDurationFrames={project.animation.durationFrames}
@@ -205,8 +223,48 @@ export function InspectorPanel({
         />
       ) : (
         <p className="empty-note">{t("inspector.selectPrompt")}</p>
-      )}
+      ))}
+        </div>
+      </div>
     </aside>
+  );
+}
+
+/**
+ * Blender pins its property categories to a vertical icon rail on the panel's
+ * inner edge; each icon swaps the whole panel body.
+ */
+function InspectorTabRail({
+  active,
+  onChange
+}: {
+  active: InspectorCategory;
+  onChange: (category: InspectorCategory) => void;
+}) {
+  const localization = useLocalization();
+  const t = localization.t.bind(localization);
+  const tabs = [
+    { id: "object", icon: Box, key: "inspector.tab.object" },
+    { id: "world", icon: Globe, key: "inspector.tab.world" },
+    { id: "render", icon: Camera, key: "inspector.tab.render" }
+  ] as const;
+  return (
+    <div className="inspector-rail" role="tablist" aria-orientation="vertical">
+      {tabs.map(({ id, icon: Icon, key }) => (
+        <button
+          key={id}
+          type="button"
+          role="tab"
+          aria-selected={active === id}
+          className={active === id ? "is-active" : undefined}
+          aria-label={t(key)}
+          title={t(key)}
+          onClick={() => onChange(id)}
+        >
+          <Icon size={16} />
+        </button>
+      ))}
+    </div>
   );
 }
 

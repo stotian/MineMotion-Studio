@@ -1627,6 +1627,7 @@ export function App() {
           motionPath={rigConstraints.motionPathSession.path}
           onTransformObject={handleUpdateTransform}
           onRotateBone={rigWorkspace.updateBoneRotation}
+          onAddKeyframe={handleAddKeyframe}
         />
         </Suspense>
         </ErrorBoundary>

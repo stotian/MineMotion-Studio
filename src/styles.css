@@ -358,6 +358,63 @@ select:focus-visible {
   cursor: pointer;
 }
 
+/* Properties panel: icon rail on the inner edge, scrolling body beside it. */
+.inspector-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.inspector-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.inspector-rail {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 3px;
+  border-right: 1px solid var(--bl-border, #3a3a3a);
+  background: var(--bl-header, #282828);
+}
+
+.inspector-rail button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--bl-text-muted, #9a9a9a);
+  cursor: pointer;
+}
+
+.inspector-rail button:hover {
+  background: rgb(255 255 255 / 8%);
+  color: var(--bl-text, #e6e6e6);
+}
+
+.inspector-rail button.is-active {
+  background: var(--accent, #4772b3);
+  color: #fff;
+}
+
+.inspector-rail button:focus-visible {
+  outline: 2px solid var(--accent-hi, #5680c2);
+  outline-offset: -2px;
+}
+
+.inspector-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-y: auto;
+}
+
 /* Vertical tool column pinned to the viewport's left edge, as in Blender. */
 .viewport-tools {
   position: absolute;
@@ -393,6 +450,22 @@ select:focus-visible {
 .viewport-tools button.is-active {
   background: var(--accent, #4772b3);
   color: #fff;
+}
+
+.viewport-tools button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.viewport-tools button:disabled:hover {
+  background: transparent;
+  color: #b9b9b9;
+}
+
+.viewport-tools-separator {
+  height: 1px;
+  margin: 2px 4px;
+  background: rgb(255 255 255 / 14%);
 }
 
 .viewport-tools button:focus-visible {
@@ -993,33 +1066,56 @@ p.parameter-control-error {
   min-height: 0;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 0.4rem;
-  padding: 0.5rem 0.65rem;
+  gap: 0;
+  padding: 0;
   background: var(--bl-panel);
   border-top: 1px solid var(--bl-border-strong);
   overflow: hidden;
 }
 
+/* Blender runs its transport along a darker header strip above the ruler. */
 .timeline-controls {
   width: 100%;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   margin-bottom: 0;
+  padding: 0.28rem 0.6rem;
+  background: var(--bl-header, #282828);
+  border-bottom: 1px solid var(--bl-border, #3a3a3a);
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.timeline-controls::-webkit-scrollbar {
+  display: none;
+}
+
+/* Everything below the header keeps the old breathing room. */
+.timeline-panel > :not(.timeline-controls) {
+  padding-inline: 0.65rem;
+}
+
+.timeline-panel > :nth-child(2) {
+  padding-top: 0.4rem;
 }
 
 .timeline-view-tabs {
   display: inline-flex;
-  gap: 0.2rem;
+  gap: 1px;
   padding-right: 0.4rem;
-  border-right: 1px solid #3c3c3c;
+  border-right: 1px solid var(--bl-border, #3a3a3a);
+}
+
+.timeline-view-tabs button {
+  border-radius: 3px;
 }
 
 .timeline-view-tabs button.selected {
-  border-color: #95a3d7;
-  background: #39435b;
+  border-color: transparent;
+  background: var(--accent, #4772b3);
+  color: #fff;
 }
 
 .timeline-controls label {
@@ -2864,18 +2960,47 @@ html[data-motion="reduced"] *::after { animation-duration: 0.001ms !important; a
   transition: grid-template-rows var(--motion-fast) ease;
 }
 
+/* Blender's workspace tabs: flat labels that sit in the header, with the
+   active one raised to the panel colour so it reads as a selected tab. */
 .workspace-switcher {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--text-muted);
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.workspace-switcher select {
-  min-width: 116px;
-  max-width: 150px;
-  background: var(--surface-raised);
+.workspace-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.workspace-switcher button {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.7rem;
+  border: none;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  color: var(--bl-text-muted, #9a9a9a);
+  font-size: 0.76rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.workspace-switcher button:hover {
+  background: rgb(255 255 255 / 7%);
+  color: var(--bl-text, #e6e6e6);
+}
+
+.workspace-switcher button.is-active {
+  background: var(--bl-panel, #303030);
+  color: #fff;
+}
+
+.workspace-switcher button:focus-visible {
+  outline: 2px solid var(--accent-hi, #5680c2);
+  outline-offset: -2px;
 }
 
 .toolbar-menu {
@@ -3018,7 +3143,7 @@ html[data-motion="reduced"] *::after { animation-duration: 0.001ms !important; a
 
 @media (max-width: 1180px) {
   .toolbar-label-wide { display: none; }
-  .workspace-switcher select { min-width: 96px; max-width: 112px; }
+  .workspace-switcher button { padding: 0.24rem 0.5rem; font-size: 0.72rem; }
 }
 
 @media (max-width: 980px) {

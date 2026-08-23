@@ -34,6 +34,7 @@ import {
   Activity,
   Maximize,
   Maximize2,
+  KeyRound,
   MousePointer2,
   Move,
   RotateCw,
@@ -61,6 +62,8 @@ interface ViewportProps {
     boneId: string,
     rotationDegrees: [number, number, number]
   ) => void;
+  /** Keys the current selection at the playhead (Blender's "I"). */
+  onAddKeyframe: () => void;
 }
 
 export function Viewport({
@@ -73,7 +76,8 @@ export function Viewport({
   viewportSettings,
   motionPath,
   onTransformObject,
-  onRotateBone
+  onRotateBone,
+  onAddKeyframe
 }: ViewportProps) {
   // Experimental Build Sequencer reveal is session-only viewport state.
   const [buildReveal, setBuildReveal] = useState<BuildSequenceSettings | null>(null);
@@ -116,6 +120,8 @@ export function Viewport({
   );
   const rotateBoneRef = useRef(onRotateBone);
   rotateBoneRef.current = onRotateBone;
+  const addKeyframeRef = useRef(onAddKeyframe);
+  addKeyframeRef.current = onAddKeyframe;
   const handleRotateBone = useCallback(
     (characterId: string, boneId: string, rotation: [number, number, number]) => {
       rotateBoneRef.current(characterId, boneId, rotation);
@@ -132,12 +138,18 @@ export function Viewport({
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      const key = event.key.toLowerCase();
+      if (key === "i") {
+        event.preventDefault();
+        addKeyframeRef.current();
+        return;
+      }
       const mode = ({
         g: "translate",
         r: "rotate",
         s: "scale",
         escape: "select"
-      } as const)[event.key.toLowerCase()];
+      } as const)[key];
       if (!mode) return;
       event.preventDefault();
       setTransformMode(mode);
@@ -406,6 +418,15 @@ export function Viewport({
             </button>
           );
         })}
+        <div className="viewport-tools-separator" />
+        <button
+          type="button"
+          aria-label={t("viewport.tool.keyframe")}
+          title={t("viewport.tool.keyframe")}
+          onClick={onAddKeyframe}
+        >
+          <KeyRound size={16} />
+        </button>
       </div>
       <ViewportGizmo
         orientation={orientation}
