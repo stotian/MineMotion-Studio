@@ -387,9 +387,12 @@ pub fn run() {
     // restricted). Without this the viewport fails to start. Set before the
     // webview is created; respect an explicit override if the user set one.
     if std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").is_err() {
+        // Hardware GPU first (fast), with a software fallback only if the GPU is
+        // truly unavailable. Forcing SwiftShader here made the 3D view render on
+        // the CPU, which was very slow.
         std::env::set_var(
             "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
-            "--use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist",
+            "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-unsafe-swiftshader",
         );
     }
     tauri::Builder::default()

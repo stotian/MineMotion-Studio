@@ -18,7 +18,7 @@
         "minWidth": 1100,
         "minHeight": 720,
         "resizable": true,
-        "additionalBrowserArgs": "--use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist"
+        "additionalBrowserArgs": "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-unsafe-swiftshader"
       }
     ],
     "security": {

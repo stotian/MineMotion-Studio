@@ -223,8 +223,9 @@ export class SceneRenderer {
     antialias: true,
     alpha: true
   });
-  private readonly ambientLight = new THREE.AmbientLight("#ffffff", 0.7);
-  private readonly directionalLight = new THREE.DirectionalLight("#ffffff", 1);
+  private readonly ambientLight = new THREE.AmbientLight("#ffffff", 0.45);
+  private readonly directionalLight = new THREE.DirectionalLight("#ffffff", 2.1);
+  private readonly hemisphereLight = new THREE.HemisphereLight("#bcd3ff", "#4a4237", 0.55);
   private readonly controller: CameraController;
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
@@ -299,13 +300,32 @@ export class SceneRenderer {
     );
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Blender-like filmic look: ACES tone mapping + sRGB output so highlights
+    // roll off smoothly instead of clipping to flat white.
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
     options.container.appendChild(this.renderer.domElement);
 
     this.controller = new CameraController(this.renderer, options.container);
 
     this.directionalLight.position.set(8, 16, 10);
     this.directionalLight.castShadow = true;
-    this.scene.add(this.ambientLight, this.directionalLight);
+    // Crisper, wider soft shadows (studio key light).
+    this.directionalLight.shadow.mapSize.set(2048, 2048);
+    this.directionalLight.shadow.bias = -0.0004;
+    this.directionalLight.shadow.normalBias = 0.02;
+    this.directionalLight.shadow.radius = 4;
+    const shadowCam = this.directionalLight.shadow.camera;
+    shadowCam.near = 0.5;
+    shadowCam.far = 60;
+    shadowCam.left = -18;
+    shadowCam.right = 18;
+    shadowCam.top = 18;
+    shadowCam.bottom = -18;
+    // Soft sky/ground fill so shadowed sides keep colour (Blender world light).
+    this.hemisphereLight.position.set(0, 20, 0);
+    this.scene.add(this.ambientLight, this.directionalLight, this.hemisphereLight);
     tagThreeObjectLayer(this.weather.object, "vfx");
     this.scene.add(this.weather.object);
     tagThreeObjectLayer(this.gridFloor, "helpers");
