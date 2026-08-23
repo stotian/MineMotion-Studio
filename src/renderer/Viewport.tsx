@@ -9,7 +9,9 @@ import {
 import type { CameraEntity, MineMotionProject } from "../project/ProjectFile";
 import type { ViewportSettings } from "../settings/AppSettings";
 import { findObject } from "../project/ProjectStore";
-import { SceneRenderer } from "./SceneRenderer";
+import { parseRigBoneSelection } from "../rigs/RigSelection";
+import { SceneRenderer, type ViewportOrientation } from "./SceneRenderer";
+import { ViewportGizmo } from "./ViewportGizmo";
 import { createPostProcessingStyles } from "../rendering/postprocessing/PostProcessingPipeline";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
 import {
@@ -24,7 +26,7 @@ import type { TranslationKey } from "../localization/LocalizationTypes";
 import { createOptimizationRecommendationReport } from "../performance/OptimizationRecommendations";
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
-import { Activity } from "lucide-react";
+import { Activity, Maximize, ZoomIn, ZoomOut } from "lucide-react";
 import type { BuildSequenceSettings } from "../experimental/buildsequencer/BuildSequenceTypes";
 import { useExperimentalFeature } from "../experimental/useExperimentalFeature";
 import { BuildSequencerControls } from "../ui/experimental/BuildSequencerControls";
@@ -59,12 +61,27 @@ export function Viewport({
   const rendererRef = useRef<SceneRenderer | null>(null);
   const [metrics, setMetrics] = useState<RendererMetricsSnapshot | null>(null);
   const [metricsHidden, setMetricsHidden] = useState(false);
+  const [orientation, setOrientation] = useState<ViewportOrientation | null>(null);
+  // Blender shows "<collection> | <active object>" under the view label.
+  const selectedName = useMemo(() => {
+    if (!selectedObjectId) return t("common.none");
+    // findObject matches whole entities; a bone selection resolves to its owner.
+    const ownerId = parseRigBoneSelection(selectedObjectId)?.characterId ?? selectedObjectId;
+    return findObject(project, ownerId)?.entity.name ?? t("common.none");
+  }, [project, selectedObjectId, t]);
+
   const optimizationReport = useMemo(
     () => metrics ? createOptimizationRecommendationReport(metrics, "draft") : null,
     [metrics]
   );
   const handleMetrics = useCallback((snapshot: RendererMetricsSnapshot) => {
     setMetrics(snapshot);
+  }, []);
+  const handleOrientation = useCallback((next: ViewportOrientation) => {
+    setOrientation(next);
+  }, []);
+  const handlePickAxis = useCallback((axis: "x" | "y" | "z", sign: 1 | -1) => {
+    rendererRef.current?.viewAlongAxis(axis, sign);
   }, []);
 
   useEffect(() => {
@@ -75,14 +92,15 @@ export function Viewport({
     rendererRef.current = new SceneRenderer({
       container: containerRef.current,
       onSelectObject,
-      onMetrics: handleMetrics
+      onMetrics: handleMetrics,
+      onOrientation: handleOrientation
     });
 
     return () => {
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
-  }, [handleMetrics, onSelectObject]);
+  }, [handleMetrics, handleOrientation, onSelectObject]);
 
   useEffect(() => {
     rendererRef.current?.renderProject(
@@ -267,26 +285,56 @@ export function Viewport({
       className={`viewport-shell ${project.renderSettings.renderPreviewEnabled ? "render-preview" : ""}`}
       aria-label={t("viewport.ariaLabel")}
     >
-      <div className="viewport-toolbar">
-        <span>
+      <div className="viewport-info">
+        <span className="viewport-info-view">
           {project.renderSettings.renderPreviewEnabled
             ? t("status.renderPreview")
             : t("viewport.perspective")}
         </span>
-        {project.renderSettings.renderPreviewEnabled && (
-          <span>
-            {t("viewport.activeCamera", {
-              name: project.scene.cameras.find((camera) => camera.id === project.activeCameraId)?.name ??
-                t("common.none")
-            })}
-          </span>
-        )}
-        <span>{t("viewport.orbit")}</span>
-        <span>{t("viewport.pan")}</span>
-        <span>{t("viewport.zoom")}</span>
+        <span className="viewport-info-scene">
+          {project.renderSettings.renderPreviewEnabled
+            ? t("viewport.activeCamera", {
+                name: project.scene.cameras.find((camera) => camera.id === project.activeCameraId)?.name ??
+                  t("common.none")
+              })
+            : `${project.projectName} | ${selectedName}`}
+        </span>
         {project.world?.importedChunks?.length ? (
-          <span>{localization.plural({ one: "viewport.importedChunks.one", other: "viewport.importedChunks.other" }, project.world.importedChunks.length)}</span>
+          <span className="viewport-info-scene">
+            {localization.plural({ one: "viewport.importedChunks.one", other: "viewport.importedChunks.other" }, project.world.importedChunks.length)}
+          </span>
         ) : null}
+      </div>
+      <ViewportGizmo
+        orientation={orientation}
+        label={t("viewport.gizmo")}
+        onPickAxis={handlePickAxis}
+      />
+      <div className="viewport-nav-stack">
+        <button
+          type="button"
+          aria-label={t("viewport.zoomIn")}
+          title={t("viewport.zoomIn")}
+          onClick={() => rendererRef.current?.dolly(0.8)}
+        >
+          <ZoomIn size={15} />
+        </button>
+        <button
+          type="button"
+          aria-label={t("viewport.zoomOut")}
+          title={t("viewport.zoomOut")}
+          onClick={() => rendererRef.current?.dolly(1.25)}
+        >
+          <ZoomOut size={15} />
+        </button>
+        <button
+          type="button"
+          aria-label={t("viewport.frameAll")}
+          title={t("viewport.frameAll")}
+          onClick={() => rendererRef.current?.focusImportedWorld()}
+        >
+          <Maximize size={15} />
+        </button>
       </div>
       {buildSequencerEnabled && (
         <BuildSequencerControls

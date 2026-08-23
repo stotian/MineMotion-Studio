@@ -68,6 +68,41 @@ export class CameraController {
     this.controls.update();
   }
 
+  /** Dolly toward (<1) or away from (>1) the orbit target. */
+  dolly(factor: number): void {
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    const distance = THREE.MathUtils.clamp(
+      offset.length() * factor,
+      this.controls.minDistance,
+      this.controls.maxDistance
+    );
+    this.camera.position
+      .copy(this.controls.target)
+      .add(offset.setLength(distance));
+    this.controls.update();
+  }
+
+  /**
+   * Snaps the view down a world axis, the way clicking a Blender gizmo ball
+   * does. Keeps the current orbit distance and target.
+   */
+  viewAlongAxis(axis: "x" | "y" | "z", sign: 1 | -1): void {
+    const distance = this.camera.position.distanceTo(this.controls.target);
+    const direction = new THREE.Vector3(
+      axis === "x" ? sign : 0,
+      axis === "y" ? sign : 0,
+      axis === "z" ? sign : 0
+    );
+    // A perfectly vertical view is degenerate against the up vector, so nudge
+    // it a hair off-axis.
+    if (axis === "y") direction.z += sign * 1e-3;
+    this.camera.position
+      .copy(this.controls.target)
+      .addScaledVector(direction, distance);
+    // update() re-derives the spherical angles and re-applies the polar clamps.
+    this.controls.update();
+  }
+
   update(): void {
     this.controls.update();
   }

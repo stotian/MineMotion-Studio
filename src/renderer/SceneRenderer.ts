@@ -24,6 +24,7 @@ import { createWorldStagingObjects } from "./WorldStagingRenderer";
 import { applyWorldEditOperations } from "../minecraft/studio/WorldEditLayer";
 import { getStreamedChunksForRender } from "../minecraft/studio/WorldStreamingStudio";
 import { createGridFloor } from "./GridFloor";
+import { computeViewportOrientation } from "./ViewportOrientation";
 import { CameraController } from "./CameraController";
 import { disposeThreeObjectTree } from "./ThreeResourceDisposal";
 import type { ViewportSettings } from "../settings/AppSettings";
@@ -62,10 +63,14 @@ import type { BuildSequenceSettings } from "../experimental/buildsequencer/Build
 import { deriveBuildSequence } from "../experimental/buildsequencer/BuildSequencerSession";
 import { applyBuildReveal, revealFrameByCoord } from "../experimental/buildsequencer/BuildRevealApplication";
 
+export type { ViewportOrientation } from "./ViewportOrientation";
+
 export interface SceneRendererOptions {
   container: HTMLElement;
   onSelectObject: (objectId: string | null) => void;
   onMetrics?: (metrics: RendererMetricsSnapshot) => void;
+  /** Fires only when the camera orientation actually changes. */
+  onOrientation?: (orientation: ViewportOrientation) => void;
 }
 
 /**
@@ -273,6 +278,7 @@ export class SceneRenderer {
   } | null = null;
   private animationFrame = 0;
   private resizeObserver: ResizeObserver | null = null;
+  private readonly lastOrientation = new THREE.Quaternion(NaN, NaN, NaN, NaN);
   private selectedObjectId: string | null = null;
   private cachedSelectedObjectId: string | null = null;
   private cachedSelectedObject: THREE.Object3D | null = null;
@@ -442,6 +448,16 @@ export class SceneRenderer {
 
   lookThroughCamera(camera: CameraEntity): void {
     this.controller.lookThrough(camera);
+  }
+
+  /** Snaps the viewport camera down a world axis (navigation gizmo). */
+  viewAlongAxis(axis: "x" | "y" | "z", sign: 1 | -1): void {
+    this.controller.viewAlongAxis(axis, sign);
+  }
+
+  /** Dolly the viewport camera toward (<1) or away from (>1) its target. */
+  dolly(factor: number): void {
+    this.controller.dolly(factor);
   }
 
   focusImportedWorld(): void {
@@ -1391,6 +1407,21 @@ export class SceneRenderer {
     this.renderer.render(this.scene, this.controller.camera);
   }
 
+  /**
+   * Reports the camera basis to the navigation gizmo, but only when the camera
+   * actually rotated — the gizmo is otherwise idle and must not cause React
+   * state churn on every animation frame.
+   */
+  private emitOrientation(): void {
+    const onOrientation = this.options.onOrientation;
+    if (!onOrientation) return;
+    const camera = this.controller.camera;
+    if (this.lastOrientation.angleTo(camera.quaternion) < 0.001) return;
+    this.lastOrientation.copy(camera.quaternion);
+
+    onOrientation(computeViewportOrientation(camera.quaternion));
+  }
+
   private animate = (): void => {
     this.animationFrame = requestAnimationFrame(this.animate);
     const now = performance.now();
@@ -1409,6 +1440,7 @@ export class SceneRenderer {
       this.updateSelectionBox();
     }
     this.renderProductionPass();
+    this.emitOrientation();
     if (this.project && this.options.onMetrics &&
       (this.startupMs === null || now - this.lastMetricsAt >= 500)) {
       if (this.startupMs === null) {

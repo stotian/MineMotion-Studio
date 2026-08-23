@@ -322,25 +322,74 @@ select:focus-visible {
   background: #080808;
 }
 
-.viewport-toolbar {
+/* Blender prints the view state as plain text in the viewport corner — no
+   chips, no panel, just legible text over the scene. */
+.viewport-info {
   position: absolute;
-  top: 0.7rem;
-  left: 0.7rem;
-  right: 0.7rem;
+  top: 0.5rem;
+  left: 0.6rem;
   z-index: 2;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+  flex-direction: column;
+  gap: 0.1rem;
   pointer-events: none;
+  color: #d9d9d9;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
 }
 
-.viewport-toolbar span {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  background: rgb(17 17 17 / 72%);
-  border: 1px solid rgb(255 255 255 / 8%);
-  color: #cdcdcd;
-  font-size: 0.73rem;
+.viewport-info-scene {
+  color: #b4b4b4;
+}
+
+/* Navigation gizmo, pinned to the top-right like Blender's. */
+.viewport-gizmo {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 3;
+  width: 84px;
+  height: 84px;
+  overflow: visible;
+}
+
+.viewport-gizmo-hit {
+  cursor: pointer;
+}
+
+/* Round navigation buttons stacked under the gizmo, as in Blender 4.x. */
+.viewport-nav-stack {
+  position: absolute;
+  top: 5.9rem;
+  right: 1.15rem;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.viewport-nav-stack button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(40 40 40 / 88%);
+  color: #c8c8c8;
+  cursor: pointer;
+}
+
+.viewport-nav-stack button:hover {
+  background: rgb(60 60 60 / 94%);
+  color: #f0f0f0;
+}
+
+.viewport-nav-stack button:focus-visible {
+  outline: 2px solid var(--accent, #4772b3);
+  outline-offset: 1px;
 }
 
 .viewport-canvas {
