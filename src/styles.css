@@ -2606,7 +2606,10 @@ p.parameter-control-error {
   }
 
   .workspace {
-    grid-template-columns: 220px 240px minmax(340px, 1fr) 280px;
+    grid-template-columns:
+      var(--workspace-effects-width) 5px
+      minmax(300px, 1fr) 5px
+      var(--workspace-inspector-width);
   }
 
   .brand {
@@ -2823,18 +2826,21 @@ html[data-motion="reduced"] *::after { animation-duration: 0.001ms !important; a
 
 .workspace {
   position: relative;
+  /* Blender-style layout: effects/library left, large 3D viewport centre,
+     outliner (top) and properties/inspector (bottom) stacked on the right. */
   grid-template-columns:
-    var(--workspace-outliner-width) 5px
     var(--workspace-effects-width) 5px
-    minmax(320px, 1fr) 5px
+    minmax(360px, 1fr) 5px
     var(--workspace-inspector-width);
-  grid-template-rows: minmax(0, 1fr);
-  grid-template-areas: "outliner resize-outliner effects resize-effects viewport resize-inspector inspector";
+  grid-template-rows: minmax(110px, 0.85fr) minmax(0, 1.7fr);
+  grid-template-areas:
+    "effects re-effects viewport re-inspector outliner"
+    "effects re-effects viewport re-inspector inspector";
 }
 
 .workspace-panel-slot { position: relative; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; background: var(--bl-panel); }
 .workspace-panel-slot > .panel { width: 100%; height: 100%; }
-.workspace-panel-outliner { grid-area: outliner; }
+.workspace-panel-outliner { grid-area: outliner; border-bottom: 1px solid var(--bl-border-strong); }
 .workspace-panel-effects { grid-area: effects; }
 .workspace-panel-inspector { grid-area: inspector; }
 .workspace-viewport-slot { grid-area: viewport; min-width: 0; min-height: 0; display: flex; }
@@ -2852,9 +2858,9 @@ html[data-motion="reduced"] *::after { animation-duration: 0.001ms !important; a
 .experimental-build-panel .experimental-build-fields { display: flex; flex-direction: column; gap: 0.35rem; }
 .experimental-build-panel label { display: flex; flex-direction: column; gap: 0.2rem; }
 .experimental-build-panel select, .experimental-build-panel input { background: #181818; color: #ececec; border: 1px solid #383838; border-radius: 5px; padding: 0.2rem 0.3rem; }
-.workspace-resizer-outliner { grid-area: resize-outliner; }
-.workspace-resizer-effects { grid-area: resize-effects; }
-.workspace-resizer-inspector { grid-area: resize-inspector; }
+.workspace-resizer-outliner { display: none; }
+.workspace-resizer-effects { grid-area: re-effects; }
+.workspace-resizer-inspector { grid-area: re-inspector; }
 
 .workspace-resizer {
   z-index: 8;
