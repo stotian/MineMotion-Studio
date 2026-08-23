@@ -24,7 +24,10 @@ import { createWorldStagingObjects } from "./WorldStagingRenderer";
 import { applyWorldEditOperations } from "../minecraft/studio/WorldEditLayer";
 import { getStreamedChunksForRender } from "../minecraft/studio/WorldStreamingStudio";
 import { createGridFloor } from "./GridFloor";
-import { computeViewportOrientation } from "./ViewportOrientation";
+import {
+  computeViewportOrientation,
+  type ViewportOrientation
+} from "./ViewportOrientation";
 import { CameraController } from "./CameraController";
 import { disposeThreeObjectTree } from "./ThreeResourceDisposal";
 import type { ViewportSettings } from "../settings/AppSettings";
@@ -63,7 +66,7 @@ import type { BuildSequenceSettings } from "../experimental/buildsequencer/Build
 import { deriveBuildSequence } from "../experimental/buildsequencer/BuildSequencerSession";
 import { applyBuildReveal, revealFrameByCoord } from "../experimental/buildsequencer/BuildRevealApplication";
 
-export type { ViewportOrientation } from "./ViewportOrientation";
+export type { ViewportOrientation };
 
 export interface SceneRendererOptions {
   container: HTMLElement;
