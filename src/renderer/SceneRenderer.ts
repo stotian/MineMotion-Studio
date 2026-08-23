@@ -23,6 +23,8 @@ import { WeatherSystem } from "./WeatherSystem";
 import { createWorldStagingObjects } from "./WorldStagingRenderer";
 import { applyWorldEditOperations } from "../minecraft/studio/WorldEditLayer";
 import { getStreamedChunksForRender } from "../minecraft/studio/WorldStreamingStudio";
+import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
+import { parseRigBoneSelection } from "../rigs/RigSelection";
 import { createGridFloor } from "./GridFloor";
 import {
   computeViewportOrientation,
@@ -68,12 +70,17 @@ import { applyBuildReveal, revealFrameByCoord } from "../experimental/buildseque
 
 export type { ViewportOrientation };
 
+/** Viewport interaction mode, mirroring Blender's toolbar. */
+export type TransformMode = "select" | "translate" | "rotate" | "scale";
+
 export interface SceneRendererOptions {
   container: HTMLElement;
   onSelectObject: (objectId: string | null) => void;
   onMetrics?: (metrics: RendererMetricsSnapshot) => void;
   /** Fires only when the camera orientation actually changes. */
   onOrientation?: (orientation: ViewportOrientation) => void;
+  /** Fires while/after a transform gizmo drag changes the selected object. */
+  onTransformObject?: (objectId: string, transform: TransformData) => void;
 }
 
 /**
@@ -282,6 +289,11 @@ export class SceneRenderer {
   private animationFrame = 0;
   private resizeObserver: ResizeObserver | null = null;
   private readonly lastOrientation = new THREE.Quaternion(NaN, NaN, NaN, NaN);
+  private transformControls: TransformControls | null = null;
+  private transformHelper: THREE.Object3D | null = null;
+  private transformMode: TransformMode = "select";
+  /** Entity the gizmo is editing; null while a bone or nothing is selected. */
+  private transformTargetId: string | null = null;
   private selectedObjectId: string | null = null;
   private cachedSelectedObjectId: string | null = null;
   private cachedSelectedObject: THREE.Object3D | null = null;
@@ -358,6 +370,8 @@ export class SceneRenderer {
     tagThreeObjectLayer(this.selectionBox, "helpers");
     this.scene.add(this.selectionBox);
 
+    this.setupTransformControls();
+
     this.renderer.domElement.addEventListener("pointerdown", this.handlePointer);
     window.addEventListener("resize", this.resize);
     // The container often has zero size at mount (grid still settling) and can
@@ -420,6 +434,8 @@ export class SceneRenderer {
     );
     this.applyBuildRevealToWorld(project);
     this.updateSelectionBox();
+    // Runs after the rebuild so the gizmo re-attaches to the fresh Object3D.
+    this.syncTransformControls();
   }
 
   // Experimental: reveal the imported build block-by-block over the timeline.
@@ -453,6 +469,95 @@ export class SceneRenderer {
     this.controller.lookThrough(camera);
   }
 
+  private setupTransformControls(): void {
+    const controls = new TransformControls(
+      this.controller.camera,
+      this.renderer.domElement
+    );
+    controls.setSpace("world");
+    // The gizmo is an editor helper: it must never appear in renders, and it
+    // must not be pickable by the selection raycast.
+    const helper = controls.getHelper();
+    tagThreeObjectLayer(helper, "helpers");
+    helper.traverse((node) => {
+      node.userData.editorGizmo = true;
+    });
+    this.scene.add(helper);
+
+    // Orbiting while dragging an axis would fight the gizmo.
+    controls.addEventListener("dragging-changed", (event) => {
+      this.controller.controls.enabled = !event.value;
+    });
+    controls.addEventListener("objectChange", this.handleGizmoChange);
+
+    this.transformControls = controls;
+    this.transformHelper = helper;
+    this.syncTransformControls();
+  }
+
+  private handleGizmoChange = (): void => {
+    const object = this.transformControls?.object;
+    const objectId = this.transformTargetId;
+    if (!object || !objectId || !this.options.onTransformObject) return;
+    this.options.onTransformObject(objectId, {
+      position: [object.position.x, object.position.y, object.position.z],
+      rotation: [
+        THREE.MathUtils.radToDeg(object.rotation.x),
+        THREE.MathUtils.radToDeg(object.rotation.y),
+        THREE.MathUtils.radToDeg(object.rotation.z)
+      ],
+      scale: [object.scale.x, object.scale.y, object.scale.z]
+    });
+  };
+
+  /**
+   * Attaches or detaches the gizmo so it tracks the current selection and mode.
+   * Rig bones are driven by boneRotations rather than an entity transform, so
+   * they are deliberately left to the inspector for now.
+   */
+  private syncTransformControls(): void {
+    const controls = this.transformControls;
+    if (!controls) return;
+
+    const selectedId = this.selectedObjectId;
+    const isEntity = Boolean(selectedId) && !parseRigBoneSelection(selectedId);
+    if (this.transformMode === "select" || !isEntity || !selectedId) {
+      controls.detach();
+      controls.enabled = false;
+      this.transformTargetId = null;
+      if (this.transformHelper) this.transformHelper.visible = false;
+      return;
+    }
+
+    if (selectedId !== this.cachedSelectedObjectId) {
+      this.cachedSelectedObjectId = selectedId;
+      this.cachedSelectedObject = this.findObjectById(selectedId);
+    }
+    const target = this.cachedSelectedObject;
+    if (!target) {
+      controls.detach();
+      controls.enabled = false;
+      this.transformTargetId = null;
+      if (this.transformHelper) this.transformHelper.visible = false;
+      return;
+    }
+
+    controls.setMode(this.transformMode);
+    controls.attach(target);
+    controls.enabled = true;
+    this.transformTargetId = selectedId;
+    if (this.transformHelper) {
+      this.transformHelper.visible = this.layerVisibility.helpers;
+    }
+  }
+
+  /** Switches the viewport between selection and the transform gizmos. */
+  setTransformMode(mode: TransformMode): void {
+    if (this.transformMode === mode) return;
+    this.transformMode = mode;
+    this.syncTransformControls();
+  }
+
   /** Snaps the viewport camera down a world axis (navigation gizmo). */
   viewAlongAxis(axis: "x" | "y" | "z", sign: 1 | -1): void {
     this.controller.viewAlongAxis(axis, sign);
@@ -477,6 +582,11 @@ export class SceneRenderer {
     window.removeEventListener("resize", this.resize);
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
+    this.transformControls?.removeEventListener("objectChange", this.handleGizmoChange);
+    this.transformControls?.detach();
+    this.transformControls?.dispose();
+    this.transformControls = null;
+    this.transformHelper = null;
     this.controller.dispose();
     disposeThreeObjectTree(this.sceneRoot);
     this.vfxResources.dispose();
@@ -1346,6 +1456,12 @@ export class SceneRenderer {
   }
 
   private handlePointer = (event: PointerEvent): void => {
+    // Clicking a gizmo handle starts a drag; it must not also re-run selection
+    // (which would deselect the very object being transformed). `axis` is set
+    // by the preceding hover, `dragging` covers the in-progress case.
+    const gizmo = this.transformControls;
+    if (gizmo?.enabled && (gizmo.dragging || gizmo.axis)) return;
+
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;

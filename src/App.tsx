@@ -1625,6 +1625,7 @@ export function App() {
           focusWorldRequest={focusWorldRequest}
           viewportSettings={settings.viewport}
           motionPath={rigConstraints.motionPathSession.path}
+          onTransformObject={handleUpdateTransform}
         />
         </Suspense>
         </ErrorBoundary>

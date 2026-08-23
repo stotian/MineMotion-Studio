@@ -6,11 +6,15 @@ import {
   useRef,
   useState
 } from "react";
-import type { CameraEntity, MineMotionProject } from "../project/ProjectFile";
+import type { CameraEntity, MineMotionProject, TransformData } from "../project/ProjectFile";
 import type { ViewportSettings } from "../settings/AppSettings";
 import { findObject } from "../project/ProjectStore";
 import { parseRigBoneSelection } from "../rigs/RigSelection";
-import { SceneRenderer, type ViewportOrientation } from "./SceneRenderer";
+import {
+  SceneRenderer,
+  type TransformMode,
+  type ViewportOrientation
+} from "./SceneRenderer";
 import { ViewportGizmo } from "./ViewportGizmo";
 import { createPostProcessingStyles } from "../rendering/postprocessing/PostProcessingPipeline";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
@@ -26,7 +30,16 @@ import type { TranslationKey } from "../localization/LocalizationTypes";
 import { createOptimizationRecommendationReport } from "../performance/OptimizationRecommendations";
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
-import { Activity, Maximize, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  Activity,
+  Maximize,
+  Maximize2,
+  MousePointer2,
+  Move,
+  RotateCw,
+  ZoomIn,
+  ZoomOut
+} from "lucide-react";
 import type { BuildSequenceSettings } from "../experimental/buildsequencer/BuildSequenceTypes";
 import { useExperimentalFeature } from "../experimental/useExperimentalFeature";
 import { BuildSequencerControls } from "../ui/experimental/BuildSequencerControls";
@@ -40,6 +53,8 @@ interface ViewportProps {
   focusWorldRequest: number;
   viewportSettings: ViewportSettings;
   motionPath: SampledMotionPath | null;
+  /** Applies a viewport gizmo drag to the project. */
+  onTransformObject: (objectId: string, transform: TransformData) => void;
 }
 
 export function Viewport({
@@ -50,7 +65,8 @@ export function Viewport({
   resetCameraRequest,
   focusWorldRequest,
   viewportSettings,
-  motionPath
+  motionPath,
+  onTransformObject
 }: ViewportProps) {
   // Experimental Build Sequencer reveal is session-only viewport state.
   const [buildReveal, setBuildReveal] = useState<BuildSequenceSettings | null>(null);
@@ -62,6 +78,7 @@ export function Viewport({
   const [metrics, setMetrics] = useState<RendererMetricsSnapshot | null>(null);
   const [metricsHidden, setMetricsHidden] = useState(false);
   const [orientation, setOrientation] = useState<ViewportOrientation | null>(null);
+  const [transformMode, setTransformMode] = useState<TransformMode>("select");
   // Blender shows "<collection> | <active object>" under the view label.
   const selectedName = useMemo(() => {
     if (!selectedObjectId) return t("common.none");
@@ -80,9 +97,42 @@ export function Viewport({
   const handleOrientation = useCallback((next: ViewportOrientation) => {
     setOrientation(next);
   }, []);
+  // Held in a ref so a new callback identity never tears down the renderer.
+  const transformObjectRef = useRef(onTransformObject);
+  transformObjectRef.current = onTransformObject;
+  const handleTransformObject = useCallback(
+    (objectId: string, transform: TransformData) => {
+      transformObjectRef.current(objectId, transform);
+    },
+    []
+  );
   const handlePickAxis = useCallback((axis: "x" | "y" | "z", sign: 1 | -1) => {
     rendererRef.current?.viewAlongAxis(axis, sign);
   }, []);
+
+  // Blender's G/R/S shortcuts, ignored while typing in a field.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      const mode = ({
+        g: "translate",
+        r: "rotate",
+        s: "scale",
+        escape: "select"
+      } as const)[event.key.toLowerCase()];
+      if (!mode) return;
+      event.preventDefault();
+      setTransformMode(mode);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    rendererRef.current?.setTransformMode(transformMode);
+  }, [transformMode]);
 
   useEffect(() => {
     if (!containerRef.current || rendererRef.current) {
@@ -93,14 +143,15 @@ export function Viewport({
       container: containerRef.current,
       onSelectObject,
       onMetrics: handleMetrics,
-      onOrientation: handleOrientation
+      onOrientation: handleOrientation,
+      onTransformObject: handleTransformObject
     });
 
     return () => {
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
-  }, [handleMetrics, handleOrientation, onSelectObject]);
+  }, [handleMetrics, handleOrientation, handleTransformObject, onSelectObject]);
 
   useEffect(() => {
     rendererRef.current?.renderProject(
@@ -304,6 +355,26 @@ export function Viewport({
             {localization.plural({ one: "viewport.importedChunks.one", other: "viewport.importedChunks.other" }, project.world.importedChunks.length)}
           </span>
         ) : null}
+      </div>
+      <div className="viewport-tools" role="toolbar" aria-label={t("viewport.tools")}>
+        {([
+          { mode: "select", icon: MousePointer2, key: "viewport.tool.select" },
+          { mode: "translate", icon: Move, key: "viewport.tool.move" },
+          { mode: "rotate", icon: RotateCw, key: "viewport.tool.rotate" },
+          { mode: "scale", icon: Maximize2, key: "viewport.tool.scale" }
+        ] as const).map(({ mode, icon: Icon, key }) => (
+          <button
+            key={mode}
+            type="button"
+            className={transformMode === mode ? "is-active" : undefined}
+            aria-pressed={transformMode === mode}
+            aria-label={t(key)}
+            title={t(key)}
+            onClick={() => setTransformMode(mode)}
+          >
+            <Icon size={16} />
+          </button>
+        ))}
       </div>
       <ViewportGizmo
         orientation={orientation}
