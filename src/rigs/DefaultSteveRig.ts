@@ -11,13 +11,15 @@ import {
   type ExpressionOverlayTone
 } from "./expressions/ExpressionOverlay";
 
+// Steve-like default palette (original colours, not Mojang's texture): tan skin,
+// dark-brown hair, teal shirt, indigo trousers.
 const MATERIALS = {
-  head: createSolidMaterial("#d9a066"),
-  hair: createSolidMaterial("#4b2e1f"),
-  body: createSolidMaterial("#2e77c5"),
-  cape: createSolidMaterial("#6b1f2b"),
-  arm: createSolidMaterial("#d9a066"),
-  leg: createSolidMaterial("#3552a3"),
+  head: createSolidMaterial("#c9986a"),
+  hair: createSolidMaterial("#3b2a17"),
+  shirt: createSolidMaterial("#179c9c"),
+  skin: createSolidMaterial("#c9986a"),
+  pants: createSolidMaterial("#3c3f86"),
+  cape: createSolidMaterial("#8a1f2e"),
   sword: createSolidMaterial("#c7d0dc"),
   item: createSolidMaterial("#74b36a")
 };
@@ -245,12 +247,15 @@ function materialForBone(
     const color = mobColor(character.rigPreset, bone.id);
     return createSolidMaterial(color);
   }
-  if (bone.id === "body") return MATERIALS.body;
+  const id = bone.id.toLowerCase();
   if (bone.id === "head") return MATERIALS.head;
   if (bone.id === "cape") return MATERIALS.cape;
-  if (bone.id.toLowerCase().includes("arm")) return MATERIALS.arm;
-  if (bone.id.toLowerCase().includes("leg")) return MATERIALS.leg;
-  return MATERIALS.body;
+  if (bone.id === "body") return MATERIALS.shirt;
+  // Upper arm is a shirt sleeve; forearm is bare skin.
+  if (id.includes("forearm")) return MATERIALS.skin;
+  if (id.includes("arm")) return MATERIALS.shirt;
+  if (id.includes("leg")) return MATERIALS.pants;
+  return MATERIALS.shirt;
 }
 
 function mobColor(rigPreset: string, boneId: string): string {

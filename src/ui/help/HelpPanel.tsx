@@ -68,6 +68,7 @@ export function HelpPanel({ open, onClose, onLoadSampleScene }: HelpPanelProps) 
             <li>{t("help.shortcut.delete")}</li>
             <li>{t("help.shortcut.play")}</li>
           </ul>
+          <p className="help-disclaimer">{t("help.disclaimer")}</p>
         </div>
       </section>
     </div>

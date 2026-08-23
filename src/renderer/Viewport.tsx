@@ -24,6 +24,7 @@ import type { TranslationKey } from "../localization/LocalizationTypes";
 import { createOptimizationRecommendationReport } from "../performance/OptimizationRecommendations";
 import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
+import { Activity } from "lucide-react";
 import type { BuildSequenceSettings } from "../experimental/buildsequencer/BuildSequenceTypes";
 import { useExperimentalFeature } from "../experimental/useExperimentalFeature";
 import { BuildSequencerControls } from "../ui/experimental/BuildSequencerControls";
@@ -57,6 +58,7 @@ export function Viewport({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<SceneRenderer | null>(null);
   const [metrics, setMetrics] = useState<RendererMetricsSnapshot | null>(null);
+  const [metricsHidden, setMetricsHidden] = useState(false);
   const optimizationReport = useMemo(
     () => metrics ? createOptimizationRecommendationReport(metrics, "draft") : null,
     [metrics]
@@ -305,8 +307,14 @@ export function Viewport({
       />
       {project.performanceSettings.showDiagnostics &&
         !project.renderSettings.renderPreviewEnabled &&
-        metrics && (
+        metrics && !metricsHidden && (
           <div className="viewport-performance-metrics" aria-live="off">
+            <button
+              type="button"
+              className="viewport-metrics-close"
+              aria-label={t("viewport.metrics.hide")}
+              onClick={() => setMetricsHidden(true)}
+            >×</button>
             <span>
               {t("viewport.metrics.frame", {
                 fps: localization.formatNumber(roundOne(metrics.frame.fps)),
@@ -383,6 +391,18 @@ export function Viewport({
               </span>
             ))}
           </div>
+        )}
+      {project.performanceSettings.showDiagnostics &&
+        !project.renderSettings.renderPreviewEnabled &&
+        metrics && metricsHidden && (
+          <button
+            type="button"
+            className="viewport-metrics-show"
+            aria-label={t("viewport.metrics.show")}
+            onClick={() => setMetricsHidden(false)}
+          >
+            <Activity size={13} />
+          </button>
         )}
       <div className="post-bloom-overlay" style={bloomStyle} />
       <div className="post-chromatic-overlay" style={glitchStyle} />
