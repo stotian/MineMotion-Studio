@@ -407,7 +407,7 @@ pub fn run() {
             ffmpeg_cleanup_job
         ])
         .run(tauri::generate_context!())
-        .expect("error while running MineMotion Studio");
+        .expect("error while running BlockMotion Studio");
 }
 
 #[cfg(test)]

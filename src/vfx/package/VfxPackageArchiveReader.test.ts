@@ -87,7 +87,7 @@ describe(".minemotion-vfx package safety", () => {
     corrupt[offset] ^= 1;
     await expect(readVfxPackageArchive(corrupt.buffer)).rejects.toThrow("checksum mismatch");
 
-    await expect(readVfxPackageArchive(await archive(manifest({ minStudioVersion: "99.0.0" })))).rejects.toThrow("requires MineMotion Studio");
+    await expect(readVfxPackageArchive(await archive(manifest({ minStudioVersion: "99.0.0" })))).rejects.toThrow("requires BlockMotion Studio");
     await expect(readVfxPackageArchive(await archive({ ...manifest(), manifestVersion: 99 as 1 }))).rejects.toThrow("version is unsupported");
   });
 

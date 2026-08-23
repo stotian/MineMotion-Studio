@@ -6,7 +6,7 @@ export const BuiltinObjImporterPlugin: PluginManifest = {
   version: "0.8.0",
   minMineMotionVersion: "0.8.0",
   description: "Registers the Phase 1 OBJ importer.",
-  author: "MineMotion Studio",
+  author: "BlockMotion Studio",
   permissions: ["registerImporters"],
   entry: "builtin",
   enabled: true,

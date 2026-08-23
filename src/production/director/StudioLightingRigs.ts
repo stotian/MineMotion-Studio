@@ -89,7 +89,7 @@ function createLight(
     visible: true,
     locked: false,
     metadata: {
-      generatedBy: "MineMotion Studio Lighting",
+      generatedBy: "BlockMotion Studio Lighting",
       studioRig: rig,
       studioRigId: rigId,
       lightRole: spec.role,

@@ -132,7 +132,7 @@ export function createVoxelModelFromWorldBox(project: MineMotionProject, name: s
 }
 
 export function compileVoxelModelToObj(model: VoxelModelAsset): string {
-  const lines: string[] = [`# MineMotion Studio voxel model: ${model.name}`];
+  const lines: string[] = [`# BlockMotion Studio voxel model: ${model.name}`];
   let vertexOffset = 1;
   for (const cube of model.cubes.filter((candidate) => candidate.visible)) {
     const vertices = cubeVertices(cube);

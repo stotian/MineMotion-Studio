@@ -224,7 +224,7 @@ export async function readVfxPackageArchive(buffer: ArrayBuffer): Promise<VfxPac
   const manifestValidation = validateVfxPackageManifest(parseJson(manifestEntry, "VFX package manifest"));
   if (!manifestValidation.ok) fail(manifestValidation.errors.map((entry) => `${entry.path}: ${entry.message}`).join(" "));
   const manifest = manifestValidation.value;
-  if (compareSemVer(packageMetadata.version, manifest.minStudioVersion) < 0) fail(`VFX package requires MineMotion Studio ${manifest.minStudioVersion} or newer.`);
+  if (compareSemVer(packageMetadata.version, manifest.minStudioVersion) < 0) fail(`VFX package requires BlockMotion Studio ${manifest.minStudioVersion} or newer.`);
   const documentValidation = validateVfxAuthoringDocument(parseJson(effectEntry, "VFX authoring document"));
   if (!documentValidation.ok) fail(documentValidation.errors.map((entry) => `${entry.path}: ${entry.message}`).join(" "));
   if (documentValidation.value.id !== manifest.effect.documentId) fail("Manifest effect document ID does not match effect.json.");

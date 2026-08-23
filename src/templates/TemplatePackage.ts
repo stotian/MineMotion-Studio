@@ -35,7 +35,7 @@ export function createCustomTemplateMetadata(id: string, name: string, descripti
     id, name, description, category: "starter", schemaVersion: 1, templateVersion: 1,
     preview: { accent: "#66a3ff", icon: "empty", aspectRatio: "16:9", summary: description },
     dependencies: [], estimatedSizeBytes: 0, license: "MineMotion-generated",
-    attribution: "Created by the user in MineMotion Studio.", tags: ["custom"]
+    attribution: "Created by the user in BlockMotion Studio.", tags: ["custom"]
   });
 }
 

@@ -6,7 +6,7 @@ export const BuiltinPresetPlugin: PluginManifest = {
   version: "0.8.0",
   minMineMotionVersion: "0.8.0",
   description: "Registers bundled camera, rig pose, animation, sky, and block palette presets.",
-  author: "MineMotion Studio",
+  author: "BlockMotion Studio",
   permissions: ["registerPresets"],
   entry: "builtin",
   enabled: true,

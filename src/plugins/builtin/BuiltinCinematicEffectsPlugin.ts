@@ -7,7 +7,7 @@ export const BuiltinCinematicEffectsPlugin: PluginManifest = {
   minMineMotionVersion: "0.8.0",
   description:
     "Registers bundled cinematic effects, post-processing presets, SFX metadata, render presets, and timeline item types.",
-  author: "MineMotion Studio",
+  author: "BlockMotion Studio",
   permissions: [
     "registerEffects",
     "registerPostProcessing",

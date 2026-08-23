@@ -18,7 +18,7 @@ export const WEB_FFMPEG_STATUS: FfmpegDetectionResult = {
   nativeRuntime: false,
   executable: "",
   version: "",
-  message: "FFmpeg export requires the MineMotion Studio desktop app."
+  message: "FFmpeg export requires the BlockMotion Studio desktop app."
 };
 
 export function isTauriRuntime(): boolean {

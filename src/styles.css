@@ -149,6 +149,19 @@ select:focus-visible {
   letter-spacing: 0;
 }
 
+.brand-short {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.02rem 0.28rem;
+  border-radius: 3px;
+  background: var(--accent, #4772b3);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+
 .brand span {
   display: block;
   margin-top: 0.1rem;

@@ -17,7 +17,7 @@ export class UserFacingError extends EngineError {
   ) {
     super(code, message, options);
     this.name = "UserFacingError";
-    this.title = options.title ?? "MineMotion Studio";
+    this.title = options.title ?? "BlockMotion Studio";
     this.suggestedAction = options.suggestedAction;
   }
 }

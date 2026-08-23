@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return (
       <div className="app-error-boundary" role="alert">
         <div className="app-error-card">
-          <h1>MineMotion Studio could not start this view</h1>
+          <h1>BlockMotion Studio could not start this view</h1>
           {this.props.context ? <p>{this.props.context}</p> : null}
           <pre>{error.message}</pre>
           {error.stack ? <pre className="app-error-stack">{error.stack}</pre> : null}

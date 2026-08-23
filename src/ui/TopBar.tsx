@@ -97,7 +97,7 @@ export function TopBar({
       <div className="brand">
         <Clapperboard size={22} />
         <div>
-          <strong>MineMotion Studio</strong>
+          <strong>BlockMotion Studio <span className="brand-short">BMS</span></strong>
           <span>{projectName}{isDirty ? " *" : ""}</span>
         </div>
       </div>

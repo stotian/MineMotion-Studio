@@ -14,14 +14,14 @@ const EXAMPLES = [
     source: "ember-ring.effect.json",
     id: "minemotion.examples.ember-ring",
     version: "1.0.0",
-    author: "MineMotion Studio",
+    author: "BlockMotion Studio",
     license: "CC0-1.0"
   },
   {
     source: "soul-portal.effect.json",
     id: "minemotion.examples.soul-portal",
     version: "1.0.0",
-    author: "MineMotion Studio",
+    author: "BlockMotion Studio",
     license: "CC0-1.0"
   }
 ] as const;

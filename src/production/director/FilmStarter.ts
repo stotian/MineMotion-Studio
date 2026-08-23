@@ -74,12 +74,12 @@ export function createFilmStarter(
     ...result,
     project: {
       ...result.project,
-      projectName: result.project.projectName === "Untitled MineMotion Project"
+      projectName: result.project.projectName === "Untitled BlockMotion Project"
         ? `${capitalize(options.mode)} Film`
         : result.project.projectName,
       projectSettings: {
         ...result.project.projectSettings,
-        projectName: result.project.projectSettings.projectName === "Untitled MineMotion Project"
+        projectName: result.project.projectSettings.projectName === "Untitled BlockMotion Project"
           ? `${capitalize(options.mode)} Film`
           : result.project.projectSettings.projectName
       }

@@ -41,7 +41,7 @@ export function createDefaultProjectSettings(
     schemaVersion: 1,
     projectName:
       appSettings?.general.defaultProjectNamePattern ??
-      "Untitled MineMotion Project",
+      "Untitled BlockMotion Project",
     fps: appSettings?.general.defaultFps ?? 24,
     durationFrames:
       appSettings?.general.defaultProjectDurationFrames ?? 300,
@@ -50,7 +50,7 @@ export function createDefaultProjectSettings(
     renderResolutionPreset: "1080p",
     author: "",
     notes: "",
-    terrainPreset: "demo",
+    terrainPreset: "none",
     blockPaletteStyle:
       appSettings?.minecraft.defaultBlockPaletteStyle ?? "classic"
   };

@@ -9,7 +9,8 @@ const SOURCE_MODULES = import.meta.glob<string>(
 
 const TECHNICAL_TEXT = new Set([
   "FX",
-  "MineMotion Studio",
+  "BlockMotion Studio",
+  "BMS",
   "NLA",
   "FPS",
   "PNG Frame",

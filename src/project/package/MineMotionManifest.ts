@@ -2,7 +2,7 @@ import type { MineMotionProject } from "../ProjectFile";
 import { collectProjectAssets } from "../../assets/library/AssetLibrary";
 
 export interface MineMotionManifest {
-  formatName: "MineMotion Studio Package";
+  formatName: "BlockMotion Studio Package";
   schemaVersion: 1;
   mineMotionVersion: string;
   createdAt: string;
@@ -25,7 +25,7 @@ export function createMineMotionManifest(
   const assets = collectProjectAssets(project);
   const now = new Date().toISOString();
   return {
-    formatName: "MineMotion Studio Package",
+    formatName: "BlockMotion Studio Package",
     schemaVersion: 1,
     mineMotionVersion: project.metadata.appVersion,
     createdAt: project.metadata.createdAt,

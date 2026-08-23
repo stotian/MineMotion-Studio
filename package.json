@@ -2,7 +2,7 @@
   "name": "minemotion-studio",
   "private": true,
   "version": "0.8.2",
-  "description": "MineMotion Studio - A cinematic Minecraft animation editor.",
+  "description": "BlockMotion Studio - A cinematic Minecraft animation editor.",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",

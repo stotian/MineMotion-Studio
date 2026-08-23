@@ -6,7 +6,7 @@ export interface NativeSaveOptions { suggestedName: string; extensions: string[]
 export async function openNativeProjectFile(extensions = ["minemotion", "mmsproj"]): Promise<NativeOpenResult | null> {
   if (!isTauriRuntimeAvailable()) return null;
   const [{ open }, { readFile }] = await Promise.all([import("@tauri-apps/plugin-dialog"), import("@tauri-apps/plugin-fs")]);
-  const selected = await open({ multiple: false, directory: false, filters: [{ name: "MineMotion Project", extensions }] });
+  const selected = await open({ multiple: false, directory: false, filters: [{ name: "BlockMotion Project", extensions }] });
   if (typeof selected !== "string") return null;
   return { path: selected, name: selected.split(/[\\/]/).pop() ?? "project.minemotion", data: await readFile(selected) };
 }

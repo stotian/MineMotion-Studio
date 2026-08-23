@@ -6,7 +6,7 @@ import type { MinecraftSkinAsset } from "./RigTypes";
  * an original interpretation (warm tan skin, teal shirt, indigo trousers) and
  * deliberately does NOT reproduce Mojang's copyrighted "Steve" texture.
  *
- * MineMotion Studio is not affiliated with or endorsed by Mojang Studios.
+ * BlockMotion Studio is not affiliated with or endorsed by Mojang Studios.
  */
 
 // Original palette — intentionally distinct from Mojang's texture.
@@ -70,8 +70,11 @@ function paintSkin(ctx: CanvasRenderingContext2D): void {
   rect(ctx, PAL.iris, 13, 11, 1, 1);
   rect(ctx, PAL.brow, 9, 10, 2, 1);
   rect(ctx, PAL.brow, 13, 10, 2, 1);
-  // Nose + mouth.
+  // Nose + signature brown moustache/beard + mouth.
   rect(ctx, PAL.skinShade, 11, 12, 2, 1);
+  rect(ctx, PAL.hair, 9, 13, 6, 1); // moustache
+  rect(ctx, PAL.hair, 9, 14, 1, 1); // left sideburn/beard
+  rect(ctx, PAL.hair, 14, 14, 1, 1); // right sideburn/beard
   rect(ctx, PAL.mouth, 10, 14, 4, 1);
 
   // ---- Body (atlas 16,16 .. 40,32) — teal shirt ----
@@ -123,7 +126,7 @@ export function createDefaultSteveSkin(): MinecraftSkinAsset | null {
   if (!dataUrl) return null;
   return {
     id: "skin-default-steve",
-    name: "MineMotion Default",
+    name: "BlockMotion Default",
     dataUrl,
     importedAt: new Date(0).toISOString(),
     metadata: {

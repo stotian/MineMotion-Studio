@@ -17,7 +17,7 @@ export class FfmpegExecutionError extends Error {
 
 export class NativeRuntimeRequiredError extends Error {
   constructor() {
-    super("This export requires the MineMotion Studio desktop/Tauri runtime.");
+    super("This export requires the BlockMotion Studio desktop/Tauri runtime.");
     this.name = "NativeRuntimeRequiredError";
   }
 }

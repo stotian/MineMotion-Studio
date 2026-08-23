@@ -9,7 +9,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     autosaveIntervalSeconds: 30,
     defaultProjectDurationFrames: 300,
     defaultFps: 24,
-    defaultProjectNamePattern: "Untitled MineMotion Project",
+    defaultProjectNamePattern: "Untitled BlockMotion Project",
     recentProjects: []
   },
   viewport: {

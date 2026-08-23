@@ -126,7 +126,7 @@ export function createBlankStudioStage(project: MineMotionProject): WorldStudioB
       sceneOverrides: withWorldSceneOverridesDefaults(project.world?.sceneOverrides),
       sourcePolicy: { access: "read-only", filesystemWritesAllowed: false },
       importedAt: now,
-      notes: ["Blank stage created for direct construction in MineMotion Studio."]
+      notes: ["Blank stage created for direct construction in BlockMotion Studio."]
     },
     metadata: { ...project.metadata, updatedAt: now }
   };

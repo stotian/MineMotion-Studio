@@ -242,7 +242,7 @@ function buildCapabilities(
       ffmpegStatus,
       probe.tauriRuntime
         ? ffmpeg?.message ?? "FFmpeg has not been detected in this capability snapshot."
-        : "FFmpeg requires the MineMotion Studio desktop runtime."
+        : "FFmpeg requires the BlockMotion Studio desktop runtime."
     ),
     "browser-filesystem": createCapability(
       "browser-filesystem",

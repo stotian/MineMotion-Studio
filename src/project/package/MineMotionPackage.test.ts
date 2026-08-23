@@ -14,7 +14,7 @@ describe("MineMotion package", () => {
 
     expect(data.packageFormat).toBe("minemotion-package-json");
     expect(data.project.schemaVersion).toBe(10);
-    expect(data.manifest.formatName).toBe("MineMotion Studio Package");
+    expect(data.manifest.formatName).toBe("BlockMotion Studio Package");
     expect(validation.valid).toBe(true);
   });
 
