@@ -1,6 +1,8 @@
 node_modules/
 dist/
 dist-ssr/
+# Downloaded CI installer artifacts; large binaries that must never be committed.
+dist-desktop/
 target/
 src-tauri/target/
 src-tauri/gen/schemas/
