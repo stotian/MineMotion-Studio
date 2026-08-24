@@ -94,14 +94,15 @@ export function TopBar({
   const t = localization.t.bind(localization);
   return (
     <header className="top-bar">
-      <div className="brand">
-        <Clapperboard size={22} />
-        <div>
-          <strong>BlockMotion Studio <span className="brand-short">BMS</span></strong>
-          <span>{projectName}{isDirty ? " *" : ""}</span>
-        </div>
+      {/*
+        Blender's top bar is a single strip: app icon, menus, workspace tabs,
+        then scene selectors at the right. It carries no branded title block —
+        the application name lives in the window title, not the UI.
+      */}
+      <div className="brand" title="BlockMotion Studio (BMS)">
+        <Clapperboard size={16} />
+        <span className="sr-only">BlockMotion Studio BMS</span>
       </div>
-      <WorkspaceSwitcher value={workspaceId} onChange={onWorkspaceChange} />
       <nav className="top-actions" aria-label={t("topbar.mainActions")}>
         <ToolbarMenu label={t("topbar.menu.project")}>
           <MenuButton icon={<Wand2 size={16} />} label={t("topbar.newProject")} onClick={onNewProject} />
@@ -145,6 +146,12 @@ export function TopBar({
           <HelpCircle size={16} />
         </button>
       </nav>
+      <WorkspaceSwitcher value={workspaceId} onChange={onWorkspaceChange} />
+      {/* Blender puts scene/view-layer selectors here; ours shows the project. */}
+      <div className="topbar-scene" title={projectName}>
+        <span className="topbar-scene-name">{projectName}</span>
+        {isDirty ? <span className="topbar-dirty" aria-hidden="true">*</span> : null}
+      </div>
       <WorkspaceStatusIndicators
         dirty={isDirty}
         autosaveEnabled={autosaveEnabled}

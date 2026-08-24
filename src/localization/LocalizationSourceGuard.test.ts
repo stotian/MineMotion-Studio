@@ -11,6 +11,9 @@ const TECHNICAL_TEXT = new Set([
   "FX",
   "BlockMotion Studio",
   "BMS",
+  // The product name is a trademark, not translatable copy.
+  "BlockMotion Studio BMS",
+  "BlockMotion Studio (BMS)",
   "NLA",
   "FPS",
   "PNG Frame",

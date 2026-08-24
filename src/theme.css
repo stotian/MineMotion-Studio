@@ -92,7 +92,7 @@
   --bl-radius-sm: 2px;
   --bl-radius-panel: 4px;
   --bl-header-h: 26px;
-  --bl-topbar-h: 48px;
+  --bl-topbar-h: 26px;      /* one strip, like Blender's */
   --bl-status-h: 26px;
   --bl-row-h: 20px;          /* U.widget_unit (UI_UNIT_Y) */
   --bl-panel-pad-x: 8px;     /* UI_PANEL_MARGIN_X = unit * 0.4 */
@@ -177,22 +177,23 @@ p {
 
 /* ---------------------------- top bar ---------------------------- */
 
+/* One strip: icon, menus, workspace tabs, then the scene selector. */
 .top-bar {
-  display: grid;
-  grid-template-rows: 24px 1fr;
-  align-content: start;
+  display: flex;
+  align-items: center;
+  gap: 2px;
   min-width: 0;
-  padding: 0;
+  padding: 0 4px;
   background: var(--bl-topbar);
   border: none;
+  overflow: hidden;
 }
 
 .brand {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0 0.5rem;
-  min-width: 0;
+  padding: 0 6px 0 2px;
   color: var(--bl-text-muted);
 }
 
@@ -225,11 +226,12 @@ p {
 
 /* Workspace tabs: flat labels, the active one raised to the panel colour. */
 .workspace-switcher {
+  flex: 0 1 auto;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 1px;
   min-width: 0;
-  padding: 0 0.4rem;
+  margin-left: 6px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -240,7 +242,7 @@ p {
 
 .workspace-switcher button {
   flex: 0 0 auto;
-  height: 21px;
+  height: 20px;
   padding: 0 0.65rem;
   border: none;
   border-radius: var(--bl-radius) var(--bl-radius) 0 0;
@@ -949,4 +951,32 @@ html[data-motion="reduced"] *::after {
 .shading-ball.is-active {
   outline: 2px solid var(--accent);
   outline-offset: -1px;
+}
+
+
+/* The right-hand end of the top bar: our equivalent of Blender's scene and
+   view-layer selectors. */
+.topbar-scene {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+  max-width: 220px;
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: var(--bl-radius);
+  background: var(--bl-widget);
+  color: var(--bl-text);
+  font-size: 0.74rem;
+}
+
+.topbar-scene-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.topbar-dirty {
+  color: var(--bl-active);
 }
