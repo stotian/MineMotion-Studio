@@ -1,8 +1,9 @@
 import type { CharacterEntity } from "../project/ProjectFile";
 import { applyRigPose } from "./RigInstance";
 import type { RigPose } from "./RigTypes";
+import { EXTENDED_RIG_POSES } from "./PoseLibraryExtended";
 
-export const BUILTIN_RIG_POSES: RigPose[] = [
+const CORE_RIG_POSES: RigPose[] = [
   pose("idle", "Idle", "Neutral readable stance.", {
     root: [0, 0, 0],
     body: [0, 0, 0],
@@ -114,6 +115,21 @@ export const BUILTIN_RIG_POSES: RigPose[] = [
     rightLeg: [-4, 0, 8]
   })
 ];
+
+/**
+ * The full built-in pose set: the core cycles plus the extended library.
+ * IDs must stay unique — a duplicate would make applyPoseToCharacter resolve
+ * whichever came first and silently ignore the other.
+ */
+export const BUILTIN_RIG_POSES: RigPose[] = [
+  ...CORE_RIG_POSES,
+  ...EXTENDED_RIG_POSES
+];
+
+const POSE_IDS = new Set(BUILTIN_RIG_POSES.map((entry) => entry.id));
+if (POSE_IDS.size !== BUILTIN_RIG_POSES.length) {
+  throw new RangeError("Built-in rig pose IDs must be unique.");
+}
 
 export function applyPoseToCharacter(
   character: CharacterEntity,

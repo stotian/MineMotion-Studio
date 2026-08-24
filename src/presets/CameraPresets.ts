@@ -1,4 +1,5 @@
 import type { CameraEntity, TransformData } from "../project/ProjectFile";
+import { EXTENDED_CAMERA_PRESETS } from "./CameraPresetsExtended";
 
 export interface CameraPreset {
   id: string;
@@ -8,7 +9,7 @@ export interface CameraPreset {
   transform: TransformData;
 }
 
-export const CAMERA_PRESETS: CameraPreset[] = [
+const CORE_CAMERA_PRESETS: CameraPreset[] = [
   {
     id: "wide-cinematic",
     name: "Wide cinematic",
@@ -109,6 +110,20 @@ export const CAMERA_PRESETS: CameraPreset[] = [
     }
   }
 ];
+
+/**
+ * The full built-in camera library: the core angles plus the extended set.
+ * IDs must stay unique, since presets are looked up by id.
+ */
+export const CAMERA_PRESETS: CameraPreset[] = [
+  ...CORE_CAMERA_PRESETS,
+  ...EXTENDED_CAMERA_PRESETS
+];
+
+const CAMERA_PRESET_IDS = new Set(CAMERA_PRESETS.map((entry) => entry.id));
+if (CAMERA_PRESET_IDS.size !== CAMERA_PRESETS.length) {
+  throw new RangeError("Camera preset IDs must be unique.");
+}
 
 export function applyCameraPreset(
   camera: CameraEntity,
