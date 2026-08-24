@@ -9,13 +9,11 @@ import {
   LayoutTemplate,
   Library,
   Music2,
-  Play,
   Plug,
   Save,
   Settings,
   Sparkles,
   Sun,
-  Square,
   UserPlus,
   Video,
   Wand2
@@ -27,7 +25,6 @@ import { WorkspaceSwitcher } from "./workspaces/WorkspaceSwitcher";
 
 interface TopBarProps {
   projectName: string;
-  isPlaying: boolean;
   isDirty: boolean;
   autosaveEnabled: boolean;
   exporting: boolean;
@@ -43,7 +40,6 @@ interface TopBarProps {
   onAddCharacter: () => void;
   onAddCamera: () => void;
   onImportObj: () => void;
-  onTogglePlayback: () => void;
   onOpenSettings: () => void;
   onOpenAssets: () => void;
   onOpenAudio: () => void;
@@ -60,7 +56,6 @@ interface TopBarProps {
 
 export function TopBar({
   projectName,
-  isPlaying,
   isDirty,
   autosaveEnabled,
   exporting,
@@ -76,7 +71,6 @@ export function TopBar({
   onAddCharacter,
   onAddCamera,
   onImportObj,
-  onTogglePlayback,
   onOpenSettings,
   onOpenAssets,
   onOpenAudio,
@@ -126,24 +120,46 @@ export function TopBar({
           <MenuButton icon={<Music2 size={16} />} label={t("topbar.audio")} onClick={onOpenAudio} />
           <MenuButton icon={<Plug size={16} />} label={t("topbar.plugins")} onClick={onOpenPlugins} />
         </ToolbarMenu>
-        <button type="button" className="primary-action" onClick={onTogglePlayback}>
-          {isPlaying ? <Square size={16} /> : <Play size={16} />}
-          {isPlaying ? t("topbar.pause") : t("topbar.play")}
+        {/*
+          Blender's top bar carries no coloured action and no transport: play
+          lives in the timeline, so a second Play here was both a duplicate and
+          the only accent in the strip. The rest go icon-only, as Blender's do.
+        */}
+        <button
+          type="button"
+          className="topbar-icon"
+          onClick={onToggleRenderPreview}
+          title={renderPreviewEnabled ? t("topbar.viewport") : t("topbar.renderPreview")}
+          aria-label={renderPreviewEnabled ? t("topbar.viewport") : t("topbar.renderPreview")}
+        >
+          <Video size={15} />
         </button>
-        <button type="button" onClick={onToggleRenderPreview} title={t("topbar.renderPreview")}>
-          <Video size={16} />
-          <span className="toolbar-label-wide">
-            {renderPreviewEnabled ? t("topbar.viewport") : t("topbar.renderPreview")}
-          </span>
+        <button
+          type="button"
+          className="topbar-icon"
+          onClick={onOpenCommands}
+          title={t("topbar.commands")}
+          aria-label={t("topbar.commands")}
+        >
+          <Command size={15} />
         </button>
-        <button type="button" onClick={onOpenCommands} title={t("topbar.commands")}>
-          <Command size={16} /><span className="toolbar-label-wide">{t("topbar.commands")}</span>
+        <button
+          type="button"
+          className="topbar-icon"
+          onClick={onOpenSettings}
+          title={t("topbar.settings")}
+          aria-label={t("topbar.settings")}
+        >
+          <Settings size={15} />
         </button>
-        <button type="button" onClick={onOpenSettings} title={t("topbar.settings")}>
-          <Settings size={16} />
-        </button>
-        <button type="button" onClick={onOpenHelp} title={t("topbar.help")}>
-          <HelpCircle size={16} />
+        <button
+          type="button"
+          className="topbar-icon"
+          onClick={onOpenHelp}
+          title={t("topbar.help")}
+          aria-label={t("topbar.help")}
+        >
+          <HelpCircle size={15} />
         </button>
       </nav>
       <WorkspaceSwitcher value={workspaceId} onChange={onWorkspaceChange} />

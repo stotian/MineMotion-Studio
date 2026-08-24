@@ -1038,3 +1038,20 @@ html[data-motion="reduced"] *::after {
   gap: 3px;
   margin-left: auto;
 }
+
+/* Icon-only actions in the top bar: flat until hovered, like Blender's. */
+.topbar-icon {
+  width: 22px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--bl-text-muted);
+}
+
+.topbar-icon:hover {
+  background: var(--bl-widget);
+  color: var(--bl-text);
+}

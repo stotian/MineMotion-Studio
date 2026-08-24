@@ -1539,7 +1539,6 @@ export function App() {
     >
       <TopBar
         projectName={project.projectName}
-        isPlaying={project.animation.isPlaying}
         isDirty={isDirty}
         autosaveEnabled={settings.general.autosaveEnabled}
         exporting={isExporting}
@@ -1555,7 +1554,6 @@ export function App() {
         onAddCharacter={handleAddCharacter}
         onAddCamera={handleAddCamera}
         onImportObj={handleImportObj}
-        onTogglePlayback={handleTogglePlayback}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAssets={() => setAssetsOpen(true)}
         onOpenAudio={() => setAudioOpen(true)}
