@@ -1055,3 +1055,48 @@ html[data-motion="reduced"] *::after {
   background: var(--bl-widget);
   color: var(--bl-text);
 }
+
+/* Blender's status bar: input hints left, message centre, statistics right. */
+.status-bar {
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.status-hints {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.status-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--bl-text-dim);
+}
+
+.status-hint b {
+  padding: 0 3px;
+  border-radius: var(--bl-radius);
+  background: rgb(255 255 255 / 8%);
+  color: var(--bl-text-muted);
+  font-weight: 600;
+  font-size: 0.66rem;
+}
+
+.status-message {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  color: var(--bl-text-dim);
+}

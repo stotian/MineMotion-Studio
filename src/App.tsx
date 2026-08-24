@@ -1501,6 +1501,13 @@ export function App() {
     handleDuplicateSelectedObject, handleDeleteSelectedObject, handleDeleteEffect,
     handleEffectTimelineCommand, handleTogglePlayback]));
 
+  // Blender's status bar counts what is in the scene; this mirrors that.
+  const sceneObjectCount =
+    project.scene.characters.length +
+    project.scene.cameras.length +
+    project.scene.lights.length +
+    project.scene.importedObjects.length;
+
   const statusDetails = [
     localization.t("status.selected", { name: selectedObjectLabel(
       project,
@@ -1672,9 +1679,26 @@ export function App() {
         onUpdateAnimation={handleUpdateAnimation}
       />
       </div>
+      {/*
+        Blender's status bar: mouse-button hints on the left, scene statistics
+        on the right. The app's own status message takes the middle, where
+        Blender shows progress reports.
+      */}
       <div className="status-bar" role="status" aria-live="polite" aria-atomic="true">
-        <span>{status}</span>
-        <strong>{statusDetails}</strong>
+        <span className="status-hints" aria-hidden="true">
+          <span className="status-hint"><b>LMB</b> {tr("status.hint.select")}</span>
+          <span className="status-hint"><b>MMB</b> {tr("status.hint.orbit")}</span>
+          <span className="status-hint"><b>RMB</b> {tr("status.hint.context")}</span>
+        </span>
+        <span className="status-message">{status}</span>
+        <span className="status-stats">
+          <span>{tr("status.stats.objects", { count: sceneObjectCount })}</span>
+          <span>{tr("status.stats.frame", {
+            frame: project.animation.currentFrame,
+            total: project.animation.durationFrames
+          })}</span>
+          <strong>{statusDetails}</strong>
+        </span>
       </div>
       <AudioWorkspacePanel open={audioOpen} project={project} onProjectChange={(next) => { setProject(next); setIsDirty(true); }} onClose={() => setAudioOpen(false)} />
       <AssetLibraryPanel
