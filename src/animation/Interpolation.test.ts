@@ -53,7 +53,9 @@ describe("Interpolation", () => {
 
     const sampled = Animator.sampleProject(project, 5);
 
-    expect(sampled.scene.characters[0].transform.position).toEqual([5, 0.525, 0]);
+    // Halfway between the default character height (0.08, feet on the grid)
+    // and the keyed [10, 0, 0].
+    expect(sampled.scene.characters[0].transform.position).toEqual([5, 0.04, 0]);
     expect(project.scene.characters[0].transform.position).toEqual([10, 0, 0]);
   });
 });

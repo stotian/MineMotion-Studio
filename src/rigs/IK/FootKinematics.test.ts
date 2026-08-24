@@ -13,7 +13,12 @@ describe("foot kinematics", () => {
     const chain = resolveRigIKChain(character, control).chain!;
     const result = sampleFootKinematics(project, character.id, control, chain, 0);
     expect(result.ok).toBe(true);
-    expect(result.sample!.worldPosition).toEqual([-0.2, 0.9700000000000002, 0]);
+    // The default character stands with its feet on the grid, so the neutral
+    // leg endpoint is at ground level. Compared loosely: the Y falls out of a
+    // matrix round-trip and lands on a floating-point zero.
+    expect(result.sample!.worldPosition[0]).toBeCloseTo(-0.2, 10);
+    expect(result.sample!.worldPosition[1]).toBeCloseTo(0, 10);
+    expect(result.sample!.worldPosition[2]).toBeCloseTo(0, 10);
     expect(worldTargetToFootIKPosition(result.sample!, result.sample!.worldPosition)).toEqual([0, -1.2, 0]);
   });
 

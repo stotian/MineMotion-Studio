@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RigBone } from "./Bone";
+import { createInitialProject } from "../project/ProjectStore";
 import { getRigDefinition } from "./MinecraftRigPresets";
 
 /**
@@ -47,6 +48,16 @@ describe("player rig head placement", () => {
     const pivotY = body.offset[1] + head.offset[1];
 
     expect(pivotY).toBeCloseTo(torsoTop, 5);
+  });
+
+  it("stands the default character's feet on the grid", () => {
+    const project = createInitialProject();
+    const character = project.scene.characters[0];
+    // The lowest mesh in rig space is the shin; adding the character's own Y
+    // offset must land it on the ground plane, not float it above the grid.
+    const [shinBottom] = verticalSpan(bones, "leftLowerLeg");
+
+    expect(character.transform.position[1] + shinBottom).toBeCloseTo(0, 5);
   });
 
   it("clears the skull with the head attachment point", () => {

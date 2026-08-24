@@ -170,7 +170,9 @@ export function createInitialProject(
     },
     world: null,
     scene: {
-      characters: [createCharacter("Steve Rig", [0, 1.05, 0])],
+      // The rig's lowest point (the shin mesh) sits at y = -0.08 in rig space,
+      // so this stands its feet exactly on the grid instead of a block above it.
+      characters: [createCharacter("Steve Rig", [0, 0.08, 0])],
       cameras: [defaultCamera],
       importedObjects: [],
       lights: [sun]

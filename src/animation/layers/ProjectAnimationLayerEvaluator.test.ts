@@ -60,7 +60,7 @@ describe("project animation layer evaluation", () => {
     const result = sampleProjectWithAnimationLayers(project, 10);
     expect(result.project.scene.characters[0].transform.position).toEqual([15, 0, 0]);
     expect(result.activeLayerIds).toEqual([project.animation.nlaTracks[0].id]);
-    expect(project.scene.characters[0].transform.position).toEqual([0, 1.05, 0]);
+    expect(project.scene.characters[0].transform.position).toEqual([0, 0.08, 0]);
   });
 
   it("validates VFX sync references and missing layer targets", () => {

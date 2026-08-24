@@ -47,9 +47,6 @@ function paintSkin(ctx: CanvasRenderingContext2D): void {
   rect(ctx, PAL.head, 8, 0, 8, 8); // top
   rect(ctx, PAL.head, 16, 0, 8, 8); // bottom
   rect(ctx, PAL.head, 0, 8, 32, 8); // right / front / left / back
-  // A faint brow line marks the front so the rig's facing is unambiguous.
-  rect(ctx, PAL.seam, 9, 11, 2, 1);
-  rect(ctx, PAL.seam, 13, 11, 2, 1);
 
   // ---- Body (atlas 16,16 .. 40,32) ----
   rect(ctx, PAL.torso, 16, 16, 24, 16);

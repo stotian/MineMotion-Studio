@@ -17,7 +17,8 @@
   --bl-header: #232323;     /* an editor's own header strip */
   --bl-panel: #303030;      /* editor/panel body */
   --bl-box: #282828;        /* nested boxes inside a panel */
-  --bl-field: #1d1d1d;      /* text/number input wells */
+  --bl-field: #545454;      /* number & dropdown fields (Blender wcol_num) */
+  --bl-field-text: #1d1d1d; /* editable text entry (Blender wcol_text) */
   --bl-widget: #545454;     /* buttons, dropdowns, toggles */
   --bl-widget-hi: #656565;  /* widget hover */
   --bl-viewport: #393939;   /* 3D viewport ground colour */
@@ -42,12 +43,12 @@
   --bl-danger: #c0453f;
 
   /* ---- Metrics ---- */
-  --bl-radius: 4px;         /* Blender's widget corner radius */
-  --bl-radius-sm: 3px;
-  --bl-header-h: 26px;      /* editor header height */
+  --bl-radius: 2px;         /* widgets only; Blender's chrome is square */
+  --bl-radius-sm: 2px;
+  --bl-header-h: 24px;      /* editor header height */
   --bl-topbar-h: 48px;      /* menu row + workspace tabs */
   --bl-status-h: 22px;
-  --bl-row-h: 20px;         /* a property row */
+  --bl-row-h: 18px;         /* a property row */
   --ui-scale: 1;
 
   color-scheme: dark;
@@ -70,7 +71,7 @@ body {
   background: var(--bl-gap);
   color: var(--bl-text);
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  font-size: calc(11.5px * var(--ui-scale));
+  font-size: calc(11px * var(--ui-scale));
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
@@ -116,7 +117,7 @@ p {
     var(--bl-status-h);
   gap: 1px;
   background: var(--bl-gap);
-  font-size: calc(11.5px * var(--ui-scale));
+  font-size: calc(11px * var(--ui-scale));
 }
 
 /* ---------------------------- top bar ---------------------------- */
@@ -302,8 +303,7 @@ p {
 /* A collapsible property group, as in Blender's properties editor. */
 .inspector-section,
 .panel-section {
-  padding: 0.4rem 0.55rem;
-  border-bottom: 1px solid var(--bl-border);
+  padding: 0.3rem 0.4rem 0.45rem;
 }
 
 .inspector-section h3,
@@ -363,8 +363,22 @@ textarea {
   resize: vertical;
 }
 
+/* Blender uses the dark well only for free text entry. */
+input[type="text"],
+input[type="search"],
+input[type="url"],
+textarea {
+  background: var(--bl-field-text);
+}
+
 input:hover,
-select:hover,
+select:hover {
+  background: var(--bl-widget-hi);
+}
+
+input[type="text"]:hover,
+input[type="search"]:hover,
+input[type="url"]:hover,
 textarea:hover {
   background: #262626;
 }

@@ -1,18 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-  Bone,
   Box,
   Camera,
   Eye,
   Globe,
   EyeOff,
-  Film,
   FlipHorizontal,
   KeyRound,
   Lock,
-  Palette,
   RefreshCw,
-  Sparkles,
   Trash2,
   Unlock,
   Upload
@@ -137,8 +133,7 @@ export function InspectorPanel({
       {category === "world" && (
       <section className="inspector-section">
         <h3>
-          <Palette size={15} />
-          {t("inspector.sky")}
+            {t("inspector.sky")}
         </h3>
         <label>
           {t("inspector.preset")}
@@ -292,7 +287,6 @@ function BoneInspector({
   return (
     <section className="inspector-section">
       <h3>
-        <Bone size={15} />
         {bone?.label ?? boneId}
       </h3>
       <InfoRow label={t("inspector.character")} value={character.name} />
@@ -333,7 +327,6 @@ function PostProcessingInspector({
   return (
     <section className="inspector-section">
       <h3>
-        <Film size={15} />
         {t("inspector.post")}
       </h3>
       <label className="checkbox-label">
@@ -428,7 +421,6 @@ function EffectInspector({
   return (
     <section className="inspector-section">
       <h3>
-        <Sparkles size={15} />
         {effect.name}
       </h3>
       <InfoRow label={t("inspector.type")} value={effect.type} />
