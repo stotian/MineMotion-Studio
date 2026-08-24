@@ -10,32 +10,54 @@
  * here, only the visual conventions, which are not protectable.
  */
 
+/*
+ * Every value below is taken verbatim from Blender's own default theme,
+ * release/datafiles/userdef/userdef_default_theme.c. Where a name maps to a
+ * struct field it is quoted in the comment, so this file can be re-checked
+ * against upstream instead of re-guessed.
+ */
 :root {
-  /* ---- Surfaces (darkest to lightest) ---- */
-  --bl-gap: #101010;        /* the hairline between areas */
-  --bl-topbar: #1d1d1d;     /* application top bar */
-  --bl-header: #232323;     /* an editor's own header strip */
-  --bl-panel: #303030;      /* editor/panel body */
-  --bl-box: #282828;        /* nested boxes inside a panel */
-  --bl-field: #545454;      /* number & dropdown fields (Blender wcol_num) */
-  --bl-field-text: #1d1d1d; /* editable text entry (Blender wcol_text) */
-  --bl-widget: #545454;     /* buttons, dropdowns, toggles */
-  --bl-widget-hi: #656565;  /* widget hover */
-  --bl-viewport: #393939;   /* 3D viewport ground colour */
+  /* ---- Editor spaces (each editor has its OWN background in Blender) ---- */
+  --bl-topbar: #181818;        /* space_topbar.header + space_statusbar.header */
+  --bl-space-props: #303030;   /* space_properties.back */
+  --bl-space-outliner: #282828;/* space_outliner.back + .header */
+  --bl-header: #303030;        /* space_view3d/properties .header */
+  --bl-viewport: #3d3d3d;      /* space_view3d.back */
 
-  /* ---- Lines ---- */
-  --bl-border: #3a3a3a;
-  --bl-border-strong: #101010;
+  /* ---- Panels sit as lighter boxes ON the space background ---- */
+  --bl-panel-back: #3d3d3d;    /* ThemeUI.panel_back */
+  --bl-panel-header: #3d3d3d;  /* ThemeUI.panel_header */
+  --bl-panel-sub: rgb(0 0 0 / 12%); /* ThemeUI.panel_sub_back 0x0000001f */
+
+  /* Areas are cut apart by a faint LIGHT line, not a black gap. */
+  --bl-editor-outline: rgb(255 255 255 / 8%);  /* ThemeUI.editor_outline */
+
+  /* ---- Widgets ---- */
+  --bl-widget: #545454;        /* wcol_regular/tool/num .inner */
+  --bl-widget-hi: #656565;     /* hover (Blender brightens .inner) */
+  --bl-widget-outline: #3d3d3d;/* wcol_*.outline — widgets DO have one */
+  --bl-widget-emboss: rgb(0 0 0 / 15%); /* ThemeUI.widget_emboss */
+  --bl-field: #545454;         /* wcol_num.inner — numbers use widget grey */
+  --bl-field-text: #1d1d1d;    /* wcol_text.inner — only free text is dark */
+  --bl-menu: #282828;          /* wcol_menu.inner */
+  --bl-menu-back: #181818;     /* wcol_menu_back.inner */
+  --bl-menu-outline: #242424;  /* wcol_menu_back.outline */
+  --bl-tab: #1d1d1d;           /* wcol_tab.inner */
+  --bl-tab-active: #303030;    /* wcol_tab.inner_sel */
 
   /* ---- Text ---- */
-  --bl-text: #e5e5e5;
-  --bl-text-muted: #a0a0a0;
-  --bl-text-dim: #7a7a7a;
+  --bl-text: #e6e6e6;          /* wcol_*.text */
+  --bl-text-hi: #ffffff;       /* .text_hi / .text_sel */
+  --bl-text-muted: #989898;    /* wcol_tab.text */
+  --bl-text-dim: #999999;      /* wcol_menu_back.text */
 
   /* ---- Accents ---- */
-  --accent: #4772b3;        /* selection / active */
-  --accent-hi: #5680c2;     /* hover on accent */
+  --accent: #4772b3;           /* wcol_*.inner_sel — Blender's selection blue */
+  --accent-hi: #5680c2;
   --accent-text: #ffffff;
+  --bl-select: #ed5700;        /* space_view3d.select — the orange outline */
+  --bl-active: #ffa028;        /* space_view3d.active */
+  --bl-grid: rgb(84 84 84 / 50%); /* space_view3d.grid 0x54545480 */
   --bl-axis-x: #c1524f;
   --bl-axis-y: #8bbf3f;
   --bl-axis-z: #4a7ec4;
@@ -43,15 +65,25 @@
   --bl-danger: #c0453f;
 
   /* ---- Metrics ---- */
-  --bl-radius: 2px;         /* widgets only; Blender's chrome is square */
+  /* Blender's wcol roundness is 0.2 of the widget half-height: on an 18px
+     row that is ~2px. Panels use panel_roundness 0.4, hence 4px. */
+  --bl-radius: 2px;
   --bl-radius-sm: 2px;
-  --bl-header-h: 24px;      /* editor header height */
-  --bl-topbar-h: 48px;      /* menu row + workspace tabs */
-  --bl-status-h: 22px;
-  --bl-row-h: 18px;         /* a property row */
+  --bl-radius-panel: 4px;
+  --bl-header-h: 26px;
+  --bl-topbar-h: 48px;
+  --bl-status-h: 26px;
+  --bl-row-h: 18px;
   --ui-scale: 1;
 
   color-scheme: dark;
+
+  /* Legacy aliases so older rules inherit the theme rather than fight it. */
+  --bl-panel: var(--bl-space-props);
+  --bl-box: var(--bl-space-outliner);
+  --bl-border: var(--bl-widget-outline);
+  --bl-border-strong: var(--bl-topbar);
+  --bl-gap: var(--bl-topbar);
 }
 
 /* ============================ base ============================ */
@@ -68,7 +100,7 @@ body,
 }
 
 body {
-  background: var(--bl-gap);
+  background: var(--bl-topbar);
   color: var(--bl-text);
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   font-size: calc(11px * var(--ui-scale));
@@ -116,7 +148,7 @@ p {
     min(var(--workspace-timeline-height, 150px), 34vh)
     var(--bl-status-h);
   gap: 1px;
-  background: var(--bl-gap);
+  background: var(--bl-editor-outline);
   font-size: calc(11px * var(--ui-scale));
 }
 
@@ -197,13 +229,13 @@ p {
 }
 
 .workspace-switcher button:hover {
-  background: #2a2a2a;
+  background: var(--bl-tab);
   color: var(--bl-text);
 }
 
 .workspace-switcher button.is-active {
-  background: var(--bl-panel);
-  color: var(--bl-text);
+  background: var(--bl-tab-active);
+  color: var(--bl-text-hi);
 }
 
 /* The menu row sits beside the brand on the first line. */
@@ -236,7 +268,7 @@ p {
   min-height: 0;
   display: grid;
   gap: 0;
-  background: var(--bl-gap);
+  background: var(--bl-editor-outline);
   grid-template-columns:
     var(--workspace-effects-width, 230px)
     1px
@@ -275,9 +307,16 @@ p {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--bl-panel);
+  background: var(--bl-space-props);
   border: none;
   overflow: hidden;
+}
+
+/* Each editor carries its own background in Blender; the outliner is darker
+   than the properties editor, and that difference is very recognisable. */
+.workspace-panel-outliner,
+.workspace-panel-outliner .panel {
+  background: var(--bl-space-outliner);
 }
 
 .panel-header {
@@ -286,24 +325,42 @@ p {
   align-items: center;
   gap: 0.4rem;
   height: var(--bl-header-h);
-  padding: 0 0.5rem;
+  padding: 0 0.4rem;
   background: var(--bl-header);
-  border-bottom: 1px solid var(--bl-border-strong);
+  border: none;
+}
+
+.workspace-panel-outliner .panel-header {
+  background: var(--bl-space-outliner);
 }
 
 .panel-header h2,
 .panel-header h3 {
   font-size: 0.74rem;
-  font-weight: 500;
-  color: var(--bl-text-muted);
+  font-weight: 400;
+  color: var(--bl-text);
   text-transform: none;
   letter-spacing: 0;
 }
 
-/* A collapsible property group, as in Blender's properties editor. */
+/*
+ * A property group is a lighter rounded box sitting ON the editor background —
+ * not a flat band. This box-on-background structure is the single most
+ * recognisable thing about Blender's properties editor.
+ */
 .inspector-section,
 .panel-section {
-  padding: 0.3rem 0.4rem 0.45rem;
+  margin: 3px 4px;
+  padding: 4px 6px 6px;
+  border-radius: var(--bl-radius-panel);
+  background: var(--bl-panel-back);
+}
+
+/* Nested groups darken instead of lightening again. */
+.inspector-section .inspector-section,
+.panel-section .panel-section {
+  margin: 4px 0 0;
+  background: var(--bl-panel-sub);
 }
 
 .inspector-section h3,
@@ -328,8 +385,9 @@ p {
 /* ========================== form widgets ========================== */
 
 /*
- * Blender's widgets are flat, fully rounded and uniformly sized. Property rows
- * put the label on the left and the control on the right.
+ * Blender's widgets are uniformly sized, carry a 1px outline and a faint dark
+ * emboss along the bottom edge. Property rows put a right-aligned label on the
+ * left and the control on the right.
  */
 label {
   display: flex;
@@ -338,7 +396,7 @@ label {
   gap: 0.5rem;
   min-height: var(--bl-row-h);
   margin: 2px 0;
-  color: var(--bl-text-muted);
+  color: var(--bl-text);
   font-size: 0.74rem;
 }
 
@@ -348,12 +406,13 @@ textarea {
   min-width: 0;
   height: var(--bl-row-h);
   padding: 0 0.4rem;
-  border: 1px solid transparent;
+  border: 1px solid var(--bl-widget-outline);
   border-radius: var(--bl-radius);
   background: var(--bl-field);
   color: var(--bl-text);
   font: inherit;
   font-size: 0.74rem;
+  box-shadow: inset 0 -1px 0 var(--bl-widget-emboss);
 }
 
 textarea {
@@ -429,13 +488,14 @@ button {
   gap: 0.3rem;
   min-height: var(--bl-row-h);
   padding: 0 0.55rem;
-  border: none;
+  border: 1px solid var(--bl-widget-outline);
   border-radius: var(--bl-radius);
   background: var(--bl-widget);
   color: var(--bl-text);
   font: inherit;
   font-size: 0.74rem;
   cursor: pointer;
+  box-shadow: inset 0 -1px 0 var(--bl-widget-emboss);
 }
 
 button:hover {
@@ -517,6 +577,26 @@ button.danger {
   color: var(--accent-text);
 }
 
+/* Dropdown bodies: wcol_menu_back — near-black fill, #242424 outline. */
+.toolbar-menu-popover {
+  background: var(--bl-menu-back);
+  border: 1px solid var(--bl-menu-outline);
+  border-radius: var(--bl-radius);
+  box-shadow: 0 6px 12px rgb(0 0 0 / 20%);
+}
+
+.toolbar-menu-popover button {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--bl-text);
+}
+
+.toolbar-menu-popover button:hover {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
 /* ========================== status bar ========================== */
 
 .status-bar {
@@ -571,7 +651,7 @@ button.danger {
 /* ======================== area resizers ======================== */
 
 .workspace-resizer {
-  background: var(--bl-gap);
+  background: var(--bl-editor-outline);
   cursor: col-resize;
 }
 

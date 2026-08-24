@@ -261,7 +261,8 @@ export class SceneRenderer {
   private readonly normalPassMaterial = new THREE.MeshNormalMaterial({ toneMapped: false });
   private readonly idPassMaterials = new Map<string, THREE.MeshBasicMaterial>();
   private readonly gridFloor = createGridFloor();
-  private readonly selectionBox = new THREE.BoxHelper(new THREE.Object3D(), 0xf7d56b);
+  // Blender's active-object orange (space_view3d.active in its default theme).
+  private readonly selectionBox = new THREE.BoxHelper(new THREE.Object3D(), 0xffa028);
   // Scene content is split into persistent subgroups so that world chunks,
   // character rigs, lights, camera helpers, and props can be kept across
   // frames instead of being destroyed and rebuilt every frame (see

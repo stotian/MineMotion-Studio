@@ -7,10 +7,13 @@ const RADIUS = 140; // half-extent of the grid in world units
 const MINOR_STEP = 1; // fine lines every 1 unit
 const MAJOR_STEP = 8; // bold lines every 8 units
 
-// Blender draws its grid LIGHTER than the viewport background (#393939), not
-// darker — darker lines of a similar value simply vanish into the ground.
-const MINOR_COLOR = new THREE.Color("#4d4d4d");
-const MAJOR_COLOR = new THREE.Color("#5e5e5e");
+// Blender's own grid colour is #545454 at 50% alpha over a #3d3d3d ground
+// (space_view3d.grid = 0x54545480), i.e. LIGHTER than the floor. Emphasis
+// lines are the same hue drawn at full strength.
+const MINOR_COLOR = new THREE.Color("#545454");
+const MAJOR_COLOR = new THREE.Color("#6a6a6a");
+/** Blender's grid alpha; the radial fade multiplies into this. */
+const GRID_ALPHA = 0.5;
 const AXIS_X_COLOR = new THREE.Color("#c1524f"); // red, X
 const AXIS_Z_COLOR = new THREE.Color("#4a7ec4"); // blue, Z
 
@@ -20,9 +23,9 @@ const AXIS_Z_COLOR = new THREE.Color("#4a7ec4"); // blue, Z
  * would darken lines toward black, which shows up as a dark haze on the grey
  * viewport background instead of fading away.
  */
-function fadeAt(x: number, z: number): number {
+function fadeAt(x: number, z: number, alpha = 1): number {
   const d = Math.sqrt(x * x + z * z) / RADIUS;
-  return Math.max(0, 1 - d * d);
+  return Math.max(0, 1 - d * d) * alpha;
 }
 
 function gridMaterial(): THREE.LineBasicMaterial {
@@ -55,8 +58,8 @@ function buildGridLines(
   const colors: number[] = [];
   const push = (x1: number, z1: number, x2: number, z2: number) => {
     positions.push(x1, y, z1, x2, y, z2);
-    colors.push(color.r, color.g, color.b, fadeAt(x1, z1));
-    colors.push(color.r, color.g, color.b, fadeAt(x2, z2));
+    colors.push(color.r, color.g, color.b, fadeAt(x1, z1, GRID_ALPHA));
+    colors.push(color.r, color.g, color.b, fadeAt(x2, z2, GRID_ALPHA));
   };
   /** Emits one grid line as SEGMENTS pieces so the fade can vary along it. */
   const pushLine = (
