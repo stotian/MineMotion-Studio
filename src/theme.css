@@ -64,6 +64,27 @@
   --bl-warn: #d1a53f;
   --bl-danger: #c0453f;
 
+  /* ---- Dope sheet / timeline (space_action) ---- */
+  --bl-anim-back: #303030;     /* space_action.back */
+  --bl-anim-grid: #161616;     /* space_action.grid — much darker than the body */
+  --bl-anim-text: #a6a6a6;     /* space_action.text */
+  --bl-key-border: #000000;    /* space_action.keyborder */
+  --bl-anim-active: rgb(77 39 39 / 40%); /* space_action.anim_active */
+  --bl-nla-grid: #2a2a2a;      /* space_nla.grid */
+  --bl-nla-strip: rgb(13 13 13 / 50%);   /* space_nla.strip */
+  --bl-nla-strip-sel: #ff8c00; /* space_nla.strip_select */
+  --bl-graph-grid: #1a1a1a;    /* space_graph.grid */
+  --bl-vertex-sel: #ff8500;    /* space_graph.vertex_select */
+
+  /* ---- Outliner (space_outliner) ---- */
+  --bl-outliner-text: #c3c3c3;
+  --bl-outliner-active: #334d80;
+  --bl-outliner-selected: #1d314d;      /* selected_highlight */
+  --bl-outliner-sel-object: #e96a00;    /* selected_object */
+  --bl-outliner-active-object: #ffaf29; /* active_object */
+  --bl-outliner-row-alt: rgb(255 255 255 / 1.5%); /* row_alternate 0x04 */
+  --bl-outliner-match: rgb(51 127 51 / 30%);
+
   /* ---- Metrics ---- */
   /* Blender's wcol roundness is 0.2 of the widget half-height: on an 18px
      row that is ~2px. Panels use panel_roundness 0.4, hence 4px. */
@@ -73,7 +94,9 @@
   --bl-header-h: 26px;
   --bl-topbar-h: 48px;
   --bl-status-h: 26px;
-  --bl-row-h: 18px;
+  --bl-row-h: 20px;          /* U.widget_unit (UI_UNIT_Y) */
+  --bl-panel-pad-x: 8px;     /* UI_PANEL_MARGIN_X = unit * 0.4 */
+  --bl-panel-pad-y: 2px;     /* UI_PANEL_MARGIN_Y = unit * 0.1 */
   --ui-scale: 1;
 
   color-scheme: dark;
@@ -350,8 +373,8 @@ p {
  */
 .inspector-section,
 .panel-section {
-  margin: 3px 4px;
-  padding: 4px 6px 6px;
+  margin: var(--bl-panel-pad-y) 4px;
+  padding: var(--bl-panel-pad-y) var(--bl-panel-pad-x) 6px;
   border-radius: var(--bl-radius-panel);
   background: var(--bl-panel-back);
 }
@@ -700,4 +723,43 @@ html[data-motion="reduced"] *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
+}
+
+
+/* ==================== animation editors (dope sheet) ==================== */
+
+/*
+ * Blender's dope sheet body is #303030 with a MUCH darker #161616 grid, which
+ * is what makes its frame ruler read as a ruler rather than a panel.
+ */
+.timeline-panel {
+  background: var(--bl-anim-back);
+  color: var(--bl-anim-text);
+}
+
+.timeline-panel .panel-header,
+.timeline-controls {
+  background: var(--bl-anim-back);
+}
+
+/* ========================== outliner rows ========================== */
+
+.outliner-item:nth-child(even) {
+  background: var(--bl-outliner-row-alt);
+}
+
+.outliner-item[aria-selected="true"],
+.outliner-item.is-selected {
+  background: var(--bl-outliner-selected);
+  color: var(--bl-text-hi);
+}
+
+.outliner-item.is-active {
+  background: var(--bl-outliner-active);
+  color: var(--bl-text-hi);
+}
+
+.outliner-tree,
+.outliner-section {
+  color: var(--bl-outliner-text);
 }
