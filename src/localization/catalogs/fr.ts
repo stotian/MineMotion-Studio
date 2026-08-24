@@ -369,6 +369,8 @@ export const FR_TRANSLATIONS = Object.freeze({
   "plugins.securityNotice": "L’exécution de JavaScript provenant d’extensions externes est désactivée dans cette version. Les extensions intégrées sont des modules TypeScript inclus ; les manifestes externes ne doivent pas être exécutés sans un futur bac à sable.",
   "plugins.builtin": "intégrée",
   "plugins.externalManifest": "manifeste externe",
+  "effects.variants": "Préréglages",
+  "effects.variantsCount": "{count} préréglages",
   "effects.title": "Effets",
   "effects.library": "Bibliothèque",
   "effects.search": "Rechercher des VFX",

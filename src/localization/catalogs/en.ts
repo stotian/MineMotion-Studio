@@ -367,6 +367,8 @@ export const EN_TRANSLATIONS = Object.freeze({
   "plugins.securityNotice": "External plugin JavaScript execution is disabled in this build. Built-in plugins are bundled TypeScript modules; external manifests should not be executed without a future sandbox.",
   "plugins.builtin": "built-in",
   "plugins.externalManifest": "external manifest",
+  "effects.variants": "Presets",
+  "effects.variantsCount": "{count} presets",
   "effects.title": "Effects",
   "effects.library": "Library",
   "effects.search": "Search VFX",

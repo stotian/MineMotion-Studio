@@ -13,7 +13,7 @@ import {
   type EffectTimelineCommand,
   type EffectTimelineEditablePatch
 } from "./effects/EffectTimelineController";
-import type { EffectType } from "./effects/EffectTypes";
+import type { EffectParameters, EffectType } from "./effects/EffectTypes";
 import { spawnEffectAtFrame } from "./effects/EffectSpawner";
 import { builtinVfxPresetCatalog } from "./vfx/library/BuiltinVfxPresetCatalog";
 import {
@@ -690,7 +690,12 @@ export function App() {
   );
 
   const handleAddEffect = useCallback(
-    (type: EffectType) => {
+    (
+      type: EffectType,
+      // Library variants are the same effect with tuned parameters, so they
+      // spawn through this same path with overrides applied.
+      overrides?: { parameters?: EffectParameters; durationFrames?: number }
+    ) => {
       const currentProject = projectRef.current;
       const startFrame = currentProject.animation.currentFrame;
       const remainingFrames =
@@ -704,12 +709,15 @@ export function App() {
         startFrame,
         selectedObjectId ?? ""
       );
+      const requestedDuration =
+        overrides?.durationFrames ?? spawnedEffect.durationFrames;
       const effect = {
         ...spawnedEffect,
-        durationFrames: Math.min(
-          spawnedEffect.durationFrames,
-          remainingFrames
-        )
+        parameters: {
+          ...spawnedEffect.parameters,
+          ...(overrides?.parameters ?? {})
+        },
+        durationFrames: Math.min(requestedDuration, remainingFrames)
       };
       const result = applyEffectTimelineCommand(projectRef.current, {
         type: "insert",

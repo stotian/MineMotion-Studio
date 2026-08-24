@@ -14,9 +14,11 @@ import type { BuiltinSfxDefinition } from "../../audio/AudioTypes";
 import type { AudioClip } from "../../audio/AudioTypes";
 import type {
   EffectInstance,
+  EffectParameters,
   EffectType
 } from "../../effects/EffectTypes";
 import type { BuiltinVfxPreset } from "../../vfx/library/BuiltinVfxPresetTypes";
+import { VFX_VARIANTS } from "../../vfx/library/VfxVariantLibrary";
 import type { PostProcessingPreset, PostProcessingPresetId } from "../../rendering/postprocessing/PostProcessingTypes";
 import type { RenderSettings } from "../../project/ProjectFile";
 import {
@@ -48,7 +50,10 @@ interface EffectsLibraryPanelProps {
   postPresets: PostProcessingPreset[];
   activePostPresetId: PostProcessingPresetId;
   renderSettings: RenderSettings;
-  onAddEffect: (type: EffectType) => void;
+  onAddEffect: (
+    type: EffectType,
+    overrides?: { parameters?: EffectParameters; durationFrames?: number }
+  ) => void;
   onAddCustomEffect: (packageId: string) => void;
   getCustomSourceStatus: (effect: EffectInstance) => InstalledVfxSourceStatus | null;
   onSelectEffect: (effectId: string) => void;
@@ -142,9 +147,49 @@ export function EffectsLibraryPanel({
     onAddEffect(preset.metadata.effectType);
   };
 
+  // Named variants of the same effects, filtered by the search box so the
+  // library stays browsable as it grows.
+  const matchingVariants = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return VFX_VARIANTS.filter((entry) => {
+      if (category !== "all" && entry.category !== category) return false;
+      if (!needle) return true;
+      return (
+        entry.name.toLowerCase().includes(needle) ||
+        entry.description.toLowerCase().includes(needle)
+      );
+    });
+  }, [category, search]);
+
   return (
     <aside className="panel effects-panel">
       <EditorHeader icon={Sparkles} label={t("effects.title")} />
+
+      <section className="effects-section effects-variants">
+        <h3>{t("effects.variants")}</h3>
+        <p className="effects-variants-count">
+          {t("effects.variantsCount", { count: matchingVariants.length })}
+        </p>
+        <ul className="effects-variant-list">
+          {matchingVariants.map((entry) => (
+            <li key={entry.id}>
+              <button
+                type="button"
+                title={entry.description}
+                onClick={() =>
+                  onAddEffect(entry.effectType, {
+                    parameters: entry.parameters,
+                    durationFrames: entry.durationFrames
+                  })
+                }
+              >
+                <span className="effects-variant-name">{entry.name}</span>
+                <span className="effects-variant-desc">{entry.description}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="effects-section">
         <h3>
