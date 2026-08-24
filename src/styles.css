@@ -2696,17 +2696,18 @@ html { font-size: calc(16px * var(--text-scale, 1)); }
 }
 
 
+/*
+ * Layout only — the fill, outline and shadow come from theme.css, which uses
+ * Blender's wcol_menu_back (#181818 on a #242424 outline). Restating colours
+ * here is how this rule silently overrode the theme.
+ */
 .toolbar-menu-popover {
   position: fixed;
   z-index: 2500;
   display: grid;
-  min-width: 220px;
-  margin-top: 0.3rem;
-  padding: 0.35rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--bl-radius);
-  background: var(--surface-overlay);
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.38);
+  min-width: 200px;
+  margin-top: 2px;
+  padding: 2px;
 }
 
 .toolbar-menu-popover button {

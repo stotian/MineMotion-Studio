@@ -16,6 +16,10 @@ const TECHNICAL_TEXT = new Set([
   "BlockMotion Studio (BMS)",
   "NLA",
   "FPS",
+  // Mouse-button abbreviations, universal across 3D tools.
+  "LMB",
+  "MMB",
+  "RMB",
   "PNG Frame",
   "PNG ZIP",
   "WebM",

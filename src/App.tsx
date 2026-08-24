@@ -1663,6 +1663,7 @@ export function App() {
           onImportSkin={handleImportSkin}
           onResetSkin={handleResetSkin}
           onChangeRigPreset={rigWorkspace.changeRigPreset}
+          workspaceTab={workspaceDefinition.propertiesTab}
         />
       </WorkspaceFrame>
       <div className="workspace-timeline-slot" hidden={!timelineVisible}>
@@ -1677,6 +1678,7 @@ export function App() {
         onSelectEffect={handleSelectEffect}
         onEditEffectTimeline={handleEffectTimelineCommand}
         onUpdateAnimation={handleUpdateAnimation}
+        workspaceView={workspaceDefinition.timelineView}
       />
       </div>
       {/*

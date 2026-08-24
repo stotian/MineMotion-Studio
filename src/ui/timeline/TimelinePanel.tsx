@@ -74,6 +74,7 @@ import {
 import { Dopesheet } from "../../animation/editor/Dopesheet";
 import { GraphEditor } from "../../animation/editor/GraphEditor";
 import { EditorHeader, EditorMenu } from "../shell/EditorHeader";
+import type { WorkspaceTimelineView } from "../workspaces/WorkspaceRegistry";
 import { useLocalization } from "../../localization/LocalizationContext";
 import {
   ANIMATION_LAYER_TRANSLATION_KEYS,
@@ -96,6 +97,8 @@ interface TimelinePanelProps {
   onSelectEffect: (effectId: string) => void;
   onEditEffectTimeline: (command: EffectTimelineCommand) => void;
   onUpdateAnimation: (animation: TimelineData, label: string) => void;
+  /** Editor the active workspace opens into (Blender switches editors here). */
+  workspaceView: WorkspaceTimelineView;
 }
 
 export function TimelinePanel({
@@ -108,12 +111,17 @@ export function TimelinePanel({
   onAddKeyframe,
   onSelectEffect,
   onEditEffectTimeline,
-  onUpdateAnimation
+  onUpdateAnimation,
+  workspaceView
 }: TimelinePanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
   const { animation } = project;
   const [editor, setEditor] = useState(createAnimationEditorState);
+  // Switching workspace switches which animation editor is showing.
+  useEffect(() => {
+    setEditor((current) => ({ ...current, view: workspaceView }));
+  }, [workspaceView]);
   const [selectedClipId, setSelectedClipId] = useState("");
   const [selectedLayerKind, setSelectedLayerKind] =
     useState<AnimationLayerKind>("base");

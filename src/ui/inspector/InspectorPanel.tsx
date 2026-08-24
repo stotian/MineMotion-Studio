@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bone,
   Box,
@@ -75,6 +75,8 @@ interface InspectorPanelProps {
   onImportSkin: (characterId: string) => void;
   onResetSkin: (characterId: string) => void;
   onChangeRigPreset: (characterId: string, presetId: RigPresetId) => void;
+  /** Properties category the active workspace opens into. */
+  workspaceTab: InspectorCategory;
 }
 
 /** Blender-style property categories, switched from the icon rail. */
@@ -106,7 +108,8 @@ export function InspectorPanel({
   onMirrorPose,
   onImportSkin,
   onResetSkin,
-  onChangeRigPreset
+  onChangeRigPreset,
+  workspaceTab
 }: InspectorPanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
@@ -119,11 +122,20 @@ export function InspectorPanel({
   const selectedEffect =
     project.effects.instances.find((effect) => effect.id === selectedEffectId) ??
     null;
-  const [category, setCategory] = useState<InspectorCategory>("object");
-  // Picking something in the viewport should reveal its properties, not leave
-  // the user staring at the world or render tab.
+  const [category, setCategory] = useState<InspectorCategory>(workspaceTab);
+  // Switching workspace switches which property category is showing.
   useEffect(() => {
-    if (selectedObjectId || selectedEffectId) setCategory("object");
+    setCategory(workspaceTab);
+  }, [workspaceTab]);
+  // Picking something in the viewport should reveal its properties, but only
+  // on a genuine selection CHANGE: firing on mount too would immediately
+  // override the category the active workspace just opened into.
+  const lastSelection = useRef<string | null>(null);
+  useEffect(() => {
+    const selection = selectedObjectId ?? selectedEffectId ?? null;
+    const changed = lastSelection.current !== selection;
+    lastSelection.current = selection;
+    if (changed && selection) setCategory("object");
   }, [selectedObjectId, selectedEffectId]);
 
   return (

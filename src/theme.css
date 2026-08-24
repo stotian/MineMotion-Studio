@@ -611,10 +611,16 @@ button.danger {
 }
 
 .toolbar-menu-popover button {
+  justify-content: flex-start;
+  width: 100%;
+  height: 20px;
+  padding: 0 6px;
   border: none;
+  border-radius: var(--bl-radius);
   background: transparent;
   box-shadow: none;
   color: var(--bl-text);
+  text-align: left;
 }
 
 .toolbar-menu-popover button:hover {
