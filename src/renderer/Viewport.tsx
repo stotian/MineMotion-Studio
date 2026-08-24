@@ -16,6 +16,7 @@ import {
   type ViewportOrientation
 } from "./SceneRenderer";
 import { ViewportGizmo } from "./ViewportGizmo";
+import { EditorHeader, EditorMenu } from "../ui/shell/EditorHeader";
 import { createPostProcessingStyles } from "../rendering/postprocessing/PostProcessingPipeline";
 import { isSafeVfxColor } from "../vfx/core/VfxParameter";
 import {
@@ -32,6 +33,7 @@ import type { SampledMotionPath } from "../rigs/motion/MotionPathSampler";
 import type { RendererMetricsSnapshot } from "../performance/RendererMetrics";
 import {
   Activity,
+  Boxes,
   Maximize,
   Maximize2,
   KeyRound,
@@ -371,6 +373,41 @@ export function Viewport({
       className={`viewport-shell ${project.renderSettings.renderPreviewEnabled ? "render-preview" : ""}`}
       aria-label={t("viewport.ariaLabel")}
     >
+      {/* Blender's 3D View header: mode, then View/Select/Add/Object. */}
+      <EditorHeader
+        icon={Boxes}
+        label={t("viewport.ariaLabel")}
+        menus={
+          <>
+            <select
+              className="viewport-mode"
+              value="object"
+              onChange={() => undefined}
+              aria-label={t("viewport.mode")}
+            >
+              <option value="object">{t("viewport.mode.object")}</option>
+              <option value="pose">{t("viewport.mode.pose")}</option>
+            </select>
+            <EditorMenu label={t("viewport.menu.view")} />
+            <EditorMenu label={t("viewport.menu.select")} />
+            <EditorMenu label={t("viewport.menu.add")} />
+            <EditorMenu label={t("viewport.menu.object")} />
+          </>
+        }
+      >
+        <div className="viewport-shading" role="group" aria-label={t("viewport.shading")}>
+          {(["wireframe", "solid", "material", "rendered"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              className={`shading-ball shading-${mode}${mode === "solid" ? " is-active" : ""}`}
+              aria-label={t(`viewport.shading.${mode}`)}
+              title={t(`viewport.shading.${mode}`)}
+            />
+          ))}
+        </div>
+      </EditorHeader>
+      <div className="viewport-body">
       <div className="viewport-info">
         <span className="viewport-info-view">
           {project.renderSettings.renderPreviewEnabled
@@ -585,6 +622,7 @@ export function Viewport({
       <div className="cinematic-bars-overlay" style={barsStyle}>
         <span />
         <span />
+      </div>
       </div>
     </section>
   );

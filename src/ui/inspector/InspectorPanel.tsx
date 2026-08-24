@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Box,
+  SlidersHorizontal,
   Camera,
   Eye,
   Globe,
@@ -40,6 +41,7 @@ import { parseRigBoneSelection } from "../../rigs/RigSelection";
 import type { RigPresetId } from "../../rigs/RigTypes";
 import { useLocalization } from "../../localization/LocalizationContext";
 import { TRANSFORM_VECTOR_SCHEMA, updateTransformVector } from "./InspectorSchema";
+import { EditorHeader } from "../shell/EditorHeader";
 
 interface InspectorPanelProps {
   project: MineMotionProject;
@@ -124,9 +126,9 @@ export function InspectorPanel({
 
   return (
     <aside className="panel panel-right inspector-panel">
-      <div className="panel-header">
-        <h2>{t("inspector.title")}</h2>
-      </div>
+      <EditorHeader icon={SlidersHorizontal} label={t("inspector.title")}>
+        <span className="editor-breadcrumb">{lookup?.entity.name ?? t("common.none")}</span>
+      </EditorHeader>
       <div className="inspector-body">
         <InspectorTabRail active={category} onChange={setCategory} />
         <div className="inspector-scroll">

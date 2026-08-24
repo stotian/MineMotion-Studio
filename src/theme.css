@@ -763,3 +763,190 @@ html[data-motion="reduced"] *::after {
 .outliner-section {
   color: var(--bl-outliner-text);
 }
+
+/* ========================= editor headers ========================= */
+
+/*
+ * Blender's header strip: an editor-type dropdown, then plain-text menus, then
+ * right-aligned controls. Deliberately NOT a titled panel bar — Blender never
+ * prints the editor's name here, and that difference is the loudest tell.
+ */
+.editor-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--bl-header-h);
+  padding: 0 4px;
+  background: var(--bl-header);
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.editor-header::-webkit-scrollbar {
+  display: none;
+}
+
+.workspace-panel-outliner .editor-header {
+  background: var(--bl-space-outliner);
+}
+
+/* The leading editor-type button: icon plus a small dropdown caret. */
+.editor-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 18px;
+  padding: 0 3px;
+  border: none;
+  border-radius: var(--bl-radius);
+  background: var(--bl-widget);
+  color: var(--bl-text);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.editor-type:hover {
+  background: var(--bl-widget-hi);
+}
+
+.editor-type-caret {
+  width: 0;
+  height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 3px solid currentColor;
+  opacity: 0.7;
+}
+
+.editor-menus {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* Header menus are bare text until hovered — no fill, no border, no radius. */
+.editor-menu {
+  height: 18px;
+  padding: 0 6px;
+  border: none;
+  border-radius: var(--bl-radius);
+  background: transparent;
+  box-shadow: none;
+  color: var(--bl-text);
+  font-size: 0.74rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.editor-menu:hover {
+  background: var(--bl-widget);
+}
+
+.editor-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.editor-header-controls button {
+  height: 18px;
+  min-height: 18px;
+  padding: 0 5px;
+}
+
+/* A vertical rule between control clusters, as Blender uses. */
+.editor-header-sep {
+  width: 1px;
+  height: 14px;
+  margin: 0 3px;
+  background: rgb(255 255 255 / 10%);
+}
+
+/* Blender's properties header shows a breadcrumb of the active data-block. */
+.editor-breadcrumb {
+  color: var(--bl-text);
+  font-size: 0.74rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The outliner's search field lives inline in its header. */
+.outliner-search {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 18px;
+  margin: 0;
+  color: var(--bl-text-muted);
+}
+
+.outliner-search input {
+  width: 110px;
+  height: 18px;
+  background: var(--bl-field-text);
+}
+
+/* ====================== 3D viewport chrome ====================== */
+
+/* The shell is header + body; overlays anchor to the body, not the header. */
+.viewport-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.viewport-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The mode selector reads as a widget-grey dropdown, like Blender's. */
+.viewport-mode {
+  height: 18px;
+  margin-right: 4px;
+  padding: 0 4px;
+  border: none;
+  background: var(--bl-widget);
+  box-shadow: none;
+  font-size: 0.74rem;
+}
+
+/*
+ * Blender's four shading modes are drawn as small spheres at the right end of
+ * the 3D View header: wireframe, solid, material preview and rendered.
+ */
+.viewport-shading {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 1px;
+  border-radius: 9px;
+  background: var(--bl-widget);
+}
+
+.shading-ball {
+  width: 14px;
+  height: 14px;
+  min-height: 14px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.shading-wireframe { background: conic-gradient(from 0deg, #8a8a8a 0 25%, #4a4a4a 0 50%, #8a8a8a 0 75%, #4a4a4a 0); }
+.shading-solid     { background: radial-gradient(circle at 35% 30%, #e8e8e8, #8f8f8f 70%); }
+.shading-material  { background: radial-gradient(circle at 35% 30%, #f3d7a6, #a8763c 70%); }
+.shading-rendered  { background: radial-gradient(circle at 35% 30%, #ffffff, #6d6d6d 70%); }
+
+.shading-ball.is-active {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}

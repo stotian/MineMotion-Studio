@@ -35,6 +35,7 @@ import type {
   InstalledCustomVfxPreset,
   InstalledVfxSourceStatus
 } from "../../vfx/package/VfxPackageProjectIntegration";
+import { EditorHeader } from "../shell/EditorHeader";
 import { useLocalization } from "../../localization/LocalizationContext";
 
 interface EffectsLibraryPanelProps {
@@ -143,9 +144,7 @@ export function EffectsLibraryPanel({
 
   return (
     <aside className="panel effects-panel">
-      <div className="panel-header">
-        <h2>{t("effects.title")}</h2>
-      </div>
+      <EditorHeader icon={Sparkles} label={t("effects.title")} />
 
       <section className="effects-section">
         <h3>

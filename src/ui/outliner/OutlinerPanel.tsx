@@ -15,8 +15,10 @@ import {
   TriangleAlert,
   Unlock,
   User,
-  Video
+  Video,
+  ListTree
 } from "lucide-react";
+import { EditorHeader } from "../shell/EditorHeader";
 import type { CharacterEntity, MineMotionProject, SceneEntity } from "../../project/ProjectFile";
 import { getRigDefinition } from "../../rigs/MinecraftRigPresets";
 import { makeBoneObjectId } from "../../rigs/RigSelection";
@@ -62,19 +64,19 @@ export function OutlinerPanel({
 
   return (
     <aside className="panel panel-left">
-      <div className="panel-header outliner-header">
-        <h2>{t("outliner.title")}</h2>
+      {/* Blender puts the search field IN the outliner header, and never a title. */}
+      <EditorHeader icon={ListTree} label={t("outliner.title")}>
         {warnings.length > 0 && (
           <span className="outliner-warning-count" title={t("outliner.warningCount", { count: warnings.length })}>
             <TriangleAlert size={14} /> {warnings.length}
           </span>
         )}
-      </div>
-      <label className="outliner-search">
-        <Search size={14} aria-hidden="true" />
-        <span className="sr-only">{t("outliner.search")}</span>
-        <input value={query} placeholder={t("outliner.search")} onChange={(event) => setQuery(event.target.value)} />
-      </label>
+        <label className="outliner-search">
+          <Search size={14} aria-hidden="true" />
+          <span className="sr-only">{t("outliner.search")}</span>
+          <input value={query} placeholder={t("outliner.search")} onChange={(event) => setQuery(event.target.value)} />
+        </label>
+      </EditorHeader>
       <div className="outliner-tree">
         <Section id="scene" title={t("outliner.scene")} collapsed={collapsed.has("scene")} onToggle={toggleSection}>
           {matchesOutlinerQuery(project.world?.sourceName ?? t("outliner.demoWorld"), "world", query) && (

@@ -5,6 +5,7 @@ import {
   Copy,
   DiamondPlus,
   Layers3,
+  Clock,
   ListTree,
   Pause,
   Play,
@@ -72,6 +73,7 @@ import {
 } from "../../animation/layers/AnimationLayerNlaAdapter";
 import { Dopesheet } from "../../animation/editor/Dopesheet";
 import { GraphEditor } from "../../animation/editor/GraphEditor";
+import { EditorHeader, EditorMenu } from "../shell/EditorHeader";
 import { useLocalization } from "../../localization/LocalizationContext";
 import {
   ANIMATION_LAYER_TRANSLATION_KEYS,
@@ -308,6 +310,19 @@ export function TimelinePanel({
 
   return (
     <footer className="timeline-panel">
+      {/* Blender's timeline header: editor icon then Playback / Keying / View. */}
+      <EditorHeader
+        icon={Clock}
+        label={t("timeline.editorAria")}
+        menus={
+          <>
+            <EditorMenu label={t("timeline.menu.playback")} />
+            <EditorMenu label={t("timeline.menu.keying")} />
+            <EditorMenu label={t("timeline.menu.view")} />
+            <EditorMenu label={t("timeline.menu.marker")} />
+          </>
+        }
+      />
       <div className="timeline-controls">
         <div className="timeline-view-tabs" aria-label={t("timeline.editorAria")}>
           <ViewButton
