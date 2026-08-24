@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import {
+  Bone,
   Box,
+  Palette,
   SlidersHorizontal,
   Camera,
   Eye,
@@ -76,7 +78,7 @@ interface InspectorPanelProps {
 }
 
 /** Blender-style property categories, switched from the icon rail. */
-type InspectorCategory = "object" | "world" | "render";
+type InspectorCategory = "render" | "world" | "object" | "rig" | "material";
 
 export function InspectorPanel({
   project,
@@ -171,6 +173,36 @@ export function InspectorPanel({
         />
       )}
 
+      {category === "rig" && (selectedCharacter && boneSelection ? (
+        <BoneInspector
+          character={selectedCharacter}
+          boneId={boneSelection.boneId}
+          onUpdateBoneRotation={(rotation) =>
+            onUpdateBoneRotation(selectedCharacter.id, boneSelection.boneId, rotation)
+          }
+          onAddBoneKeyframe={() =>
+            onAddBoneKeyframe(selectedCharacter.id, boneSelection.boneId)
+          }
+          onResetPose={() => onResetPose(selectedCharacter.id)}
+          onMirrorPose={() => onMirrorPose(selectedCharacter.id)}
+        />
+      ) : (
+        <p className="empty-note">{t("inspector.rigPrompt")}</p>
+      ))}
+
+      {category === "material" && (lookup?.entity.type === "character" ? (
+        <CharacterRigInspector
+          character={lookup.entity as CharacterEntity}
+          onImportSkin={onImportSkin}
+          onResetSkin={onResetSkin}
+          onResetPose={onResetPose}
+          onMirrorPose={onMirrorPose}
+          onChangeRigPreset={onChangeRigPreset}
+        />
+      ) : (
+        <p className="empty-note">{t("inspector.materialPrompt")}</p>
+      ))}
+
       {category === "object" && (selectedEffect ? (
         <EffectInspector
           effect={selectedEffect}
@@ -240,10 +272,18 @@ function InspectorTabRail({
 }) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
+  // Blender's rail runs Render / Output / Scene / World / Object / Modifiers /
+  // Material. Ours keeps the same shape, mapped to what this app actually
+  // edits, so the rail reads as a category strip rather than three buttons.
+  // Ordered like Blender's rail (render, then scene-level, then object-level).
+  // Every entry routes to content that actually exists — an icon that opens an
+  // empty tab is the "dead button" problem this app is trying to avoid.
   const tabs = [
-    { id: "object", icon: Box, key: "inspector.tab.object" },
+    { id: "render", icon: Camera, key: "inspector.tab.render" },
     { id: "world", icon: Globe, key: "inspector.tab.world" },
-    { id: "render", icon: Camera, key: "inspector.tab.render" }
+    { id: "object", icon: Box, key: "inspector.tab.object" },
+    { id: "rig", icon: Bone, key: "inspector.tab.rig" },
+    { id: "material", icon: Palette, key: "inspector.tab.material" }
   ] as const;
   return (
     <div className="inspector-rail" role="tablist" aria-orientation="vertical">

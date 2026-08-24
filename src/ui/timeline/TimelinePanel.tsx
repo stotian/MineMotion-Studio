@@ -351,46 +351,67 @@ export function TimelinePanel({
           />
         </div>
 
-        <button type="button" onClick={() => onSetFrame(0)} title={t("timeline.goStart")}>
-          <SkipBack size={15} />
-        </button>
-        <button type="button" onClick={() => goRelativeKey(-1)} title={t("timeline.previousKey")}>
-          <StepBack size={15} />
-        </button>
-        <button type="button" className="primary-action" onClick={onTogglePlayback}>
-          {animation.isPlaying ? <Pause size={15} /> : <Play size={15} />}
-          {t(animation.isPlaying ? "topbar.pause" : "topbar.play")}
-        </button>
-        <button type="button" onClick={() => goRelativeKey(1)} title={t("timeline.nextKey")}>
-          <StepForward size={15} />
-        </button>
-        <button
-          type="button"
-          onClick={() => onSetFrame(animation.durationFrames)}
-          title={t("timeline.goEnd")}
-        >
-          <SkipForward size={15} />
-        </button>
-        <label>
-          {t("timeline.frame")}
-          <input
-            type="number"
-            min={0}
-            max={animation.durationFrames}
-            value={animation.currentFrame}
-            onChange={(event) => onSetFrame(Number(event.target.value))}
-          />
-        </label>
-        <label>
-          {t("timeline.fps")}
-          <input
-            type="number"
-            min={1}
-            max={120}
-            value={animation.fps}
-            onChange={(event) => onSetFps(Number(event.target.value))}
-          />
-        </label>
+        {/* Blender's transport: one compact icon-only cluster, centred. */}
+        <div className="timeline-transport" role="group" aria-label={t("timeline.transport")}>
+          <button type="button" onClick={() => onSetFrame(0)} title={t("timeline.goStart")}>
+            <SkipBack size={14} />
+          </button>
+          <button type="button" onClick={() => goRelativeKey(-1)} title={t("timeline.previousKey")}>
+            <StepBack size={14} />
+          </button>
+          <button
+            type="button"
+            className={animation.isPlaying ? "is-active" : undefined}
+            onClick={onTogglePlayback}
+            title={t(animation.isPlaying ? "topbar.pause" : "topbar.play")}
+          >
+            {animation.isPlaying ? <Pause size={14} /> : <Play size={14} />}
+          </button>
+          <button type="button" onClick={() => goRelativeKey(1)} title={t("timeline.nextKey")}>
+            <StepForward size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onSetFrame(animation.durationFrames)}
+            title={t("timeline.goEnd")}
+          >
+            <SkipForward size={14} />
+          </button>
+        </div>
+        {/* Blender shows the playhead frame, then the Start/End range. */}
+        <div className="timeline-frames">
+          <label className="timeline-frame-field">
+            <span>{t("timeline.frame")}</span>
+            <input
+              type="number"
+              min={0}
+              max={animation.durationFrames}
+              value={animation.currentFrame}
+              onChange={(event) => onSetFrame(Number(event.target.value))}
+            />
+          </label>
+          <label className="timeline-frame-field">
+            <span>{t("timeline.rangeEnd")}</span>
+            <input
+              type="number"
+              min={1}
+              max={100000}
+              value={animation.durationFrames}
+              readOnly
+            />
+          </label>
+          <label className="timeline-frame-field">
+            <span>{t("timeline.fps")}</span>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={animation.fps}
+              onChange={(event) => onSetFps(Number(event.target.value))}
+            />
+          </label>
+        </div>
+        <div className="timeline-extra">
         <button type="button" onClick={addMarker}>{t("timeline.addMarker")}</button>
         <button type="button" title={t("timeline.zoomOut")} disabled={editor.zoom <= 0.5}
           onClick={() => setEditor((current) => updateAnimationEditorState(current, { zoom: current.zoom / 1.25 }))}><ZoomOut size={14} /></button>
@@ -404,6 +425,7 @@ export function TimelinePanel({
         <button type="button" disabled={!selectedObjectId} onClick={onAddKeyframe}>
           {t("timeline.addKey")}
         </button>
+        </div>
       </div>
 
       <div className="keyframe-command-bar">

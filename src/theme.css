@@ -980,3 +980,61 @@ html[data-motion="reduced"] *::after {
 .topbar-dirty {
   color: var(--bl-active);
 }
+
+/* ========================= timeline controls ========================= */
+
+/* Blender's transport is one tight cluster of icon-only buttons. */
+.timeline-transport {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.timeline-transport button {
+  width: 24px;
+  min-height: 20px;
+  padding: 0;
+}
+
+/* Frame / range / fps fields sit together, label inside the widget. */
+.timeline-frames {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.timeline-frame-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+  margin: 0;
+  padding: 0 5px;
+  border-radius: var(--bl-radius);
+  background: var(--bl-widget);
+  color: var(--bl-text);
+  font-size: 0.74rem;
+}
+
+.timeline-frame-field span {
+  color: var(--bl-text);
+  opacity: 0.75;
+}
+
+/* The field is part of the widget, so it carries no well of its own. */
+.timeline-frame-field input {
+  width: 52px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  text-align: right;
+}
+
+.timeline-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+}
