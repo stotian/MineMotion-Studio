@@ -4,6 +4,7 @@ import { GreedyMesher } from "./GreedyMesher";
 import type { ChunkMeshBuildOptions, ChunkMeshBuildResult } from "./ChunkMeshTypes";
 import type { ImportedChunkData } from "../import/MinecraftChunkTypes";
 import { listRenderableBlockIds } from "../BlockPalette";
+import { normalizeBlockId } from "../blocks/BlockRegistry";
 
 export class ChunkMeshBuilder {
   static buildImportedChunks(
@@ -37,8 +38,11 @@ export class ChunkMeshBuilder {
       const chunkBlocks = blocksByChunk.get(`${chunk.chunkX},${chunk.chunkZ}`) ?? [];
       const samplesByIdFace = new Map<string, Map<string, VisibleBlock[]>>();
       for (const block of chunkBlocks) {
-        let faces = samplesByIdFace.get(block.id);
-        if (!faces) { faces = new Map(); samplesByIdFace.set(block.id, faces); }
+        // Chunk samples carry bare ids; normalise so they key the same way as
+        // listRenderableBlockIds(), which answers from the namespaced registry.
+        const normalizedId = normalizeBlockId(block.id);
+        let faces = samplesByIdFace.get(normalizedId);
+        if (!faces) { faces = new Map(); samplesByIdFace.set(normalizedId, faces); }
         for (const face of block.exposedFaces) {
           const arr = faces.get(face);
           if (arr) arr.push(block);
@@ -61,7 +65,7 @@ export class ChunkMeshBuilder {
             samples.length
           );
           mesh.name = `imported_${blockId}_${direction}`;
-          mesh.castShadow = blockId !== "water" && blockId !== "glass";
+          mesh.castShadow = blockId !== "minecraft:water" && blockId !== "minecraft:glass";
           mesh.receiveShadow = true;
           mesh.userData.objectId = "world";
           mesh.userData.objectType = "world";

@@ -1,4 +1,9 @@
 import type { BlockDefinition, BlockId } from "./MinecraftWorldTypes";
+import { ensureVanillaBlocksRegistered } from "./blocks/BlockCatalogue";
+import {
+  getBlockDefinition as registryGetBlockDefinition,
+  listRenderableBlockIds as registryListRenderableBlockIds
+} from "./blocks/BlockRegistry";
 
 export const BLOCK_PALETTE: Record<BlockId, BlockDefinition> = {
   air: {
@@ -157,10 +162,26 @@ export const BLOCK_PALETTE: Record<BlockId, BlockDefinition> = {
   }
 };
 
+/*
+ * These two functions are the seam the mesher and texture resolver call
+ * through. They now answer from the runtime registry — which holds the full
+ * vanilla catalogue plus whatever mods and resource packs have registered —
+ * instead of the 22-entry record above.
+ *
+ * BLOCK_PALETTE is kept as the seed for those core ids so terrain presets and
+ * the Anvil importer keep resolving even before the catalogue is registered.
+ */
 export function getBlockDefinition(id: BlockId): BlockDefinition {
-  return BLOCK_PALETTE[id];
+  ensureVanillaBlocksRegistered();
+  // The seed record wins for the ids it defines: those colours are what
+  // existing projects were authored against, and the catalogue's approximations
+  // must not silently restyle a scene someone already made.
+  const seeded = BLOCK_PALETTE[id];
+  if (seeded) return seeded;
+  return registryGetBlockDefinition(id);
 }
 
 export function listRenderableBlockIds(): BlockId[] {
-  return (Object.keys(BLOCK_PALETTE) as BlockId[]).filter((id) => id !== "air");
+  ensureVanillaBlocksRegistered();
+  return registryListRenderableBlockIds();
 }
