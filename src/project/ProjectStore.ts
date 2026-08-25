@@ -21,6 +21,10 @@ import { getDefaultBoneRotations } from "../rigs/RigDefinition";
 import { getRigDefinition } from "../rigs/MinecraftRigPresets";
 import { createDefaultCharacterAttachments } from "../rigs/RigInstance";
 import { createDefaultRigSkin } from "../rigs/DefaultRigSkin";
+import {
+  DEFAULT_MINECRAFT_VERSION,
+  DEFAULT_MOD_LOADER
+} from "../minecraft/MinecraftVersions";
 import { DEFAULT_LIGHTING_SETTINGS } from "../lighting/LightingPresets";
 import { DEFAULT_BIOME_TINT } from "../minecraft/resources/BiomeTint";
 import { DEFAULT_WATER_RENDER_SETTINGS } from "../minecraft/resources/WaterRenderSettings";
@@ -52,7 +56,9 @@ export function createDefaultProjectSettings(
     notes: "",
     terrainPreset: "none",
     blockPaletteStyle:
-      appSettings?.minecraft.defaultBlockPaletteStyle ?? "classic"
+      appSettings?.minecraft.defaultBlockPaletteStyle ?? "classic",
+    minecraftVersion: DEFAULT_MINECRAFT_VERSION,
+    modLoader: DEFAULT_MOD_LOADER
   };
 }
 

@@ -252,7 +252,15 @@ export class ProjectSerializer {
       durationFrames:
         project.projectSettings?.durationFrames ??
         project.animation?.durationFrames ??
-        settingsDefaults.durationFrames
+        settingsDefaults.durationFrames,
+      // Projects saved before the Minecraft target existed carry neither field.
+      // The spread above supplies defaults, but an explicit undefined would
+      // punch through it, so both are pinned here.
+      minecraftVersion:
+        project.projectSettings?.minecraftVersion ??
+        settingsDefaults.minecraftVersion,
+      modLoader:
+        project.projectSettings?.modLoader ?? settingsDefaults.modLoader
     };
     const reconciledRigAnimation = reconcileRigAnimation(
       initialCharacters,

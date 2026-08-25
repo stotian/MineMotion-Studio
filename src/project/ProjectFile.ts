@@ -1,5 +1,6 @@
 import type { SkyPresetId } from "../renderer/SkyTypes";
 import type { BlockPaletteStyle } from "../settings/SettingsTypes";
+import type { ModLoaderId } from "../minecraft/MinecraftVersions";
 import type { ProjectAudioData } from "../audio/AudioTypes";
 import type { AssetLibraryData } from "../assets/library/AssetRecord";
 import type { EffectInstance } from "../effects/EffectTypes";
@@ -276,6 +277,13 @@ export interface ProjectSettings {
   notes: string;
   terrainPreset: TerrainPresetId;
   blockPaletteStyle: BlockPaletteStyle;
+  /*
+   * What this project targets. The loader decides which mod jars are valid to
+   * import; the version decides which block catalogue applies. Optional so
+   * projects saved before this field keep loading — the migration fills them.
+   */
+  minecraftVersion?: string;
+  modLoader?: ModLoaderId;
 }
 
 export interface RenderSettings {
