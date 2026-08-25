@@ -5,7 +5,7 @@ import {
 } from "../renderer/MinecraftMaterialSystem";
 import type { TerrainPresetId } from "../project/ProjectFile";
 import type { ChunkData } from "./MinecraftWorldTypes";
-import { listRenderableBlockIds } from "./BlockPalette";
+import { getBlockDefinition } from "./BlockPalette";
 import {
   createDemoTerrainChunk,
   createFlatTerrainChunk,
@@ -40,11 +40,26 @@ export class ChunkMeshBuilder {
     group.userData.objectType = "world";
 
     let cubeGeometry: THREE.BoxGeometry | null = null;
-    const renderableIds = listRenderableBlockIds();
 
-    for (const blockId of renderableIds) {
-      const blockSamples = chunk.blocks.filter((block) => block.id === blockId);
-      if (blockSamples.length === 0) {
+    /*
+     * Group the chunk's blocks in a single pass, then build one mesh per group.
+     *
+     * This used to scan the whole renderable list and filter the chunk for each
+     * id — O(catalogue x blocks). That was tolerable at 22 ids; against the
+     * 860-block catalogue it became roughly 3.5 million comparisons per chunk,
+     * for a result that only ever needs the handful of ids actually present.
+     */
+    const samplesById = new Map<string, typeof chunk.blocks>();
+    for (const block of chunk.blocks) {
+      const existing = samplesById.get(block.id);
+      if (existing) existing.push(block);
+      else samplesById.set(block.id, [block]);
+    }
+
+    // Sorted so mesh order does not depend on the order blocks were sampled.
+    for (const blockId of [...samplesById.keys()].sort()) {
+      const blockSamples = samplesById.get(blockId) ?? [];
+      if (blockSamples.length === 0 || getBlockDefinition(blockId).opacity <= 0) {
         continue;
       }
       cubeGeometry ??= new THREE.BoxGeometry(1, 1, 1);

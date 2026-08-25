@@ -14,6 +14,15 @@ import { createVanillaBlockCatalogue } from "./VanillaBlocks";
  */
 let seeded = false;
 
+/**
+ * Fast path for hot callers: a plain boolean check, with no size computation.
+ * The mesher calls this once per block, so it must stay free.
+ */
+export function seedVanillaBlocks(): void {
+  if (seeded) return;
+  ensureVanillaBlocksRegistered();
+}
+
 export function ensureVanillaBlocksRegistered(): number {
   if (seeded) return blockRegistrySize();
   registerBlockSource({

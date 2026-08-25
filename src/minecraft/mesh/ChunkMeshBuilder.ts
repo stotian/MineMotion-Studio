@@ -3,7 +3,6 @@ import { BlockMaterialResolver } from "./BlockMaterialResolver";
 import { GreedyMesher } from "./GreedyMesher";
 import type { ChunkMeshBuildOptions, ChunkMeshBuildResult } from "./ChunkMeshTypes";
 import type { ImportedChunkData } from "../import/MinecraftChunkTypes";
-import { listRenderableBlockIds } from "../BlockPalette";
 import { normalizeBlockId } from "../blocks/BlockRegistry";
 
 export class ChunkMeshBuilder {
@@ -49,7 +48,13 @@ export class ChunkMeshBuilder {
           else faces.set(face, [block]);
         }
       }
-      for (const blockId of listRenderableBlockIds()) {
+      /*
+       * Iterate only the blocks this chunk actually contains. Walking the whole
+       * catalogue here allocated an 860-entry array per chunk and skipped
+       * almost all of it — fine when the palette held 22 ids, wasteful now.
+       * Sorted so mesh order stays deterministic regardless of sample order.
+       */
+      for (const blockId of [...samplesByIdFace.keys()].sort()) {
         const faces = samplesByIdFace.get(blockId);
         if (!faces) continue;
         for (const direction of FACE_DIRECTIONS) {

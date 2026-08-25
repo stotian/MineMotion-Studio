@@ -47,9 +47,32 @@ const UNKNOWN_BLOCK: BlockDefinition = Object.freeze({
  * importer both use bare ids like "stone", which must keep resolving.
  */
 export function normalizeBlockId(id: string): BlockId {
+  // Hot path: the mesher normalises every block of every chunk, and ids that
+  // already look canonical are the common case. Returning the original string
+  // avoids trim/toLowerCase/template allocations per block.
+  if (isCanonicalId(id)) return id;
+
   const trimmed = id.trim().toLowerCase();
   if (!trimmed) return UNKNOWN_BLOCK.id;
   return trimmed.includes(":") ? trimmed : `${MINECRAFT_NAMESPACE}:${trimmed}`;
+}
+
+/** True when the id already has a namespace and needs no lowercasing. */
+function isCanonicalId(id: string): boolean {
+  let sawColon = false;
+  for (let index = 0; index < id.length; index += 1) {
+    const code = id.charCodeAt(index);
+    if (code === 58) {
+      // A second colon is not canonical for our purposes.
+      if (sawColon) return false;
+      sawColon = true;
+      continue;
+    }
+    // Reject uppercase and surrounding whitespace without allocating.
+    if (code >= 65 && code <= 90) return false;
+    if (code === 32 || code === 9) return false;
+  }
+  return sawColon;
 }
 
 /** Splits a namespaced id; the namespace defaults to minecraft. */

@@ -1,5 +1,8 @@
 import type { BlockDefinition, BlockId } from "./MinecraftWorldTypes";
-import { ensureVanillaBlocksRegistered } from "./blocks/BlockCatalogue";
+import {
+  ensureVanillaBlocksRegistered,
+  seedVanillaBlocks
+} from "./blocks/BlockCatalogue";
 import {
   getBlockDefinition as registryGetBlockDefinition,
   listRenderableBlockIds as registryListRenderableBlockIds
@@ -172,7 +175,7 @@ export const BLOCK_PALETTE: Record<BlockId, BlockDefinition> = {
  * the Anvil importer keep resolving even before the catalogue is registered.
  */
 export function getBlockDefinition(id: BlockId): BlockDefinition {
-  ensureVanillaBlocksRegistered();
+  seedVanillaBlocks();
   // The seed record wins for the ids it defines: those colours are what
   // existing projects were authored against, and the catalogue's approximations
   // must not silently restyle a scene someone already made.
