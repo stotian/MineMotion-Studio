@@ -108,6 +108,26 @@ describe("vanilla catalogue", () => {
     }
   });
 
+  it("carries the blocks 26.2 added", () => {
+    ensureVanillaBlocksRegistered();
+    // Ids verified against the 26.2 ("Chaos Cubed") block list, including the
+    // "bricks" -> "brick" rename the shape generator has to get right.
+    const expected = [
+      "cinnabar", "cinnabar_stairs", "cinnabar_slab", "cinnabar_wall",
+      "polished_cinnabar", "polished_cinnabar_stairs", "polished_cinnabar_slab",
+      "polished_cinnabar_wall", "cinnabar_bricks", "cinnabar_brick_stairs",
+      "cinnabar_brick_slab", "cinnabar_brick_wall", "chiseled_cinnabar",
+      "sulfur", "sulfur_stairs", "sulfur_slab", "sulfur_wall",
+      "polished_sulfur", "polished_sulfur_stairs", "polished_sulfur_slab",
+      "polished_sulfur_wall", "sulfur_bricks", "sulfur_brick_stairs",
+      "sulfur_brick_slab", "sulfur_brick_wall", "chiseled_sulfur",
+      "potent_sulfur", "sulfur_spike"
+    ];
+    for (const id of expected) {
+      expect(isKnownBlock(id), `missing ${id}`).toBe(true);
+    }
+  });
+
   it("seeds only once", () => {
     const first = ensureVanillaBlocksRegistered();
     const second = ensureVanillaBlocksRegistered();

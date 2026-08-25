@@ -230,7 +230,16 @@ const STONES: StoneType[] = [
   { id: "quartz_bricks", color: "#e9e2da", shapes: [] },
   { id: "quartz_pillar", color: "#ebe4dc", shapes: [] },
   { id: "mud_bricks", color: "#8c6a52", shapes: FULL_SHAPES },
-  { id: "resin_bricks", color: "#c8622a", shapes: FULL_SHAPES }
+  { id: "resin_bricks", color: "#c8622a", shapes: FULL_SHAPES },
+  // Added in 26.2 ("Chaos Cubed"): the sulfur caves biome.
+  { id: "cinnabar", color: "#a8322c", shapes: FULL_SHAPES },
+  { id: "polished_cinnabar", color: "#b13a33", shapes: FULL_SHAPES },
+  { id: "cinnabar_bricks", color: "#9c2f29", shapes: FULL_SHAPES },
+  { id: "chiseled_cinnabar", color: "#932c26", shapes: [] },
+  { id: "sulfur", color: "#d9c637", shapes: FULL_SHAPES },
+  { id: "polished_sulfur", color: "#e0d044", shapes: FULL_SHAPES },
+  { id: "sulfur_bricks", color: "#cbb92f", shapes: FULL_SHAPES },
+  { id: "chiseled_sulfur", color: "#c2b12c", shapes: [] }
 ];
 
 function stoneBlocks(): Def[] {
@@ -367,7 +376,10 @@ const TERRAIN: Def[] = [
   block("bone_block", "Bone Block", "#e2ddc8"),
   block("amethyst_block", "Amethyst Block", "#8964c4"),
   block("budding_amethyst", "Budding Amethyst", "#8461c0"),
-  block("amethyst_cluster", "Amethyst Cluster", "#a17bd8", { transparent: true, opacity: 0.8 })
+  block("amethyst_cluster", "Amethyst Cluster", "#a17bd8", { transparent: true, opacity: 0.8 }),
+  // 26.2 sulfur caves.
+  block("potent_sulfur", "Potent Sulfur", "#efe14a"),
+  block("sulfur_spike", "Sulfur Spike", "#d5c033", { transparent: true, opacity: 0.75 })
 ];
 
 /* ========================== plants & crops ========================== */
