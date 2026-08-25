@@ -1,0 +1,21 @@
+{
+  "kind": "logic-plugin",
+  "apiVersion": "1.0",
+  "id": "example.aurora-pack",
+  "name": "Aurora Pack",
+  "version": "1.0.0",
+  "minMineMotionVersion": "0.8.0",
+  "maxTestedMineMotionVersion": "0.8.2",
+  "description": "Worked example plugin: adds three camera angles and two rig poses. Copy this folder as the starting point for your own pack.",
+  "author": "BlockMotion Studio",
+  "license": {
+    "spdxId": "MIT",
+    "summary": "Free to copy and adapt."
+  },
+  "permissions": [
+    "registerPresets",
+    "registerRigs"
+  ],
+  "entry": "index.js",
+  "enabled": true
+}

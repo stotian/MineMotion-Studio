@@ -1,7 +1,8 @@
 import type { MineMotionProject, Vector3Tuple } from "../project/ProjectFile";
 import type { RigAnimationClip } from "./RigTypes";
+import { EXTENDED_RIG_ANIMATION_CLIPS } from "./ExtendedAnimationClips";
 
-export const RIG_ANIMATION_PRESETS: RigAnimationClip[] = [
+const CORE_RIG_ANIMATION_PRESETS: RigAnimationClip[] = [
   clip("idle-breathing", "Idle Breathing", "Subtle head/body breathing loop.", 48, true, [
     [0, { body: [0, 0, 0], head: [0, 0, 0] }],
     [24, { body: [1.5, 0, 0], head: [-1, 0, 0] }],
@@ -44,6 +45,12 @@ export const RIG_ANIMATION_PRESETS: RigAnimationClip[] = [
     [36, { body: [14, 0, 0], leftLeg: [-28, 0, -6], rightLeg: [-28, 0, 6] }],
     [48, { body: [0, 0, 0], leftArm: [0, 0, -8], rightArm: [0, 0, 8], leftLeg: [0, 0, 0], rightLeg: [0, 0, 0] }]
   ])
+];
+
+/** Core clips first, then the extended library. */
+export const RIG_ANIMATION_PRESETS: RigAnimationClip[] = [
+  ...CORE_RIG_ANIMATION_PRESETS,
+  ...EXTENDED_RIG_ANIMATION_CLIPS
 ];
 
 export function applyRigAnimationPreset(
