@@ -99,6 +99,13 @@ import { EffectsLibraryPanel } from "./ui/effects/EffectsLibraryPanel";
 import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
+import { WorldGeneratorPanel } from "./ui/world/WorldGeneratorPanel";
+import {
+  generateWorld,
+  type WorldGenSettings
+} from "./minecraft/worldgen/WorldGenerator";
+import type { ImportedChunkData } from "./minecraft/import/MinecraftChunkTypes";
+import type { ImportedWorldSummary } from "./project/ProjectFile";
 import {
   AssetLibraryPanel,
   AudioWorkspacePanel,
@@ -1065,6 +1072,59 @@ export function App() {
     setStatus(tr("app.deleted", { name: lookup.entity.name }));
   }, [commitProject, project, selectedObjectId]);
 
+  const [worldGenOpen, setWorldGenOpen] = useState(false);
+  const [worldGenProgress, setWorldGenProgress] = useState<{ completed: number; total: number } | null>(null);
+  const [isGeneratingWorld, setIsGeneratingWorld] = useState(false);
+
+  /*
+   * Generation runs in slices across animation frames rather than one blocking
+   * pass: a radius of 8 is 289 chunks, which would freeze the window for
+   * seconds. Chunks arrive nearest-first, so the centre appears immediately.
+   */
+  const handleGenerateWorld = useCallback((settings: WorldGenSettings) => {
+    setIsGeneratingWorld(true);
+    const iterator = generateWorld(settings);
+    const chunks: ImportedChunkData[] = [];
+    const SLICE_MS = 12;
+
+    const step = () => {
+      const sliceStart = performance.now();
+      let done = false;
+      while (performance.now() - sliceStart < SLICE_MS) {
+        const next = iterator.next();
+        if (next.done) { done = true; break; }
+        chunks.push(next.value.chunk);
+        setWorldGenProgress({ completed: next.value.completed, total: next.value.total });
+      }
+      if (!done) {
+        requestAnimationFrame(step);
+        return;
+      }
+      const world: ImportedWorldSummary = {
+        sourceName: tr("worldgen.generatedName", { seed: settings.seed }),
+        levelDatFound: false,
+        dimensions: [],
+        selectedDimension: "overworld",
+        importedChunks: chunks,
+        importedAt: new Date().toISOString(),
+        notes: [tr("worldgen.generatedNote", { seed: settings.seed })]
+      };
+      commitProject(
+        (current) => ({
+          ...current,
+          world,
+          projectSettings: { ...current.projectSettings, terrainPreset: "none" as const }
+        }),
+        "Generate world"
+      );
+      setIsGeneratingWorld(false);
+      setWorldGenProgress(null);
+      setWorldGenOpen(false);
+      setStatus(tr("worldgen.done", { chunks: chunks.length }));
+    };
+    requestAnimationFrame(step);
+  }, [commitProject, tr]);
+
   const handleAddKeyframe = useCallback(() => {
     const boneSelection = parseRigBoneSelection(selectedObjectId);
     if (boneSelection) {
@@ -1564,6 +1624,7 @@ export function App() {
         onNewProject={handleNewProject}
         onNewProjectFromTemplate={() => setTemplatesOpen(true)}
         onOpenWorld={handleOpenWorld}
+        onGenerateWorld={() => setWorldGenOpen(true)}
         onSaveProject={handleSaveProject}
         onLoadProject={handleLoadProject}
         onAddCharacter={handleAddCharacter}
@@ -1852,6 +1913,13 @@ export function App() {
         onCancelImport={handleCancelWorldImport}
         onFocusWorld={handleFocusWorld}
         onUnloadWorld={handleUnloadWorld}
+      />
+      <WorldGeneratorPanel
+        open={worldGenOpen}
+        onClose={() => setWorldGenOpen(false)}
+        onGenerate={handleGenerateWorld}
+        isGenerating={isGeneratingWorld}
+        progress={worldGenProgress}
       />
       <HelpPanel
         open={helpOpen}

@@ -5,6 +5,7 @@ import {
   Command,
   Download,
   FolderOpen,
+  Globe2,
   HelpCircle,
   LayoutTemplate,
   Library,
@@ -35,6 +36,7 @@ interface TopBarProps {
   onNewProject: () => void;
   onNewProjectFromTemplate: () => void;
   onOpenWorld: () => void;
+  onGenerateWorld: () => void;
   onSaveProject: () => void;
   onLoadProject: () => void;
   onAddCharacter: () => void;
@@ -66,6 +68,7 @@ export function TopBar({
   onNewProject,
   onNewProjectFromTemplate,
   onOpenWorld,
+  onGenerateWorld,
   onSaveProject,
   onLoadProject,
   onAddCharacter,
@@ -107,6 +110,7 @@ export function TopBar({
         </ToolbarMenu>
         <ToolbarMenu label={t("topbar.menu.scene")}>
           <MenuButton icon={<FolderOpen size={16} />} label={t("topbar.openWorld")} onClick={onOpenWorld} />
+          <MenuButton icon={<Globe2 size={16} />} label={t("topbar.generateWorld")} onClick={onGenerateWorld} />
           <MenuButton icon={<UserPlus size={16} />} label={t("topbar.addCharacter")} onClick={onAddCharacter} />
           <MenuButton icon={<Camera size={16} />} label={t("topbar.addCamera")} onClick={onAddCamera} />
           <MenuButton icon={<Box size={16} />} label={t("topbar.importObj")} onClick={onImportObj} />
