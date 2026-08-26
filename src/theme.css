@@ -1106,3 +1106,59 @@ html[data-motion="reduced"] *::after {
   flex: 0 0 auto;
   color: var(--bl-text-dim);
 }
+
+/* ========================== tutorial ========================== */
+
+.tutorial-lesson {
+  margin: 2px 0;
+}
+
+.tutorial-lesson-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  justify-content: flex-start;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--bl-text);
+  text-align: left;
+}
+
+.tutorial-lesson-toggle:hover {
+  background: var(--bl-widget);
+}
+
+.tutorial-steps {
+  margin: 2px 0 6px;
+  padding-left: 26px;
+  color: var(--bl-text-muted);
+  line-height: 1.6;
+}
+
+.tutorial-shortcuts {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tutorial-shortcuts li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--bl-text-muted);
+}
+
+.tutorial-shortcuts kbd {
+  min-width: 34px;
+  padding: 1px 5px;
+  border-radius: var(--bl-radius);
+  background: var(--bl-widget);
+  color: var(--bl-text);
+  font-family: inherit;
+  font-size: 0.72rem;
+  text-align: center;
+}

@@ -15,6 +15,9 @@ import { fbm2, noise2, noise3, parseSeed } from "./SeededNoise";
 
 export const CHUNK_SIZE = 16;
 
+/** How far below the visible shell caves are generated into. */
+const CAVE_DEPTH = 14;
+
 export interface WorldGenSettings {
   seed: string;
   /** Chunks generated in each direction from the centre. */
@@ -137,21 +140,62 @@ export function generateChunk(
   const baseX = chunkX * CHUNK_SIZE;
   const baseZ = chunkZ * CHUNK_SIZE;
 
+  /*
+   * Sample heights for the chunk PLUS a one-column border.
+   *
+   * Filling every column from minY to the surface emitted ~23,000 blocks per
+   * chunk, almost all of them buried and impossible to see. Instead each column
+   * only goes down as far as its lowest neighbour, which is exactly the depth
+   * at which a cliff face would otherwise show a hole. The border is what makes
+   * that correct across a chunk boundary.
+   */
+  const span = CHUNK_SIZE + 2;
+  const columns: Column[] = new Array(span * span);
+  const columnAt = (localX: number, localZ: number) =>
+    columns[(localX + 1) * span + (localZ + 1)];
+
+  for (let localX = -1; localX <= CHUNK_SIZE; localX += 1) {
+    for (let localZ = -1; localZ <= CHUNK_SIZE; localZ += 1) {
+      columns[(localX + 1) * span + (localZ + 1)] = sampleColumn(
+        seed,
+        baseX + localX,
+        baseZ + localZ,
+        settings.seaLevel
+      );
+    }
+  }
+
   for (let localX = 0; localX < CHUNK_SIZE; localX += 1) {
     for (let localZ = 0; localZ < CHUNK_SIZE; localZ += 1) {
       const worldX = baseX + localX;
       const worldZ = baseZ + localZ;
-      const column = sampleColumn(seed, worldX, worldZ, settings.seaLevel);
+      const column = columnAt(localX, localZ);
       const height = Math.min(settings.maxY, Math.max(settings.minY + 1, column.height));
       const { top, filler } = surfaceFor(column.biome, height, settings.seaLevel);
 
-      for (let y = settings.minY; y <= height; y += 1) {
-        if (y === settings.minY) {
-          blocks.push(sample("bedrock", worldX, y, worldZ));
-          continue;
-        }
+      // The deepest neighbour decides how far down this column must be filled
+      // for its exposed side to be covered.
+      const lowestNeighbour = Math.min(
+        columnAt(localX - 1, localZ).height,
+        columnAt(localX + 1, localZ).height,
+        columnAt(localX, localZ - 1).height,
+        columnAt(localX, localZ + 1).height
+      );
+      /*
+       * With caves on the column is taken deeper, or there would be no rock for
+       * a cave to be carved out of: the shell is only a few blocks thick, so a
+       * cave below it would remove nothing and the setting would do nothing.
+       * That depth is the cost of the feature, and it is why it is a toggle.
+       */
+      const caveDepth = settings.caves ? CAVE_DEPTH : 0;
+      const floor = Math.max(
+        settings.minY + 1,
+        Math.min(height - 1, lowestNeighbour - 1) - caveDepth
+      );
+
+      for (let y = height; y >= floor; y -= 1) {
         if (settings.caves && y < height - 2 && isCave(seed, worldX, y, worldZ)) {
-          continue; // Carved out.
+          continue;
         }
         if (y === height) blocks.push(sample(top, worldX, y, worldZ));
         else if (y > height - 4) blocks.push(sample(filler, worldX, y, worldZ));
@@ -159,12 +203,13 @@ export function generateChunk(
         else blocks.push(sample("stone", worldX, y, worldZ));
       }
 
-      // Fill open air below sea level with water.
+      // Bedrock stays: it is the visible floor of the world.
+      blocks.push(sample("bedrock", worldX, settings.minY, worldZ));
+
       for (let y = height + 1; y <= settings.seaLevel; y += 1) {
         blocks.push(sample("water", worldX, y, worldZ));
       }
 
-      // Sparse surface decoration, above water only.
       if (column.biome !== "ocean" && height > settings.seaLevel) {
         const roll = noise2(seed + 991, worldX * 3.7, worldZ * 3.7);
         if (column.biome === "desert" && roll > 0.93) {
@@ -246,6 +291,8 @@ export function* generateWorld(
 /** Rough block count for a radius, for warning before a huge generation. */
 export function estimateBlockCount(settings: WorldGenSettings): number {
   const chunks = (settings.radiusChunks * 2 + 1) ** 2;
-  const columnHeight = Math.max(1, settings.seaLevel - settings.minY);
-  return chunks * CHUNK_SIZE * CHUNK_SIZE * columnHeight;
+  // Only the visible shell is emitted, so a column averages a handful of
+  // blocks rather than its full height. Measured around 10 on default terrain.
+  const perColumn = 10;
+  return chunks * CHUNK_SIZE * CHUNK_SIZE * perColumn;
 }

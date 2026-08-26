@@ -3,6 +3,7 @@ import type { AppSettings } from "../../settings/AppSettings";
 import type { ProjectSettings } from "../../project/ProjectFile";
 import type { SkyPresetId } from "../../renderer/SkyTypes";
 import { SKY_PRESETS } from "../../renderer/SkyTypes";
+import { TutorialSection } from "./TutorialSection";
 import { useLocalization } from "../../localization/LocalizationContext";
 import type { AppLanguagePreference } from "../../localization/LocalizationTypes";
 import { setExperimentalFeatureEnabled } from "../../experimental/FeatureFlags";
@@ -412,6 +413,8 @@ export function SettingsModal({
               }
             />
           </section>
+
+          <TutorialSection />
 
           <section>
             <h3>{t("settings.reliability")}</h3>

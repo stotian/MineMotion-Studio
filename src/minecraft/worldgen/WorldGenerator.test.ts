@@ -85,10 +85,26 @@ describe("chunk generation", () => {
     expect(seen.size).toBe(chunk.blocks.length);
   });
 
-  it("carves caves only when asked", () => {
+  it("generates deeper when caves are on, and leaves voids in that depth", () => {
     const withCaves = generateChunk({ ...settings, caves: true }, 4, 4);
-    const solid = generateChunk({ ...settings, caves: false }, 4, 4);
-    expect(withCaves.blocks.length).toBeLessThan(solid.blocks.length);
+    const shallow = generateChunk({ ...settings, caves: false }, 4, 4);
+
+    // Caves need rock to be carved out of, so the column goes deeper. Without
+    // that extra depth the toggle would remove nothing and mean nothing.
+    expect(withCaves.blocks.length).toBeGreaterThan(shallow.blocks.length);
+
+    // And that depth must actually contain gaps, or it is just more solid rock.
+    const solidColumns = new Map<string, number[]>();
+    for (const block of withCaves.blocks) {
+      const key = `${block.x},${block.z}`;
+      const list = solidColumns.get(key);
+      if (list) list.push(block.y); else solidColumns.set(key, [block.y]);
+    }
+    const hasGap = [...solidColumns.values()].some((ys) => {
+      const sorted = [...ys].sort((a, b) => a - b);
+      return sorted.some((y, index) => index > 0 && y - sorted[index - 1] > 1);
+    });
+    expect(hasGap).toBe(true);
   });
 
   it("emits ids the block registry knows", () => {
@@ -125,6 +141,13 @@ describe("world generation", () => {
     expect(steps[0].completed).toBe(1);
     expect(steps[0].total).toBe(9);
     expect(steps.at(-1)?.completed).toBe(9);
+  });
+
+  it("emits far fewer blocks than a full-height fill", () => {
+    // Guards the optimisation: filling every column from minY emitted ~23,000
+    // blocks per chunk, nearly all of them buried and impossible to see.
+    const chunk = generateChunk({ ...settings, caves: false }, 0, 0);
+    expect(chunk.blocks.length).toBeLessThan(4000);
   });
 
   it("estimates block counts so a huge radius can be warned about", () => {
