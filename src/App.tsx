@@ -100,6 +100,9 @@ import { InspectorPanel } from "./ui/inspector/InspectorPanel";
 import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
 import { WorldGeneratorPanel } from "./ui/world/WorldGeneratorPanel";
+import { MinecraftInstallPanel } from "./ui/world/MinecraftInstallPanel";
+import { extractBlockTextures } from "./minecraft/install/MinecraftInstall";
+import { readZipEntries } from "./minecraft/resources/ResourcePackImporter";
 import {
   NewProjectDialog,
   type NewProjectChoice
@@ -1198,6 +1201,23 @@ export function App() {
     setStatus(tr("mods.uninstalled", { id: modId }));
   }, [tr]);
 
+  const [installPanelOpen, setInstallPanelOpen] = useState(false);
+
+  /*
+   * Reads a client jar and registers its block textures. Returns the count so
+   * the panel can report it; throwing surfaces the reason to the user rather
+   * than failing silently.
+   */
+  const handleImportInstallTextures = useCallback(async (file: File) => {
+    const entries = await readZipEntries(await file.arrayBuffer());
+    const textures = extractBlockTextures(entries);
+    if (textures.length === 0) {
+      throw new Error(tr("install.noTextures"));
+    }
+    setStatus(tr("install.imported", { count: textures.length }));
+    return textures.length;
+  }, [tr]);
+
   const handleAddKeyframe = useCallback(() => {
     const boneSelection = parseRigBoneSelection(selectedObjectId);
     if (boneSelection) {
@@ -1698,6 +1718,7 @@ export function App() {
         onNewProjectFromTemplate={() => setTemplatesOpen(true)}
         onOpenWorld={handleOpenWorld}
         onGenerateWorld={() => setWorldGenOpen(true)}
+        onOpenMinecraftInstall={() => setInstallPanelOpen(true)}
         onSaveProject={handleSaveProject}
         onLoadProject={handleLoadProject}
         onAddCharacter={handleAddCharacter}
@@ -1994,6 +2015,11 @@ export function App() {
         defaultName={project.projectName}
         onClose={() => setNewProjectOpen(false)}
         onCreate={handleCreateNewProject}
+      />
+      <MinecraftInstallPanel
+        open={installPanelOpen}
+        onClose={() => setInstallPanelOpen(false)}
+        onImportTextures={handleImportInstallTextures}
       />
       <WorldGeneratorPanel
         open={worldGenOpen}

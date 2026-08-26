@@ -10,6 +10,7 @@ import {
   LayoutTemplate,
   Library,
   Music2,
+  Package,
   Plug,
   Save,
   Settings,
@@ -37,6 +38,7 @@ interface TopBarProps {
   onNewProjectFromTemplate: () => void;
   onOpenWorld: () => void;
   onGenerateWorld: () => void;
+  onOpenMinecraftInstall: () => void;
   onSaveProject: () => void;
   onLoadProject: () => void;
   onAddCharacter: () => void;
@@ -69,6 +71,7 @@ export function TopBar({
   onNewProjectFromTemplate,
   onOpenWorld,
   onGenerateWorld,
+  onOpenMinecraftInstall,
   onSaveProject,
   onLoadProject,
   onAddCharacter,
@@ -111,6 +114,7 @@ export function TopBar({
         <ToolbarMenu label={t("topbar.menu.scene")}>
           <MenuButton icon={<FolderOpen size={16} />} label={t("topbar.openWorld")} onClick={onOpenWorld} />
           <MenuButton icon={<Globe2 size={16} />} label={t("topbar.generateWorld")} onClick={onGenerateWorld} />
+          <MenuButton icon={<Package size={16} />} label={t("topbar.minecraftInstall")} onClick={onOpenMinecraftInstall} />
           <MenuButton icon={<UserPlus size={16} />} label={t("topbar.addCharacter")} onClick={onAddCharacter} />
           <MenuButton icon={<Camera size={16} />} label={t("topbar.addCamera")} onClick={onAddCamera} />
           <MenuButton icon={<Box size={16} />} label={t("topbar.importObj")} onClick={onImportObj} />
