@@ -6,6 +6,12 @@ name: Desktop build
 # run on every commit.
 on:
   workflow_dispatch:
+    inputs:
+      variant:
+        description: "Installer variant"
+        type: choice
+        default: both
+        options: [light, embedded, both]
   push:
     tags: ["v*"]
 
@@ -42,14 +48,41 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Build desktop bundles
+      # Light build: uses the WebView2 already present on Windows, so the
+      # installer stays around 3 MB. This is the default variant.
+      - name: Build light installers
+        if: inputs.variant != 'embedded'
         run: npm run tauri:build
+
+      - name: Collect light installers
+        if: inputs.variant != 'embedded'
+        shell: bash
+        run: |
+          mkdir -p out/light
+          cp src-tauri/target/release/bundle/msi/*.msi out/light/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/nsis/*.exe out/light/ 2>/dev/null || true
+
+      # Embedded build: carries the WebView2 installer with it, so the app runs
+      # on a machine that has never had it. Adds roughly 127 MB.
+      - name: Build embedded installers
+        if: inputs.variant != 'light'
+        run: npm run tauri:build -- --config src-tauri/tauri.embedded.conf.json
+
+      - name: Collect embedded installers
+        if: inputs.variant != 'light'
+        shell: bash
+        run: |
+          mkdir -p out/embedded
+          for f in src-tauri/target/release/bundle/msi/*.msi; do
+            [ -e "$f" ] && cp "$f" "out/embedded/$(basename "${f%.msi}")-embedded.msi"
+          done
+          for f in src-tauri/target/release/bundle/nsis/*.exe; do
+            [ -e "$f" ] && cp "$f" "out/embedded/$(basename "${f%.exe}")-embedded.exe"
+          done
 
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4
         with:
           name: minemotion-windows-installers
           if-no-files-found: error
-          path: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
+          path: out/**
