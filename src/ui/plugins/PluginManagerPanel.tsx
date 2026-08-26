@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { FilePlus2, Plug, ShieldAlert, Trash2 } from "lucide-react";
 import type { ExtensionLogEntry } from "../../plugins/ExtensionTypes";
 import type { ManagedExtension } from "../../plugins/ExtensionManager";
+import type { InstalledMod } from "../../minecraft/mods/ModLibrary";
 import { useLocalization } from "../../localization/LocalizationContext";
 
 export interface PluginManagerPanelProps {
@@ -15,6 +16,9 @@ export interface PluginManagerPanelProps {
   onTrustExtension: (id: string, trusted: boolean) => void;
   onUninstallExtension: (id: string) => void;
   onSafeModeChange: (enabled: boolean) => void;
+  /** Minecraft mods installed from .jar files. */
+  mods: InstalledMod[];
+  onUninstallMod: (modId: string) => void;
 }
 
 export function PluginManagerPanel({
@@ -27,7 +31,9 @@ export function PluginManagerPanel({
   onToggleExtension,
   onTrustExtension,
   onUninstallExtension,
-  onSafeModeChange
+  onSafeModeChange,
+  mods,
+  onUninstallMod
 }: PluginManagerPanelProps) {
   const localization = useLocalization();
   const t = localization.t.bind(localization);
@@ -74,6 +80,47 @@ export function PluginManagerPanel({
             </article>
           ))}
         </div>
+        {/* Minecraft mods live beside plugins: both arrive through the same
+            install button, so listing them apart would be confusing. */}
+        <section className="plugin-mods">
+          <h3>{t("mods.title")} ({mods.length})</h3>
+          {mods.length === 0 ? (
+            <p className="empty-note">{t("mods.empty")}</p>
+          ) : (
+            mods.map((mod) => (
+              <article key={mod.metadata.modId} className="plugin-row">
+                <div>
+                  <strong>{mod.metadata.name}</strong>
+                  <span>{mod.metadata.loader}</span>
+                  <small>
+                    {mod.metadata.modId}{" · v"}{mod.metadata.version}
+                  </small>
+                </div>
+                <div className="plugin-meta">
+                  <span>
+                    {t("mods.counts", {
+                      blocks: mod.blockCount,
+                      items: mod.itemCount,
+                      textures: mod.textureCount
+                    })}
+                  </span>
+                  <button
+                    type="button"
+                    title={t("plugins.uninstall")}
+                    onClick={() => onUninstallMod(mod.metadata.modId)}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                {mod.warnings.length > 0 && (
+                  <ul className="notes-list">
+                    {mod.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+                  </ul>
+                )}
+              </article>
+            ))
+          )}
+        </section>
         <details className="plugin-log"><summary>{t("plugins.logs")} ({logs.length})</summary>{logs.slice(-50).reverse().map((entry) => <p key={entry.id} className={entry.level === "error" ? "error-note" : entry.level === "warning" ? "warning-note" : "empty-note"}><strong>{entry.extensionId}</strong> — {entry.message}</p>)}</details>
       </section>
     </div>

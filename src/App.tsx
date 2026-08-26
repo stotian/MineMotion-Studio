@@ -107,6 +107,12 @@ import {
 import type { ImportedChunkData } from "./minecraft/import/MinecraftChunkTypes";
 import type { ImportedWorldSummary } from "./project/ProjectFile";
 import {
+  installModJar,
+  listInstalledMods,
+  uninstallMod,
+  type InstalledMod
+} from "./minecraft/mods/ModLibrary";
+import {
   AssetLibraryPanel,
   AudioWorkspacePanel,
   CommandPalette,
@@ -1125,6 +1131,37 @@ export function App() {
     requestAnimationFrame(step);
   }, [commitProject, tr]);
 
+  const [installedMods, setInstalledMods] = useState<InstalledMod[]>([]);
+
+  /*
+   * One install button for both kinds of file. A .jar is a Minecraft mod and
+   * goes to the block registry; anything else is a BlockMotion plugin and goes
+   * to the extension loader. Asking the user to pick the right button first
+   * would be a worse experience for no benefit — the extension already says
+   * which it is.
+   */
+  const handleInstallFile = useCallback(async (file: File) => {
+    if (file.name.toLowerCase().endsWith(".jar")) {
+      const record = await installModJar(await file.arrayBuffer());
+      setInstalledMods(listInstalledMods());
+      setStatus(
+        tr("mods.installed", {
+          name: record.metadata.name,
+          blocks: record.blockCount,
+          loader: record.metadata.loader
+        })
+      );
+      return;
+    }
+    await extensionWorkspace.installFile(file);
+  }, [extensionWorkspace, tr]);
+
+  const handleUninstallMod = useCallback((modId: string) => {
+    if (!uninstallMod(modId)) return;
+    setInstalledMods(listInstalledMods());
+    setStatus(tr("mods.uninstalled", { id: modId }));
+  }, [tr]);
+
   const handleAddKeyframe = useCallback(() => {
     const boneSelection = parseRigBoneSelection(selectedObjectId);
     if (boneSelection) {
@@ -1801,7 +1838,9 @@ export function App() {
         logs={extensionWorkspace.logs}
         safeMode={extensionWorkspace.safeMode}
         onClose={() => setPluginsOpen(false)}
-        onInstallFile={extensionWorkspace.installFile}
+        onInstallFile={handleInstallFile}
+        mods={installedMods}
+        onUninstallMod={handleUninstallMod}
         onToggleExtension={extensionWorkspace.setEnabled}
         onTrustExtension={extensionWorkspace.setTrusted}
         onUninstallExtension={extensionWorkspace.uninstall}
