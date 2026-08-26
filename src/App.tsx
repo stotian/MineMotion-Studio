@@ -101,6 +101,10 @@ import { OutlinerPanel } from "./ui/outliner/OutlinerPanel";
 import { TimelinePanel } from "./ui/timeline/TimelinePanel";
 import { WorldGeneratorPanel } from "./ui/world/WorldGeneratorPanel";
 import {
+  NewProjectDialog,
+  type NewProjectChoice
+} from "./ui/project/NewProjectDialog";
+import {
   generateWorld,
   type WorldGenSettings
 } from "./minecraft/worldgen/WorldGenerator";
@@ -415,9 +419,41 @@ export function App() {
     setSelectedObjectId(null);
   }, []);
 
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+
   const handleNewProject = useCallback(() => {
+    setNewProjectOpen(true);
+  }, []);
+
+  /*
+   * The dialog picks the Minecraft target before the project exists, so the
+   * choice is applied to the fresh project rather than left to be corrected in
+   * settings afterwards.
+   */
+  const handleCreateNewProject = useCallback((choice: NewProjectChoice) => {
     createNewProject(() => resetWorldImport("Project replaced."));
-  }, [createNewProject, resetWorldImport]);
+    commitProject(
+      (current) => ({
+        ...current,
+        projectName: choice.name,
+        projectSettings: {
+          ...current.projectSettings,
+          projectName: choice.name,
+          minecraftVersion: choice.minecraftVersion,
+          modLoader: choice.modLoader
+        }
+      }),
+      "New project"
+    );
+    setNewProjectOpen(false);
+    setStatus(
+      tr("newProject.created", {
+        name: choice.name,
+        version: choice.minecraftVersion,
+        loader: choice.modLoader
+      })
+    );
+  }, [commitProject, createNewProject, resetWorldImport, tr]);
 
   const handleNewProjectFromTemplate = useCallback(
     (templateId: string) => {
@@ -1952,6 +1988,12 @@ export function App() {
         onCancelImport={handleCancelWorldImport}
         onFocusWorld={handleFocusWorld}
         onUnloadWorld={handleUnloadWorld}
+      />
+      <NewProjectDialog
+        open={newProjectOpen}
+        defaultName={project.projectName}
+        onClose={() => setNewProjectOpen(false)}
+        onCreate={handleCreateNewProject}
       />
       <WorldGeneratorPanel
         open={worldGenOpen}
