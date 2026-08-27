@@ -1746,21 +1746,27 @@ p.parameter-control-error {
 .vfx-workspace-panel {
   width: min(1120px, 97vw);
   max-height: min(90vh, 900px);
+  overflow: hidden;
+  border-color: #4a4261;
+  background: #151820;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 52%);
 }
 
 .vfx-workspace-layout {
   display: grid;
   grid-template-columns: minmax(250px, 0.85fr) minmax(260px, 0.85fr) minmax(340px, 1.3fr);
-  gap: 0.9rem;
-  padding: 0.95rem;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  background: radial-gradient(circle at 80% -20%, rgb(126 97 220 / 18%), transparent 40%);
 }
 
 .vfx-workspace-layout section {
   min-width: 0;
   padding: 0.8rem;
-  border: 1px solid #373737;
-  border-radius: var(--bl-radius);
-  background: #191919;
+  border: 1px solid #343947;
+  border-radius: 6px;
+  background: linear-gradient(155deg, #202532, #171a23);
+  box-shadow: inset 0 1px rgb(255 255 255 / 4%);
 }
 
 .vfx-workspace-layout h3 {
@@ -1768,9 +1774,13 @@ p.parameter-control-error {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: #cdcdcd;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgb(255 255 255 / 7%);
+  color: #e5e8ff;
   font-size: 0.85rem;
 }
+
+.vfx-workspace-layout h3 svg { color: #ab95ff; }
 
 .vfx-workspace-layout label {
   display: grid;
@@ -1782,10 +1792,10 @@ p.parameter-control-error {
 
 .vfx-safety-note {
   padding: 0.65rem;
-  color: #c1cde8;
-  background: #292929;
-  border: 1px solid #455066;
-  border-radius: var(--bl-radius);
+  color: #cfd8fb;
+  background: rgb(80 99 156 / 18%);
+  border: 1px solid rgb(135 157 229 / 35%);
+  border-radius: 5px;
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -1841,10 +1851,13 @@ p.parameter-control-error {
   justify-content: space-between;
   gap: 0.8rem;
   padding: 0.55rem;
-  border: 1px solid #3f3f3f;
-  border-radius: var(--bl-radius);
-  background: #202020;
+  border: 1px solid #3d4455;
+  border-radius: 5px;
+  background: #1b202b;
+  transition: border-color 140ms ease, transform 140ms ease;
 }
+
+.vfx-installed-list article:hover { border-color: #7c94d5; transform: translateY(-1px); }
 
 .vfx-installed-list span,
 .vfx-installed-list strong,
@@ -1870,8 +1883,9 @@ p.parameter-control-error {
 
 .vfx-package-report-grid img {
   width: 100%;
-  border: 1px solid #484848;
-  border-radius: var(--bl-radius);
+  border: 1px solid #59678c;
+  border-radius: 5px;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 28%);
 }
 
 .vfx-package-report-grid dl {
@@ -1917,8 +1931,9 @@ p.parameter-control-error {
   aspect-ratio: 16 / 9;
   margin: 0.35rem 0 0.55rem;
   object-fit: cover;
-  border: 1px solid #484848;
-  border-radius: var(--bl-radius);
+  border: 1px solid #695bb2;
+  border-radius: 5px;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 32%);
 }
 
 .vfx-compile-ok {
