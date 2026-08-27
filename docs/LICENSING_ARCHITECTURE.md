@@ -99,3 +99,6 @@ clé privée ne quittent jamais le backend.
 3. Ajouter coffre-fort OS, écran d'activation, compte client et support.
 4. Faire auditer sécurité, CGU, confidentialité, TVA/abonnements et procédure
    de réinitialisation d'appareil avant toute vente.
+
+Le guide d'exécution autonome se trouve dans
+[`docs/licensing/`](licensing/README.md).
