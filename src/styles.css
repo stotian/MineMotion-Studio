@@ -480,21 +480,41 @@
 }
 
 .effect-card {
+  --effect-accent: #8a9cff;
   position: relative;
-  border: 1px solid #404040;
-  border-radius: var(--bl-radius);
-  background: #232323;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--effect-accent) 36%, #353845);
+  border-radius: calc(var(--bl-radius) + 2px);
+  background: linear-gradient(145deg, #242936, #1a1d26 72%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 4%), 0 4px 14px rgb(0 0 0 / 16%);
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.effect-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--effect-accent);
+  box-shadow: inset 0 1px rgb(255 255 255 / 8%), 0 8px 22px rgb(0 0 0 / 26%);
+}
+
+.effect-card[data-vfx-category="combat"] { --effect-accent: #ff6b63; }
+.effect-card[data-vfx-category="lightning-electric"] { --effect-accent: #8d8cff; }
+.effect-card[data-vfx-category="fire-explosion"] { --effect-accent: #ff9d42; }
+.effect-card[data-vfx-category="magic-energy"] { --effect-accent: #d37aff; }
+.effect-card[data-vfx-category="environment"] { --effect-accent: #63cfa0; }
+.effect-card[data-vfx-category="screen-cinematic"] { --effect-accent: #ffcf62; }
+.effect-card[data-vfx-category="movement-trails"] { --effect-accent: #55c8ff; }
+.effect-card-custom { --effect-accent: #56d3c0; }
 }
 
 .effect-card-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.18rem 0.45rem;
+  gap: 0.32rem 0.45rem;
   align-items: start;
   width: 100%;
   border: 0;
   background: transparent;
-  padding: 0.55rem;
+  padding: 0.5rem;
   padding-right: 2.25rem;
   text-align: left;
 }
@@ -509,9 +529,11 @@
   display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: var(--bl-radius);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: calc(var(--bl-radius) + 1px);
   object-fit: cover;
-  background: #161616;
+  background: radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--effect-accent) 28%, transparent), #11141c 72%);
+  box-shadow: inset 0 0 24px rgb(0 0 0 / 30%);
 }
 
 .effect-preview-pending {
@@ -521,14 +543,61 @@
 }
 
 .effect-card-main span {
-  color: #abb5df;
+  color: #c8d0ed;
   font-size: 0.66rem;
+}
+
+.effect-card-category {
+  justify-self: start;
+  padding: 0.18rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--effect-accent) 50%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--effect-accent) 16%, transparent);
+  color: var(--effect-accent) !important;
+  font-size: 0.61rem !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.effect-capabilities {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.effect-capabilities em {
+  padding: 0.13rem 0.32rem;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 7%);
+  color: #aeb9cf;
+  font-size: 0.61rem;
+  font-style: normal;
+}
+
+.effect-card-action {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-top: 0.08rem;
+  padding: 0.38rem 0.45rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--effect-accent) 17%, #202431);
+  color: #f3f6ff !important;
+  font-size: 0.68rem !important;
+  font-weight: 700;
+}
+
+.effect-card-main:hover .effect-card-action {
+  background: color-mix(in srgb, var(--effect-accent) 30%, #202431);
 }
 
 .effect-card-main small {
   grid-column: 1 / -1;
-  color: #999999;
+  color: #aeb5c4;
   line-height: 1.35;
 }
 
@@ -538,7 +607,10 @@
   right: 0.35rem;
   min-width: 1.6rem;
   padding: 0.25rem;
-  color: #999999;
+  color: #c6ccdc;
+  border-color: rgb(0 0 0 / 20%);
+  background: rgb(12 15 23 / 68%);
+  backdrop-filter: blur(5px);
 }
 
 .effect-favorite[aria-pressed="true"] {

@@ -294,6 +294,7 @@ export function EffectsLibraryPanel({
               <div
                 key={preset.metadata.id}
                 className="effect-card"
+                data-vfx-category={preset.metadata.category}
                 title={[
                   preset.definition.description,
                   ...preset.metadata.compatibility.limitations
@@ -312,11 +313,15 @@ export function EffectsLibraryPanel({
                       <Sparkles size={18} />
                     </span>
                   )}
+                  <span className="effect-card-category">{preset.metadata.category}</span>
                   <strong>{preset.localizedName}</strong>
-                  <span>{preset.metadata.category} / {preset.definition.space}</span>
                   <small>{preset.definition.description}</small>
-                  <small>{t("effects.builtinMaturity", { maturity: preset.metadata.compatibility.maturity })}</small>
-                  <Plus size={14} />
+                  <span className="effect-capabilities">
+                    {preset.metadata.compatibility.capabilities.preview && <em>{t("effects.capability.preview")}</em>}
+                    {preset.metadata.compatibility.capabilities.export && <em>{t("effects.capability.export")}</em>}
+                    {preset.metadata.compatibility.capabilities.editable && <em>{t("effects.capability.edit")}</em>}
+                  </span>
+                  <span className="effect-card-action"><Plus size={14} /> {t("effects.add")}</span>
                 </button>
                 <button
                   type="button"
@@ -331,14 +336,14 @@ export function EffectsLibraryPanel({
             );
           })}
           {filteredCustomPresets.map((preset) => (
-            <div key={`${preset.packageId}@${preset.packageVersion}`} className="effect-card" title={`${preset.description} ${preset.author} / ${preset.license}`}>
+            <div key={`${preset.packageId}@${preset.packageVersion}`} className="effect-card effect-card-custom" title={`${preset.description} ${preset.author} / ${preset.license}`}>
               <button type="button" className="effect-card-main" onClick={() => onAddCustomEffect(preset.packageId)}>
                 <img className="effect-preview" src={preset.previewDataUrl} alt="" />
+                <span className="effect-card-category">{t("effects.customSpace", { space: preset.space })}</span>
                 <strong>{preset.displayName}</strong>
-                <span>{t("effects.customSpace", { space: preset.space })}</span>
                 <small>{preset.description}</small>
-                <small>{preset.packageId} / {preset.packageVersion}</small>
-                <Plus size={14} />
+                <span className="effect-capabilities"><em>{preset.author}</em><em>{preset.license}</em></span>
+                <span className="effect-card-action"><Plus size={14} /> {t("effects.add")}</span>
               </button>
             </div>
           ))}
