@@ -885,3 +885,15 @@ measurement and code review rather than an unnoticed script-only change.
 **Decision:** Deliver the tracked source archive, full Git bundle, Phase 26–35 patch, original completion pack plus updated context, validation report and SHA-256 manifest.
 
 **Reason:** GitHub remains on an older baseline and local network/write access is unavailable. The Git bundle preserves commit identity and history; the ZIP and patch make inspection and recovery possible without Git-specific tooling.
+
+## TD-066 - Sign product entitlements with Ed25519
+
+**Decision:** Keep license authority on a separate server and distribute only
+rotatable Ed25519 public keys to MineMotion. The client verifies canonical,
+signed entitlement certificates and short offline leases; it never stores a
+server signing key.
+
+**Reason:** A local boolean can be edited. A signature makes entitlement
+forgery impractical without the server secret while still supporting temporary
+offline work. Device binding uses a privacy-respecting generated installation
+identifier, limits and server-side reset rather than invasive hardware tracking.

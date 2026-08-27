@@ -41,3 +41,11 @@ de production et gate `verify:performance-regressions` verte.
 À venir : builds natifs, installateurs, codecs, QA visuelle, mesures matériel,
 CI distante et décision de publication. Le statut reste `V1_BLOCKED` sans ces
 preuves.
+
+## Fondation commerciale — Licences signées
+
+**Fondation source terminée.** Le client sait vérifier des certificats de droits
+Ed25519 canoniques et des leases hors ligne, sans clé privée ni fingerprint
+matériel agressif. Le backend, l'activation, le coffre-fort OS et la politique
+commerciale restent des travaux de déploiement séparés, explicités dans
+`docs/LICENSING_ARCHITECTURE.md`.

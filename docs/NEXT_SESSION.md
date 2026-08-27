@@ -20,3 +20,8 @@ Les jalons 1 à 3 sont validés. Le jalon 4 exige des preuves matérielles et
 d'environnement qui dépassent l'environnement de test actuel (WebGL, codecs
 desktop, CI distante) : il faudra un accès externe pour les collecter
 honnêtement.
+
+Après le jalon 4, poursuivre le système de licences selon
+`docs/LICENSING_ARCHITECTURE.md` : provisionner le backend séparé, générer la
+clé Ed25519 hors dépôt, ajouter un coffre-fort OS et l'interface d'activation,
+puis effectuer une revue sécurité et juridique avant toute vente.

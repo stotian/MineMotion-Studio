@@ -62,3 +62,10 @@ car les preuves manquantes (signature, CI distante attestée, matériel de
 référence, autorisation de publication) exigent un accès externe. Aucun
 installateur signé, support plateforme ou codec desktop ne doit être présenté
 comme validé sans preuve collectée.
+
+Fondation de licences : les certificats de droits et leases hors ligne sont
+vérifiés localement par signature Ed25519 ; les refus d'expiration, appareil,
+version, falsification et retour d'horloge sont couverts par tests. Aucun
+serveur, paiement, compte ou clé publique de production n'est encore configuré
+dans cette source : les niveaux payants ne doivent donc pas être présentés comme
+commercialement disponibles.
